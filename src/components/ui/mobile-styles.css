@@ -1,0 +1,54 @@
+/* Mobile-specific styles for better responsiveness */
+
+/* Ensure proper spacing on mobile */
+@media (max-width: 768px) {
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  .mobile-margin {
+    margin: 1rem 0;
+  }
+  
+  /* Adjust card padding for mobile */
+  .card-mobile {
+    padding: 1rem;
+  }
+  
+  /* Make buttons full width on mobile */
+  .btn-mobile-full {
+    width: 100%;
+  }
+  
+  /* Adjust avatar size on mobile */
+  .avatar-mobile {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  /* Reduce spacing between elements on mobile */
+  .mobile-space-y {
+    margin-bottom: 0.5rem;
+  }
+  
+  .mobile-space-x {
+    margin-right: 0.5rem;
+  }
+  
+  /* Hide sidebar text on mobile */
+  .sidebar-text {
+    display: none;
+  }
+  
+  /* Compact sidebar for mobile */
+  .sidebar-compact {
+    width: 4rem;
+  }
+}
+
+/* Medium screens and up */
+@media (min-width: 768px) {
+  .sidebar-text {
+    display: inline;
+  }
+}
