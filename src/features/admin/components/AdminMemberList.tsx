@@ -1,4 +1,4 @@
-import { ChevronRight, Users } from "lucide-react";
+import { Eye, Trash2, UserCheck, UserX, Users } from "lucide-react";
 
 /**
  * The admin member list, matching the mobile app's `BlockMembersScreen` row.
@@ -11,13 +11,14 @@ import { ChevronRight, Users } from "lucide-react";
  * legible part of the card.
  *
  * Mobile shows one quiet row per member: initials, name over email, the status
- * word, and a chevron into the detail view. That is what a directory wants, and
- * it is what this renders. The rows sit in a single white surface rather than
- * separate cards, so a long list reads as one list.
+ * word, then the actions. That is what a directory wants, and it is what this
+ * renders. The rows sit in a single white surface rather than separate cards,
+ * so a long list reads as one list.
  *
- * Kept in `features/admin/components` because the block, district and state
- * Members screens were three near-identical copies of the same markup; the row
- * now has one definition.
+ * The row used to be a single `<button>` wrapping everything. Putting the three
+ * action buttons inside it would have nested interactive elements, which is
+ * invalid HTML and makes the inner clicks ambiguous, so the row is a plain
+ * `<div>` and only the identity block is the button that opens the profile.
  */
 
 export interface AdminMemberRow {
@@ -25,8 +26,10 @@ export interface AdminMemberRow {
     applicationId?: string;
     name: string;
     email?: string;
-    /** "Active" | "Inactive" — see the note on the caller's status rule. */
+    /** "Active" | "Inactive", resolved by the server. */
     status?: string;
+    /** Why they are inactive — suspended, or rejected and the reason given. */
+    inactiveReason?: string;
 }
 
 export default function AdminMemberList({
@@ -34,11 +37,20 @@ export default function AdminMemberList({
     loading,
     emptyHint,
     onOpen,
+    onToggleActive,
+    onDelete,
+    busyId,
 }: {
     members: AdminMemberRow[];
     loading?: boolean;
     emptyHint?: string;
     onOpen: (member: AdminMemberRow) => void;
+    /** Suspend an active member, or reactivate a suspended one. */
+    onToggleActive?: (member: AdminMemberRow, nextActive: boolean) => void;
+    /** Permanent, cascading delete. The caller confirms before calling. */
+    onDelete?: (member: AdminMemberRow) => void;
+    /** Row currently mid-request; its buttons are disabled. */
+    busyId?: string | null;
 }) {
     const initials = (name: string) =>
         (name || '')
@@ -74,39 +86,92 @@ export default function AdminMemberList({
         );
     }
 
+    const iconBtn =
+        'w-9 h-9 rounded-lg flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed';
+
     return (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             {members.map((member, i) => {
                 const inactive = (member.status || '').toLowerCase() === 'inactive';
+                const rowId = member.id || member.applicationId || String(i);
+                const busy = !!busyId && busyId === rowId;
+
                 return (
-                    <button
-                        key={member.id || member.applicationId || i}
-                        type="button"
-                        onClick={() => onOpen(member)}
-                        className={`w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors ${i === members.length - 1 ? '' : 'border-b border-gray-100'
+                    <div
+                        key={rowId}
+                        className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${i === members.length - 1 ? '' : 'border-b border-gray-100'
                             }`}
                     >
-                        <span className="w-11 h-11 rounded-full bg-indigo-50 text-indigo-600 font-bold text-sm flex items-center justify-center shrink-0">
-                            {initials(member.name)}
-                        </span>
+                        <button
+                            type="button"
+                            onClick={() => onOpen(member)}
+                            className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                        >
+                            <span className="w-11 h-11 rounded-full bg-indigo-50 text-indigo-600 font-bold text-sm flex items-center justify-center shrink-0">
+                                {initials(member.name)}
+                            </span>
 
-                        <span className="flex-1 min-w-0">
-                            <span className="block font-semibold text-gray-900 truncate">
-                                {member.name || 'Name not provided'}
+                            <span className="flex-1 min-w-0">
+                                <span className="block font-semibold text-gray-900 truncate">
+                                    {member.name || 'Name not provided'}
+                                </span>
+                                <span className="block text-sm text-gray-500 truncate">
+                                    {member.email || 'No email'}
+                                </span>
+                                {/* Only shown when there is one — an active member
+                                    has no reason to display, and an empty line
+                                    under every active row is noise. */}
+                                {inactive && member.inactiveReason ? (
+                                    <span className="block text-xs text-red-500 truncate mt-0.5">
+                                        {member.inactiveReason}
+                                    </span>
+                                ) : null}
                             </span>
-                            <span className="block text-sm text-gray-500 truncate">
-                                {member.email || 'No email'}
-                            </span>
-                        </span>
+                        </button>
 
                         <span
-                            className={`text-sm font-semibold shrink-0 ${inactive ? 'text-red-500' : 'text-green-600'}`}
+                            className={`text-sm font-semibold shrink-0 hidden sm:inline ${inactive ? 'text-red-500' : 'text-green-600'}`}
                         >
                             {inactive ? 'Inactive' : 'Active'}
                         </span>
 
-                        <ChevronRight className="w-5 h-5 text-indigo-500 shrink-0" />
-                    </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                            <button
+                                type="button"
+                                title="View full application"
+                                aria-label={`View ${member.name || 'member'}`}
+                                onClick={() => onOpen(member)}
+                                className={`${iconBtn} text-indigo-600 hover:bg-indigo-50`}
+                            >
+                                <Eye className="w-4 h-4" />
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={busy || !onToggleActive}
+                                title={inactive ? 'Reactivate this member' : 'Suspend this member'}
+                                aria-label={inactive ? `Reactivate ${member.name || 'member'}` : `Suspend ${member.name || 'member'}`}
+                                onClick={() => onToggleActive?.(member, inactive)}
+                                className={`${iconBtn} ${inactive
+                                    ? 'text-green-600 hover:bg-green-50'
+                                    : 'text-amber-600 hover:bg-amber-50'
+                                    }`}
+                            >
+                                {inactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={busy || !onDelete}
+                                title="Delete permanently"
+                                aria-label={`Delete ${member.name || 'member'}`}
+                                onClick={() => onDelete?.(member)}
+                                className={`${iconBtn} text-red-600 hover:bg-red-50`}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
                 );
             })}
         </div>

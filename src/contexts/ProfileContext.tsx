@@ -9,6 +9,7 @@ import {
   getStoredRole,
   isAuthenticated,
 } from "@/services/activApi";
+import { SESSION_EVENT } from "@/services/api";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 /**
@@ -94,8 +95,36 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
       }
       const totalForms = isDoingBusiness ? 4 : 3;
 
-      if (isDoingBusiness && financial?.panNumber) completed.push('Financial Details');
-      if (declaration?.agreeToDeclaration) completed.push('Declaration');
+      /**
+       * "Has the financial form been submitted", not "is the PAN filled in".
+       *
+       * This tested `financial?.panNumber`. PAN is optional on both financial
+       * forms — mobile only validates it `if (formData.panNumber)`, and neither
+       * website form marks it required — so a member could complete the whole
+       * step with GST, turnover, ITR and schemes and still never have it count.
+       * Their profile would sit at 75% permanently with nothing left to fill in
+       * and no way to reach 100%.
+       *
+       * `updateMember` sets `status: 'submitted'` on the financial record every
+       * time that step saves, so it is the signal that actually means what this
+       * check is asking.
+       */
+      /**
+       * Submitted **or beyond**, not the literal string 'submitted'.
+       *
+       * `updateMember` writes 'submitted' when the step saves, but an admin
+       * review moves it on to 'verified' and then 'approved'. Testing one exact
+       * value meant a member whose financial details had been verified stopped
+       * counting as having filled them in, so their profile fell back a quarter
+       * after an admin acted on it — the opposite direction to the one the bar
+       * is supposed to move.
+       */
+      const SUBMITTED_OR_BEYOND = ['submitted', 'verified', 'approved', 'completed'];
+      const isSubmitted = (value: unknown) =>
+        SUBMITTED_OR_BEYOND.includes(String(value || '').toLowerCase());
+
+      if (isDoingBusiness && isSubmitted(financial?.status)) completed.push('Financial Details');
+      if (declaration?.agreeToDeclaration || isSubmitted(declaration?.status)) completed.push('Declaration');
 
       // Once the application is in, or the membership is paid, the profile is
       // done by definition — the forms are locked and cannot be added to.
@@ -146,6 +175,17 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
     setUnreadHelpMessages(unread);
   };
 
+  /** Back to nothing, so one member's figures never show under another name. */
+  const resetProfile = () => {
+    setProfileCompletion(0);
+    setFormsCompleted([]);
+    setTotalFormsRequired(4);
+    setMemberType('Standard');
+    setIsFullyCompleted(false);
+    setUpcomingEventsCount(0);
+    try { localStorage.removeItem('profileCompletion'); } catch { /* ignore */ }
+  };
+
   useEffect(() => {
     loadProfileCompletion();
     loadUpcomingEvents();
@@ -156,16 +196,40 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
     const handleEventsUpdate = () => loadUpcomingEvents();
     const handleHelpUpdate = () => loadHelpMessages();
 
+    /**
+     * The signed-in identity changed.
+     *
+     * This provider wraps the router, so it mounts once for the life of the
+     * tab. Signing in is a `navigate()` with no page reload, so by then the
+     * effect above had already run — on the login page, with no token. It
+     * returned early, and nothing re-ran it: the member saw 0% and "Complete
+     * Your Profile" for the whole session however much was actually stored for
+     * them, and only a hard refresh put the real figure on screen.
+     */
+    const handleSessionChange = () => {
+      if (isMemberSession()) {
+        loadProfileCompletion();
+        loadUpcomingEvents();
+      } else {
+        resetProfile();
+      }
+    };
+
     window.addEventListener('profileUpdated', handleProfileUpdate);
     window.addEventListener('formSubmitted', handleProfileUpdate);
     window.addEventListener('eventsUpdated', handleEventsUpdate);
     window.addEventListener('helpUpdated', handleHelpUpdate);
+    window.addEventListener(SESSION_EVENT, handleSessionChange);
+    // Another tab signed in or out against the same storage.
+    window.addEventListener('storage', handleSessionChange);
 
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdate);
       window.removeEventListener('formSubmitted', handleProfileUpdate);
       window.removeEventListener('eventsUpdated', handleEventsUpdate);
       window.removeEventListener('helpUpdated', handleHelpUpdate);
+      window.removeEventListener(SESSION_EVENT, handleSessionChange);
+      window.removeEventListener('storage', handleSessionChange);
     };
   }, []);
 

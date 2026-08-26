@@ -86,8 +86,8 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
             onMouseDown={(e) => { e.preventDefault(); onClick(); }}
             title={title}
             aria-label={title}
-            className="p-1.5 rounded text-slate-600 dark:text-slate-300
-                       hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded text-slate-600 dark:text-neutral-300
+                       hover:bg-slate-200 dark:hover:bg-[#242424] transition-colors"
         >
             {children}
         </button>
@@ -98,20 +98,20 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
             className={`rounded-lg border transition-colors ${
                 focused
                     ? 'border-blue-600 ring-2 ring-blue-600/30'
-                    : 'border-slate-300 dark:border-slate-700'
+                    : 'border-slate-300 dark:border-[#2a2a2a]'
             }`}
         >
             <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-200
-                            dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-t-lg">
+                            dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#1a1a1a] rounded-t-lg">
                 <Btn onClick={() => run('bold')} title="Bold"><Bold size={15} /></Btn>
                 <Btn onClick={() => run('italic')} title="Italic"><Italic size={15} /></Btn>
 
-                <span className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1" />
+                <span className="w-px h-4 bg-slate-300 dark:bg-[#242424] mx-1" />
 
                 <Btn onClick={addLink} title="Add link"><Link2 size={15} /></Btn>
                 <Btn onClick={() => run('unlink')} title="Remove link"><Link2Off size={15} /></Btn>
 
-                <span className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1" />
+                <span className="w-px h-4 bg-slate-300 dark:bg-[#242424] mx-1" />
 
                 <Btn onClick={() => run('removeFormat')} title="Clear formatting"><Eraser size={15} /></Btn>
 
@@ -125,7 +125,7 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
                     className={`ml-auto p-1.5 rounded transition-colors ${
                         showSource
                             ? 'bg-blue-600 text-white'
-                            : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            : 'text-neutral-500 hover:bg-slate-200 dark:hover:bg-[#242424]'
                     }`}
                 >
                     <Code2 size={15} />
@@ -140,8 +140,8 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
                     spellCheck={false}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
-                    className="w-full bg-slate-50 dark:bg-slate-950 px-3 py-2 text-xs font-mono
-                               text-slate-900 dark:text-slate-100 rounded-b-lg focus:outline-none resize-y"
+                    className="w-full bg-slate-50 dark:bg-black px-3 py-2 text-xs font-mono
+                               text-slate-900 dark:text-neutral-100 rounded-b-lg focus:outline-none resize-y"
                 />
             ) : (
                 <div
@@ -165,16 +165,16 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
                     }}
                     data-placeholder={placeholder || ''}
                     style={{ minHeight: `${rows * 1.6}rem` }}
-                    className="w-full bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm rounded-b-lg
-                               text-slate-900 dark:text-slate-100 focus:outline-none overflow-y-auto
+                    className="w-full bg-slate-50 dark:bg-black px-3 py-2 text-sm rounded-b-lg
+                               text-slate-900 dark:text-neutral-100 focus:outline-none overflow-y-auto
                                [&_strong]:font-bold [&_b]:font-bold [&_em]:italic [&_i]:italic
                                [&_a]:text-blue-600 [&_a]:underline
                                [&:empty]:before:content-[attr(data-placeholder)]
-                               [&:empty]:before:text-slate-400 [&:empty]:before:pointer-events-none"
+                               [&:empty]:before:text-neutral-400 [&:empty]:before:pointer-events-none"
                 />
             )}
 
-            <p className="px-3 py-1.5 text-[11px] text-slate-500 border-t border-slate-200 dark:border-slate-800">
+            <p className="px-3 py-1.5 text-[11px] text-neutral-500 border-t border-slate-200 dark:border-[#1f1f1f]">
                 Bold, italic and links are kept. Anything else is removed when saved.
             </p>
         </div>

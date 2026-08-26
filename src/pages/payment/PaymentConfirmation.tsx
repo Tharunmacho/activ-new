@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import MemberPageShell from '@/pages/member/MemberPageShell';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,55 +29,39 @@ export default function PaymentConfirmation() {
       const paymentId = searchParams.get('payment_id');
       const transactionId = searchParams.get('transaction_id');
 
-      if (status === 'success' || stateDetails || true) { // Always show for testing
+      /**
+       * Only act on a payment that actually happened.
+       *
+       * The condition was `status === 'success' || stateDetails || true`. The
+       * trailing `|| true` made it unconditional, so simply visiting
+       * `/payment/confirmation` — a URL anyone can type — ran the activation
+       * below and turned the account into a paid membership. The gateway now
+       * passes `paid: true` in its navigation state, and Instamojo returns
+       * `?status=success`; nothing else counts.
+       */
+      const paidHere = !!(stateDetails && (stateDetails as any).paid);
+      if (status === 'success' || paidHere) {
         // Fetch latest application data
-        const app = await getUserApplication();
+        // Null when the member has no application, and when the request
+        // fails. Every `app.…` read below would throw on it.
+        const app = (await getUserApplication()) || ({} as any);
 
-        // Update payment status in backend
-        const token = localStorage.getItem('token');
-        if (app.applicationId) {
-          try {
-            
-            // Use the new complete endpoint
-            const verifyEndpoint = '/payment/complete';
-            
-            const headers: HeadersInit = {
-              'Content-Type': 'application/json'
-            };
-            
-            // Always add auth token
-            if (token) {
-              headers['Authorization'] = `Bearer ${token}`;
-            }
-            
-            const updateResponse = await apiFetch(verifyEndpoint, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify({
-                paymentId: paymentId || transactionId || app.paymentDetails?.paymentId || 'PAYMENT_' + Date.now(),
-                paymentMethod: 'card',
-                transactionId: transactionId || paymentId || app.paymentDetails?.transactionId || 'TXN_' + Date.now(),
-                status: 'completed',
-                applicationId: app.applicationId
-              })
-            });
-
-            if (updateResponse.ok) {
-              const result = await updateResponse.json();
-              
-              // Update localStorage
-              localStorage.setItem('paymentStatus', 'completed');
-              
-              // Dispatch event to refresh application data
-              window.dispatchEvent(new CustomEvent('paymentCompleted'));
-            } else {
-              const errorText = await updateResponse.text();
-              console.error('⚠️ Failed to update payment status:', errorText);
-            }
-          } catch (updateError) {
-            console.error('❌ Error updating payment status:', updateError);
-          }
-        }
+        /**
+         * This page confirms a payment; it no longer performs one.
+         *
+         * It used to POST `/payment/complete` itself, with identifiers it made
+         * up when the URL carried none — `'PAYMENT_' + Date.now()`. That worked
+         * because the endpoint verified nothing, which is exactly the hole that
+         * has now been closed: completion requires a server-created order and a
+         * signature the server issued, and this page has neither.
+         *
+         * The gateway completes the payment before navigating here, so by the
+         * time this renders the membership is already active. Re-posting would
+         * be refused as a replay of an order that is already paid — correctly.
+         */
+        localStorage.setItem('paymentStatus', 'completed');
+        window.dispatchEvent(new CustomEvent('paymentCompleted'));
+        window.dispatchEvent(new Event('profileUpdated'));
 
         // Determine plan type based on memberType and payment details
         let planType = 'Aspirant Plan';
@@ -166,12 +151,17 @@ export default function PaymentConfirmation() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <MemberPageShell
+          title="Payment Confirmation"
+          subtitle="Your membership payment"
+          width="wide"
+            sidebar={false}
+      >
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-700">Loading payment details...</p>
         </div>
-      </div>
+      </MemberPageShell>
     );
   }
 
@@ -214,7 +204,12 @@ Thank you for joining ACTIV!
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <MemberPageShell
+        title="Payment Confirmation"
+        subtitle="Your membership payment"
+        width="wide"
+            sidebar={false}
+    >
       {/* Header */}
       <div className="bg-white border-b border-gray-300 shadow-md">
         <div className="max-w-6xl mx-auto px-6 py-5">
@@ -358,6 +353,6 @@ Thank you for joining ACTIV!
           </div>
         </div>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

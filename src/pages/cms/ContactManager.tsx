@@ -4,7 +4,19 @@ import {
     getContactInfo, updateContactInfo, errorMessage,
     EMPTY_MEDIA, type ContactInfo, type CmsMedia,
 } from '@/services/cmsApi';
-import { CmsCard, CmsField, CmsInput, CmsTextarea, SaveButton, CmsLoading, CmsError } from './components/CmsUI';
+import {
+    CmsCard,
+    CmsField,
+    CmsInput,
+    CmsTextarea,
+    SaveButton,
+    CmsLoading,
+    CmsError,
+    cmsSaved,
+    cmsFailed,
+    CmsPage,
+    CmsSection,
+} from './components/CmsUI';
 import { LineList, IconPicker } from './components/CmsEditors';
 import MediaPicker from './components/MediaPicker';
 
@@ -51,6 +63,7 @@ export default function ContactManager() {
             // media with no URL, and the editor should show what was stored.
             setInfo(await updateContactInfo(info));
             setSaved('Contact page saved — the live page is updated.');
+            cmsSaved('Contact page');
             setTimeout(() => setSaved(''), 3000);
         } catch (err) {
             setError(errorMessage(err, 'Could not save the contact page'));
@@ -71,7 +84,8 @@ export default function ContactManager() {
         set({ heroMedia: info.heroMedia.map((m, i) => (i === index ? media : m)) });
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl pb-12">
+        <form onSubmit={handleSubmit} className="w-full">
+            <CmsPage>
             <CmsError message={error} onRetry={load} />
             {saved && (
                 <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40
@@ -119,47 +133,45 @@ export default function ContactManager() {
                         />
                     </CmsField>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-5">
-                        <div className="flex items-center justify-between mb-3">
-                            <div>
-                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                    Images beside the heading
-                                </p>
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                    Two overlapping frames. The first is the large one behind.
-                                </p>
-                            </div>
-                            {info.heroMedia.length < 2 && (
-                                <button
-                                    type="button"
-                                    onClick={() => set({ heroMedia: [...info.heroMedia, { ...EMPTY_MEDIA }] })}
-                                    className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400"
-                                >
-                                    <Plus size={14} /> Add image
-                                </button>
-                            )}
-                        </div>
+                    <CmsSection
+                        title="Images beside the heading"
+                        hint="Two overlapping frames. The first is the large one behind."
+                        actions={info.heroMedia.length < 2 ? (
+                            <button
+                                type="button"
+                                onClick={() => set({ heroMedia: [...info.heroMedia, { ...EMPTY_MEDIA }] })}
+                                className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 shrink-0"
+                            >
+                                <Plus size={14} /> Add image
+                            </button>
+                        ) : undefined}
+                    >
 
                         {info.heroMedia.length === 0 ? (
-                            <p className="text-sm text-slate-500 py-4 text-center border border-dashed
-                                          border-slate-300 dark:border-slate-700 rounded-lg">
+                            <p className="text-sm text-neutral-500 py-4 text-center border border-dashed
+                                          border-slate-300 dark:border-[#2a2a2a] rounded-lg">
                                 No images — the heading uses the full width.
                             </p>
                         ) : (
                             <div className="space-y-4">
                                 {info.heroMedia.map((media, i) => (
-                                    <div key={i} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                                    <div key={i} className="border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-4">
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                                            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
                                                 {i === 0 ? 'Large frame' : 'Small frame'}
                                             </span>
                                             <button
                                                 type="button"
-                                                onClick={() => set({ heroMedia: info.heroMedia.filter((_, x) => x !== i) })}
-                                                className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
-                                                aria-label="Remove image"
+                                                onClick={() => {
+                                                    if (!window.confirm('Remove this image from the heading?')) return;
+                                                    set({ heroMedia: info.heroMedia.filter((_, x) => x !== i) });
+                                                }}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                                                           text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30
+                                                           hover:bg-red-500/10 transition-colors"
+                                                aria-label="Delete image"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={13} /> Delete
                                             </button>
                                         </div>
                                         <MediaPicker
@@ -172,7 +184,7 @@ export default function ContactManager() {
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </CmsSection>
                 </div>
             </CmsCard>
 
@@ -198,14 +210,10 @@ export default function ContactManager() {
                         />
                     </CmsField>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                            Field wording
-                        </p>
-                        <p className="text-xs text-slate-500 mb-3">
-                            What each box is called. Which boxes exist is fixed — they are what the
-                            API accepts, so adding one here would build a form the server rejects.
-                        </p>
+                    <CmsSection
+                        title="Field wording"
+                        hint="What each box is called. Which boxes exist is fixed — they are what the API accepts."
+                    >
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Name box">
@@ -246,12 +254,12 @@ export default function ContactManager() {
                                 </CmsField>
                             </div>
                         </div>
-                    </div>
+                    </CmsSection>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                            Messages
-                        </p>
+                    <CmsSection
+                        title="Messages"
+                        hint="What the form says back to the visitor."
+                    >
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Something missing" hint="Shown before sending, when a required box is empty.">
                                 <CmsInput
@@ -268,7 +276,7 @@ export default function ContactManager() {
                                 />
                             </CmsField>
                         </div>
-                    </div>
+                    </CmsSection>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <CmsField label="Submit button label">
@@ -311,7 +319,8 @@ export default function ContactManager() {
                         />
                     </CmsField>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-5 space-y-5">
+                    <CmsSection title="Details" hint="A detail left blank is not shown on the page at all.">
+                        <div className="space-y-5">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Address heading">
                                 <CmsInput
@@ -392,13 +401,14 @@ export default function ContactManager() {
                                 onChange={e => set({ mapEmbedUrl: e.target.value })}
                             />
                         </CmsField>
-                    </div>
+                        </div>
+                    </CmsSection>
                 </div>
             </CmsCard>
 
             {/* ============================================== bottom banner */}
             <CmsCard title="Bottom banner" description="The strip at the foot of the contact page.">
-                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 mb-5">
+                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-300 mb-5">
                     <input
                         type="checkbox"
                         checked={info.banner.enabled}
@@ -468,6 +478,7 @@ export default function ContactManager() {
             </CmsCard>
 
             <SaveButton loading={saving} label="Save contact page" />
+            </CmsPage>
         </form>
     );
 }

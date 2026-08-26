@@ -147,7 +147,7 @@ const UnpaidDashboard = () => {
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header */}
-                <header className="bg-white shadow-sm z-10">
+                <header className="bg-white shadow-sm z-10 shrink-0">
                     <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
@@ -165,11 +165,32 @@ const UnpaidDashboard = () => {
                 </header>
 
                 {/* Main Content */}
-                <main className="flex-1 overflow-y-auto flex items-start justify-start">
-                    <div className="w-full max-w-4xl space-y-10 mt-12 ml-12">
+                {/*
+                    Padded and centred, on the same gutter as the header.
+
+                    This was `flex items-start justify-start` around a
+                    `max-w-4xl … mt-12 ml-12` block: the content was pinned hard
+                    to the left behind a 48px margin that matched nothing else on
+                    the page — the header beside it uses `px-4 sm:px-6 lg:px-8` —
+                    and capped narrow enough to leave a third of a desktop screen
+                    empty to its right. `max-w-7xl mx-auto` is what the paid
+                    dashboard uses, so the two now line up with each other.
+                */}
+                <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                    <div className="w-full max-w-7xl mx-auto space-y-6">
                         {/* Show only profile and business cards if profile not completed */}
                         {!profileCompleted && (
-                            <>
+                            /*
+                                Side by side on a wide screen, and the same
+                                height as each other.
+
+                                They were two stacked blocks in a narrow column,
+                                so one ran considerably taller than the other and
+                                the eye read them as unrelated. `items-stretch`
+                                plus `h-full` on each Card makes the pair match
+                                whichever content is longer.
+                            */
+                            <div className="grid gap-6 xl:grid-cols-2 items-stretch">
                                 {/*
                                   * Card 1 — Complete Your Profile.
                                   *
@@ -183,8 +204,8 @@ const UnpaidDashboard = () => {
                                   * `public/` rather than re-drawn, so the two stay
                                   * identical when either is changed.
                                   */}
-                                <Card className="bg-blue-600 text-white shadow-xl overflow-hidden">
-                                    <CardContent className="p-10 flex items-center justify-between gap-6">
+                                <Card className="bg-blue-600 text-white shadow-xl overflow-hidden h-full">
+                                    <CardContent className="p-8 lg:p-10 h-full flex items-center justify-between gap-6">
                                         <div className="flex-1 min-w-0">
                                             <h2 className="text-3xl font-bold mb-4 leading-tight">
                                                 Complete Your<br />Profile
@@ -237,8 +258,9 @@ const UnpaidDashboard = () => {
                                   * the button asked members to do something without saying
                                   * what it gets them.
                                   */}
-                                <Card className="bg-purple-600 text-white shadow-xl overflow-hidden">
-                                    <CardContent className="p-10 flex items-start justify-between gap-6">
+                                {/* Blue, not purple — the site has one accent. */}
+                                <Card className="bg-blue-700 text-white shadow-xl overflow-hidden h-full">
+                                    <CardContent className="p-8 lg:p-10 h-full flex items-start justify-between gap-6">
                                         <div className="flex-1 min-w-0">
                                             <h2 className="text-3xl font-bold mb-2">Your Business Account</h2>
                                             <p className="text-white/80 mb-6 text-base">
@@ -262,7 +284,7 @@ const UnpaidDashboard = () => {
 
                                             <Button
                                                 onClick={() => navigate('/business/create-profile')}
-                                                className="bg-white text-purple-600 hover:bg-purple-50 font-semibold text-lg px-8 py-3"
+                                                className="bg-white text-blue-700 hover:bg-blue-50 font-semibold text-lg px-8 py-3"
                                             >
                                                 Create Account
                                             </Button>
@@ -275,14 +297,14 @@ const UnpaidDashboard = () => {
                                         />
                                     </CardContent>
                                 </Card>
-                            </>
+                            </div>
                         )}
 
                         {/* Show application forms only if profile is completed */}
                         {profileCompleted && (
                             <>
                                 {/* Application Progress Card */}
-                                <Card className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
                                     <CardContent className="p-6">
                                         <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-2xl font-bold">Your Application Progress</h2>
@@ -349,8 +371,8 @@ const UnpaidDashboard = () => {
                                         onClick={() => navigate('/business/dashboard')}
                                     >
                                         <CardContent className="p-5 text-center">
-                                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center
-                                                            justify-center mx-auto mb-3 text-purple-600 text-xl">
+                                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center
+                                                            justify-center mx-auto mb-3 text-blue-700 text-xl">
                                                 &#127970;
                                             </div>
                                             <h4 className="font-semibold text-gray-900">Business Account</h4>

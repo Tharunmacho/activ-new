@@ -302,7 +302,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                                     className="object-cover w-full h-full" 
                                     style={{ display: 'block', opacity: 1 }}
                                 />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white font-bold">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-800 text-white font-bold">
                                     {userName ? userName.split(" ").map(n => n[0]).join("").toUpperCase() : "SD"}
                                 </AvatarFallback>
                             </>

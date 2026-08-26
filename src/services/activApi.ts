@@ -72,6 +72,13 @@ export interface Applicant {
     role: string;
     /** Declared on the application; drives the Aspirant vs Business label. */
     doingBusiness?: boolean;
+    /**
+     * `'business' | 'aspirant'`, as stored on the application. The admin
+     * dashboards have always returned it — the Members screens read it — but it
+     * was missing from this interface, so the approval queue could not show the
+     * "Membership Type" the mobile applicant card shows.
+     */
+    memberType?: string;
     memberCode?: string;
     gender?: string;
     city?: string;
@@ -98,6 +105,20 @@ export interface Applicant {
     businessInfo: Record<string, any>;
     financialInfo: Record<string, any>;
     declaration: Record<string, any>;
+    /** Whether the member account is enabled; false once an admin suspends it. */
+    isActive?: boolean;
+}
+
+/**
+ * A row of the admin Members directory.
+ *
+ * The server resolves Active / Inactive, so the two clients cannot disagree
+ * about who counts as a member. Rejected applicants appear here as Inactive.
+ */
+export interface AdminMember extends Applicant {
+    memberStatus: 'Active' | 'Inactive';
+    /** Empty when active; otherwise says suspended or rejected, and why. */
+    inactiveReason: string;
 }
 
 export interface AdminDashboard {
@@ -108,6 +129,8 @@ export interface AdminDashboard {
         rejected: Applicant[];
         all: Applicant[];
     };
+    /** Approved + rejected applicants, with Active/Inactive already resolved. */
+    members?: AdminMember[];
     recentActivities?: Array<Record<string, any>>;
     blocks?: Array<Record<string, any>>;
     districts?: Array<Record<string, any>>;
@@ -119,6 +142,7 @@ export interface AdminDashboard {
 const EMPTY_DASHBOARD: AdminDashboard = {
     stats: {},
     applicants: { pending: [], approved: [], rejected: [], all: [] },
+    members: [],
 };
 
 // ============================================================ auth
@@ -639,6 +663,19 @@ export const listApplications = async (params: Record<string, any> = {}) =>
  * caller's role decides which review runs, so the client never has to know what
  * stage the file currently sits at.
  */
+/**
+ * Activate, suspend or permanently delete a member from the Members screen.
+ *
+ * `id` is the application id the directory row carries. The server accepts the
+ * member and auth ids too, because the payload's `memberId` is one or the other
+ * depending on whether the applicant has an auth record.
+ *
+ * `delete` is a cascade and cannot be undone: application, credential, member
+ * record and all four additional forms go.
+ */
+export const memberAction = async (id: string, action: 'activate' | 'suspend' | 'delete') =>
+    unwrap<any>(await api.post(ENDPOINTS.ADMIN.USER_ACTION(id, action), {}), {});
+
 export const approveApplication = async (id: string) =>
     unwrap<any>(await api.post(ENDPOINTS.APPLICATIONS.APPROVE(id), {}), {});
 
@@ -688,6 +725,22 @@ export const getApplicationProfile = async (applicationId: string) => {
     const declaration = data.declaration || {};
 
     return {
+        /*
+            The flat shape first, then the nested one over it.
+
+            Applications are stored two ways. One created through the forms
+            nests its sections — `data.personalDetails`, `data.businessInfo`,
+            and so on — but the older rows, and anything written by the
+            registration path, store every field flat on `data` itself. This
+            function only ever read the nested shape, so for a flat application
+            all four sections resolved to `{}` and the detail view showed a name
+            and an email and nothing else, however much the applicant had
+            actually filled in.
+
+            Spreading `data` underneath means a flat row is read too, while a
+            nested one still wins where both carry the same key.
+        */
+        ...data,
         ...personal,
         ...business,
         ...financial,
@@ -702,6 +755,17 @@ export const getApplicationProfile = async (applicationId: string) => {
         district: app.district || personal.district || '',
         block: app.block || personal.block || '',
         city: personal.city || '',
+
+        /**
+         * Carried through so the detail view can tell an aspirant from a
+         * business applicant without a second request. It decides which of the
+         * four sections apply — an aspirant is never asked the Business or
+         * Financial questions, so showing those sections for one would render
+         * a page of empty rows.
+         */
+        registrationType: app.registrationType || '',
+        memberType: app.memberType || '',
+        doingBusiness: business.doingBusiness ?? (data as any).doingBusiness,
 
         status: app.status || '',
         submittedAt: app.createdAt || null,

@@ -1,4 +1,5 @@
 import React from 'react';
+import MemberPageShell from '@/pages/member/MemberPageShell';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,12 +13,11 @@ export default function ApplicationSubmitted() {
 
   if (!id) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-6"
-        style={{
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-        }}
+      <MemberPageShell
+          title="Application Submitted"
+          subtitle="Your membership application is under review"
+          width="wide"
+            sidebar={false}
       >
         <Card
           className="max-w-md w-full border-0"
@@ -47,7 +47,7 @@ export default function ApplicationSubmitted() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </MemberPageShell>
     );
   }
 
@@ -93,12 +93,11 @@ export default function ApplicationSubmitted() {
   ];
 
   return (
-    <div
-      className="min-h-screen py-8 px-4 md:px-6"
-      style={{
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-      }}
+    <MemberPageShell
+        title="Application Submitted"
+        subtitle="Your membership application is under review"
+        width="wide"
+            sidebar={false}
     >
       <div className="max-w-5xl mx-auto">
         {/* Success Header */}
@@ -393,6 +392,6 @@ export default function ApplicationSubmitted() {
           </div>
         </div>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

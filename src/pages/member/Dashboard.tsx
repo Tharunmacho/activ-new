@@ -270,7 +270,7 @@ const MemberDashboard = () => {
             ) : (
               <>
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face" className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white font-bold">
+                <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-800 text-white font-bold">
                   {userName ? userName.split(" ").map(n => n[0]).join("").toUpperCase() : "SD"}
                 </AvatarFallback>
               </>
@@ -290,7 +290,7 @@ const MemberDashboard = () => {
                   ) : (
                     <>
                       <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=face" className="object-cover" />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-2xl font-bold">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-800 text-white text-2xl font-bold">
                         {userName ? userName.split(" ").map(n => n[0]).join("").toUpperCase() : "SD"}
                       </AvatarFallback>
                     </>
@@ -360,7 +360,7 @@ const MemberDashboard = () => {
             )}
 
             {/* Your Business Account Card - Professional Purple */}
-            <Card className="shadow-lg border-0 w-full mb-4 md:mb-6 bg-purple-600 text-white">
+            <Card className="shadow-lg border-0 w-full mb-4 md:mb-6 bg-blue-700 text-white">
               <CardContent className="p-5 md:p-8">
                 <div className="flex flex-row items-center gap-4 md:gap-6">
                   <div className="flex-1">
@@ -371,7 +371,7 @@ const MemberDashboard = () => {
                     <p className="text-sm opacity-90 mb-4">View and manage your business profile and settings</p>
                     <div className="mt-4">
                       <Button 
-                        className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-2" 
+                        className="bg-white text-blue-700 hover:bg-gray-100 font-semibold px-8 py-2" 
                         onClick={() => navigate(hasBusinessAccount ? '/business/dashboard' : '/business/create-profile')}
                       >
                         {hasBusinessAccount ? 'View Account' : 'Create Account'}
@@ -379,7 +379,7 @@ const MemberDashboard = () => {
                     </div>
                   </div>
                   <div className="hidden sm:flex w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-white rounded-xl items-center justify-center shadow-lg flex-shrink-0">
-                    <Briefcase className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-purple-600" />
+                    <Briefcase className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-blue-700" />
                   </div>
                 </div>
               </CardContent>
@@ -389,7 +389,7 @@ const MemberDashboard = () => {
             {/* Profile Status Card */}            {/* Membership card and documents after membership */}
             {latestApplication?.payment?.status === 'Completed' && (
               <>
-                <Card className="w-full mb-6 border-0 shadow-medium bg-gradient-to-r from-purple-600 to-pink-500 text-white">
+                <Card className="w-full mb-6 border-0 shadow-medium bg-gradient-to-r from-blue-600 to-blue-800 text-white">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between">
                       <div>

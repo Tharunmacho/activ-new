@@ -50,8 +50,17 @@ export interface CmsBullet { icon: string; text: string }
 // ---------------------------------------------------------------- site chrome
 
 export interface SiteSettings {
-    brand: { logo: CmsMedia; name: string; fullName: string; tagline: string };
-    header: { navLinks: CmsLink[]; ctaLabel: string; ctaHref: string };
+    /** Shared by the header and the footer — one logo, edited once. */
+    brand: { logo: CmsMedia; fullName: string; tagline: string };
+    header: {
+        navLinks: CmsLink[];
+        ctaLabel: string;
+        ctaHref: string;
+        /** Hex. The bar itself; was hardcoded white. */
+        background: string;
+        /** Hex. The lockup, nav, button and menu icon; was hardcoded #1c2e68. */
+        textColor: string;
+    };
     footer: {
         addressLines: string[];
         linkColumns: { heading: string; links: CmsLink[] }[];
@@ -261,8 +270,8 @@ export const FEATURE_ICONS = ICON_NAMES;
 // ============================================================ empty shapes
 
 export const EMPTY_SITE: SiteSettings = {
-    brand: { logo: { ...EMPTY_MEDIA }, name: '', fullName: '', tagline: '' },
-    header: { navLinks: [], ctaLabel: '', ctaHref: '' },
+    brand: { logo: { ...EMPTY_MEDIA }, fullName: '', tagline: '' },
+    header: { navLinks: [], ctaLabel: '', ctaHref: '', background: '#ffffff', textColor: '#1c2e68' },
     footer: {
         addressLines: [], linkColumns: [], contactHeading: '', phones: [], email: '',
         socials: [], copyright: '', legalLinks: [], note: '',

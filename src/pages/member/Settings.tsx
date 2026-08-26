@@ -9,12 +9,15 @@ import MemberSidebar from "./MemberSidebar";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "@/services/activApi";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const MemberSettings = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const { memberType } = useProfile();
+    const isAspirant = memberType === 'Standard';
 
     /**
      * Whether this member sees the paid sections.
@@ -273,12 +276,14 @@ const MemberSettings = () => {
             });
 
             // Update business form - POST works
-            const businessResponse = await apiFetch('/members/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+            let businessResponse = { ok: true };
+            if (!isAspirant) {
+                businessResponse = await apiFetch('/members/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                 body: JSON.stringify({
                     doingBusiness: formData.doingBusiness,
                     organization: formData.organization,
@@ -291,7 +296,7 @@ const MemberSettings = () => {
                     chamberDetails: formData.chamberDetails,
                     govtOrgs: formData.govtOrgs
                 })
-            });
+            }
 
             // Update declaration form - POST works
             const declarationResponse = await apiFetch('/members/profile', {
@@ -308,21 +313,23 @@ const MemberSettings = () => {
             });
 
             // Update financial form - POST works
-            const financialResponse = await apiFetch('/members/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+            let financialResponse = { ok: true };
+            if (!isAspirant) {
+                financialResponse = await apiFetch('/members/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                 body: JSON.stringify({
                     pan: formData.pan,
                     gst: formData.gst,
                     udyam: formData.udyam,
-                    filedITR: formData.filedITR || undefined, // Send undefined instead of empty string
+                    filedITR: formData.filedITR || undefined,
                     turnoverRange: formData.turnoverRange,
-                    govtSchemes: formData.govtSchemes || undefined, // Send undefined instead of empty string
+                    govtSchemes: formData.govtSchemes || undefined,
                 })
-            });
+            }
 
             if (personalResponse.ok) {
                 // Also update the user profile (fullName) in the User model
@@ -431,7 +438,7 @@ const MemberSettings = () => {
                                     <div className="relative">
                                         <Avatar className="w-24 h-24">
                                             <AvatarImage src={profilePhoto || undefined} />
-                                            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-2xl font-bold">
+                                            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-800 text-white text-2xl font-bold">
                                                 {formData.name ? formData.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "U"}
                                             </AvatarFallback>
                                         </Avatar>
@@ -587,6 +594,8 @@ const MemberSettings = () => {
                           */}
                         {isPaid && (
                         <>
+                        {!isAspirant && (
+                        <>
                         {/* Business Information */}
                         <Card>
                             <CardHeader>
@@ -739,6 +748,7 @@ const MemberSettings = () => {
                                 </div>
                             </CardContent>
                         </Card>
+                        </>}
 
                         {/* Declaration Information */}
                         <Card>

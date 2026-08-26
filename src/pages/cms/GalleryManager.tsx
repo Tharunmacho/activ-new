@@ -5,7 +5,21 @@ import {
     getGallerySettings, updateGallerySettings, errorMessage,
     EMPTY_MEDIA, type GalleryItem, type GallerySettings, type CmsMedia,
 } from '@/services/cmsApi';
-import { CmsCard, CmsField, CmsInput, CmsTextarea, CmsButton, CmsLoading, CmsError, CmsEmpty } from './components/CmsUI';
+import {
+    CmsCard,
+    CmsField,
+    CmsInput,
+    CmsTextarea,
+    CmsButton,
+    CmsLoading,
+    CmsError,
+    CmsEmpty,
+    cmsSaved,
+    cmsFailed,
+    cmsDeleted,
+    CmsPage,
+    CmsSection,
+} from './components/CmsUI';
 import { RepeatableList, LineList, IconPicker } from './components/CmsEditors';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import MediaPicker from './components/MediaPicker';
@@ -73,6 +87,7 @@ export default function GalleryManager() {
         try {
             setSettings(await updateGallerySettings(settings));
             setSavedCopy(true);
+            cmsSaved('Gallery copy');
             setTimeout(() => setSavedCopy(false), 2500);
         } catch (err) {
             setError(errorMessage(err, 'Could not save the page copy'));
@@ -141,6 +156,7 @@ export default function GalleryManager() {
         setBusyId(item._id);
         try {
             await deleteGalleryItem(item._id);
+            cmsDeleted(item.title || 'Image');
             await load();
         } catch (err) {
             setError(errorMessage(err, 'Could not delete the image'));
@@ -155,7 +171,7 @@ export default function GalleryManager() {
     const featuredCount = items.filter(i => i.featured).length;
 
     return (
-        <div className="space-y-6 max-w-5xl pb-12">
+        <CmsPage>
             <CmsError message={error} onRetry={load} />
 
             {/* ============================================== page copy */}
@@ -211,12 +227,10 @@ export default function GalleryManager() {
                             placeholder={'Our Work\nOur People\nOur Impact'}
                         />
 
-                        <div className="border-t border-slate-200 dark:border-slate-800 pt-5">
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Filter chips</p>
-                            <p className="text-xs text-slate-500 mb-3">
-                                An "All" chip is always shown first. A chip's label is what an image's
-                                category must match for it to appear under that filter.
-                            </p>
+                        <CmsSection
+                            title="Filter chips"
+                            hint={'An "All" chip is always shown first. A chip label is what an image category must match to appear under that filter.'}
+                        >
                             <RepeatableList<{ label: string; icon: string }>
                                 items={categories}
                                 onChange={next => setSettings({ ...settings, categories: next })}
@@ -235,9 +249,10 @@ export default function GalleryManager() {
                                     </div>
                                 )}
                             />
-                        </div>
+                        </CmsSection>
 
-                        <div className="grid gap-4 sm:grid-cols-2 border-t border-slate-200 dark:border-slate-800 pt-5">
+                        <CmsSection title="Paging" hint="How many images load before the button appears.">
+                            <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Images before 'view more'" hint="0 shows every image at once.">
                                 <CmsInput
                                     type="number" min={0} max={200}
@@ -252,7 +267,8 @@ export default function GalleryManager() {
                                     placeholder="View More Photos"
                                 />
                             </CmsField>
-                        </div>
+                            </div>
+                        </CmsSection>
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Nothing published yet" hint="Shown in place of the grid.">
@@ -315,8 +331,8 @@ export default function GalleryManager() {
                             <select
                                 value={draft.category}
                                 onChange={e => setDraft({ ...draft, category: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700
-                                           rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                                className="w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a]
+                                           rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-neutral-100"
                             >
                                 <option value="">No category</option>
                                 {categories.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
@@ -341,7 +357,7 @@ export default function GalleryManager() {
                         </CmsField>
                     </div>
 
-                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                    <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-300">
                         <input
                             type="checkbox"
                             checked={draft.featured}
@@ -349,7 +365,7 @@ export default function GalleryManager() {
                             className="rounded border-slate-400"
                         />
                         Feature in the collage at the top of the page
-                        <span className="text-xs text-slate-500">(the first three featured images are used)</span>
+                        <span className="text-xs text-neutral-500">(the first three featured images are used)</span>
                     </label>
 
                     <CmsButton type="submit" loading={adding}>
@@ -374,18 +390,18 @@ export default function GalleryManager() {
                         {items.map((item) => (
                             <div
                                 key={item._id}
-                                className={`flex gap-4 border border-slate-200 dark:border-slate-700 rounded-lg p-3
+                                className={`flex gap-4 border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-3
                                             ${item.visible === false ? 'opacity-60' : ''}`}
                             >
-                                <div className="w-28 h-20 shrink-0 rounded-md overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                <div className="w-28 h-20 shrink-0 rounded-md overflow-hidden bg-slate-100 dark:bg-[#161616]">
                                     <CmsMediaFrame media={item.media} />
                                 </div>
 
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-neutral-100 truncate">
                                         {item.title || 'Untitled'}
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-0.5 truncate">
+                                    <p className="text-xs text-neutral-500 mt-0.5 truncate">
                                         {[item.category, item.eventDate, item.location].filter(Boolean).join(' · ') || 'No details'}
                                     </p>
                                     {item.visible === false && (
@@ -402,7 +418,7 @@ export default function GalleryManager() {
                                         className={`p-2 rounded transition-colors disabled:opacity-40 ${
                                             item.featured
                                                 ? 'text-amber-500 hover:bg-amber-500/10'
-                                                : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                                : 'text-neutral-400 hover:bg-slate-100 dark:hover:bg-[#161616]'
                                         }`}
                                     >
                                         <Star size={16} fill={item.featured ? 'currentColor' : 'none'} />
@@ -413,20 +429,25 @@ export default function GalleryManager() {
                                         disabled={busyId === item._id}
                                         onClick={() => patchItem(item._id, { visible: item.visible === false })}
                                         title={item.visible === false ? 'Show on the site' : 'Hide from the site'}
-                                        className="p-2 rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800
+                                        className="p-2 rounded text-neutral-500 hover:bg-slate-100 dark:hover:bg-[#161616]
                                                    disabled:opacity-40"
                                     >
                                         {item.visible === false ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
 
+                                    {/* Labelled, not a bare icon: it sits beside the
+                                        show/hide toggle at the same size, and one of
+                                        the two is reversible while the other is not. */}
                                     <button
                                         type="button"
                                         disabled={busyId === item._id}
                                         onClick={() => handleDelete(item)}
                                         title="Delete permanently"
-                                        className="p-2 rounded text-red-500 hover:bg-red-500/10 disabled:opacity-40"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                                                   text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30
+                                                   hover:bg-red-500/10 disabled:opacity-40 transition-colors"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={13} /> Delete
                                     </button>
                                 </div>
                             </div>
@@ -434,6 +455,6 @@ export default function GalleryManager() {
                     </div>
                 )}
             </CmsCard>
-        </div>
+        </CmsPage>
     );
 }

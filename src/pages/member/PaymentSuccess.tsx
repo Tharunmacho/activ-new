@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { apiFetch } from "@/services/activApi";
+import MemberPageShell from './MemberPageShell';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -87,12 +88,17 @@ export default function PaymentSuccess() {
   }, [app]);
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-100 to-blue-200">
-      <div className="max-w-2xl mx-auto">
+    <MemberPageShell
+      title="Payment Successful"
+      subtitle="Your membership is now active"
+      width="narrow"
+            sidebar={false}
+    >
+      <div className="max-w-2xl mx-auto py-2">
         <div className="text-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-blue-600 mx-auto mb-3" />
-          <h1 className="text-2xl md:text-3xl font-bold">Payment Successful!</h1>
-          <p className="text-muted-foreground">Welcome to ACTIV — Your membership is now active</p>
+          <div className="w-20 h-20 rounded-full bg-blue-600 mx-auto mb-3 flex items-center justify-center text-white text-3xl font-bold shadow-lg">✓</div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Payment Successful!</h1>
+          <p className="text-slate-500">Welcome to ACTIV — Your membership is now active</p>
         </div>
 
         <Card className="mb-6">
@@ -145,7 +151,7 @@ export default function PaymentSuccess() {
             Download Tax Exemption Certificate
           </Button>
           <Button
-            className="justify-between bg-pink-100 text-pink-900 hover:bg-pink-100"
+            className="justify-between bg-blue-100 text-blue-900 hover:bg-blue-100"
             variant="secondary"
             onClick={() => handleDownload(`Payment-Receipt-${app?.id || 'member'}.txt`, `Receipt\nMember: ${memberName}\nAmount: ₹${paidAmount}\nReference: ${app?.payment?.reference || `INST_${app?.id || ''}`}`)}
           >
@@ -173,6 +179,6 @@ export default function PaymentSuccess() {
           Go to Member Dashboard
         </Button>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

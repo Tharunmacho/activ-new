@@ -95,7 +95,7 @@ export default function MessagesInbox() {
                         key={f.key}
                         onClick={() => setFilter(f.key)}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                            filter === f.key ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            filter === f.key ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-[#161616] text-slate-700 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-[#242424]'
                         }`}
                     >
                         {f.label}
@@ -121,38 +121,38 @@ export default function MessagesInbox() {
                                 >
                                     {m.status === 'new'
                                         ? <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-1" />
-                                        : <MailOpen className="w-4 h-4 text-slate-500 shrink-0 mt-1" />}
+                                        : <MailOpen className="w-4 h-4 text-neutral-500 shrink-0 mt-1" />}
 
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-baseline gap-2">
-                                            <p className={`truncate ${m.status === 'new' ? 'font-semibold text-slate-900 dark:text-slate-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                            <p className={`truncate ${m.status === 'new' ? 'font-semibold text-slate-900 dark:text-neutral-100' : 'text-slate-700 dark:text-neutral-300'}`}>
                                                 {m.name}
                                             </p>
-                                            <span className="text-xs text-slate-500 truncate">{m.email}</span>
+                                            <span className="text-xs text-neutral-500 truncate">{m.email}</span>
                                         </div>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                        <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
                                             {m.subject || m.message}
                                         </p>
                                     </div>
 
-                                    <span className="text-xs text-slate-500 shrink-0 whitespace-nowrap">
+                                    <span className="text-xs text-neutral-500 shrink-0 whitespace-nowrap">
                                         {m.createdAt ? new Date(m.createdAt).toLocaleDateString() : ''}
                                     </span>
                                 </button>
 
                                 {open === m._id && (
-                                    <div className="mt-3 ml-7 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                                    <div className="mt-3 ml-7 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#1f1f1f] rounded-lg p-4">
                                         <dl className="grid gap-2 sm:grid-cols-2 text-sm mb-3">
-                                            <div><dt className="text-slate-500 inline">Email: </dt>
-                                                <dd className="text-slate-700 dark:text-slate-300 inline">{m.email}</dd></div>
-                                            {m.phone && <div><dt className="text-slate-500 inline">Phone: </dt>
-                                                <dd className="text-slate-700 dark:text-slate-300 inline">{m.phone}</dd></div>}
-                                            {m.subject && <div className="sm:col-span-2"><dt className="text-slate-500 inline">Subject: </dt>
-                                                <dd className="text-slate-700 dark:text-slate-300 inline">{m.subject}</dd></div>}
+                                            <div><dt className="text-neutral-500 inline">Email: </dt>
+                                                <dd className="text-slate-700 dark:text-neutral-300 inline">{m.email}</dd></div>
+                                            {m.phone && <div><dt className="text-neutral-500 inline">Phone: </dt>
+                                                <dd className="text-slate-700 dark:text-neutral-300 inline">{m.phone}</dd></div>}
+                                            {m.subject && <div className="sm:col-span-2"><dt className="text-neutral-500 inline">Subject: </dt>
+                                                <dd className="text-slate-700 dark:text-neutral-300 inline">{m.subject}</dd></div>}
                                         </dl>
 
                                         {/* Plain text, deliberately. This is untrusted input. */}
-                                        <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap break-words">
+                                        <p className="text-sm text-slate-800 dark:text-neutral-200 whitespace-pre-wrap break-words">
                                             {m.message}
                                         </p>
 

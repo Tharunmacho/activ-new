@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, CreditCard, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { verifyPayment } from '@/services/paymentApi';
+import { payForMembership } from '@/services/paymentApi';
+import MemberPageShell from '../member/MemberPageShell';
 
 export default function PaymentGateway() {
   const navigate = useNavigate();
@@ -28,9 +29,11 @@ export default function PaymentGateway() {
   const [selectedBank, setSelectedBank] = useState('');
 
   useEffect(() => {
+    // `/payment/register` is not a route on this site. Reaching the gateway
+    // with no plan sent the member to a 404 instead of back to the picker.
     if (!paymentDetails) {
-      toast.error('Payment details not found');
-      navigate('/payment/register');
+      toast.error('Choose a plan first');
+      navigate('/payment/membership-plans', { replace: true });
     }
   }, [paymentDetails, navigate]);
 
@@ -62,24 +65,42 @@ export default function PaymentGateway() {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Call backend to verify and record payment
-      const result = await verifyPayment({
-        paymentId: paymentDetails.paymentId,
+      /**
+       * Order, authorise, verify — the server checks all three.
+       *
+       * This used to post `{ paymentId, paymentMethod, transactionId, status }`
+       * to a route that checked none of them. The client generated its own
+       * identifiers, so the "payment" was a string this page invented; an
+       * authenticated request with an empty body worked just as well, and any
+       * member who could sign in could grant themselves a membership.
+       *
+       * The plan is now sent instead of an amount, and the server decides what
+       * it costs, issues the order, signs it and verifies the signature before
+       * activating anything. `payForMembership` is where a real gateway's
+       * checkout will replace the interim authorisation step.
+       */
+      if (!paymentDetails?.planId) {
+        toast.error('Choose a plan first');
+        navigate('/payment/membership-plans', { replace: true });
+        return;
+      }
+
+      const order = await payForMembership(paymentDetails.planId, {
+        applicationId: paymentDetails.applicationId,
         paymentMethod,
-        transactionId: `TXN${Date.now()}`,
-        status: 'completed'
       });
 
-      if (result.success) {
-        toast.success('Payment successful!');
-        navigate('/payment/confirmation', { 
-          state: { 
-            ...paymentDetails,
-            transactionId: result.transactionId,
-            paymentDate: new Date().toISOString()
-          } 
-        });
-      }
+      toast.success('Payment successful!');
+      navigate('/payment/confirmation', {
+        state: {
+          ...paymentDetails,
+          paid: true,
+          orderId: order.orderId,
+          // The amount the SERVER charged, not the one this page displayed.
+          totalAmount: order.amount,
+          paymentDate: new Date().toISOString(),
+        },
+      });
     } catch (error: any) {
       console.error('Payment error:', error);
       toast.error(error.message || 'Payment failed. Please try again.');
@@ -129,17 +150,22 @@ export default function PaymentGateway() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 p-4 md:p-6">
-      <div className="max-w-3xl mx-auto">
+    <MemberPageShell
+      title="Secure Checkout"
+      subtitle="Complete your payment safely and securely"
+      width="standard"
+            sidebar={false}
+    >
+      <div className="max-w-3xl mx-auto py-2">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center shadow-lg">
               <Lock className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold mb-2">Secure Payment Gateway</h1>
-          <p className="text-gray-700 text-lg">Complete your payment safely and securely</p>
+          <h1 className="text-3xl font-bold mb-2">Payment Gateway</h1>
+          <p className="text-gray-500">Choose your preferred payment method</p>
         </div>
 
         {/* Payment Amount Summary */}
@@ -333,7 +359,7 @@ export default function PaymentGateway() {
           <Button
             variant="outline"
             className="flex-1 py-6 text-lg"
-            onClick={() => navigate('/payment/register')}
+            onClick={() => navigate('/payment/membership-plans')}
             disabled={processing}
           >
             Cancel
@@ -357,6 +383,6 @@ export default function PaymentGateway() {
           </Button>
         </div>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

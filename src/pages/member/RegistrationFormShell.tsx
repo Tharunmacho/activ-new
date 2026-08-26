@@ -1,8 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Check, ArrowLeft, ArrowRight, Loader2, type LucideIcon } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight, Loader2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import MemberSidebar from "./MemberSidebar";
 
 /**
  * The shell the four registration forms render inside.
@@ -140,21 +139,27 @@ export default function RegistrationFormShell({
     children: ReactNode;
 }) {
     const navigate = useNavigate();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    /*
+        No sidebar on the registration forms.
 
+        These four steps are a linear flow, not a place a member navigates to.
+        A rail offering Dashboard, My Profile, Business Account and Explore
+        Members halfway through step 2 is four ways to abandon a half-filled
+        application; the back arrow is the one way out that keeps the flow
+        coherent.
+    */
     return (
-        <div className="min-h-screen flex bg-slate-100">
-            <MemberSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
+        <div className="min-h-screen flex flex-col bg-slate-100">
             <div className="flex-1 min-w-0 flex flex-col">
                 <header className="h-[72px] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8">
                     <button
                         type="button"
-                        className="lg:hidden text-slate-500 hover:text-slate-700 shrink-0"
-                        onClick={() => setSidebarOpen(true)}
-                        aria-label="Open menu"
+                        className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 flex items-center
+                                   justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+                        onClick={() => navigate('/member/dashboard')}
+                        aria-label="Back to dashboard"
                     >
-                        <Menu className="w-5 h-5" />
+                        <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div className="min-w-0">
                         <h1 className="text-[21px] font-bold tracking-tight text-slate-900 truncate">{title}</h1>

@@ -207,7 +207,7 @@ const MemberRegister = () => {
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
       {/* Left Panel - Blue Welcome Section */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 p-8 flex-col justify-between text-white relative overflow-hidden">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 p-8 flex-col justify-between text-white relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full filter blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full filter blur-3xl"></div>
@@ -297,7 +297,7 @@ const MemberRegister = () => {
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-600 to-blue-800 h-2 rounded-full transition-all duration-300"
               style={{ width: step === 1 ? '50%' : '100%' }}
             />
           </div>

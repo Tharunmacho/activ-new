@@ -54,7 +54,8 @@ const MemberSettings = lazy(() => import("./pages/member/Settings"));
 const PaymentRegistration = lazy(() => import("./pages/payment/PaymentRegistration"));
 const PaymentConfirmation = lazy(() => import("./pages/payment/PaymentConfirmation"));
 const MockPayment = lazy(() => import("./pages/payment/MockPayment"));
-const PaymentMemberDashboard = lazy(() => import("./pages/payment/OldMemberDashboard"));
+const PaymentGateway = lazy(() => import("./pages/payment/PaymentGateway"));
+const PaymentMemberDashboard = lazy(() => import("./features/member/pages/PaidDashboard"));
 const MembershipPlans = lazy(() => import("./pages/payment/MembershipPlans"));
 
 // Business Feature Imports
@@ -183,6 +184,9 @@ const App = () => (
               <Route path="/payment/membership-plan" element={<PaymentRegistration />} />
               <Route path="/payment/confirmation" element={<PaymentConfirmation />} />
               <Route path="/payment/mock" element={<MockPayment />} />
+              {/* PaymentGateway existed but was never routed, so nothing could
+                  reach it — and it is the step that records the payment. */}
+              <Route path="/payment/gateway" element={<PaymentGateway />} />
               <Route path="/payment/member-dashboard" element={<PaymentMemberDashboard />} />
               <Route path="/payment/membership-plans" element={<MembershipPlans />} />
 

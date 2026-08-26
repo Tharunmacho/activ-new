@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowLeft, Lock, Shield, CreditCard, Zap, FileText, Mail, Star, Building2, Loader2, Crown, Sparkles, Award } from 'lucide-react';
-import { getUserApplication } from '@/services/applicationApi';
-import { initiatePayment } from '@/services/paymentApi';
+import { resolvePlanEligibility, type MembershipPlan } from '@/features/member/membershipPlans';
 import { toast } from 'sonner';
+import MemberPageShell from '../member/MemberPageShell';
 
 interface Plan {
   id: string;
@@ -20,7 +20,41 @@ interface Plan {
   bgGradient: string;
 }
 
-const plans: Plan[] = [
+/**
+ * Presentation only. The plans themselves — names, prices, features, and which
+ * of them a given member may buy — live in `features/member/membershipPlans`,
+ * transcribed from the mobile `CompleteMembershipScreen` so the two clients
+ * cannot drift on what a membership costs.
+ */
+const DECOR: Record<string, Pick<Plan, 'icon' | 'accentColor' | 'bgGradient'>> = {
+  basic: {
+    icon: Sparkles,
+    accentColor: '#0ea5e9',
+    bgGradient: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+  },
+  intermediate: {
+    icon: Crown,
+    accentColor: '#2563eb',
+    bgGradient: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+  },
+  ideal: {
+    icon: Award,
+    accentColor: '#1e40af',
+    bgGradient: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
+  },
+  aspirant: {
+    icon: Star,
+    accentColor: '#0284c7',
+    bgGradient: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+  },
+};
+
+const decorate = (plan: MembershipPlan): Plan => ({
+  ...plan,
+  ...(DECOR[plan.id] || DECOR.basic),
+});
+
+const legacyPlans: Plan[] = [
   {
     id: 'basic',
     name: 'Starter',
@@ -71,7 +105,18 @@ const plans: Plan[] = [
 
 export default function MembershipPlans() {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<Plan>(plans[1]);
+  /**
+   * Which plans this member is offered, and which is preselected.
+   *
+   * Both used to be fixed: three company plans, with the middle one selected.
+   * An applicant who declared no business was therefore shown a company plan
+   * starting at Rs 5,000 and had no way to reach the Rs 2,000 aspirant plan
+   * mobile offers them — so the two clients disagreed about the price of the
+   * same membership.
+   */
+  const [plans, setPlans] = useState<Plan[]>(legacyPlans);
+  const [selectedPlan, setSelectedPlan] = useState<Plan>(legacyPlans[1]);
+  const [planLocked, setPlanLocked] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -82,22 +127,33 @@ export default function MembershipPlans() {
 
   const loadUserData = async () => {
     try {
-      const app = await getUserApplication();
+      const eligibility = await resolvePlanEligibility();
+
+      const offered = eligibility.plans.map(decorate);
+      setPlans(offered);
+      setSelectedPlan(decorate(eligibility.selected));
+      setPlanLocked(eligibility.locked);
+
       setUserData({
-        memberType: 'Company',
-        experience: app.businessExperience || '5 - 10 years',
-        applicationId: app.applicationId,
-        memberName: app.fullName,
-        memberEmail: app.email
+        memberType: eligibility.isCompany ? 'Company' : 'Aspirant',
+        experience: eligibility.experience,
+        applicationId: eligibility.applicationId,
       });
     } catch (error) {
+      /**
+       * Real defaults, not an invented identity.
+       *
+       * This used to fall back to an application id of 'APP-TEST' under the
+       * name 'Member' at 'member@activ.org' — values that then travelled into
+       * the payment as if they described someone. The company plans are a safe
+       * default because they are what an unclassified applicant sees anyway;
+       * a fabricated application id is not.
+       */
       console.error('Error loading user data:', error);
       setUserData({
         memberType: 'Company',
         experience: '5 - 10 years',
-        applicationId: 'APP-TEST',
-        memberName: 'Member',
-        memberEmail: 'member@activ.org'
+        applicationId: '',
       });
     } finally {
       setLoading(false);
@@ -105,29 +161,37 @@ export default function MembershipPlans() {
   };
 
   const handlePlanSelect = (plan: Plan) => {
+    // An aspirant's plan follows from what they declared, as on mobile, where
+    // the cards are rendered but not selectable.
+    if (planLocked) return;
     setSelectedPlan(plan);
   };
 
+  /**
+   * On to the gateway, which is where the payment is actually recorded.
+   *
+   * This called `initiatePayment()` -> `POST /payment/initiate`, a route the
+   * backend does not declare, so the button answered 404 and no membership
+   * could be bought from the website at all. Mobile's
+   * `CompleteMembershipScreen.handlePayment` makes no request either: it
+   * carries the plan to the gateway screen, and the gateway posts
+   * `/payment/complete`. This is that same step.
+   */
   const handlePayment = async () => {
     setProcessing(true);
     try {
-      const paymentData = {
-        planType: selectedPlan.name,
-        planAmount: selectedPlan.price,
-        supportAmount: 0,
-        totalAmount: selectedPlan.price
-      };
-
-      const result = await initiatePayment(paymentData);
-
-      if (result.success) {
-        window.location.href = result.paymentUrl;
-      } else {
-        toast.error('Failed to initiate payment');
-      }
+      navigate('/payment/gateway', {
+        state: {
+          planType: selectedPlan.name,
+          planId: selectedPlan.id,
+          planAmount: selectedPlan.price,
+          totalAmount: selectedPlan.price,
+          applicationId: userData?.applicationId || '',
+        },
+      });
     } catch (error) {
-      console.error('Payment initiation error:', error);
-      toast.error('Payment initiation failed');
+      console.error('Could not open checkout:', error);
+      toast.error('Unable to open checkout. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -160,44 +224,19 @@ export default function MembershipPlans() {
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-      }}
-    >
-      {/* Header */}
-      <div
-        className="sticky top-0 z-50 backdrop-blur-md"
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="rounded-xl hover:bg-gray-100"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </Button>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Choose Plan</h1>
-              <p className="text-xs text-gray-500 hidden sm:block">Select the best option for your business</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Lock className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="hidden sm:inline">Secure Checkout</span>
-          </div>
+    <MemberPageShell
+      title="Choose Plan"
+      subtitle="Select the best option for your business"
+      width="standard"
+      sidebar={false}
+      actions={
+        <div className="flex items-center gap-2 text-xs text-gray-500 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+          <Lock className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="hidden sm:inline font-medium text-emerald-700">Secure Checkout</span>
         </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      }
+    >
+      <div className="py-2">
         {/* Title */}
         <div className="text-center mb-10">
           <div
@@ -513,6 +552,6 @@ export default function MembershipPlans() {
           </div>
         </div>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

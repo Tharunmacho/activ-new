@@ -4,7 +4,20 @@ import {
     getHome, updateHome, errorMessage, EMPTY_MEDIA,
     type HomeContent, type HeroSlide,
 } from '@/services/cmsApi';
-import { CmsCard, CmsField, CmsInput, CmsTextarea, CmsButton, CmsLoading, CmsError, CmsEmpty } from './components/CmsUI';
+import {
+    CmsCard,
+    CmsField,
+    CmsInput,
+    CmsTextarea,
+    CmsButton,
+    CmsLoading,
+    CmsError,
+    CmsEmpty,
+    CmsPage,
+    CmsSection,
+    cmsSaved,
+    cmsFailed,
+} from './components/CmsUI';
 import { RepeatableList, StatList, BulletList, IconPicker } from './components/CmsEditors';
 import MediaPicker from './components/MediaPicker';
 import RichTextEditor from './components/RichTextEditor';
@@ -58,6 +71,7 @@ export default function HomeManager() {
             // icons, and the editor should show what was actually stored.
             setHome(await updateHome({ [key]: home[key] } as Partial<HomeContent>));
             setSavedBlock(key);
+            cmsSaved(key === 'carousel' ? 'Banner' : 'About block');
             setTimeout(() => setSavedBlock(null), 2500);
         } catch (err) {
             setError(errorMessage(err, 'Could not save this block'));
@@ -101,7 +115,7 @@ export default function HomeManager() {
     );
 
     return (
-        <div className="space-y-8 w-full pb-12">
+        <CmsPage>
             <CmsError message={error} onRetry={load} />
 
             {/* ============================================== 1. CAROUSEL */}
@@ -120,11 +134,9 @@ export default function HomeManager() {
                     </CmsButton>
                 }
             >
-                <div className="space-y-6">
+                <div className="space-y-0">
 
-                    {/* ---- headline ---- */}
-                    <div>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">Headline</p>
+                    <CmsSection title="Headline" hint="The words over the banner.">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Headline">
                                 <CmsInput
@@ -152,15 +164,12 @@ export default function HomeManager() {
                                 />
                             </CmsField>
                         </div>
-                    </div>
+                    </CmsSection>
 
-                    {/* ---- buttons ---- */}
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">Buttons</p>
-
+                    <CmsSection title="Buttons" hint="Leave a label blank to hide that button.">
                         <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-3 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Primary</p>
+                            <div className="space-y-3 border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Primary</p>
                                 <CmsField label="Label" hint="Leave blank to hide this button.">
                                     <CmsInput
                                         value={carousel.ctaLabel}
@@ -178,8 +187,8 @@ export default function HomeManager() {
                                 <IconPicker value={carousel.ctaIcon} onChange={ctaIcon => setCarousel({ ctaIcon })} />
                             </div>
 
-                            <div className="space-y-3 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Secondary</p>
+                            <div className="space-y-3 border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Secondary</p>
                                 <CmsField label="Label" hint="Leave blank to hide this button.">
                                     <CmsInput
                                         value={carousel.secondaryCtaLabel}
@@ -200,15 +209,9 @@ export default function HomeManager() {
                                 />
                             </div>
                         </div>
-                    </div>
+                    </CmsSection>
 
-                    {/* ---- slides ---- */}
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                            Slides
-                            <span className="font-normal text-slate-500"> — they rotate in this order.</span>
-                        </p>
-
+                    <CmsSection title="Slides" hint="They rotate in this order. Add, reorder or remove as many as you need.">
                         {carousel.slides.length === 0 ? (
                             <CmsEmpty title="No slides yet" hint="Without one the banner is not shown at all." />
                         ) : (
@@ -236,16 +239,13 @@ export default function HomeManager() {
                                 )}
                             />
                         )}
-                    </div>
+                    </CmsSection>
 
-                    {/* ---- highlight card ---- */}
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <div className="flex items-center justify-between mb-3">
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                Highlight card
-                                <span className="font-normal text-slate-500"> — overlaps the bottom of the banner.</span>
-                            </p>
-                            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                    <CmsSection
+                        title="Highlight card"
+                        hint="Overlaps the bottom edge of the banner."
+                        actions={
+                            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-neutral-300 shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={card.enabled}
@@ -254,8 +254,8 @@ export default function HomeManager() {
                                 />
                                 Show
                             </label>
-                        </div>
-
+                        }
+                    >
                         {card.enabled && (
                             <div className="space-y-4">
                                 <div className="grid gap-4 md:grid-cols-[200px_1fr_1fr]">
@@ -285,7 +285,7 @@ export default function HomeManager() {
                                 </CmsField>
 
                                 <div>
-                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                                    <p className="text-sm font-medium text-slate-700 dark:text-neutral-300 mb-3">
                                         Figures on the right
                                     </p>
                                     <StatList
@@ -296,7 +296,7 @@ export default function HomeManager() {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </CmsSection>
                 </div>
 
                 <SaveRow block="carousel" label="Save banner" />
@@ -307,8 +307,9 @@ export default function HomeManager() {
                 title="2. About block"
                 description="The badge, heading, paragraph, icon points, image and figures bar."
             >
-                <div className="space-y-6">
+                <div className="space-y-0">
 
+                    <CmsSection title="Badge" hint="The small pill above the heading.">
                     <div className="grid gap-4 md:grid-cols-[200px_1fr]">
                         <IconPicker value={about.badgeIcon} onChange={badgeIcon => setAbout({ badgeIcon })} label="Badge icon" />
                         <CmsField label="Badge text" hint="The small pill above the heading. Blank hides it.">
@@ -319,7 +320,9 @@ export default function HomeManager() {
                             />
                         </CmsField>
                     </div>
+                    </CmsSection>
 
+                    <CmsSection title="Heading and introduction">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <CmsField label="Heading">
                             <CmsInput
@@ -337,24 +340,24 @@ export default function HomeManager() {
                         </CmsField>
                     </div>
 
-                    <CmsField label="Introduction">
-                        <RichTextEditor
-                            rows={4}
-                            value={about.body}
-                            onChange={body => setAbout({ body })}
-                            placeholder="ACTIV is an Indian Chamber of Commerce for SC/ST entrepreneurs…"
-                        />
-                    </CmsField>
-
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                            Points
-                            <span className="font-normal text-slate-500"> — the icon list under the introduction.</span>
-                        </p>
-                        <BulletList items={about.bullets} onChange={bullets => setAbout({ bullets })} />
+                    <div className="mt-4">
+                        <CmsField label="Introduction">
+                            <RichTextEditor
+                                rows={4}
+                                value={about.body}
+                                onChange={body => setAbout({ body })}
+                                placeholder="ACTIV is an Indian Chamber of Commerce for SC/ST entrepreneurs…"
+                            />
+                        </CmsField>
                     </div>
+                    </CmsSection>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-5">
+                    <CmsSection title="Points" hint="The icon list under the introduction.">
+                        <BulletList items={about.bullets} onChange={bullets => setAbout({ bullets })} />
+                    </CmsSection>
+
+                    <CmsSection title="Image" hint="The arched portrait frame, and the mark that floats over it.">
+                    <div className="space-y-5">
                         {/* 3/4 — the arched portrait frame on the page. */}
                         <MediaPicker
                             label="Image or video"
@@ -371,22 +374,19 @@ export default function HomeManager() {
                             hint="Floats over the top-right of the image. Leave empty to hide it."
                         />
                     </div>
+                    </CmsSection>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                            Figures bar
-                            <span className="font-normal text-slate-500"> — the white card below this section.</span>
-                        </p>
+                    <CmsSection title="Figures bar" hint="The white card below this section.">
                         <StatList
                             items={about.statsBar}
                             onChange={statsBar => setAbout({ statsBar })}
                             max={6}
                         />
-                    </div>
+                    </CmsSection>
                 </div>
 
                 <SaveRow block="about" label="Save About block" />
             </CmsCard>
-        </div>
+        </CmsPage>
     );
 }

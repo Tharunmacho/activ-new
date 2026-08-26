@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import MemberPageShell from '@/pages/member/MemberPageShell';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,12 +36,11 @@ export default function MockPayment() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 md:p-8"
-      style={{
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-      }}
+    <MemberPageShell
+        title="Payment"
+        subtitle="Completing your payment"
+        width="wide"
+            sidebar={false}
     >
       <div className="w-full max-w-5xl">
         {/* Back Button */}
@@ -232,6 +232,6 @@ export default function MockPayment() {
           </div>
         </div>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

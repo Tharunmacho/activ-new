@@ -41,16 +41,40 @@ export function HeaderSection() {
     const ctaLabel = site?.header?.ctaLabel || '';
     const ctaHref = site?.header?.ctaHref || '/login';
 
+    /**
+     * The bar's colours, from the CMS.
+     *
+     * These were `bg-white` and `#1c2e68`, written into eight class names here,
+     * so recolouring the header meant editing this file and deploying. They are
+     * now editable in Site settings, which is what a CMS is for. The fallbacks
+     * are the previous values, so a site that has never set them looks exactly
+     * as it did.
+     *
+     * Applied inline rather than through Tailwind classes because Tailwind
+     * compiles the classes it can see in the source — a colour that only exists
+     * in the database at runtime produces no CSS at all.
+     */
+    const background = site?.header?.background || '#ffffff';
+    const accent = site?.header?.textColor || '#1c2e68';
+
     const navClass = (href: string) => {
         // '/' and '/onboarding' are the same page, so both light the Home link.
         const isActive = pathname === href || (href === '/' && pathname === '/onboarding');
         return isActive
-            ? 'text-[#1c2e68] border-b-2 border-[#1c2e68] pb-1 font-semibold transition-all'
-            : 'text-gray-600 hover:text-[#1c2e68] pb-1 transition-all font-medium';
+            ? 'pb-1 font-semibold transition-all border-b-2'
+            : 'pb-1 transition-all font-medium opacity-70 hover:opacity-100';
+    };
+
+    const navStyle = (href: string) => {
+        const isActive = pathname === href || (href === '/' && pathname === '/onboarding');
+        return isActive ? { color: accent, borderColor: accent } : { color: accent };
     };
 
     return (
-        <header className="w-full flex flex-col font-sans bg-white shadow-sm sticky top-0 z-50">
+        <header
+            className="w-full flex flex-col font-sans shadow-sm sticky top-0 z-50"
+            style={{ backgroundColor: background }}
+        >
             <div className="container mx-auto px-4 md:px-8 py-4">
                 <div className="flex justify-between items-center gap-4">
 
@@ -65,8 +89,11 @@ export function HeaderSection() {
                             </span>
                         )}
                         {brand?.fullName && (
-                            <span className="text-[10px] text-[#1c2e68] font-bold leading-tight hidden md:block
-                                             uppercase tracking-wider pl-2 border-l-2 border-[#1c2e68] max-w-[220px]">
+                            <span
+                                className="text-[10px] font-bold leading-tight hidden md:block
+                                           uppercase tracking-wider pl-2 border-l-2 max-w-[220px]"
+                                style={{ color: accent, borderColor: accent }}
+                            >
                                 {brand.fullName}
                             </span>
                         )}
@@ -76,7 +103,12 @@ export function HeaderSection() {
                     {navLinks.length > 0 && (
                         <nav className="hidden lg:flex items-center space-x-8 text-sm">
                             {navLinks.map((item, i) => (
-                                <Link key={`${item.href}-${i}`} to={item.href || '/'} className={navClass(item.href)}>
+                                <Link
+                                    key={`${item.href}-${i}`}
+                                    to={item.href || '/'}
+                                    className={navClass(item.href)}
+                                    style={navStyle(item.href)}
+                                >
                                     {item.label}
                                 </Link>
                             ))}
@@ -87,8 +119,9 @@ export function HeaderSection() {
                         {ctaLabel && (
                             <Link
                                 to={ctaHref}
-                                className="bg-[#1c2e68] hover:bg-blue-900 text-white px-6 py-2 rounded-full
-                                           font-medium transition-colors shadow-sm text-sm whitespace-nowrap"
+                                className="text-white px-6 py-2 rounded-full font-medium transition-opacity
+                                           hover:opacity-90 shadow-sm text-sm whitespace-nowrap"
+                                style={{ backgroundColor: accent }}
                             >
                                 {ctaLabel}
                             </Link>
@@ -97,7 +130,8 @@ export function HeaderSection() {
                         {/* The nav collapses below `lg`; without this it is unreachable. */}
                         {navLinks.length > 0 && (
                             <button
-                                className="lg:hidden text-[#1c2e68] p-1"
+                                className="lg:hidden p-1"
+                                style={{ color: accent }}
                                 onClick={() => setMenuOpen(v => !v)}
                                 aria-label={menuOpen ? 'Close menu' : 'Open menu'}
                                 aria-expanded={menuOpen}
@@ -114,7 +148,8 @@ export function HeaderSection() {
                             <Link
                                 key={`m-${item.href}-${i}`}
                                 to={item.href || '/'}
-                                className="px-2 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                className="px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-black/5"
+                                style={{ color: accent }}
                             >
                                 {item.label}
                             </Link>

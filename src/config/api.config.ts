@@ -24,11 +24,8 @@ const API_CONFIG = {
         timeout: 20000,
     },
     production: {
-        baseURL: 'https://actv-project.onrender.com/api/v1',
-        // Long on purpose: the API is on Render's free tier and a cold start can
-        // take the better part of a minute. Failing fast here shows the user a
-        // network error for a server that was only asleep.
-        timeout: 75000,
+        baseURL: 'https://YOUR_DOKPLOY_BACKEND_URL.com/api/v1',
+        timeout: 10000,
     },
 };
 
@@ -291,6 +288,15 @@ export const ENDPOINTS = {
         CREATE_REQUEST: '/payment/create-request',
         STATUS: (id: string) => `/payment/status/${id}`,
         RENEW: '/payment/renew',
+        /** The plans and prices, as the server holds them. */
+        PLANS: '/payment/plans',
+        /** Start a payment. The server decides the amount from the plan. */
+        ORDER: '/payment/order',
+        /** One order, the caller's own. */
+        ORDER_BY_ID: (orderId: string) => `/payment/order/${orderId}`,
+        /** Interim stand-in for the gateway's authorisation step. */
+        MOCK_AUTHORIZE: '/payment/mock-authorize',
+        /** Verify a signed payment and activate the membership. */
         COMPLETE: '/payment/complete',
     },
 } as const;

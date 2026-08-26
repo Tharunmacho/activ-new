@@ -6,6 +6,7 @@ import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { login, getMyApplication, errorMessage, getPaymentStatus } from "@/services/activApi";
+import { ArrowLeft } from "lucide-react";
 
 const activLogo = "/logo_ACTIVian-removebg-preview.png";
 
@@ -184,8 +185,15 @@ export default function EnhancedLoginPage() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-white overflow-auto">
-        <div className="w-full max-w-md space-y-6">
+      <div className="flex-1 flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-white overflow-auto relative">
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+        <div className="w-full max-w-md space-y-6 mt-8 md:mt-0">
           {/* Mobile Logo */}
           <div className="md:hidden text-center">
             <img

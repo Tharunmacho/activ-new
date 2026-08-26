@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, ArrowLeft, Shield, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUserApplication } from '@/services/applicationApi';
-import { initiatePayment } from '@/services/paymentApi';
+import { ASPIRANT_PLAN } from '@/features/member/membershipPlans';
 import { getPaymentStatus } from "@/services/activApi";
 
 export default function PaymentRegistration() {
@@ -22,8 +22,26 @@ export default function PaymentRegistration() {
     try {
       const app = await getUserApplication();
 
+      /**
+       * `getUserApplication()` resolves to **null** when the member has no
+       * application — and also when the request fails, which it does whenever
+       * the API is unreachable.
+       *
+       * The guard below was `app.status?.toLowerCase()`. The optional chain is
+       * on `status`, not on `app`, so a null application threw
+       * `Cannot read properties of null (reading 'status')` before the check
+       * ran at all: the page died in `loadApplication`, its catch reported
+       * "Failed to load application details", and the member was left on a
+       * payment screen with a Pay button and no application behind it.
+       */
+      if (!app) {
+        toast.error('We could not find your application. Please submit it before paying.');
+        navigate('/member/application-status');
+        return;
+      }
+
       // Check if application is approved
-      if (app.status !== 'approved') {
+      if (String(app.status || '').toLowerCase() !== 'approved') {
         toast.error('Your application must be approved before payment');
         navigate('/member/application-status');
         return;
@@ -53,30 +71,26 @@ export default function PaymentRegistration() {
 
     setProcessing(true);
     try {
-      // For Aspirant plan - fixed pricing
-      const paymentData = {
-        planType: 'annual' as 'annual' | 'lifetime',
-        planAmount: 2000,
-        supportAmount: 0,
-        totalAmount: 2000
-      };
-
-      const result = await initiatePayment(paymentData);
-
-
-      if (result.success && result.paymentUrl) {
-        if (result.testMode) {
-          toast.info('Using Test Mode - Instamojo unavailable');
-        } else {
-          toast.success('Redirecting to payment gateway...');
-        }
-
-        // Redirect to payment URL (either Instamojo or mock)
-        window.location.href = result.paymentUrl;
-      } else {
-        toast.error(result.message || 'Failed to initiate payment');
-        setProcessing(false);
-      }
+      /**
+       * On to the gateway, the same step mobile takes.
+       *
+       * This called `initiatePayment()` -> `POST /payment/initiate`, a route
+       * the backend does not declare, and then redirected to
+       * `result.paymentUrl` from a response that never arrived. Mobile makes no
+       * request when a plan is chosen; the gateway records the payment.
+       *
+       * The aspirant price is read from the shared plan definition rather than
+       * repeated here, so it cannot drift from what the plan picker charges.
+       */
+      navigate('/payment/gateway', {
+        state: {
+          planType: ASPIRANT_PLAN.name,
+          planId: ASPIRANT_PLAN.id,
+          planAmount: ASPIRANT_PLAN.price,
+          totalAmount: ASPIRANT_PLAN.price,
+          applicationId: application?.applicationId || application?._id || '',
+        },
+      });
     } catch (error: any) {
       console.error('❌ Payment error:', error);
       toast.error(error.message || 'Payment failed. Please try again.');

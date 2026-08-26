@@ -9,8 +9,9 @@ import ApprovalCard from "@/components/ui/approval-card";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { getAdminApplications, approveApplication, rejectApplication, errorMessage, getAdminDashboard, toApplicationRecord, type Applicant } from "@/services/activApi";
+import { getAdminApplications, approveApplication, rejectApplication, errorMessage, getAdminDashboard, toApplicationRecord, getApplicationProfile, type Applicant } from "@/services/activApi";
 import ApprovalQueue, { type ApplicantBuckets, type BucketKey } from "@/components/ApprovalQueue";
+import ProfileViewModal from "@/components/ui/profile-view-modal";
 
 // Backend application types
 type StageKey = 'block' | 'district' | 'state' | 'payment';
@@ -122,6 +123,39 @@ const Approvals = () => {
    * have -- so every applicant received the same non-explanation, and even that
    * was dropped by Mongoose before it reached the database.
    */
+  /**
+   * The applicant detail view, opened from the queue.
+   *
+   * The three tier queues gained this; super admin was the one that still had
+   * no way to open an application from its own queue. A super admin acts on
+   * whichever tier the file currently sits at, so the decision buttons are
+   * handed through here too.
+   */
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailProfile, setDetailProfile] = useState<any>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailApplicant, setDetailApplicant] = useState<Applicant | null>(null);
+
+  const openDetail = async (applicant: Applicant) => {
+    setDetailApplicant(applicant);
+    setDetailOpen(true);
+    setDetailLoading(true);
+    try {
+      const profile = await getApplicationProfile(applicant.id);
+      setDetailProfile({
+        ...(profile || {}),
+        stage: applicant.stage,
+        statusLabel: applicant.statusLabel,
+        rejectionReason: applicant.rejectionReason || (profile as any)?.rejectionReason || '',
+      });
+    } catch (error) {
+      toast.error(errorMessage(error, 'Failed to load application data'));
+      setDetailOpen(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   const handleReview = async (
     applicant: Applicant,
     action: 'approve' | 'reject',
@@ -262,10 +296,20 @@ const Approvals = () => {
               activeFilter={tab as BucketKey}
               onFilterChange={(f) => setTab(f as typeof tab)}
               onReview={handleReview}
+              onPressApplicant={openDetail}
             />
           </div>
         </div>
       </div>
+      <ProfileViewModal
+        open={detailOpen}
+        onClose={() => { setDetailOpen(false); setDetailProfile(null); setDetailApplicant(null); }}
+        profile={detailProfile}
+        loading={detailLoading}
+        onReview={async (action, reason) => {
+          if (detailApplicant) await handleReview(detailApplicant, action, reason);
+        }}
+      />
       <Toaster />
     </div>
   );

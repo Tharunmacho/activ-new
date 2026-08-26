@@ -6,7 +6,21 @@ import {
     errorMessage, EMPTY_MEDIA,
     type CmsEvent, type EventsSettings, type CmsMedia,
 } from '@/services/cmsApi';
-import { CmsCard, CmsField, CmsInput, CmsTextarea, CmsButton, CmsLoading, CmsError, CmsEmpty } from './components/CmsUI';
+import {
+    CmsCard,
+    CmsField,
+    CmsInput,
+    CmsTextarea,
+    CmsButton,
+    CmsLoading,
+    CmsError,
+    CmsEmpty,
+    cmsSaved,
+    cmsFailed,
+    cmsDeleted,
+    CmsPage,
+    CmsSection,
+} from './components/CmsUI';
 import MediaPicker from './components/MediaPicker';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 
@@ -111,6 +125,7 @@ export default function EventsManager() {
         try {
             setSettings(await updateEventsSettings(settings));
             setSavedCopy(true);
+            cmsSaved('Section copy');
             setTimeout(() => setSavedCopy(false), 2500);
         } catch (err) {
             setError(errorMessage(err, 'Could not save the section copy'));
@@ -161,12 +176,15 @@ export default function EventsManager() {
 
             if (editing) await updateCmsEvent(editing, payload);
             else await createCmsEvent(payload);
+            cmsSaved(editing ? 'Event' : 'New event');
             setShowForm(false);
             await load();
         } catch (err) {
             // The server rejects a missing title or an unparseable date with a
             // specific message; showing it verbatim is more use than a generic one.
-            setError(errorMessage(err, 'Could not save the event'));
+            const message = errorMessage(err, 'Could not save the event');
+            setError(message);
+            cmsFailed('the event', message);
         } finally {
             setSaving(false);
         }
@@ -176,16 +194,19 @@ export default function EventsManager() {
         if (!window.confirm(`Delete "${e.title}"? This removes it from the public site and from the member app.`)) return;
         try {
             await deleteCmsEvent(e.id);
+            cmsDeleted(e.title || 'Event');
             await load();
         } catch (err) {
-            setError(errorMessage(err, 'Could not delete the event'));
+            const message = errorMessage(err, 'Could not delete the event');
+            setError(message);
+            cmsFailed('the deletion', message);
         }
     };
 
     if (loading) return <CmsLoading label="Loading events…" />;
 
     return (
-        <div className="space-y-5 w-full">
+        <CmsPage>
             <CmsError message={error} onRetry={load} />
 
             {/* The wording around the grid. The grid itself is the list below --
@@ -196,7 +217,8 @@ export default function EventsManager() {
                     title="Section copy"
                     description="The heading above the events grid, on the home page and on /events."
                 >
-                    <div className="space-y-4">
+                    <div className="space-y-0">
+                        <CmsSection title="Heading" hint="The wording above the events grid.">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Eyebrow" hint="The small pill above the heading.">
                                 <CmsInput
@@ -214,6 +236,7 @@ export default function EventsManager() {
                             </CmsField>
                         </div>
 
+                        <div className="mt-4 space-y-4">
                         <CmsField label="Subtitle" hint="Sits between two rules under the heading.">
                             <CmsInput
                                 value={settings.subtitle}
@@ -229,8 +252,11 @@ export default function EventsManager() {
                                 placeholder="No events are scheduled at the moment."
                             />
                         </CmsField>
+                        </div>
+                        </CmsSection>
 
-                        <div className="grid gap-4 sm:grid-cols-3 border-t border-slate-200 dark:border-slate-800 pt-4">
+                        <CmsSection title="Grid and button" hint="How many events the home page shows, and where the button goes.">
+                        <div className="grid gap-4 sm:grid-cols-3">
                             <CmsField label="Events on the home page" hint="The rest are reached via the button.">
                                 <CmsInput
                                     type="number" min={1} max={24}
@@ -253,6 +279,7 @@ export default function EventsManager() {
                                 />
                             </CmsField>
                         </div>
+                        </CmsSection>
                     </div>
 
                     <div className="mt-6">
@@ -277,7 +304,7 @@ export default function EventsManager() {
                     description="Published events appear on the public site and to signed-in members."
                     actions={
                         <button type="button" onClick={() => setShowForm(false)}
-                            className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100" aria-label="Close">
+                            className="text-neutral-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100" aria-label="Close">
                             <X className="w-5 h-5" />
                         </button>
                     }
@@ -336,7 +363,7 @@ export default function EventsManager() {
                             <select
                                 value={form.status}
                                 onChange={(e) => setForm({ ...form, status: e.target.value as any })}
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                                className="w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-neutral-100"
                             >
                                 <option value="published">Published</option>
                                 <option value="draft">Draft</option>
@@ -365,7 +392,7 @@ export default function EventsManager() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                                <tr className="text-left text-neutral-500 dark:text-neutral-400 border-b border-slate-200 dark:border-[#1f1f1f]">
                                     <th className="pb-2 pr-4 font-medium w-16">Banner</th>
                                     <th className="pb-2 pr-4 font-medium">Title</th>
                                     <th className="pb-2 pr-4 font-medium">When</th>
@@ -379,35 +406,41 @@ export default function EventsManager() {
                                     <tr key={e.id} className="border-b border-slate-800/60">
                                         <td className="py-3 pr-4">
                                             {e.media?.url ? (
-                                                <div className="w-14 h-10 rounded overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                                <div className="w-14 h-10 rounded overflow-hidden bg-slate-100 dark:bg-[#161616]">
                                                     <CmsMediaFrame media={e.media} />
                                                 </div>
                                             ) : (
-                                                <div className="w-14 h-10 rounded bg-slate-100 dark:bg-slate-800" />
+                                                <div className="w-14 h-10 rounded bg-slate-100 dark:bg-[#161616]" />
                                             )}
                                         </td>
-                                        <td className="py-3 pr-4 text-slate-800 dark:text-slate-200">{e.title || '—'}</td>
-                                        <td className="py-3 pr-4 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                        <td className="py-3 pr-4 text-slate-800 dark:text-neutral-200">{e.title || '—'}</td>
+                                        <td className="py-3 pr-4 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
                                             {e.startAt ? new Date(e.startAt).toLocaleString() : '—'}
                                         </td>
-                                        <td className="py-3 pr-4 text-slate-500 dark:text-slate-400">{e.location || '—'}</td>
+                                        <td className="py-3 pr-4 text-neutral-500 dark:text-neutral-400">{e.location || '—'}</td>
                                         <td className="py-3 pr-4">
                                             <span className={`text-xs px-2 py-0.5 rounded-full ${
                                                 e.status === 'published'
                                                     ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                                    : 'bg-slate-100 dark:bg-[#161616] text-neutral-500 dark:text-neutral-400'
                                             }`}>
                                                 {e.status}
                                             </span>
                                         </td>
                                         <td className="py-3 text-right whitespace-nowrap">
                                             <button onClick={() => openEdit(e)}
-                                                className="p-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Edit">
+                                                className="p-1.5 rounded text-neutral-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-[#161616]" aria-label="Edit">
                                                 <Pencil className="w-4 h-4" />
                                             </button>
+                                            {/* Labelled, so it is not mistaken for the
+                                                pencil beside it. Both were 14px icons
+                                                two pixels apart; one is reversible. */}
                                             <button onClick={() => handleDelete(e)}
-                                                className="p-1.5 rounded text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Delete">
-                                                <Trash2 className="w-4 h-4" />
+                                                className="ml-1 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                                                           text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30
+                                                           hover:bg-red-500/10 transition-colors"
+                                                aria-label={`Delete ${e.title}`}>
+                                                <Trash2 className="w-3.5 h-3.5" /> Delete
                                             </button>
                                         </td>
                                     </tr>
@@ -417,6 +450,6 @@ export default function EventsManager() {
                     </div>
                 )}
             </CmsCard>
-        </div>
+        </CmsPage>
     );
 }

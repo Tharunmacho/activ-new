@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { ReactNode } from 'react';
 import { Loader2, AlertCircle, Save } from 'lucide-react';
 
@@ -17,10 +18,10 @@ export function CmsCard({ title, description, children, actions }: {
     actions?: ReactNode;
 }) {
     return (
-        <section className="bg-white dark:bg-[#172033] border border-slate-200 dark:border-[#1e293b] rounded-xl overflow-hidden mb-6">
+        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-6">
             <header className="px-6 pt-6 pb-2 flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">{title}</h2>
                     {description && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{description}</p>}
                 </div>
                 {actions}
@@ -30,22 +31,165 @@ export function CmsCard({ title, description, children, actions }: {
     );
 }
 
-export function CmsField({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+/**
+ * The page shell every manager sits in.
+ *
+ * One place decides how wide a manager is. `SiteSettingsManager` was capped at
+ * `max-w-4xl` while `HomeManager` used the full column, so the two screens
+ * ended at different points and the settings card left a wide band of empty
+ * space beside it. The cap is gone: the CMS column is already padded by the
+ * layout, and a form of labelled fields does not need a second margin inside
+ * it.
+ */
+/**
+ * Say that a save landed, where the editor is looking.
+ *
+ * Every manager used to report a save by swapping its own button's label to
+ * "Saved" for two and a half seconds. On a long form that button is usually
+ * scrolled off the bottom of the screen — an editor who pressed Ctrl+S, or who
+ * clicked and then scrolled up to check their work, saw nothing at all and had
+ * no way to tell whether the save had happened.
+ *
+ * A toast appears wherever the page is scrolled to. The inline label stays as
+ * well: the two answer different questions — "did that work" and "which block
+ * am I looking at".
+ */
+/**
+ * Styled to the CMS panel, not to the page underneath it.
+ *
+ * `CmsLayout` scopes its `dark` class to its own subtree so the panel's theme
+ * cannot leak into the public site. Sonner's Toaster renders at the app root —
+ * outside that subtree — so it reads the *root* theme and would always appear
+ * light while the CMS is dark. Reading the same `cms_theme` key the layout
+ * writes keeps the two in step, and a failure to read it falls back to dark,
+ * which is the panel's default.
+ */
+const cmsToastStyle = (accent: string) => {
+    let dark = true;
+    try { dark = localStorage.getItem('cms_theme') !== 'light'; } catch { /* private mode */ }
+
+    return {
+        background: dark ? '#0f172a' : '#ffffff',
+        color: dark ? '#f8fafc' : '#0f172a',
+        border: '1px solid ' + (dark ? '#1e293b' : '#e2e8f0'),
+        borderLeft: '4px solid ' + accent,
+    };
+};
+
+export const cmsSaved = (what: string) =>
+    toast.success(what + ' saved', {
+        description: 'The live site has been updated.',
+        style: cmsToastStyle('#16a34a'),
+    });
+
+export const cmsFailed = (what: string, detail?: string) =>
+    toast.error('Could not save ' + what.toLowerCase(), {
+        description: detail,
+        style: cmsToastStyle('#dc2626'),
+        // Long enough to read a server message, since nothing else reports it.
+        duration: 6000,
+    });
+
+export const cmsDeleted = (what: string) =>
+    toast.success(what + ' deleted', { style: cmsToastStyle('#dc2626') });
+
+export function CmsPage({ children }: { children: ReactNode }) {
+    return <div className="w-full space-y-6 pb-12">{children}</div>;
+}
+
+/**
+ * A titled division inside a card.
+ *
+ * Both managers grew their own version of this — an inline `<p>` with a
+ * `border-t pt-6` wrapper, repeated at every division and drifting in weight,
+ * spacing and wording between the two files. One component means a card reads
+ * as sections everywhere rather than as one unbroken column of fields.
+ *
+ * The rule and the top padding are suppressed on the first section, so a card
+ * does not open with a line immediately under its own heading.
+ */
+export function CmsSection({ title, hint, actions, children }: {
+    title: string;
+    hint?: string;
+    /** Right-aligned control for this section, e.g. a Show toggle. */
+    actions?: ReactNode;
+    children: ReactNode;
+}) {
+    return (
+        <section className="pt-7 first:pt-0 border-t first:border-t-0 border-slate-200 dark:border-slate-800">
+            <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+                    {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
+                </div>
+                {actions}
+            </div>
+            {children}
+        </section>
+    );
+}
+
+export function CmsField({ label, hint, children }: { label?: string; hint?: string; children: ReactNode }) {
     return (
         <label className="block">
-            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{label}</span>
+            {/* Skipped when empty: a blank span still carries its bottom margin,
+                which reads as a stray gap above the control. */}
+            {label ? (
+                <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{label}</span>
+            ) : null}
             {children}
-            {hint && <span className="block text-xs text-slate-500 mt-1">{hint}</span>}
+            {hint && <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</span>}
         </label>
     );
 }
 
 const inputBase =
-    'w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 ' +
+    'w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 ' +
     'placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all';
 
 export function CmsInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
     return <input {...props} className={`${inputBase} ${props.className || ''}`} />;
+}
+
+/**
+ * A colour, as a swatch and as text.
+ *
+ * Two controls over one value: the native picker for choosing, the text field
+ * for pasting an exact brand hex. The picker alone cannot be given a value from
+ * a brand guide; the text field alone makes an editor guess what #1c2e68 looks
+ * like.
+ *
+ * Only `#rgb` / `#rrggbb` reaches the swatch, because a native colour input
+ * silently resets to black on anything it cannot parse — which would look like
+ * the field clearing itself while the value was being typed.
+ */
+export function CmsColorInput({ value, onChange, fallback = '#ffffff' }: {
+    value: string;
+    onChange: (next: string) => void;
+    fallback?: string;
+}) {
+    const raw = (value || '').trim();
+    const valid = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw);
+
+    return (
+        <div className="flex items-center gap-3">
+            <input
+                type="color"
+                aria-label="Pick a colour"
+                value={valid ? raw : fallback}
+                onChange={e => onChange(e.target.value)}
+                className="h-11 w-14 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700
+                           bg-transparent p-1 cursor-pointer"
+            />
+            <CmsInput
+                value={raw}
+                onChange={e => onChange(e.target.value)}
+                placeholder={fallback}
+                spellCheck={false}
+                className="font-mono uppercase"
+            />
+        </div>
+    );
 }
 
 export function CmsTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -125,7 +269,7 @@ export function CmsEmpty({ title, hint }: { title: string; hint?: string }) {
     return (
         <div className="text-center py-12">
             <p className="text-slate-700 dark:text-slate-300 font-medium">{title}</p>
-            {hint && <p className="text-sm text-slate-500 mt-1">{hint}</p>}
+            {hint && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
         </div>
     );
 }

@@ -27,6 +27,29 @@ export const getAuthToken = (): string | null => {
     }
 };
 
+/**
+ * Fired whenever the signed-in identity changes — sign in, or sign out.
+ *
+ * Providers mounted at the app root run their effects once, when the app
+ * mounts. Signing in is a client-side `navigate()` with no page reload, so at
+ * the moment those effects ran there was no token: `ProfileProvider` saw an
+ * unauthenticated visitor, returned early, and never ran again. Profile
+ * completion therefore stayed at 0% for the whole session however much the
+ * member had actually filled in, and only a hard refresh corrected it.
+ *
+ * Anything that derives from the session listens for this instead of assuming
+ * one mount equals one user.
+ */
+export const SESSION_EVENT = 'activ:session-changed';
+
+const announceSessionChange = (): void => {
+    try {
+        window.dispatchEvent(new Event(SESSION_EVENT));
+    } catch {
+        /* no window (SSR / tests) — nothing is listening either */
+    }
+};
+
 export const setAuthToken = (token: string): void => {
     try {
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
@@ -35,6 +58,7 @@ export const setAuthToken = (token: string): void => {
     } catch {
         /* storage unavailable — the session lives for this page only */
     }
+    announceSessionChange();
 };
 
 /**
@@ -89,6 +113,9 @@ export const clearSession = (): void => {
     } catch {
         /* nothing to clear */
     }
+    // So a signed-out session does not leave the previous member's figures on
+    // screen for whoever signs in next.
+    announceSessionChange();
 };
 
 // ------------------------------------------------------------- request/response

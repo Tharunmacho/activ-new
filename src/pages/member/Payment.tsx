@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
+import { payForMembership } from '@/services/paymentApi';
+import { errorMessage } from '@/services/activApi';
+import MemberPageShell from './MemberPageShell';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -28,58 +31,61 @@ export default function PaymentPage() {
   const support = Number(supportAmount) || 0;
   const total = currentPlan.price + support;
 
+  /**
+   * Pay, and record it on the server.
+   *
+   * This wrote the payment into `localStorage.applications` and nothing else,
+   * then announced "Payment successful! Your membership is now active." The
+   * database never heard about it: `membershipStatus` stayed `pending`, so the
+   * member was shown the unpaid dashboard again on their next sign-in, and on
+   * any other device immediately. Clearing site data erased the "membership"
+   * outright.
+   *
+   * `POST /payment/complete` is the same call mobile's gateway makes and the
+   * one that actually activates the account.
+   */
   const handlePayment = async () => {
-    if (!appId) {
-      toast.error('No application id found');
-      return;
-    }
-
     setProcessingPayment(true);
     try {
-      await new Promise(r => setTimeout(r, 1000));
+      /**
+       * The plan key, not an amount.
+       *
+       * This page offered 'annual' at Rs 500 and 'lifetime' at Rs 2,500 —
+       * neither of which matches the plans the rest of the site sells — and
+       * sent client-generated payment identifiers to an endpoint that verified
+       * nothing. The server now prices the plan and verifies the signature, so
+       * whatever this page displays, the amount charged and recorded is the
+       * server's.
+       */
+      await payForMembership(selectedPlan === 'lifetime' ? 'ideal' : 'aspirant', {
+        ...(appId ? { applicationId: appId } : {}),
+        paymentMethod: 'card',
+      });
 
-      const appsJson = localStorage.getItem('applications') || '[]';
-      const apps = JSON.parse(appsJson);
-      const app = apps.find((a: any) => a.id === appId);
+      // So the dashboards re-read the membership without a page reload.
+      window.dispatchEvent(new CustomEvent('paymentCompleted'));
+      window.dispatchEvent(new Event('profileUpdated'));
 
-      if (app) {
-        app.payment = {
-          plan: selectedPlan,
-          planPrice: currentPlan.price,
-          support: support,
-          totalAmount: total,
-          paidAt: new Date().toISOString(),
-          status: 'Completed',
-        };
-
-        if (app.stages && app.stages.length > 0) {
-          const paymentStage = app.stages.find((s: any) => s.key === 'payment');
-          if (paymentStage) {
-            paymentStage.status = 'Approved';
-            paymentStage.reviewDate = new Date().toISOString();
-            paymentStage.notes = `Payment received: ₹${total}`;
-          }
-        }
-
-        localStorage.setItem('applications', JSON.stringify(apps));
-        toast.success('Payment successful! Your membership is now active.');
-        navigate(`/member/payment-success?id=${encodeURIComponent(appId)}`);
-      } else {
-        toast.error('Application not found');
-      }
+      toast.success('Payment successful! Your membership is now active.');
+      navigate(appId ? `/member/payment-success?id=${encodeURIComponent(appId)}` : '/member/payment-success');
     } catch (e) {
-      toast.error('Payment failed. Please try again.');
+      toast.error(errorMessage(e, 'Payment failed. Please try again.'));
     } finally {
       setProcessingPayment(false);
     }
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-100 to-blue-200">
-      <div className="max-w-2xl mx-auto">
+    <MemberPageShell
+      title="Complete your membership"
+      subtitle="Choose your membership plan and secure payment"
+      width="narrow"
+            sidebar={false}
+    >
+      <div className="max-w-2xl mx-auto py-4">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Complete your membership</h1>
-          <p className="text-muted-foreground">Choose your membership plan and secure payment</p>
+          <h1 className="text-3xl font-bold mb-2 text-slate-800">Complete your membership</h1>
+          <p className="text-muted-foreground text-slate-500">Choose your membership plan and secure payment</p>
         </div>
 
         <Card className="mb-6">
@@ -194,6 +200,6 @@ export default function PaymentPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </MemberPageShell>
   );
 }

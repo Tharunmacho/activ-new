@@ -223,6 +223,38 @@ export default function ApprovalQueue({
                         )}
                     </div>
 
+                    {/*
+                        Applied on / Membership Type, the pair the mobile
+                        applicant card shows beneath the contact rows. Without
+                        them an admin could not tell from the queue how long a
+                        file had been waiting, or whether the applicant was a
+                        business or an aspirant, without opening it.
+
+                        The date format is mobile's: 02 Sep 2026.
+                    */}
+                    <div className="mt-3 grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
+                        <div>
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
+                                Applied on
+                            </p>
+                            <p className="text-sm text-gray-800 font-medium">
+                                {applicant?.submittedAt
+                                    ? new Date(applicant.submittedAt).toLocaleDateString('en-GB', {
+                                        day: '2-digit', month: 'short', year: 'numeric',
+                                    })
+                                    : '—'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
+                                Membership Type
+                            </p>
+                            <p className="text-sm text-gray-800 font-medium capitalize">
+                                {applicant?.memberType || applicant?.role || 'Member'}
+                            </p>
+                        </div>
+                    </div>
+
                     {/* This file reached a tier it does not formally belong to,
                         because the tier below has no active admin. */}
                     {!!applicant?.orphaned && !!applicant?.fallbackReason && (

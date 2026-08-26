@@ -150,7 +150,7 @@ const Explore = () => {
                   <Card key={member.userId} className="overflow-hidden hover:shadow-2xl transition-all duration-300 rounded-2xl border-0">
                     <CardContent className="p-0">
                       {/* Member Header */}
-                      <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-6 text-white">
+                      <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white">
                         <div className="flex items-center gap-4 mb-4">
                           <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
                             <AvatarImage src={member.profilePicture || "/placeholder.svg"} />

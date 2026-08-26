@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react';
 import { getAbout, updateAbout, errorMessage, type AboutContent } from '@/services/cmsApi';
-import { CmsCard, CmsField, CmsInput, CmsTextarea, SaveButton, CmsLoading, CmsError } from './components/CmsUI';
+import {
+    CmsCard,
+    CmsField,
+    CmsInput,
+    CmsTextarea,
+    SaveButton,
+    CmsLoading,
+    CmsError,
+    cmsSaved,
+    cmsFailed,
+    CmsPage,
+    CmsSection,
+} from './components/CmsUI';
 import { BulletList, StatList, IconPicker } from './components/CmsEditors';
 import MediaPicker from './components/MediaPicker';
 import RichTextEditor from './components/RichTextEditor';
@@ -43,9 +55,12 @@ export default function AboutManager() {
             // The server's copy back: it drops empty points and unknown icons.
             setAbout(await updateAbout(about));
             setSaved(true);
+            cmsSaved('About page');
             setTimeout(() => setSaved(false), 2500);
         } catch (err) {
-            setError(errorMessage(err, 'Could not save the About page'));
+            const message = errorMessage(err, 'Could not save the About page');
+            setError(message);
+            cmsFailed('About page', message);
         } finally {
             setSaving(false);
         }
@@ -57,15 +72,17 @@ export default function AboutManager() {
     const set = (patch: Partial<AboutContent>) => setAbout({ ...about, ...patch });
 
     return (
-        <form onSubmit={submit} className="space-y-6 max-w-5xl pb-12">
+        <form onSubmit={submit} className="w-full">
+            <CmsPage>
             <CmsError message={error} />
 
             <CmsCard
                 title="About page"
                 description="Shown at /about. Separate content from the About block on the home page."
             >
-                <div className="space-y-6">
+                <div className="space-y-0">
 
+                    <CmsSection title="Badge" hint="The small pill above the heading.">
                     <div className="grid gap-4 md:grid-cols-[200px_1fr]">
                         <IconPicker value={about.badgeIcon} onChange={badgeIcon => set({ badgeIcon })} label="Badge icon" />
                         <CmsField label="Badge text" hint="The small pill above the heading. Blank hides it.">
@@ -76,7 +93,9 @@ export default function AboutManager() {
                             />
                         </CmsField>
                     </div>
+                    </CmsSection>
 
+                    <CmsSection title="Heading and introduction">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <CmsField label="Heading">
                             <CmsInput
@@ -94,24 +113,24 @@ export default function AboutManager() {
                         </CmsField>
                     </div>
 
-                    <CmsField label="Introduction">
-                        <RichTextEditor
-                            rows={4}
-                            value={about.body}
-                            onChange={body => set({ body })}
-                            placeholder="ACTIV is an Indian Chamber of Commerce for SC/ST entrepreneurs…"
-                        />
-                    </CmsField>
-
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                            Points
-                            <span className="font-normal text-slate-500"> — the icon list under the introduction.</span>
-                        </p>
-                        <BulletList items={about.bullets} onChange={bullets => set({ bullets })} />
+                    <div className="mt-4">
+                        <CmsField label="Introduction">
+                            <RichTextEditor
+                                rows={4}
+                                value={about.body}
+                                onChange={body => set({ body })}
+                                placeholder="ACTIV is an Indian Chamber of Commerce for SC/ST entrepreneurs…"
+                            />
+                        </CmsField>
                     </div>
+                    </CmsSection>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-5">
+                    <CmsSection title="Points" hint="The icon list under the introduction.">
+                        <BulletList items={about.bullets} onChange={bullets => set({ bullets })} />
+                    </CmsSection>
+
+                    <CmsSection title="Image" hint="The arched portrait frame, and the mark that floats over it.">
+                    <div className="space-y-5">
                         {/* 3/4 — the arched portrait frame on the page. */}
                         <MediaPicker
                             label="Image or video"
@@ -128,24 +147,22 @@ export default function AboutManager() {
                             hint="Floats over the top-right of the image. Leave empty to hide it."
                         />
                     </div>
+                    </CmsSection>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                            Figures bar
-                            <span className="font-normal text-slate-500"> — the white card below the split layout.</span>
-                        </p>
+                    <CmsSection title="Figures bar" hint="The white card below the split layout.">
                         <StatList
                             items={about.statsBar}
                             onChange={statsBar => set({ statsBar })}
                             max={6}
                         />
-                    </div>
+                    </CmsSection>
                 </div>
 
                 <div className="mt-6">
                     <SaveButton loading={saving} label={saved ? 'Saved — live page updated' : 'Save About page'} />
                 </div>
             </CmsCard>
+            </CmsPage>
         </form>
     );
 }

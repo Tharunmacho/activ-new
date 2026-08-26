@@ -233,14 +233,14 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <Badge
-                          variant={app.status === "approved" ? "default" : "outline"}
+                          variant={app.status?.toLowerCase() === "approved" ? "default" : "outline"}
                           className={
-                            app.status === "approved"
+                            app.status?.toLowerCase() === "approved"
                               ? "bg-green-500 text-white hover:bg-green-600 border-0 shadow-md"
                               : "bg-orange-500 text-white border-0 shadow-md"
                           }
                         >
-                          {app.status === "approved" ? "Approved" : "Pending"}
+                          {app.status?.toLowerCase() === "approved" ? "Approved" : "Pending"}
                         </Badge>
                       </div>
                       <div className="text-sm text-gray-700 font-medium">{app.size}</div>

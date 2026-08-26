@@ -59,20 +59,33 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
     };
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
             <div>
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</p>
-                {hint && <p className="text-xs text-slate-500 mt-0.5">{hint}</p>}
+                <p className="text-sm font-medium text-slate-700 dark:text-neutral-300">{label}</p>
+                {hint && <p className="text-xs text-neutral-500 mt-0.5">{hint}</p>}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+            {/*
+                The preview and the upload buttons share one row; every field
+                below spans the full width.
+
+                This was a two-column grid holding the preview on the left and
+                ALL the controls on the right, so "Or paste a URL", the fit
+                buttons and the alt text began 220px in from the card's edge
+                while every other field in the card began at the edge. Two
+                different left margins in one form is what made the card read as
+                misaligned, and it left the space under the preview empty.
+            */}
+            <div className="flex flex-wrap items-start gap-4">
                 {/* Preview at the real slot ratio, with the real fit applied. */}
                 <div
-                    className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden flex items-center justify-center"
+                    className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700
+                               rounded-lg overflow-hidden flex items-center justify-center
+                               w-full sm:w-[220px] shrink-0"
                     style={{ aspectRatio: aspect }}
                 >
                     {!media.url ? (
-                        <div className="text-center text-slate-400 dark:text-slate-600 px-3">
+                        <div className="text-center text-neutral-400 dark:text-neutral-600 px-3">
                             <ImageIcon className="w-6 h-6 mx-auto mb-1" />
                             <span className="text-xs">Nothing selected</span>
                         </div>
@@ -96,7 +109,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                     )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex-1 min-w-[240px] space-y-2">
                     <div className="flex flex-wrap gap-2">
                         <button
                             type="button"
@@ -137,58 +150,62 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                     />
 
                     {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+                </div>
+            </div>
 
-                    <CmsField label="Or paste a URL">
-                        <CmsInput
-                            value={media.url}
-                            onChange={(e) => set({ url: e.target.value })}
-                            placeholder="https://… or /uploads/banner.jpg"
-                        />
+            {/* Full width from here down, so these align with the card's other
+                fields rather than with the preview's right edge. */}
+            <div className="space-y-4">
+                <CmsField label="Or paste a URL">
+                    <CmsInput
+                        value={media.url}
+                        onChange={(e) => set({ url: e.target.value })}
+                        placeholder="https://… or /uploads/banner.jpg"
+                    />
+                </CmsField>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <CmsField label="How it fills the space">
+                        <div className="flex gap-2">
+                            {FITS.map((f) => (
+                                <button
+                                    key={f.key}
+                                    type="button"
+                                    onClick={() => set({ fit: f.key })}
+                                    title={f.hint}
+                                    className={`flex-1 px-3 py-2.5 rounded-lg text-xs border transition-colors ${
+                                        media.fit === f.key
+                                            ? 'bg-blue-600 border-blue-600 text-white'
+                                            : 'bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
                     </CmsField>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <CmsField label="How it fills the space">
-                            <div className="flex gap-2">
-                                {FITS.map((f) => (
-                                    <button
-                                        key={f.key}
-                                        type="button"
-                                        onClick={() => set({ fit: f.key })}
-                                        title={f.hint}
-                                        className={`flex-1 px-2 py-2 rounded-lg text-xs border transition-colors ${
-                                            media.fit === f.key
-                                                ? 'bg-blue-600 border-blue-600 text-white'
-                                                : 'bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                        }`}
-                                    >
-                                        {f.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </CmsField>
-
-                        <CmsField
-                            label="Focal point"
-                            hint={media.fit === 'contain' ? 'Only applies when filling the frame.' : 'Which part a crop keeps.'}
+                    <CmsField
+                        label="Focal point"
+                        hint={media.fit === 'contain' ? 'Only applies when filling the frame.' : 'Which part a crop keeps.'}
+                    >
+                        <select
+                            value={media.position}
+                            onChange={(e) => set({ position: e.target.value })}
+                            disabled={media.fit === 'contain'}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700
+                                       rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 disabled:opacity-40"
                         >
-                            <select
-                                value={media.position}
-                                onChange={(e) => set({ position: e.target.value })}
-                                disabled={media.fit === 'contain'}
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm
-                                           text-slate-900 dark:text-slate-100 disabled:opacity-40"
-                            >
-                                {POSITIONS.map((p) => (
-                                    <option key={p} value={p}>{p}</option>
-                                ))}
-                            </select>
-                        </CmsField>
-                    </div>
-
-                    <CmsField label="Alt text" hint="Describes the media to screen readers and to search engines.">
-                        <CmsInput value={media.alt} onChange={(e) => set({ alt: e.target.value })} />
+                            {POSITIONS.map((p) => (
+                                <option key={p} value={p}>{p}</option>
+                            ))}
+                        </select>
                     </CmsField>
                 </div>
+
+                <CmsField label="Alt text" hint="Describes the media to screen readers and to search engines.">
+                    <CmsInput value={media.alt} onChange={(e) => set({ alt: e.target.value })} />
+                </CmsField>
             </div>
         </div>
     );
