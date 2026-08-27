@@ -354,7 +354,7 @@ const UnpaidDashboard = () => {
                     <Menu className="h-5 w-5" />
                 </button>
 
-                <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-10 py-6 space-y-7">
+                <div className="w-full px-6 lg:px-8 py-8 space-y-8">
 
                     {/* ---------- greeting + identity ---------- */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
@@ -364,10 +364,10 @@ const UnpaidDashboard = () => {
                           * across the first word of the greeting.
                           */}
                         <div className="min-w-0 pl-11 lg:pl-0">
-                            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
                                 Welcome back{memberName ? `, ${memberName}` : ''} 👋
                             </h1>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-base text-gray-500 mt-2">
                                 {milestone ? "Let's complete your membership journey" : "You're all set."}
                             </p>
                         </div>
@@ -419,12 +419,12 @@ const UnpaidDashboard = () => {
                         }`}>
                             <CardContent className="p-7 h-full flex items-center justify-between gap-5">
                                 <div className="flex-1 min-w-0">
-                                    <h2 className="text-xl font-bold mb-4">
+                                    <h2 className="text-2xl font-bold mb-4">
                                         {access.applicationSubmitted ? 'Profile Complete' : 'Complete Your Profile'}
                                     </h2>
                                     <p className="mb-3">
-                                        <span className="font-display font-extrabold text-4xl tabular">{profileCompletion}%</span>
-                                        <span className="ml-2 text-sm text-white/85">completed</span>
+                                        <span className="font-display font-extrabold text-5xl tabular">{profileCompletion}%</span>
+                                        <span className="ml-2 text-base text-white/85">completed</span>
                                     </p>
 
                                     <div className="h-1.5 bg-white/25 rounded-full overflow-hidden mb-4 max-w-[220px]">
@@ -441,7 +441,7 @@ const UnpaidDashboard = () => {
                                       * forms done" beside "100% completed" read as
                                       * a contradiction the member could not act on.
                                       */}
-                                    <p className="text-white/85 mb-5 text-xs leading-snug font-medium">
+                                    <p className="text-white/85 mb-6 text-sm leading-snug font-medium">
                                         {access.applicationSubmitted
                                             ? 'Your application is submitted and under review.'
                                             : profileCompletion >= 100
@@ -457,7 +457,7 @@ const UnpaidDashboard = () => {
                                                     ? '/member/profile-view'
                                                     : '/member/profile',
                                         )}
-                                        size="sm"
+                                        size="lg"
                                         className={`bg-white font-bold ${
                                             access.applicationSubmitted
                                                 ? 'text-emerald-700 hover:bg-emerald-50'
@@ -467,7 +467,7 @@ const UnpaidDashboard = () => {
                                         {access.applicationSubmitted
                                             ? 'View Status'
                                             : profileCompletion >= 100 ? 'View Profile' : 'Continue Profile'}
-                                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                                        <ArrowRight className="ml-1.5 h-4 w-4" />
                                     </Button>
                                 </div>
                                 <img
@@ -482,34 +482,34 @@ const UnpaidDashboard = () => {
                         <Card className="bg-purple-700 text-white shadow-lg overflow-hidden h-full border-0">
                             <CardContent className="p-7 h-full flex items-start justify-between gap-5">
                                 <div className="flex-1 min-w-0">
-                                    <h2 className="text-xl font-extrabold tracking-tight mb-2">Your Business Account</h2>
-                                    <span className="inline-block text-[10px] font-semibold bg-white/25
-                                                     rounded px-2 py-0.5 mb-3">
+                                    <h2 className="text-2xl font-extrabold tracking-tight mb-2">Your Business Account</h2>
+                                    <span className="inline-block text-xs font-semibold bg-white/25
+                                                     rounded px-2.5 py-1 mb-4">
                                         Draft Mode
                                     </span>
-                                    <p className="text-white/80 mb-4 text-xs leading-snug">
+                                    <p className="text-white/80 mb-5 text-sm leading-snug">
                                         Start building your business profile, catalogue and manage products
                                         before approval.
                                     </p>
                                     <Button
                                         onClick={() => navigate('/business/create-profile')}
-                                        size="sm"
+                                        size="lg"
                                         className="bg-white text-purple-700 hover:bg-purple-50 font-semibold"
                                     >
                                         Manage Business Account
-                                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                                        <ArrowRight className="ml-1.5 h-4 w-4" />
                                     </Button>
 
-                                    <div className="mt-4 space-y-2">
+                                    <div className="mt-6 space-y-3">
                                         {BUSINESS_BENEFITS.map(({ icon: Icon, title, detail }) => (
-                                            <div key={title} className="flex items-start gap-2">
-                                                <div className="w-6 h-6 rounded bg-white/20 flex items-center
+                                            <div key={title} className="flex items-start gap-3">
+                                                <div className="w-8 h-8 rounded bg-white/20 flex items-center
                                                                 justify-center shrink-0">
-                                                    <Icon className="h-3 w-3" />
+                                                    <Icon className="h-4 w-4" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-semibold text-[11px] leading-tight">{title}</p>
-                                                    <p className="text-white/70 text-[10px] leading-tight">{detail}</p>
+                                                    <p className="font-semibold text-sm leading-tight">{title}</p>
+                                                    <p className="text-white/70 text-xs mt-1 leading-tight">{detail}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -541,10 +541,10 @@ const UnpaidDashboard = () => {
                     <section id="application-status" className="scroll-mt-4">
                         <div className="flex items-start justify-between gap-4 mb-4">
                             <div>
-                                <h3 className="text-lg font-extrabold text-gray-900 tracking-tight">
+                                <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">
                                     Application Status &amp; Progress
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-base text-gray-500 mt-2">
                                     Track your membership approval progress
                                 </p>
                             </div>
@@ -589,21 +589,21 @@ const UnpaidDashboard = () => {
                             <CardContent className="p-6 sm:p-7 space-y-6">
 
                                 {/* ---- top: overall progress + the four nodes ---- */}
-                                <div className="rounded-lg border bg-gray-50/60 p-4">
+                                <div className="rounded-lg border bg-white shadow-sm p-5">
                                     <div className="flex items-start justify-between gap-3 mb-2">
                                         <div>
-                                            <p className="font-display text-sm font-extrabold text-gray-800">Overall Progress</p>
-                                            <p className="text-xs text-gray-500 mt-1">
+                                            <p className="font-display text-base font-extrabold text-gray-800">Overall Progress</p>
+                                            <p className="text-sm text-gray-500 mt-1">
                                                 {stagesDone} of 4 stages completed
                                             </p>
                                         </div>
-                                        <span className="font-display text-sm font-extrabold text-white bg-blue-600
-                                                         rounded-lg px-3 py-1.5 shrink-0 tabular">
+                                        <span className="font-display text-base font-extrabold text-white bg-blue-600
+                                                         rounded-lg px-4 py-2 shrink-0 tabular">
                                             {overallPercent}%
                                         </span>
                                     </div>
 
-                                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-8">
+                                    <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-8 mt-4">
                                         <div
                                             className="h-full bg-blue-600 rounded-full transition-all duration-500"
                                             style={{ width: `${overallPercent}%` }}
@@ -612,7 +612,7 @@ const UnpaidDashboard = () => {
 
                                     <div className="relative">
                                         {/* The joining line only makes sense when all four sit in a row. */}
-                                        <div className="hidden sm:block absolute left-[12.5%] right-[12.5%] top-4 h-px
+                                        <div className="hidden sm:block absolute left-[12.5%] right-[12.5%] top-5 h-px
                                                         border-t border-dashed border-gray-300" />
                                         <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-2">
                                             {TIERS.map(tier => (
@@ -644,7 +644,7 @@ const UnpaidDashboard = () => {
                                 <div className="grid gap-6 lg:grid-cols-2 items-start">
 
                                     <div>
-                                        <p className="font-display text-sm font-extrabold text-gray-800 mb-3">Timeline</p>
+                                        <p className="font-display text-lg font-extrabold text-gray-800 mb-3">Timeline</p>
                                         {!application ? (
                                             <EmptyState
                                                 icon={<FileText className="h-5 w-5" />}
@@ -667,7 +667,7 @@ const UnpaidDashboard = () => {
                                                             )}
                                                         </span>
                                                         <span className="flex-1 min-w-0">
-                                                            <span className={`block text-sm leading-tight ${
+                                                            <span className={`block text-base leading-tight ${
                                                                 row.state === 'pending'
                                                                     ? 'text-gray-400'
                                                                     : 'font-semibold text-gray-800'
@@ -675,12 +675,12 @@ const UnpaidDashboard = () => {
                                                                 {row.title}
                                                             </span>
                                                             {row.by && row.state !== 'pending' && (
-                                                                <span className="block text-[11px] text-gray-400 mt-1">
+                                                                <span className="block text-xs text-gray-400 mt-1">
                                                                     {row.by}
                                                                 </span>
                                                             )}
                                                         </span>
-                                                        <span className="shrink-0 text-[11px] text-gray-400 font-medium">
+                                                        <span className="shrink-0 text-xs text-gray-400 font-medium">
                                                             {row.at && row.state !== 'pending'
                                                                 ? formatDate(row.at)
                                                                 : row.state === 'pending' ? 'Pending' : ''}
@@ -700,10 +700,10 @@ const UnpaidDashboard = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="rounded-lg border bg-gray-50/60 p-4">
+                                        <div className="rounded-lg border bg-white shadow-sm p-5">
                                             <div className="flex items-center justify-between gap-2 mb-2">
-                                                <p className="font-display text-sm font-extrabold text-gray-800">Current Status</p>
-                                                <span className={`text-[11px] font-bold rounded-full px-2.5 py-1 shrink-0 ${
+                                                <p className="font-display text-lg font-extrabold text-gray-800">Current Status</p>
+                                                <span className={`text-[13px] font-bold rounded-full px-3 py-1.5 shrink-0 ${
                                                     application
                                                         ? flags.isRejected
                                                             ? 'bg-red-100 text-red-700'
@@ -716,7 +716,7 @@ const UnpaidDashboard = () => {
                                                 </span>
                                             </div>
 
-                                            <p className="text-xs text-gray-600 leading-relaxed mb-5">
+                                            <p className="text-sm text-gray-600 leading-relaxed mb-6">
                                                 {application ? (
                                                     <>
                                                         Your application is currently under review at the{' '}
@@ -777,22 +777,20 @@ const UnpaidDashboard = () => {
                                     <h3 className="text-base font-extrabold text-gray-900 tracking-tight mb-4">What&apos;s Next?</h3>
                                     <ul className="space-y-4">
                                         {WHATS_NEXT.map(({ icon: Icon, title, detail, active }) => (
-                                            <li key={title} className="flex items-start gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center
+                                            <li key={title} className="flex items-start gap-4">
+                                                <div className={`w-10 h-10 rounded-full flex items-center
                                                                  justify-center shrink-0 ${
                                                     active ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-500'
                                                 }`}>
-                                                    <Icon className="h-3.5 w-3.5" />
+                                                    <Icon className="h-5 w-5" />
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className={`text-xs font-bold leading-tight ${
-                                                        active ? 'text-blue-700' : 'text-gray-800'
-                                                    }`}>
-                                                        {title}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                                        {detail}
-                                                    </p>
+                                                <div className="min-w-0 pt-1.5">
+                                                    <p className={`text-base font-bold leading-tight ${
+                                                        active ? 'text-gray-900' : 'text-gray-700'
+                                                    }`}>{title}</p>
+                                                    <p className={`text-sm leading-snug mt-1.5 ${
+                                                        active ? 'text-gray-600 font-medium' : 'text-gray-500'
+                                                    }`}>{detail}</p>
                                                 </div>
                                             </li>
                                         ))}
@@ -813,26 +811,26 @@ const UnpaidDashboard = () => {
                         <Card className="h-full">
                             <CardContent className="p-6 sm:p-7">
                                 <div>
-                                    <h3 className="text-base font-extrabold text-gray-900 tracking-tight">
+                                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">
                                         Pre-Payment Benefits{' '}
-                                        <span className="text-sm font-medium text-gray-400">(Draft Features)</span>
+                                        <span className="text-base font-medium text-gray-400">(Draft Features)</span>
                                     </h3>
-                                    <p className="text-xs text-gray-500 mt-1.5 mb-5 leading-relaxed">
+                                    <p className="text-sm text-gray-500 mt-2 mb-6 leading-relaxed">
                                         Start building your business profile and catalogue. All data is private
                                         until your membership is activated.
                                     </p>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                                         {PRE_PAYMENT_FEATURES.map(({ icon: Icon, tone, title, detail }) => (
                                             <div key={title} className="text-center">
-                                                <div className={`w-9 h-9 rounded-lg ${tone} flex items-center
-                                                                 justify-center mx-auto mb-2`}>
-                                                    <Icon className="h-4 w-4" />
+                                                <div className={`w-12 h-12 rounded-lg ${tone} flex items-center
+                                                                 justify-center mx-auto mb-3 shadow-sm`}>
+                                                    <Icon className="h-6 w-6" />
                                                 </div>
-                                                <p className="text-xs font-bold text-gray-800 leading-tight">
+                                                <p className="text-base font-bold text-gray-800 leading-tight">
                                                     {title}
                                                 </p>
-                                                <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+                                                <p className="text-sm text-gray-500 mt-1.5 leading-snug">
                                                     {detail}
                                                 </p>
                                             </div>
@@ -848,10 +846,10 @@ const UnpaidDashboard = () => {
                         <Card className="h-full">
                             <CardContent className="p-6 sm:p-7">
                                 <div className="flex items-center justify-between gap-2 mb-4">
-                                    <h3 className="text-base font-extrabold text-gray-900 tracking-tight">Recent Updates</h3>
+                                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Recent Updates</h3>
                                     <button
                                         onClick={() => navigate('/member/application-status')}
-                                        className="text-[11px] font-semibold text-blue-600 hover:underline shrink-0"
+                                        className="text-sm font-semibold text-blue-600 hover:underline shrink-0"
                                     >
                                         View All
                                     </button>
@@ -859,23 +857,23 @@ const UnpaidDashboard = () => {
 
                                 {activity.length === 0 ? (
                                     <EmptyState
-                                        icon={<Bell className="h-5 w-5" />}
+                                        icon={<Bell className="h-6 w-6" />}
                                         title="Nothing yet"
                                         detail="Updates about your application will appear here."
                                     />
                                 ) : (
-                                    <ul className="space-y-4">
+                                    <ul className="space-y-5">
                                         {activity.slice(0, 3).map(item => (
-                                            <li key={item.id} className="flex items-start gap-3">
-                                                <div className="w-9 h-9 rounded-md bg-blue-50 text-blue-600
+                                            <li key={item.id} className="flex items-start gap-4">
+                                                <div className="w-10 h-10 rounded-md bg-blue-50 text-blue-600
                                                                 flex items-center justify-center shrink-0">
-                                                    <Bell className="h-4 w-4" />
+                                                    <Bell className="h-5 w-5" />
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-sm font-semibold text-gray-800 leading-snug">
+                                                    <p className="text-base font-semibold text-gray-800 leading-snug">
                                                         {item.description}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-400 mt-1">
+                                                    <p className="text-sm text-gray-400 mt-1">
                                                         {formatDate(item.at)}
                                                     </p>
                                                 </div>
@@ -897,24 +895,24 @@ const UnpaidDashboard = () => {
                           */}
                         <Card className="h-full bg-blue-50/60 border-blue-100">
                             <CardContent className="p-6 sm:p-7">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <LifeBuoy className="h-4 w-4 text-blue-600" />
-                                    <h3 className="text-base font-extrabold text-gray-900 tracking-tight">Need Help?</h3>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <LifeBuoy className="h-5 w-5 text-blue-600" />
+                                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Need Help?</h3>
                                 </div>
-                                <p className="text-xs text-gray-600 leading-relaxed mb-5">
+                                <p className="text-sm text-gray-600 leading-relaxed mb-6">
                                     Our support team is here to help you at every step of your membership journey.
                                 </p>
 
-                                <div className="space-y-3 mb-5">
+                                <div className="space-y-4 mb-6">
                                     {supportHours.length > 0 && (
-                                        <SupportRow icon={<Clock className="h-3.5 w-3.5" />}>
+                                        <SupportRow icon={<Clock className="h-4 w-4" />}>
                                             {supportHours.map(line => (
                                                 <span key={line} className="block">{line}</span>
                                             ))}
                                         </SupportRow>
                                     )}
                                     {supportEmail && (
-                                        <SupportRow icon={<Mail className="h-3.5 w-3.5" />}>
+                                        <SupportRow icon={<Mail className="h-4 w-4" />}>
                                             <a href={`mailto:${supportEmail}`} className="hover:underline break-all">
                                                 {supportEmail}
                                             </a>
@@ -1026,13 +1024,13 @@ const IdentityTile = ({ icon, tone, label, value, valueTone, fullValue }: {
     return (
         <div className="rounded-xl border bg-white px-5 py-4 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
-                <span className={`w-6 h-6 rounded-full ${tone} flex items-center justify-center shrink-0`}>
+                <span className={`w-8 h-8 rounded-full ${tone} flex items-center justify-center shrink-0`}>
                     {icon}
                 </span>
-                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
             </div>
-            <div className="flex items-center gap-1.5 min-w-0">
-                <p title={fullValue || value} className={`font-display font-extrabold text-base truncate ${valueTone}`}>
+            <div className="flex items-center gap-2 min-w-0 mt-1">
+                <p title={fullValue || value} className={`font-display font-extrabold text-lg truncate ${valueTone}`}>
                     {value}
                 </p>
                 {fullValue ? (
@@ -1058,7 +1056,7 @@ const StageNode = ({ label, state, at }: { label: string; state: TimelineStageSt
     const done = state === 'approved';
     return (
         <div className="text-center">
-            <div className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ring-4 ring-white ${
+            <div className={`w-10 h-10 rounded-full mx-auto mb-3 flex items-center justify-center ring-4 ring-white ${
                 done
                     ? 'bg-blue-600 text-white'
                     : state === 'in_progress'
@@ -1067,44 +1065,44 @@ const StageNode = ({ label, state, at }: { label: string; state: TimelineStageSt
                             ? 'bg-red-100 text-red-600'
                             : 'bg-white text-gray-300 border-2 border-gray-200'
             }`}>
-                {done ? <CheckCircle className="h-4 w-4" /> : <Clock className="h-3.5 w-3.5" />}
+                {done ? <CheckCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
             </div>
-            <p className="text-xs font-bold text-gray-800 leading-tight">{label}</p>
-            <span className={`inline-block mt-1.5 text-[10px] font-bold rounded px-2 py-0.5 ${chip.cls}`}>
+            <p className="text-sm font-bold text-gray-800 leading-tight">{label}</p>
+            <span className={`inline-block mt-2 text-[11px] font-bold rounded px-2.5 py-1 ${chip.cls}`}>
                 {chip.label}
             </span>
-            {at && <p className="text-[10px] text-gray-400 mt-1.5">{at}</p>}
+            {at && <p className="text-xs text-gray-400 mt-2">{at}</p>}
         </div>
     );
 };
 
 const DetailRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-2.5">
         <span className="text-blue-600 mt-0.5 shrink-0">{icon}</span>
         <div className="min-w-0">
-            <p className="text-[11px] font-bold text-gray-700 leading-tight">{label}</p>
-            <p className="text-xs text-gray-600 break-words leading-snug mt-1 font-medium">{value}</p>
+            <p className="text-sm font-bold text-gray-700 leading-tight">{label}</p>
+            <p className="text-base text-gray-600 break-words leading-snug mt-1.5 font-medium">{value}</p>
         </div>
     </div>
 );
 
 const SupportRow = ({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) => (
-    <div className="flex items-start gap-2.5">
-        <span className="w-7 h-7 rounded-md bg-white text-blue-600 flex items-center
+    <div className="flex items-start gap-3">
+        <span className="w-9 h-9 rounded-md bg-white text-blue-600 flex items-center
                          justify-center shrink-0 border border-blue-100">
             {icon}
         </span>
-        <div className="min-w-0 text-xs text-gray-700 leading-snug pt-1 font-medium">{children}</div>
+        <div className="min-w-0 text-sm text-gray-700 leading-snug pt-2 font-medium">{children}</div>
     </div>
 );
 
 const EmptyState = ({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) => (
     <div className="text-center py-8">
-        <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-2">
+        <div className="w-12 h-12 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3">
             {icon}
         </div>
-        <p className="text-xs font-semibold text-gray-700">{title}</p>
-        <p className="text-[10px] text-gray-500 mt-1 max-w-[220px] mx-auto leading-snug">{detail}</p>
+        <p className="text-base font-semibold text-gray-700">{title}</p>
+        <p className="text-sm text-gray-500 mt-1 max-w-[220px] mx-auto leading-snug">{detail}</p>
     </div>
 );
 

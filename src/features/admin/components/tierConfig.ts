@@ -28,7 +28,7 @@ export interface NavItem {
     to: string;
     label: string;
     /** Which react-icons/fa glyph the sidebar renders. */
-    icon: 'home' | 'check' | 'users' | 'shield' | 'calendar' | 'cog';
+    icon: 'home' | 'check' | 'users' | 'shield' | 'calendar' | 'megaphone' | 'cog';
 }
 
 export interface TierConfig {
@@ -122,6 +122,9 @@ export const TIERS: Record<AdminTier, TierConfig> = {
             { to: '/super-admin/dashboard', label: 'Hub', icon: 'home' },
             { to: '/super-admin/admins', label: 'Admins', icon: 'shield' },
             { to: '/super-admin/events', label: 'Events', icon: 'calendar' },
+            // Association Updates. Only this role authors them, and they are
+            // not events — an update has no date, no venue and no attendees.
+            { to: '/super-admin/updates', label: 'Updates', icon: 'megaphone' },
             { to: '/super-admin/settings', label: 'Settings', icon: 'cog' },
         ],
     },

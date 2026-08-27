@@ -96,51 +96,7 @@ export default function EnhancedLoginPage() {
     }
   };
 
-  // if already logged in, redirect to dashboard
-  useEffect(() => {
-    const checkLoginAndRedirect = async () => {
-      const logged = localStorage.getItem('isLoggedIn');
-      if (logged === 'true') {
-        const role = localStorage.getItem('role') || '';
-        
-        // Admin redirects
-        if (role === 'district_admin') {
-          navigate('/district-admin/dashboard');
-          return;
-        } else if (role === 'state_admin') {
-          navigate('/state-admin/dashboard');
-          return;
-        } else if (role === 'super_admin') {
-          navigate('/super-admin/dashboard');
-          return;
-        } else if (role === 'block_admin') {
-          navigate('/block-admin/dashboard');
-          return;
-        }
 
-        // Member: Check payment status
-        const token = localStorage.getItem('token');
-        if (token) {
-          try {
-            // Payment state comes from the member profile, not from an
-            // application — the application only tracks the approval tiers.
-            if ((await getPaymentStatus()) === 'completed') {
-              navigate('/payment/member-dashboard');
-              return;
-            }
-          } catch {
-            // Payment status refines where to land; it does not gate sign-in.
-            // If it cannot be read, the unpaid dashboard below is the safe answer.
-          }
-        }
-
-        // Default to unpaid dashboard for unpaid members
-        navigate('/member/unpaid-dashboard');
-      }
-    };
-
-    checkLoginAndRedirect();
-  }, [navigate]);
 
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">

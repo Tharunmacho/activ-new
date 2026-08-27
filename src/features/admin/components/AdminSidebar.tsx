@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaHome, FaCheckCircle, FaUsers, FaCog, FaSignOutAlt, FaTimes, FaUserShield, FaCalendarAlt } from 'react-icons/fa';
+import { FaHome, FaCheckCircle, FaUsers, FaCog, FaSignOutAlt, FaTimes, FaUserShield, FaCalendarAlt, FaBullhorn } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { apiFetch, logout } from '@/services/activApi';
@@ -79,6 +79,7 @@ export default function AdminSidebar({
         users: <FaUsers />,
         shield: <FaUserShield />,
         calendar: <FaCalendarAlt />,
+        megaphone: <FaBullhorn />,
         cog: <FaCog />,
     } as const;
 

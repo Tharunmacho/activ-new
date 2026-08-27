@@ -23,6 +23,10 @@ import {
 } from './components/CmsUI';
 import MediaPicker from './components/MediaPicker';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
+import EventDetailFields, {
+    BLANK_DETAIL, toLocalDateTimeInput, type EventDetail,
+} from './components/EventDetailFields';
+import { Lock } from 'lucide-react';
 
 /**
  * Events.
@@ -42,6 +46,15 @@ const BLANK = {
     location: '',
     media: { ...EMPTY_MEDIA } as CmsMedia,
     status: 'published' as 'published' | 'draft',
+    /*
+     * Agenda, speakers, audience and registration (EVT-001, EVT-002).
+     *
+     * Nested rather than flattened into this object so that the whole advanced
+     * panel can be handed to one component and read back as one value. It also
+     * keeps the two halves separable at save time: everything above is what an
+     * event has always had, everything in here is additive.
+     */
+    detail: { ...BLANK_DETAIL } as EventDetail,
 };
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -151,6 +164,24 @@ export default function EventsManager() {
             location: e.location || '',
             media: { ...EMPTY_MEDIA, ...(e.media || {}) },
             status: (e.status || 'published') as 'published' | 'draft',
+            detail: {
+                // Every one of these is optional on the wire: a row written
+                // before these fields existed comes back without them, so each
+                // falls back to the blank rather than to `undefined`.
+                audience: e.audience === 'paid' ? 'paid' : 'all',
+                agenda: Array.isArray(e.agenda) ? e.agenda : [],
+                speakers: Array.isArray(e.speakers) ? e.speakers : [],
+                venueAddress: e.venueAddress || '',
+                venueMapUrl: e.venueMapUrl || '',
+                contactName: e.contactName || '',
+                contactPhone: e.contactPhone || '',
+                contactEmail: e.contactEmail || '',
+                registrationEnabled: !!e.registrationEnabled,
+                registrationDeadline: toLocalDateTimeInput(e.registrationDeadline),
+                capacity: e.capacity ? String(e.capacity) : '',
+                registrationNote: e.registrationNote || '',
+                reminderOffsetsHours: Array.isArray(e.reminderOffsetsHours) ? e.reminderOffsetsHours : [],
+            },
         });
         setShowForm(true);
     };
@@ -172,6 +203,36 @@ export default function EventsManager() {
                 bannerFit: form.media.fit,
                 bannerPosition: form.media.position,
                 status: form.status,
+
+                audience: form.detail.audience,
+                /*
+                 * Arrays are JSON-encoded here, not passed as arrays.
+                 *
+                 * `createCmsEvent` builds a `FormData` whenever there is an
+                 * image, and `FormData.append` stringifies whatever it is
+                 * given — an array of objects becomes "[object Object]" and the
+                 * whole agenda is lost with no error anywhere. The server's
+                 * `parseArray` reads the JSON back for both transports.
+                 */
+                agenda: JSON.stringify(form.detail.agenda),
+                speakers: JSON.stringify(form.detail.speakers),
+                reminderOffsetsHours: JSON.stringify(form.detail.reminderOffsetsHours),
+
+                venueAddress: form.detail.venueAddress,
+                venueMapUrl: form.detail.venueMapUrl,
+                contactName: form.detail.contactName,
+                contactPhone: form.detail.contactPhone,
+                contactEmail: form.detail.contactEmail,
+
+                registrationEnabled: form.detail.registrationEnabled,
+                // A `datetime-local` value carries no offset, so it is read in
+                // the editor's own timezone here — where that IS the intended
+                // one — rather than left for the server to guess.
+                registrationDeadline: form.detail.registrationDeadline
+                    ? new Date(form.detail.registrationDeadline).toISOString()
+                    : '',
+                capacity: Number(form.detail.capacity) || 0,
+                registrationNote: form.detail.registrationNote,
             };
 
             if (editing) await updateCmsEvent(editing, payload);
@@ -359,6 +420,12 @@ export default function EventsManager() {
                             </CmsField>
                         </div>
 
+                        <EventDetailFields
+                            value={form.detail}
+                            onChange={(detail) => setForm({ ...form, detail })}
+                            eventId={editing}
+                        />
+
                         <CmsField label="Visibility" hint="A draft is stored but shown to nobody.">
                             <select
                                 value={form.status}
@@ -413,7 +480,27 @@ export default function EventsManager() {
                                                 <div className="w-14 h-10 rounded bg-slate-100 dark:bg-[#161616]" />
                                             )}
                                         </td>
-                                        <td className="py-3 pr-4 text-slate-800 dark:text-neutral-200">{e.title || '—'}</td>
+                                        <td className="py-3 pr-4 text-slate-800 dark:text-neutral-200">
+                                            {e.title || '—'}
+                                            {/* The audience is a fact about the row that
+                                                the status column cannot carry: a published
+                                                members-only event and a published open one
+                                                both read "published". */}
+                                            {e.audience === 'paid' ? (
+                                                <span className="ml-2 inline-flex items-center gap-1 text-[10px]
+                                                                 font-bold uppercase tracking-wide px-1.5 py-0.5
+                                                                 rounded-full bg-blue-100 dark:bg-blue-950
+                                                                 text-blue-700 dark:text-blue-400 align-middle">
+                                                    <Lock className="w-2.5 h-2.5" /> Members
+                                                </span>
+                                            ) : null}
+                                            {e.registrationEnabled ? (
+                                                <span className="ml-1.5 text-[10px] font-medium text-neutral-500
+                                                                 align-middle">
+                                                    registration open
+                                                </span>
+                                            ) : null}
+                                        </td>
                                         <td className="py-3 pr-4 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
                                             {e.startAt ? new Date(e.startAt).toLocaleString() : '—'}
                                         </td>

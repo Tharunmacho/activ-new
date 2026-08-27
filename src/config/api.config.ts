@@ -189,6 +189,18 @@ export const ENDPOINTS = {
         UPDATE_PROFILE: '/members/profile',
         PROFILE_PHOTO: '/members/profile-photo',
         LIST: '/members',
+        /**
+         * The member directory (DIR-001).
+         *
+         * Not `LIST` above. `/members` hands the query string straight to
+         * `MemberDetails.find` as a filter, which is fine for an admin listing
+         * and wrong for a member-facing search: the caller can filter on any
+         * field of the schema, and the whole matched document comes back. The
+         * directory endpoints name their filters and name their fields.
+         */
+        DIRECTORY: '/members/directory',
+        DIRECTORY_SECTORS: '/members/directory/sectors',
+        DIRECTORY_ENTRY: (id: string) => `/members/directory/${id}`,
         /** The member's own feed — application, approval and payment events. */
         RECENT_ACTIVITY: '/members/recent-activity',
         /** `kind` is 'membership' or 'tax-exemption'. */
@@ -230,6 +242,12 @@ export const ENDPOINTS = {
         STATS: '/products/stats',
         ACTIVITIES: '/products/activities',
         BY_ID: (id: string) => `/products/${id}`,
+        // Catalogue and stock management (BUS-001, BUS-002).
+        LOW_STOCK: '/products/low-stock',
+        STOCK_MOVEMENTS: '/products/stock-movements',
+        ADJUST_STOCK: (id: string) => `/products/${id}/stock`,
+        PUBLISH: (id: string) => `/products/${id}/publish`,
+        VIEW: (id: string) => `/products/${id}/view`,
     },
 
     ADMIN: {
@@ -265,6 +283,19 @@ export const ENDPOINTS = {
         LIST: '/events',
         BY_ID: (id: string) => `/events/${id}`,
         STATUS: (id: string) => `/events/${id}/status`,
+        // Registration (EVT-002). `MY_REGISTRATIONS` is a literal path and is
+        // declared by the router above `/:id`, or it reads as an event id.
+        MY_REGISTRATIONS: '/events/my-registrations',
+        REGISTER: (id: string) => `/events/${id}/register`,
+        REGISTRATIONS: (id: string) => `/events/${id}/registrations`,
+    },
+
+    /** Association Updates (MEM-001) — news targeted at a member's region. */
+    ANNOUNCEMENTS: {
+        LIST: '/announcements',
+        ADMIN_LIST: '/announcements/admin',
+        BY_ID: (id: string) => `/announcements/${id}`,
+        STATUS: (id: string) => `/announcements/${id}/status`,
     },
 
     NOTIFICATIONS: {
@@ -277,6 +308,14 @@ export const ENDPOINTS = {
         USER_GROWTH: '/analytics/user-growth',
         APPLICATIONS: '/analytics/applications',
         MEMBERS: '/analytics/members',
+        /**
+         * A member's own operational analytics (BUS-003).
+         *
+         * The three above are admin-only — the router gates everything after
+         * `/me` with `requireRole('district_admin', ...)`. This one is scoped to
+         * the caller's own id instead, which is why it needs no role.
+         */
+        ME: '/analytics/me',
     },
 
     AUDIT: {

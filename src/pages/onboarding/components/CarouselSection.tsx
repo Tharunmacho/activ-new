@@ -21,6 +21,7 @@ import { CmsIcon } from '@/components/shared/CmsIcon';
  */
 export function CarouselSection() {
     const [carousel, setCarousel] = useState<HomeCarousel | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { loop: true, duration: 40 },
@@ -33,8 +34,8 @@ export function CarouselSection() {
     useEffect(() => {
         let cancelled = false;
         getHome()
-            .then((home) => { if (!cancelled) setCarousel(home.carousel); })
-            .catch(() => { if (!cancelled) setCarousel(null); });
+            .then((home) => { if (!cancelled) { setCarousel(home.carousel); setIsLoading(false); } })
+            .catch(() => { if (!cancelled) { setCarousel(null); setIsLoading(false); } });
         return () => { cancelled = true; };
     }, []);
 
@@ -47,6 +48,15 @@ export function CarouselSection() {
     const slides = carousel?.slides || [];
     const card = carousel?.highlightCard;
     const showCard = !!(card?.enabled && (card.value || card.eyebrow || (card.stats || []).length));
+
+    // Render skeleton while loading
+    if (isLoading) {
+        return (
+            <div className="w-full mb-12">
+                <div className="relative w-full h-[85vh] min-h-[600px] bg-slate-200 animate-pulse" />
+            </div>
+        );
+    }
 
     // Nothing authored yet: render nothing rather than an empty dark band.
     if (!carousel || (!slides.length && !carousel.headline)) return null;

@@ -34,6 +34,7 @@ const formatDate = (iso: string | null) => {
 export function EventsGrid({ limit, showViewAll = false }: Props) {
     const [events, setEvents] = useState<CmsEvent[] | null>(null);
     const [settings, setSettings] = useState<EventsSettings | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
@@ -45,15 +46,42 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                 if (cancelled) return;
                 setEvents(list);
                 setSettings(config);
+                setIsLoading(false);
             })
             .catch(() => {
                 if (cancelled) return;
                 setEvents([]);
                 setSettings(null);
+                setIsLoading(false);
             });
 
         return () => { cancelled = true; };
     }, []);
+
+    if (isLoading) {
+        return (
+            <section className="w-full py-24 bg-[#fafbfc]">
+                <div className="container mx-auto px-4 md:px-8 max-w-7xl animate-pulse">
+                    <div className="flex flex-col items-center text-center mb-16 space-y-6">
+                        <div className="h-6 bg-slate-200 rounded w-24"></div>
+                        <div className="h-10 bg-slate-200 rounded w-1/2"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="bg-white rounded-[2rem] flex flex-col shadow-sm h-96 overflow-hidden">
+                                <div className="w-full h-48 bg-slate-200"></div>
+                                <div className="p-8 flex flex-col flex-grow space-y-4">
+                                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                                    <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+                                    <div className="h-4 bg-slate-200 rounded w-full mt-auto"></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     // Still loading. Rendering the empty state here would flash "no events" on
     // every page load before the real list arrives.

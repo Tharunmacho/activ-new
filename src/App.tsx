@@ -46,7 +46,19 @@ import ApplicationStatus from "./pages/member/ApplicationStatus";
 const PaymentPage = lazy(() => import("./pages/member/Payment"));
 const PaymentSuccess = lazy(() => import("./pages/member/PaymentSuccess"));
 import UnpaidDashboard from "./features/member/pages/UnpaidDashboard";
-import Explore from "./features/member/pages/Explore";
+/*
+ * The paid member area's four screens.
+ *
+ * Lazy, like everything else behind a login: an aspirant never opens the event
+ * page and an unpaid visitor never opens any of them, so none of this belongs
+ * in the bundle the landing page waits on.
+ */
+const AssociationUpdates = lazy(() => import("./features/member/pages/AssociationUpdates"));
+const AnnouncementDetail = lazy(() => import("./features/member/pages/AnnouncementDetail"));
+const MemberEvents = lazy(() => import("./features/member/pages/MemberEvents"));
+const MemberEventDetail = lazy(() => import("./features/member/pages/MemberEventDetail"));
+const MemberDirectory = lazy(() => import("./features/member/pages/MemberDirectory"));
+const DirectoryProfile = lazy(() => import("./features/member/pages/DirectoryProfile"));
 const CertificatePage = lazy(() => import("./features/member/pages/CertificatePage"));
 import MemberSettings from "./pages/member/Settings";
 
@@ -62,6 +74,7 @@ const MembershipPlans = lazy(() => import("./pages/payment/MembershipPlans"));
 import BusinessProfile from "./pages/business/BusinessProfile";
 import BusinessDashboard from "./pages/business/Dashboard";
 import Products from "./pages/business/Products";
+const BusinessStock = lazy(() => import("./pages/business/Stock"));
 const AddProduct = lazy(() => import("./pages/business/AddProduct"));
 const EditProduct = lazy(() => import("./pages/business/EditProduct"));
 import Discover from "./pages/business/Discover";
@@ -98,6 +111,7 @@ const SuperMembers = lazy(() => import("./features/admin/super-admin/pages/Membe
 const SuperSettings = lazy(() => import("./features/admin/super-admin/pages/Settings"));
 const SuperManageAdmins = lazy(() => import("./features/admin/super-admin/pages/ManageAdmins"));
 const SuperEvents = lazy(() => import("./features/admin/super-admin/pages/Events"));
+const SuperUpdates = lazy(() => import("./features/admin/super-admin/pages/Updates"));
 
 // CMS (public-site content management, super admin only)
 const CmsLayout = lazy(() => import("./pages/cms/CmsLayout"));
@@ -161,7 +175,21 @@ const App = () => (
               {/* Member Routes */}
 
               <Route path="/member/unpaid-dashboard" element={<UnpaidDashboard />} />
-              <Route path="/explore" element={<Explore />} />
+
+              {/* The paid member area (MEM-001, EVT-001/2, DIR-001). */}
+              <Route path="/member/updates" element={<AssociationUpdates />} />
+              <Route path="/member/updates/:id" element={<AnnouncementDetail />} />
+              <Route path="/member/events" element={<MemberEvents />} />
+              <Route path="/member/events/:id" element={<MemberEventDetail />} />
+              <Route path="/member/directory" element={<MemberDirectory />} />
+              <Route path="/member/directory/:id" element={<DirectoryProfile />} />
+              {/*
+                * `/explore` was the old client-side-filtered member list. It
+                * resolves to the directory rather than 404ing, because it is
+                * the path in every bookmark and in the sidebar of any tab left
+                * open across the deploy.
+                */}
+              <Route path="/explore" element={<Navigate to="/member/directory" replace />} />
               <Route path="/member/profile-view" element={<ProfileView />} />
               <Route path="/member/profile" element={<MemberProfile />} />
               <Route path="/member/settings" element={<MemberSettings />} />
@@ -193,6 +221,7 @@ const App = () => (
               {/* Business Routes */}
               <Route path="/business/dashboard" element={<BusinessDashboard />} />
               <Route path="/business/products" element={<Products />} />
+              <Route path="/business/stock" element={<BusinessStock />} />
               <Route path="/business/add-product" element={<AddProduct />} />
               <Route path="/business/edit-product/:id" element={<EditProduct />} />
               <Route path="/business/discover" element={<Discover />} />
@@ -236,6 +265,9 @@ const App = () => (
               {/* Events is a TAB of the super-admin section on mobile. Linking
                   at /cms/events dropped the administrator into the CMS shell. */}
               <Route path="/super-admin/events" element={<SuperEvents />} />
+              {/* Association Updates (MEM-001) — authored here, delivered to the
+                  dashboard of every member whose region matches. */}
+              <Route path="/super-admin/updates" element={<SuperUpdates />} />
 
               {/* Legacy Admin Routes - Redirect to Block Admin */}
               <Route path="/admin/dashboard" element={<BlockDashboard />} />

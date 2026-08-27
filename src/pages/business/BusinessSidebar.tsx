@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Briefcase, Box, Compass, BarChart3, Settings, ArrowLeft, X } from 'lucide-react';
+import { Briefcase, Box, Boxes, Compass, BarChart3, Settings, ArrowLeft, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { getPaymentStatus } from '@/services/activApi';
@@ -17,6 +17,16 @@ type Props = {
 const NAV = [
     { to: '/business/dashboard', label: 'Business', icon: Briefcase },
     { to: '/business/products', label: 'Products', icon: Box },
+    /*
+     * Stock is its own screen, not a column on Products.
+     *
+     * The two answer different questions. Products is "what do I sell" and is
+     * edited occasionally; stock is "what have I got" and is adjusted daily,
+     * often against a delivery note with the shop still open. Putting an
+     * adjustment behind the full product edit form means loading the price, the
+     * description and the image to change one number.
+     */
+    { to: '/business/stock', label: 'Stock', icon: Boxes },
     { to: '/business/discover', label: 'Discover', icon: Compass },
     { to: '/business/analytics', label: 'Analytics', icon: BarChart3 },
     { to: '/business/settings', label: 'Settings', icon: Settings },

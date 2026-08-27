@@ -231,6 +231,54 @@ export interface CmsEvent {
     /** The same media shape as every other section, so the frame can honour fit. */
     media: CmsMedia;
     status: 'draft' | 'published';
+
+    /*
+     * The advanced-display half (EVT-001, EVT-002).
+     *
+     * Every field is optional because this listing is read by the PUBLIC site
+     * and by the mobile app as well as by the editor, and both of those were
+     * written against the shape above. A row created before these existed comes
+     * back without them, so anything reading one must cope with `undefined`
+     * rather than assume an empty array.
+     *
+     * The server's `pickEventDetail` is the authority on their shape — it lifts
+     * them off the one event mapper so this listing and `/events` cannot
+     * describe the same row differently.
+     */
+    /** `paid` restricts the event to members with an active membership. */
+    audience?: 'all' | 'paid';
+    agenda?: CmsAgendaItem[];
+    speakers?: CmsSpeaker[];
+    venueAddress?: string;
+    venueMapUrl?: string;
+    contactName?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+    registrationEnabled?: boolean;
+    registrationDeadline?: string | null;
+    capacity?: number;
+    registrationNote?: string;
+    reminderOffsetsHours?: number[];
+}
+
+/** One line of the hourly agenda. Times are `HH:MM` OF the event day. */
+export interface CmsAgendaItem {
+    id?: string;
+    startTime: string;
+    endTime: string;
+    title: string;
+    description: string;
+    speaker: string;
+    location: string;
+}
+
+export interface CmsSpeaker {
+    id?: string;
+    name: string;
+    role: string;
+    organization: string;
+    bio: string;
+    photoUrl: string;
 }
 
 export interface ContactMessage {

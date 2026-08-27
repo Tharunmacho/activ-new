@@ -181,10 +181,20 @@ export const MEMBER_NAV: MemberNavItem[] = [
         unlock: 'applicationSubmitted',
         requirement: 'Coming soon',
     },
+    /*
+     * The directory, not the old Explore page.
+     *
+     * `/explore` loaded every member the API would return and filtered the list
+     * in the browser, so its "search" reached only the first fifty rows and it
+     * had no way to ask for a district or a sector at all. `/member/directory`
+     * asks the server, which is the only place those filters can be applied
+     * against the whole membership. The old path still resolves to the new
+     * screen so that a bookmark does not 404.
+     */
     {
         key: 'explore',
-        label: 'Explore Members',
-        to: '/explore',
+        label: 'Member Directory',
+        to: '/member/directory',
         icon: 'search',
         unlock: 'applicationSubmitted',
         requirement: 'Submit your application',
@@ -197,10 +207,18 @@ export const MEMBER_NAV: MemberNavItem[] = [
         unlock: 'membershipActive',
         requirement: 'Coming soon',
     },
+    /*
+     * The member events screen, not the public marketing page.
+     *
+     * `/events` is part of the public site: it carries the visitor header and a
+     * "Register" call to action for an account this member already has, and it
+     * cannot show a members-only event or a seat they hold — both of which are
+     * the point of the paid programme.
+     */
     {
         key: 'events',
         label: 'Events',
-        to: '/events',
+        to: '/member/events',
         icon: 'calendar',
         unlock: 'membershipActive',
         requirement: 'Activate your membership',
@@ -208,10 +226,10 @@ export const MEMBER_NAV: MemberNavItem[] = [
     {
         key: 'updates',
         label: 'Association Updates',
-        to: null,
+        to: '/member/updates',
         icon: 'megaphone',
         unlock: 'membershipActive',
-        requirement: 'Coming soon',
+        requirement: 'Activate your membership',
     },
 
     /*
@@ -325,6 +343,113 @@ export const applicantKindLabel = (application: any | null): string => {
     if (kind === 'aspirant') return 'Aspirant';
     if (kind === 'business') return 'Business Applicant';
     return '';
+};
+
+
+/**
+ * Which membership this account holds, and what that entitles them to (ENT-001).
+ *
+ * The distinction is the one the applicant themselves made at registration: an
+ * Aspirant or Student is here for the association — its updates, its events,
+ * the directory — while a Company or Business member also gets the trading
+ * side, a catalogue and the analytics over it.
+ *
+ * `resolveApplicantKind` above already answers "what did they declare", reading
+ * the four places that answer survived. This layer is about what the ANSWER
+ * BUYS, and it is deliberately separate: a member can be a business applicant
+ * whose business record has not been created yet, and the sidebar has to be
+ * right about them on the day they pay, not on the day they get round to
+ * filling in the business form.
+ */
+export type MemberPlan = 'aspirant' | 'business' | 'unknown';
+
+export interface PlanContext {
+    /** What the applicant declared, from `resolveApplicantKind`. */
+    declared: ApplicantKind;
+    /** Whether a business record actually exists for them yet. */
+    hasBusinessRecord: boolean;
+}
+
+/**
+ * The plan, from the declaration first and the business record second.
+ *
+ * A declaration outranks a record because it is what the member said about
+ * themselves. Someone who registered as a business but has not yet filled in
+ * the business form is a business member with an empty catalogue — not an
+ * aspirant — and telling them otherwise hides the very screen they need next.
+ *
+ * The reverse inference is still worth making: a record exists only because
+ * somebody created one, so an account with a business but no surviving
+ * declaration (there are such rows — see the note on `resolveApplicantKind`) is
+ * treated as a business member rather than as unknown.
+ */
+export const resolvePlan = ({ declared, hasBusinessRecord }: PlanContext): MemberPlan => {
+    if (declared === 'business') return 'business';
+    if (declared === 'aspirant') return 'aspirant';
+    return hasBusinessRecord ? 'business' : 'unknown';
+};
+
+/** How the plan reads on a membership card. Empty when nothing is known. */
+export const planLabel = (plan: MemberPlan): string => {
+    if (plan === 'business') return 'Business Membership';
+    if (plan === 'aspirant') return 'Aspirant Membership';
+    return '';
+};
+
+/**
+ * What a plan may reach.
+ *
+ * Written as a table for the same reason `MEMBER_NAV` is: the dashboard, the
+ * sidebar and the business screens all ask this question, and three answers
+ * maintained separately is how the same account ends up seeing a Catalogue tile
+ * that leads to a screen refusing to open.
+ *
+ * `unknown` is treated as a business member on purpose. Every entitlement here
+ * is additive — nothing is withheld from an aspirant that would harm a business
+ * member to see — so the failure to guess right costs a business member a
+ * feature they paid for in one direction, and shows an aspirant a screen with
+ * an empty state in the other. The second is the cheaper mistake.
+ */
+export interface PlanEntitlements {
+    /** Product and service catalogue, stock, and the business dashboard. */
+    catalogue: boolean;
+    /** Operational analytics over that catalogue. */
+    analytics: boolean;
+    /** Listing in the directory WITH a business, rather than as a person. */
+    businessListing: boolean;
+}
+
+export const entitlementsFor = (plan: MemberPlan): PlanEntitlements => {
+    const trading = plan !== 'aspirant';
+
+    return {
+        catalogue: trading,
+        analytics: trading,
+        businessListing: trading,
+    };
+};
+
+/**
+ * Why a feature is not available, phrased for the member holding this plan.
+ *
+ * ENT-001 asks for features to be hidden OR EXPLAINED. Explained is almost
+ * always the better of the two: a member who cannot find the catalogue assumes
+ * the site is broken, while one who is told it belongs to a different
+ * membership knows both where they stand and what to do about it. Hiding is
+ * kept for the case where there is nothing useful to say.
+ */
+export const planExplainer = (plan: MemberPlan, feature: keyof PlanEntitlements): string => {
+    if (entitlementsFor(plan)[feature]) return '';
+
+    if (feature === 'catalogue') {
+        return 'Catalogue and stock tools come with a Company or Business membership. '
+            + 'An Aspirant membership covers association updates, events and the member directory.';
+    }
+    if (feature === 'analytics') {
+        return 'Operational analytics measure a catalogue, which comes with a Company or '
+            + 'Business membership.';
+    }
+    return 'This is part of a Company or Business membership.';
 };
 
 /**

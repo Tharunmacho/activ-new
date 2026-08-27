@@ -8,7 +8,14 @@
  *
  * Everything here maps 1:1 onto a route in `backend/src/routes.js`.
  */
-import api, { unwrap, setAuthToken, clearSession, errorMessage } from './api';
+import api, {
+    unwrap,
+    setAuthToken,
+    clearSession,
+    errorMessage,
+    clearRequestCache,
+    registerCacheClearer,
+} from './api';
 import {
     API_BASE_URL,
     ENDPOINTS,
@@ -60,10 +67,25 @@ type CacheEntry = { at: number; response: Response };
 const inFlight = new Map<string, Promise<Response>>();
 const fresh = new Map<string, CacheEntry>();
 
-/** Drop every cached GET. Called after any mutation, and on sign-in/out. */
-export const clearApiCache = (): void => {
+/** Clears this file's two maps and nothing else — what the registry calls. */
+const dropFetchCache = (): void => {
     inFlight.clear();
     fresh.clear();
+};
+
+registerCacheClearer(dropFetchCache);
+
+/**
+ * Drop every cached GET, on this transport and on the axios one.
+ *
+ * The two share endpoints — the sidebar reads `/members/my-profile` through
+ * `apiFetch`, `getMyProfile()` reads it through axios — so a write must clear
+ * both or the other transport serves the pre-write body for the rest of its
+ * TTL. `clearRequestCache` runs the registry, which includes `dropFetchCache`
+ * above; the same is true in reverse for a write that goes out through axios.
+ */
+export const clearApiCache = (): void => {
+    clearRequestCache();
 };
 
 export const apiFetch = (path: string, init: RequestInit = {}): Promise<Response> => {
@@ -247,7 +269,6 @@ export const login = async (email: string, password: string): Promise<LoginResul
      * six connections with the dashboard request that actually matters.
      */
     clearSession();
-    clearApiCache();
 
     const res = await api.post(ENDPOINTS.AUTH.LOGIN, {
         email: String(email || '').toLowerCase().trim(),
@@ -346,7 +367,6 @@ export const logout = async (): Promise<void> => {
     // not stop the client from forgetting its own token.
     await api.post(ENDPOINTS.AUTH.LOGOUT).catch(() => null);
     clearSession();
-    clearApiCache();
 };
 
 export const changePassword = async (oldPassword: string, newPassword: string) =>
@@ -411,7 +431,6 @@ export const restoreSession = async () => {
     if (!claims) return null;
     if (claims.exp && claims.exp * 1000 < Date.now()) {
         clearSession();
-    clearApiCache();
         return null;
     }
 
