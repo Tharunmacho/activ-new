@@ -156,7 +156,7 @@ export default function RegistrationFormShell({
                         type="button"
                         className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 flex items-center
                                    justify-center text-slate-600 hover:bg-slate-50 transition-colors"
-                        onClick={() => navigate('/member/dashboard')}
+                        onClick={() => navigate('/member/unpaid-dashboard')}
                         aria-label="Back to dashboard"
                     >
                         <ArrowLeft className="w-5 h-5" />

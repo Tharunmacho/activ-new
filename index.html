@@ -6,6 +6,34 @@
     <title>Actv Portal - Member & Admin Management</title>
     <meta name="description" content="Actv Member & Admin Portal - Comprehensive application management system with multi-tier administrative access" />
     <meta name="author" content="Actv" />
+    <link rel="icon" type="image/png" href="/logo_ACTIVian-removebg-preview.png" />
+    <link rel="apple-touch-icon" href="/logo_ACTIVian-removebg-preview.png" />
+
+    <!--
+      Two families, each doing the job it is good at.
+
+      Plus Jakarta Sans sets headings: it has real personality at large sizes and
+      a tight, confident cap height, which is what makes a card title read as a
+      title rather than as bolder body text.
+
+      Inter sets everything else. It was drawn for screen UI at small sizes and
+      carries the one feature this product needs everywhere — `tnum`, tabular
+      figures, so the percentages, dates and stage counts in the tracker line up
+      in a column instead of jittering as the numbers change.
+
+      `preconnect` on both hosts because the stylesheet on fonts.googleapis.com
+      immediately pulls files from fonts.gstatic.com; without the second hint
+      that connection is opened only after the CSS has parsed.
+
+      `display=swap` so text paints in the fallback immediately and never leaves
+      the dashboard blank while a font loads.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>

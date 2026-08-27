@@ -173,7 +173,14 @@ export default function AdminSidebar({
 
             {/* Navigation — the real scroll container. `min-h-0` is what lets it
                 shrink below its content and actually scroll. */}
-            <nav className="p-3 md:p-4 flex-1 min-h-0 overflow-y-auto">
+            {/*
+              * Same scroll behaviour as the member rail: the header and the
+              * sign-out block stay put while the entries move, and scrolling to
+              * the end of the list does not start scrolling the page behind it.
+              * `member-rail-scroll` is the slim scrollbar - the native one is
+              * full-width and reads as a second border inside a 288px column.
+              */}
+            <nav className="p-3 md:p-4 flex-1 min-h-0 overflow-y-auto overscroll-contain member-rail-scroll">
                 <div className="space-y-2">
                     {nav.map((item) => {
                         // The landing route matches exactly; the rest also match
@@ -220,7 +227,20 @@ export default function AdminSidebar({
     return (
         <>
             {/* Desktop rail */}
-            <div className={`hidden md:flex md:flex-col md:w-64 lg:w-64 h-screen sticky top-0 min-h-0 ${shell}`}>
+            {/*
+              * Wider from `lg` up, not from `md`.
+              *
+              * The rail was 256px at every desktop width, which is narrow for
+              * entries like "Application Status" and "Association Updates" and
+              * left them wrapping or truncating. It grows on the screens that
+              * have the room; at `md` (768px) it stays 256px, because widening
+              * there would take the space back off an admin table that is
+              * already tight on a tablet.
+              *
+              * This is the one rail every tier renders - block, district, state
+              * and super all re-export this file - so the four move together.
+              */}
+            <div className={`hidden md:flex md:flex-col md:w-64 lg:w-[288px] xl:w-[304px] h-screen sticky top-0 min-h-0 ${shell}`}>
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full filter blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full filter blur-3xl pointer-events-none" />
                 {content}

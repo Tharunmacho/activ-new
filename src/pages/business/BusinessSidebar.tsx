@@ -86,12 +86,12 @@ export default function BusinessSidebar({
     const handleBackToDashboard = async () => {
         try {
             const isPaid = (await getPaymentStatus()) === 'completed';
-            navigate(isPaid ? '/payment/member-dashboard' : '/member/dashboard');
+            navigate(isPaid ? '/payment/member-dashboard' : '/member/unpaid-dashboard');
         } catch (error) {
             // Unknown payment state is treated as unpaid — showing paid-only
             // screens to someone who has not paid is the worse failure.
             console.warn('Payment status check safely caught:', error);
-            navigate('/member/dashboard');
+            navigate('/member/unpaid-dashboard');
         }
         onClose();
     };

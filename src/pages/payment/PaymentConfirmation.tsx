@@ -99,7 +99,7 @@ export default function PaymentConfirmation() {
         fireConfetti();
       } else {
         // Redirect to dashboard if no valid payment details
-        navigate('/member/dashboard');
+        navigate('/member/unpaid-dashboard');
       }
     } catch (error) {
       console.error('Error loading payment details:', error);

@@ -1,672 +1,463 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * Application Status — the website's version of the mobile screen.
+ *
+ * The presentation is a port of `frontend/src/screens/application/
+ * ApplicationStatusScreen.tsx`: a gradient status hero whose colour *is* the
+ * outcome, a reference strip, and a rail-and-card review timeline. The tones,
+ * the copy and the stage rules are the mobile ones, so a member who has seen one
+ * recognises the other.
+ *
+ * What changes for the web is the frame, not the design. Mobile stacks
+ * everything in a single column because it has no choice; here the hero and the
+ * strip take the full width and the timeline sits beside a details panel, so a
+ * desktop screen gets used rather than padded out with empty margin.
+ *
+ * Stage derivation comes from `timelineStageStatus` in `activApi` — the same
+ * function the dashboard tracker calls — so when a Block Admin approves, this
+ * screen and the dashboard card move together instead of drifting apart. The
+ * previous version derived its own stages from `approvals.*`, which is a second
+ * set of rules over the same timestamps and the usual way two screens end up
+ * disagreeing about one file.
+ */
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MemberPageShell from '@/pages/member/MemberPageShell';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Info, CheckCircle, Clock, FileText, Loader2, RefreshCw, CreditCard, User, Mail, Phone, MapPin, Briefcase, ArrowLeft, XCircle, Calendar, Building2, Shield } from 'lucide-react';
+    Loader2, RefreshCw, CreditCard, Check, Hourglass, X, Clock,
+    AlertTriangle, User, Calendar, MapPin, Mail, Phone, FileText, BadgeCheck,
+} from 'lucide-react';
 import { getUserApplication } from '@/services/applicationApi';
+import { deriveApprovalFlags, timelineStageStatus, type TimelineStageStatus } from '@/services/activApi';
+import { applicantKindLabel, dashboardPathFor, formatApplicationRef } from '@/features/member/memberAccess';
+import useMembershipGate from '@/features/member/useMembershipGate';
 
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
+/** The mobile screen's palette, one for one. */
+const TONE: Record<TimelineStageStatus, {
+    text: string; soft: string; dot: string; label: string; Icon: typeof Check;
+}> = {
+    approved: { text: 'text-[#16A34A]', soft: 'bg-[#DCFCE7]', dot: 'bg-[#16A34A]', label: 'Approved', Icon: Check },
+    in_progress: { text: 'text-[#1E50E6]', soft: 'bg-[#E0E7FF]', dot: 'bg-[#1E50E6]', label: 'In Review', Icon: Hourglass },
+    rejected: { text: 'text-[#DC2626]', soft: 'bg-[#FEE2E2]', dot: 'bg-[#DC2626]', label: 'Rejected', Icon: X },
+    pending: { text: 'text-[#94A3B8]', soft: 'bg-[#F1F5F9]', dot: 'bg-[#94A3B8]', label: 'Waiting', Icon: Clock },
+};
 
-interface ApprovalStatus {
-  adminId?: string;
-  adminName?: string;
-  status: string;
-  remarks?: string;
-  actionDate?: string;
-}
+/** The four stages, in order. `short` is what the hero rail shows. */
+const STAGES = [
+    { key: 'block', name: 'Block Admin Review', short: 'Block', at: 'blockApprovedAt' },
+    { key: 'district', name: 'District Admin Review', short: 'District', at: 'districtApprovedAt' },
+    { key: 'state', name: 'State Admin Review', short: 'State', at: 'stateApprovedAt' },
+    { key: 'payment', name: 'Ready for Payment', short: 'Payment', at: 'stateApprovedAt' },
+] as const;
 
-/**
- * The page-local shape, kept loose on purpose.
- *
- * The authoritative type lives in `services/applicationApi` and is derived from
- * the backend schema. Re-declaring a stricter copy here is how the two drifted:
- * this one still named `memberName`, a field the server has never returned.
- */
-type Application = Awaited<ReturnType<typeof getUserApplication>>;
+const formatDate = (value?: string | null): string => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+/** The mobile screen's per-stage copy, word for word. */
+const stageMessage = (status: TimelineStageStatus, rejectionReason?: string): string => {
+    if (status === 'approved') return 'Application approved at this stage.';
+    if (status === 'in_progress') return 'Your application is currently being reviewed. Please check back later.';
+    if (status === 'rejected') return rejectionReason || 'Application was rejected at this stage.';
+    return '';
+};
 
 export default function ApplicationStatus() {
-  const q = useQuery();
-  const id = q.get('id');
-  const navigate = useNavigate();
-  const [submissionData, setSubmissionData] = useState<any>(null);
-  const [application, setApplication] = useState<Application | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+    const navigate = useNavigate();
+    const { isPaid } = useMembershipGate();
+    const [application, setApplication] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadApplicationData();
-  }, []);
+    const dashboard = dashboardPathFor(isPaid === true);
 
-  const loadApplicationData = async () => {
-    setLoading(true);
-    try {
-
-      const app = await getUserApplication();
-
-      if (app) {
-        setApplication(app);
-      } else {
-        const data = localStorage.getItem("applicationSubmission");
-        if (data) {
-          setSubmissionData(JSON.parse(data));
+    const load = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true); else setLoading(true);
+        try {
+            setApplication(await getUserApplication());
+            setError('');
+        } catch (err: any) {
+            setError(err?.message || 'Failed to load application status. Please try again.');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
-      }
-    } catch (error) {
-      console.error('❌ Error loading application:', error);
-    } finally {
-      setLoading(false);
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    const flags = useMemo(() => deriveApprovalFlags(application), [application]);
+    const isRejected = flags.isRejected === true;
+    const isApproved = application?.status === 'Approved';
+
+    /**
+     * The four stages with their state resolved.
+     *
+     * Payment is not a review tier and has no `timelineStageStatus` of its own:
+     * it is approved once the membership is active, in progress while an
+     * approved application waits to be paid for, and pending before that.
+     */
+    const stages = useMemo(() => STAGES.map((stage) => {
+        const status: TimelineStageStatus = stage.key === 'payment'
+            ? (isPaid ? 'approved' : isApproved ? 'in_progress' : 'pending')
+            : (application ? timelineStageStatus(stage.key as 'block' | 'district' | 'state', application) : 'pending');
+
+        return {
+            key: stage.key,
+            name: stage.name,
+            short: stage.short,
+            status,
+            completed: status === 'approved',
+            active: status === 'in_progress',
+            reviewer: stage.key === 'payment' ? 'ACTIV System' : '',
+            date: formatDate((application as any)?.[stage.at]),
+            message: stage.key === 'payment'
+                ? (isApproved ? 'Your application is approved. Please proceed with membership payment.' : '')
+                : stageMessage(status, application?.rejectionReason),
+        };
+    }), [application, isApproved, isPaid]);
+
+    const completedCount = stages.filter(s => s.completed).length;
+    const progress = Math.round((completedCount / stages.length) * 100);
+
+    // The gradient is the outcome, readable before a word is.
+    const heroGradient = isRejected
+        ? 'from-[#EF4444] to-[#B91C1C]'
+        : isApproved
+            ? 'from-[#22C55E] to-[#15803D]'
+            : 'from-[#3B6FF5] to-[#1E3FA8]';
+
+    const heroHeadline = isRejected ? 'Application Rejected'
+        : isApproved ? 'Application Approved' : 'Under Review';
+
+    const heroCaption = isRejected ? 'See the reviewer note below for details.'
+        : isApproved ? 'You can now complete your membership payment.'
+            : `${completedCount} of ${stages.length} stages completed`;
+
+    const personal = application?.data?.personalDetails || application?.data?.personal || {};
+
+    // ---------------------------------------------------------------- states
+
+    if (loading) {
+        return (
+            <MemberPageShell title="Application Status" subtitle="Track your membership approval progress" width="wide" sidebar={false} backTo={dashboard}>
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3B6FF5] to-[#1E3FA8]
+                                    flex items-center justify-center mb-5 shadow-lg shadow-blue-500/30">
+                        <Loader2 className="w-8 h-8 animate-spin text-white" />
+                    </div>
+                    <h2 className="font-display text-lg font-bold text-slate-900">Loading Application</h2>
+                    <p className="text-sm text-slate-500 mt-1">Fetching your latest status…</p>
+                </div>
+            </MemberPageShell>
+        );
     }
-  };
 
-  // Loading state
-  if (loading) {
-    return (
-      <MemberPageShell
-          title="Application Status"
-          subtitle="Track your membership approval progress"
-          width="wide"
-            sidebar={false}
-      >
-        <div className="text-center">
-          <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
-            style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              boxShadow: '0 10px 30px -5px rgba(59, 130, 246, 0.4)'
-            }}
-          >
-            <Loader2 className="w-10 h-10 animate-spin text-white" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Application</h2>
-          <p className="text-gray-500">Please wait while we fetch your application status...</p>
-        </div>
-      </MemberPageShell>
-    );
-  }
-
-  // Build stages from real application data
-  const getStagesFromApplication = () => {
     if (!application) {
-      return [
-        { id: 1, name: 'Block Admin', admin: 'Pending Assignment', status: 'pending', remarks: '', icon: FileText },
-        { id: 2, name: 'District Admin', admin: 'Pending Assignment', status: 'pending', remarks: '', icon: FileText },
-        { id: 3, name: 'State Admin', admin: 'Pending Assignment', status: 'pending', remarks: '', icon: FileText },
-        { id: 4, name: 'Ready for Payment', admin: 'ACTIV Super Admin', status: 'pending', remarks: '', icon: CheckCircle }
-      ];
+        return (
+            <MemberPageShell title="Application Status" subtitle="Track your membership approval progress" width="wide" sidebar={false} backTo={dashboard}>
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-[76px] h-[76px] rounded-full bg-white border border-slate-200
+                                    flex items-center justify-center mb-5">
+                        {error
+                            ? <AlertTriangle className="w-9 h-9 text-[#DC2626]" />
+                            : <FileText className="w-9 h-9 text-[#64748B]" />}
+                    </div>
+                    <h2 className="font-display text-xl font-extrabold text-slate-900">
+                        {error ? 'Something Went Wrong' : 'No Application Found'}
+                    </h2>
+                    <p className="text-sm text-slate-500 mt-2 max-w-sm leading-relaxed">
+                        {error || "You haven't submitted an application yet. Complete your profile to get started."}
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center gap-3 mt-7">
+                        {error ? (
+                            <Button onClick={() => load()} className="bg-[#1E50E6] hover:bg-[#1a45c9] font-semibold">
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                Try Again
+                            </Button>
+                        ) : (
+                            <Button onClick={() => navigate('/member/profile')} className="bg-[#1E50E6] hover:bg-[#1a45c9] font-semibold">
+                                Complete Your Profile
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={() => navigate(dashboard)} className="font-semibold">
+                            Back to Dashboard
+                        </Button>
+                    </div>
+                </div>
+            </MemberPageShell>
+        );
     }
 
-    const stages = [];
+    // ---------------------------------------------------------------- screen
 
-    // Block Admin Stage
-    const blockAdmin = application.approvals.block;
-    const isBlockInProgress = application.status === 'Pending-Block' && blockAdmin.status === 'pending';
-    const isBlockCompleted = blockAdmin.status === 'approved';
-    const isBlockRejected = blockAdmin.status === 'rejected';
-
-    stages.push({
-      id: 1,
-      name: 'Block Admin',
-      admin: blockAdmin.adminName || `${application.block} Block Admin`,
-      status: isBlockRejected ? 'rejected' :
-        isBlockCompleted ? 'completed' :
-          isBlockInProgress ? 'in-progress' : 'pending',
-      remarks: blockAdmin.remarks || '',
-      actionDate: blockAdmin.actionDate,
-      icon: FileText
-    });
-
-    // District Admin Stage
-    const districtAdmin = application.approvals.district;
-    const isDistrictInProgress = application.status === 'Pending-District' && districtAdmin.status === 'pending';
-    const isDistrictCompleted = districtAdmin.status === 'approved';
-    const isDistrictRejected = districtAdmin.status === 'rejected';
-
-    stages.push({
-      id: 2,
-      name: 'District Admin',
-      admin: districtAdmin.adminName || `${application.district} District Admin`,
-      status: isDistrictRejected ? 'rejected' :
-        isDistrictCompleted ? 'completed' :
-          isDistrictInProgress ? 'in-progress' : 'pending',
-      remarks: districtAdmin.remarks || '',
-      actionDate: districtAdmin.actionDate,
-      icon: FileText
-    });
-
-    // State Admin Stage
-    const stateAdmin = application.approvals.state;
-    const isStateInProgress = application.status === 'Pending-State' && stateAdmin.status === 'pending';
-    const isStateCompleted = stateAdmin.status === 'approved';
-    const isStateRejected = stateAdmin.status === 'rejected';
-
-    stages.push({
-      id: 3,
-      name: 'State Admin',
-      admin: stateAdmin.adminName || `${application.state} State Admin`,
-      status: isStateRejected ? 'rejected' :
-        isStateCompleted ? 'completed' :
-          isStateInProgress ? 'in-progress' : 'pending',
-      remarks: stateAdmin.remarks || '',
-      actionDate: stateAdmin.actionDate,
-      icon: FileText
-    });
-
-    // Payment Stage
-    stages.push({
-      id: 4,
-      name: 'Ready for Payment',
-      admin: 'ACTIV Super Admin',
-      status: application.status === 'Approved' ? 'completed' : 'pending',
-      remarks: '',
-      actionDate: undefined,
-      icon: CheckCircle
-    });
-
-    return stages;
-  };
-
-  const stages = getStagesFromApplication();
-  const completedStages = stages.filter(s => s.status === 'completed').length;
-  const totalStages = stages.length;
-  const progressPercentage = (completedStages / totalStages) * 100;
-
-  // Check if application was rejected
-  const isRejected = stages.some(s => s.status === 'rejected');
-
-  // If coming from query parameter (old flow), show approval stages
-  if (id || application) {
     return (
-      <MemberPageShell
-          title="Application Status"
-          subtitle="Track your membership approval progress"
-          width="wide"
+        <MemberPageShell
+            title="Application Status"
+            subtitle="Track your membership approval progress"
+            width="wide"
+            /*
+              * No rail on this screen.
+              *
+              * It is a place a member is looking AT one thing, reached from the
+              * dashboard card and left again by the same route. A sidebar here
+              * offers eight ways out of a screen whose whole job is one file,
+              * and it costs 288px that the timeline and the details panel put to
+              * better use. `sidebar={false}` also turns the shell's menu button
+              * into a back arrow, which is the control this screen actually
+              * wants.
+              */
             sidebar={false}
-      >
-        <div className="max-w-6xl mx-auto">
-          {/* Header Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigate('/member/dashboard')}
-                style={{
-                  borderRadius: '12px',
-                  border: '1px solid #E5E7EB'
-                }}
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
-              </Button>
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Application Status</h1>
-                <p className="text-gray-500 text-sm lg:text-base">Track your membership approval progress</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={loadApplicationData}
-                style={{
-                  borderRadius: '12px',
-                  border: '1px solid #E5E7EB',
-                  padding: '10px 16px'
-                }}
-              >
-                <RefreshCw className="w-4 h-4 mr-2 text-gray-600" />
-                <span className="text-gray-700">Refresh</span>
-              </Button>
-              {application && (
-                <div
-                  className="px-4 py-2 rounded-xl"
-                  style={{
-                    background: '#F3F4F6',
-                    border: '1px solid #E5E7EB'
-                  }}
-                >
-                  <span className="text-sm text-gray-500">ID: </span>
-                  <span className="font-mono font-semibold text-gray-900">{application.applicationId}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Main Content - Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Left Column - Progress Overview */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Progress Card */}
-              <Card
-                className="border-0"
-                style={{
-                  boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
-                  borderRadius: '16px'
-                }}
-              >
-                <CardContent className="p-6 lg:p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900 mb-1">Overall Progress</h2>
-                      <p className="text-gray-500">{completedStages} of {totalStages} stages completed</p>
-                    </div>
-                    <div
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                      style={{
-                        background: progressPercentage === 100
-                          ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
-                          : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                        boxShadow: progressPercentage === 100
-                          ? '0 10px 30px -5px rgba(16, 185, 129, 0.4)'
-                          : '0 10px 30px -5px rgba(59, 130, 246, 0.4)'
-                      }}
+            backTo={dashboard}
+            actions={
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => load(true)}
+                        disabled={refreshing}
+                        className="gap-1.5 font-semibold"
                     >
-                      <span className="text-xl font-bold text-white">{Math.round(progressPercentage)}%</span>
+                        <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                        <span className="hidden sm:inline">Refresh</span>
+                    </Button>
+            }
+        >
+            <div className="mx-auto w-full max-w-[1400px] space-y-6">
+
+                {/* ---------------- gradient status hero ---------------- */}
+                <div className={`rounded-3xl bg-gradient-to-br ${heroGradient} p-6 lg:p-8
+                                 text-white shadow-xl shadow-blue-900/20`}>
+                    <div className="flex items-center justify-between gap-4">
+                        <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/20
+                                         px-3 py-1.5 text-[11px] font-bold tracking-wide">
+                            {isRejected ? <X className="w-3.5 h-3.5" />
+                                : isApproved ? <BadgeCheck className="w-3.5 h-3.5" />
+                                    : <Hourglass className="w-3.5 h-3.5" />}
+                            {application.status || 'Pending'}
+                        </span>
+
+                        <span className="font-display text-3xl lg:text-4xl font-extrabold tabular tracking-tight">
+                            {progress}%
+                        </span>
                     </div>
-                  </div>
 
-                  {/* Progress Bar */}
-                  <div
-                    className="w-full h-3 rounded-full overflow-hidden mb-8"
-                    style={{ background: '#E5E7EB' }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${progressPercentage}%`,
-                        background: progressPercentage === 100
-                          ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
-                          : 'linear-gradient(90deg, #3b82f6 0%, #8B5CF6 100%)'
-                      }}
-                    />
-                  </div>
+                    <h2 className="font-display text-2xl lg:text-3xl font-extrabold mt-4 tracking-tight">
+                        {heroHeadline}
+                    </h2>
+                    <p className="text-sm text-white/85 mt-1">{heroCaption}</p>
 
-                  {/* Stage Indicators */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {stages.map((stage, index) => {
-                      const isCompleted = stage.status === 'completed';
-                      const isInProgress = stage.status === 'in-progress';
-                      const isStageRejected = stage.status === 'rejected';
-
-                      return (
+                    <div className="h-2 rounded-full bg-white/25 mt-6 overflow-hidden">
                         <div
-                          key={stage.id}
-                          className="flex flex-col items-center p-4 rounded-xl transition-all duration-200"
-                          style={{
-                            background: isCompleted ? '#F0FDF4' : isInProgress ? '#EFF6FF' : isStageRejected ? '#FEF2F2' : '#F9FAFB',
-                            border: `1px solid ${isCompleted ? '#BBF7D0' : isInProgress ? '#BFDBFE' : isStageRejected ? '#FECACA' : '#E5E7EB'}`
-                          }}
-                        >
-                          <div
-                            className="w-14 h-14 rounded-xl flex items-center justify-center mb-3"
-                            style={{
-                              background: isCompleted
-                                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
-                                : isInProgress
-                                  ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
-                                  : isStageRejected
-                                    ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
-                                    : '#D1D5DB',
-                              boxShadow: isCompleted || isInProgress
-                                ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
-                                : 'none'
-                            }}
-                          >
-                            {isCompleted && <CheckCircle className="w-7 h-7 text-white" />}
-                            {isInProgress && <Clock className="w-7 h-7 text-white animate-pulse" />}
-                            {isStageRejected && <XCircle className="w-7 h-7 text-white" />}
-                            {!isCompleted && !isInProgress && !isStageRejected && <div className="w-3 h-3 bg-white rounded-full" />}
-                          </div>
-                          <p className="text-sm font-semibold text-gray-900 text-center mb-1">{stage.name}</p>
-                          <span
-                            className="px-2 py-1 rounded-full text-xs font-medium"
-                            style={{
-                              background: isCompleted ? '#DCFCE7' : isInProgress ? '#DBEAFE' : isStageRejected ? '#FEE2E2' : '#F3F4F6',
-                              color: isCompleted ? '#166534' : isInProgress ? '#1E40AF' : isStageRejected ? '#991B1B' : '#6B7280'
-                            }}
-                          >
-                            {isCompleted ? 'Approved' : isInProgress ? 'In Review' : isStageRejected ? 'Rejected' : 'Pending'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                            className="h-full rounded-full bg-white transition-all duration-700 ease-out"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
 
-              {/* Detailed Stage Cards */}
-              <div className="space-y-4">
-                {stages.map((stage, index) => {
-                  const isCompleted = stage.status === 'completed';
-                  const isInProgress = stage.status === 'in-progress';
-                  const isStageRejected = stage.status === 'rejected';
-
-                  return (
-                    <Card
-                      key={stage.id}
-                      className="border-0"
-                      style={{
-                        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
-                        borderRadius: '16px'
-                      }}
-                    >
-                      <CardContent className="p-5 lg:p-6">
-                        <div className="flex items-start gap-4">
-                          <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{
-                              background: isCompleted
-                                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
-                                : isInProgress
-                                  ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
-                                  : isStageRejected
-                                    ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
-                                    : '#D1D5DB'
-                            }}
-                          >
-                            {isCompleted && <CheckCircle className="w-6 h-6 text-white" />}
-                            {isInProgress && <Clock className="w-6 h-6 text-white" />}
-                            {isStageRejected && <XCircle className="w-6 h-6 text-white" />}
-                            {!isCompleted && !isInProgress && !isStageRejected && <div className="w-3 h-3 bg-white rounded-full" />}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-lg font-bold text-gray-900">{stage.name}</h3>
-                              <span
-                                className="px-3 py-1 rounded-full text-xs font-semibold"
-                                style={{
-                                  background: isCompleted ? '#DCFCE7' : isInProgress ? '#DBEAFE' : isStageRejected ? '#FEE2E2' : '#F3F4F6',
-                                  color: isCompleted ? '#166534' : isInProgress ? '#1E40AF' : isStageRejected ? '#991B1B' : '#6B7280'
-                                }}
-                              >
-                                {isCompleted ? 'Approved' : isInProgress ? 'In Review' : isStageRejected ? 'Rejected' : 'Pending'}
-                              </span>
+                    {/* Node rail — one dot per stage, filled as each is cleared. */}
+                    <div className="grid grid-cols-4 mt-5">
+                        {stages.map((stage) => (
+                            <div key={stage.key} className="flex flex-col items-center gap-2">
+                                <span className={`w-5 h-5 rounded-full border-[1.5px] flex items-center
+                                                  justify-center transition-colors ${
+                                    stage.completed
+                                        ? 'bg-white border-white'
+                                        : stage.active
+                                            ? 'bg-white/60 border-white'
+                                            : 'bg-white/25 border-white/45'
+                                }`}>
+                                    {stage.completed ? <Check className="w-3 h-3 text-[#1E3FA8]" strokeWidth={3} /> : null}
+                                </span>
+                                <span className="text-[11px] font-semibold text-white/90">{stage.short}</span>
                             </div>
-                            <p className="text-sm text-gray-500 mb-2">{stage.admin}</p>
-                            {stage.remarks && (
-                              <div
-                                className="mt-3 p-3 rounded-lg"
-                                style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
-                              >
-                                <p className="text-sm text-gray-700">{stage.remarks}</p>
-                              </div>
-                            )}
-                            {stage.actionDate && (
-                              <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
-                                <Calendar className="w-3 h-3" />
-                                <span>{new Date(stage.actionDate).toLocaleDateString()}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right Column - Actions & Info */}
-            <div className="space-y-6">
-              {/* Payment Action Section */}
-              {application?.status === 'Approved' && application?.paymentStatus !== 'completed' && (
-                <Card
-                  className="border-0 overflow-hidden"
-                  style={{
-                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
-                    borderRadius: '16px'
-                  }}
-                >
-                  <div
-                    className="p-6"
-                    style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-                  >
-                    <div className="text-center">
-                      <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                        style={{ background: 'rgba(255, 255, 255, 0.2)' }}
-                      >
-                        <CheckCircle className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Application Approved!</h3>
-                      <p className="text-green-100 text-sm mb-4">
-                        Proceed to payment to complete your membership
-                      </p>
-                      <Button
-                        className="w-full py-5 text-base font-semibold"
-                        style={{
-                          background: '#ffffff',
-                          color: '#059669',
-                          borderRadius: '12px'
-                        }}
-                        onClick={() => setShowPaymentDialog(true)}
-                      >
-                        <CreditCard className="w-5 h-5 mr-2" />
-                        Register for Payment
-                      </Button>
+                        ))}
                     </div>
-                  </div>
-                </Card>
-              )}
-
-              {/* Payment Completed Section */}
-              {application?.paymentStatus === 'completed' && (
-                <Card
-                  className="border-0 overflow-hidden"
-                  style={{
-                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
-                    borderRadius: '16px'
-                  }}
-                >
-                  <div
-                    className="p-6"
-                    style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}
-                  >
-                    <div className="text-center">
-                      <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                        style={{ background: 'rgba(255, 255, 255, 0.2)' }}
-                      >
-                        <Shield className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Membership Active</h3>
-                      <p className="text-blue-100 text-sm mb-4">
-                        Your membership is now active!
-                      </p>
-                      {/* A certificate and a payment-receipt view were offered
-                          here. Neither exists: the backend has no endpoint for
-                          either and the mobile app has no such screen, so both
-                          buttons opened pages that rendered placeholder data. */}
-                      <div className="space-y-3">
-                        <Button
-                          variant="outline"
-                          className="w-full py-4"
-                          style={{
-                            background: 'transparent',
-                            color: '#ffffff',
-                            border: '2px solid rgba(255,255,255,0.3)',
-                            borderRadius: '12px'
-                          }}
-                          onClick={() => navigate('/member/profile-view')}
-                        >
-                          <FileText className="w-5 h-5 mr-2" />
-                          View My Profile
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              )}
-
-              {/* Info Card */}
-              <Card
-                className="border-0"
-                style={{
-                  boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
-                  borderRadius: '16px'
-                }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ background: '#EFF6FF' }}
-                    >
-                      <Info className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900">Need Help?</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    If you have any questions about your application status, please contact our support team.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    style={{
-                      borderRadius: '10px',
-                      border: '1px solid #E5E7EB'
-                    }}
-                  >
-                    Contact Support
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Back to Dashboard */}
-              <Button
-                className="w-full py-5 text-base font-semibold"
-                style={{
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 30px -5px rgba(59, 130, 246, 0.4)'
-                }}
-                onClick={() => navigate('/member/dashboard')}
-              >
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
-
-          {/* Payment Registration Dialog */}
-          <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-            <DialogContent
-              className="sm:max-w-md"
-              style={{ borderRadius: '20px' }}
-            >
-              <DialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-                  >
-                    <CreditCard className="w-6 h-6 text-white" />
-                  </div>
-                  <DialogTitle className="text-2xl">Payment Registration</DialogTitle>
                 </div>
-                <DialogDescription className="text-base text-gray-600 mt-2">
-                  You are about to proceed with the payment registration process.
-                </DialogDescription>
-              </DialogHeader>
 
-              <div
-                className="rounded-xl p-4 my-4"
-                style={{ background: '#F3F4F6', border: '1px solid #E5E7EB' }}
-              >
-                <h4 className="font-semibold text-gray-900 mb-3">Next Steps:</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2 text-gray-700">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Complete payment process</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-700">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Receive membership confirmation</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-gray-700">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Access member benefits</span>
-                  </li>
-                </ul>
-              </div>
+                {/* ---------------- reference strip ---------------- */}
+                <div className="rounded-2xl bg-white border border-[#E8EEF6] py-4
+                                grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-[#E8EEF6]">
+                    <StripCell
+                        label="Application ID"
+                        value={formatApplicationRef(application).short || '—'}
+                        title={formatApplicationRef(application).full}
+                    />
+                    <StripCell label="Submitted" value={formatDate(application.createdAt) || '—'} className="border-l lg:border-l-0 border-[#E8EEF6]" />
+                    <StripCell
+                        label="Member Type"
+                        value={applicantKindLabel(application) || '—'}
+                        className="border-t lg:border-t-0 border-[#E8EEF6] pt-4 lg:pt-0"
+                    />
+                    <StripCell
+                        label="Region"
+                        value={[application.block, application.district].filter(Boolean).join(', ') || '—'}
+                        className="border-t border-l lg:border-t-0 lg:border-l-0 border-[#E8EEF6] pt-4 lg:pt-0"
+                    />
+                </div>
 
-              <DialogFooter className="flex-row gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowPaymentDialog(false)}
-                  className="flex-1"
-                  style={{ borderRadius: '10px' }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowPaymentDialog(false);
+                {/* ---------------- reviewer note on a rejection ---------------- */}
+                {isRejected && application.rejectionReason ? (
+                    <div className="rounded-2xl bg-[#FEF2F2] border border-[#FECACA] p-4 flex gap-3">
+                        <span className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0">
+                            <AlertTriangle className="w-[18px] h-[18px] text-[#DC2626]" />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="font-display text-sm font-bold text-[#991B1B]">Reviewer Note</p>
+                            <p className="text-[13px] text-[#B91C1C] mt-1 leading-relaxed">
+                                {application.rejectionReason}
+                            </p>
+                        </div>
+                    </div>
+                ) : null}
 
-                    const isAspirant = application?.memberType === 'aspirant';
+                {/* ---------------- timeline + details ---------------- */}
+                <div className="grid gap-6 lg:grid-cols-3 items-start">
 
-                    if (isAspirant) {
-                      navigate('/payment/membership-plan');
-                    } else {
-                      navigate('/payment/membership-plans');
-                    }
-                  }}
-                  className="flex-1"
-                  style={{
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                    borderRadius: '10px'
-                  }}
-                >
-                  Proceed
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </MemberPageShell>
+                    <div className="lg:col-span-2">
+                        <p className="font-display text-[13px] font-extrabold uppercase tracking-[0.08em]
+                                      text-[#64748B] mb-4">
+                            Review Timeline
+                        </p>
+
+                        {stages.map((stage, i) => {
+                            const tone = TONE[stage.status];
+                            const isLast = i === stages.length - 1;
+                            const StageIcon = tone.Icon;
+                            return (
+                                <div key={stage.key} className="flex">
+                                    {/* rail */}
+                                    <div className="w-[30px] shrink-0 flex flex-col items-center">
+                                        <span className={`relative w-[30px] h-[30px] rounded-full ${tone.dot}
+                                                          flex items-center justify-center shrink-0`}>
+                                            {stage.active ? (
+                                                <span className={`absolute inset-0 rounded-full ${tone.dot}
+                                                                  opacity-30 animate-ping`} />
+                                            ) : null}
+                                            <StageIcon className="w-3.5 h-3.5 text-white relative" strokeWidth={2.5} />
+                                        </span>
+                                        {!isLast ? (
+                                            <span className={`w-0.5 flex-1 my-1 ${
+                                                stage.completed ? 'bg-[#16A34A]' : 'bg-slate-200'
+                                            }`} />
+                                        ) : null}
+                                    </div>
+
+                                    {/* card */}
+                                    <div className={`flex-1 min-w-0 ml-3 mb-3.5 rounded-2xl bg-white p-4 border
+                                                     transition-shadow ${
+                                        stage.active
+                                            ? 'border-[#1E50E6] shadow-lg shadow-blue-500/10'
+                                            : 'border-[#E8EEF6] shadow-sm'
+                                    }`}>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <p className="font-display text-[15px] font-bold text-[#0F172A] truncate">
+                                                {stage.name}
+                                            </p>
+                                            <span className={`shrink-0 rounded-lg px-2.5 py-1 text-[10.5px]
+                                                              font-extrabold ${tone.soft} ${tone.text}`}>
+                                                {tone.label}
+                                            </span>
+                                        </div>
+
+                                        {stage.reviewer ? (
+                                            <MetaLine icon={<User className="w-3.5 h-3.5" />} text={stage.reviewer} />
+                                        ) : null}
+                                        {stage.date ? (
+                                            <MetaLine icon={<Calendar className="w-3.5 h-3.5" />} text={stage.date} />
+                                        ) : null}
+                                        {stage.message ? (
+                                            <p className="text-[13px] text-[#475569] mt-2 leading-relaxed">
+                                                {stage.message}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/*
+                      * The applicant, beside the timeline rather than under it.
+                      *
+                      * Mobile stacks this because it has one column; on a desktop
+                      * the timeline would otherwise run down the left of an empty
+                      * half-screen. Same card treatment, so it still reads as one
+                      * screen rather than two.
+                      */}
+                    <div className="space-y-6 lg:sticky lg:top-6">
+                        <div className="rounded-2xl bg-white border border-[#E8EEF6] p-5 shadow-sm">
+                            <p className="font-display text-[13px] font-extrabold uppercase tracking-[0.08em]
+                                          text-[#64748B] mb-4">
+                                Applicant
+                            </p>
+                            <div className="space-y-3.5">
+                                <DetailLine icon={<User className="w-4 h-4" />} label="Full Name"
+                                    value={application.fullName || personal.fullName || '—'} />
+                                <DetailLine icon={<Mail className="w-4 h-4" />} label="Email"
+                                    value={application.email || personal.email || '—'} />
+                                <DetailLine icon={<Phone className="w-4 h-4" />} label="Phone"
+                                    value={application.phone || personal.phoneNumber || personal.phone || '—'} />
+                                <DetailLine icon={<MapPin className="w-4 h-4" />} label="Location"
+                                    value={[application.block, application.district, application.state]
+                                        .filter(Boolean).join(', ') || '—'} />
+                            </div>
+                        </div>
+
+                        {isApproved && !isPaid ? (
+                            <Button
+                                onClick={() => navigate('/member/payment')}
+                                className="w-full bg-[#1E50E6] hover:bg-[#1a45c9] font-bold h-11"
+                            >
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Proceed to Payment
+                            </Button>
+                        ) : null}
+
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate(dashboard)}
+                            className="w-full font-semibold h-11"
+                        >
+                            Back to Dashboard
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </MemberPageShell>
     );
-  }
-
-  /**
-   * No application on record.
-   *
-   * Everything below this point used to be a MOCK view: an application id of
-   * 'ACTV2024001', a submission date of '15 Dec 2024, 10:30 AM', and a
-   * personal-details block reading John Doe, john.doe@example.com,
-   * +91 98765 43210, Mumbai. It rendered a full four-stage tracker at
-   * "0 of 4 stages completed" with every tier marked "Pending Assignment",
-   * which is indistinguishable from a real application that nobody has picked
-   * up yet — so a member whose application had never been created was shown a
-   * convincing status page for it.
-   *
-   * There is nothing to track until an application exists, and that is what
-   * this now says.
-   */
-  return (
-    <MemberPageShell
-      title="Application Status"
-      subtitle="Track your membership approval progress"
-      width="standard"
-            sidebar={false}
-    >
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center">
-        <h2 className="text-xl font-bold text-slate-900 mb-2">No application yet</h2>
-        <p className="text-slate-500 mb-6 max-w-md mx-auto">
-          Complete the membership forms and submit them, and this page will track
-          your application through the block, district and state reviews.
-        </p>
-        <Button onClick={() => navigate('/member/profile')} className="bg-blue-600 hover:bg-blue-700">
-          Complete your profile
-        </Button>
-      </div>
-    </MemberPageShell>
-  );
 }
+
+const StripCell = ({ label, value, className = '', title }: {
+    label: string; value: string; className?: string; title?: string;
+}) => (
+    <div className={`px-4 text-center min-w-0 ${className}`}>
+        <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
+        <p className="font-display text-sm font-bold text-[#0F172A] mt-1 truncate" title={title || value}>
+            {value}
+        </p>
+    </div>
+);
+
+const MetaLine = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
+    <div className="flex items-center gap-1.5 mt-2 text-[#64748B]">
+        <span className="shrink-0">{icon}</span>
+        <span className="text-[12.5px] truncate">{text}</span>
+    </div>
+);
+
+const DetailLine = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
+    <div className="flex items-start gap-2.5">
+        <span className="w-8 h-8 rounded-lg bg-slate-50 text-[#1E50E6] flex items-center
+                         justify-center shrink-0">
+            {icon}
+        </span>
+        <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
+            <p className="text-[13px] font-medium text-[#0F172A] break-words leading-snug mt-0.5">{value}</p>
+        </div>
+    </div>
+);

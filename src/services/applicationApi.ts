@@ -1,4 +1,5 @@
 import { apiFetch, getMyProfile, pickMostAdvancedApplication } from "@/services/activApi";
+import { resolveApplicantKind } from "@/features/member/memberAccess";
 // Member Application API Service
 // Empty: every call below goes through apiFetch, which prefixes the real
 // API base itself. Kept as a constant so the call sites need no edit.
@@ -116,16 +117,30 @@ const decorate = (app: any, member?: any): Application => {
     return 'pending';
   };
 
-  const isAspirant =
-    business.doingBusiness === false ||
-    business.doingBusiness === 'no' ||
-    business.registrationType === 'aspirant';
+  /*
+   * One rule for what kind of applicant this is, shared with the dashboard.
+   *
+   * This used to read `data.businessInfo.doingBusiness` and
+   * `data.businessInfo.registrationType` and nothing else. On every application
+   * in the live database those flags sit at the ROOT of `data` - there is no
+   * `data.businessInfo` - so `business` was `{}`, `isAspirant` was `false`, and
+   * the line below then *overwrote* `memberType` with "business" for applicants
+   * who had plainly declared themselves aspirants.
+   *
+   * That overwrite is why one screen disagreed with another: the dashboard
+   * reads the raw application through `getMyApplication()` and said "Aspirant",
+   * while anything reading this decorated copy said "Business Applicant" about
+   * the very same document. `resolveApplicantKind` looks in all four places the
+   * declaration can have survived and falls back to the server's own
+   * derivation, so both now answer from one rule.
+   */
+  const applicantKind = resolveApplicantKind(app);
 
   return {
     ...app,
     applicationId: app._id || app.id || '',
     submittedAt: app.submittedAt || app.createdAt,
-    memberType: isAspirant ? 'aspirant' : 'business',
+    memberType: applicantKind || app.memberType || 'business',
     businessExperience: business.businessCommencementYear || '',
     approvals: {
       block: { status: stageStatus(app.blockApprovedAt, 'BlockAdmin'), actionDate: app.blockApprovedAt || null, remarks: app.rejectionReason || '' },

@@ -33,40 +33,40 @@ const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
 // Member Feature Imports
-const MemberRegister = lazy(() => import("./pages/member/Register"));
-const MemberDashboard = lazy(() => import("./pages/member/Dashboard"));
-const MemberProfile = lazy(() => import("./pages/member/Profile"));
-const ProfileView = lazy(() => import("./features/member/pages/ProfileView"));
+import MemberRegister from "./pages/member/Register";
+
+import MemberProfile from "./pages/member/Profile";
+import ProfileView from "./features/member/pages/ProfileView";
 const PersonalForm = lazy(() => import("./pages/member/PersonalForm"));
 const BusinessForm = lazy(() => import("./pages/member/BusinessForm"));
 const FinancialForm = lazy(() => import("./pages/member/FinancialForm"));
 const DeclarationForm = lazy(() => import("./pages/member/DeclarationForm"));
 const ApplicationSubmitted = lazy(() => import("./pages/member/ApplicationSubmitted"));
-const ApplicationStatus = lazy(() => import("./pages/member/ApplicationStatus"));
+import ApplicationStatus from "./pages/member/ApplicationStatus";
 const PaymentPage = lazy(() => import("./pages/member/Payment"));
 const PaymentSuccess = lazy(() => import("./pages/member/PaymentSuccess"));
-const UnpaidDashboard = lazy(() => import("./features/member/pages/UnpaidDashboard"));
-const Explore = lazy(() => import("./features/member/pages/Explore"));
+import UnpaidDashboard from "./features/member/pages/UnpaidDashboard";
+import Explore from "./features/member/pages/Explore";
 const CertificatePage = lazy(() => import("./features/member/pages/CertificatePage"));
-const MemberSettings = lazy(() => import("./pages/member/Settings"));
+import MemberSettings from "./pages/member/Settings";
 
 // Payment Feature Imports
 const PaymentRegistration = lazy(() => import("./pages/payment/PaymentRegistration"));
 const PaymentConfirmation = lazy(() => import("./pages/payment/PaymentConfirmation"));
 const MockPayment = lazy(() => import("./pages/payment/MockPayment"));
 const PaymentGateway = lazy(() => import("./pages/payment/PaymentGateway"));
-const PaymentMemberDashboard = lazy(() => import("./features/member/pages/PaidDashboard"));
+import PaymentMemberDashboard from "./features/member/pages/PaidDashboard";
 const MembershipPlans = lazy(() => import("./pages/payment/MembershipPlans"));
 
 // Business Feature Imports
-const BusinessProfile = lazy(() => import("./pages/business/BusinessProfile"));
-const BusinessDashboard = lazy(() => import("./pages/business/Dashboard"));
-const Products = lazy(() => import("./pages/business/Products"));
+import BusinessProfile from "./pages/business/BusinessProfile";
+import BusinessDashboard from "./pages/business/Dashboard";
+import Products from "./pages/business/Products";
 const AddProduct = lazy(() => import("./pages/business/AddProduct"));
 const EditProduct = lazy(() => import("./pages/business/EditProduct"));
-const Discover = lazy(() => import("./pages/business/Discover"));
-const Analytics = lazy(() => import("./pages/business/Analytics"));
-const BusinessSettings = lazy(() => import("./pages/business/Settings"));
+import Discover from "./pages/business/Discover";
+import Analytics from "./pages/business/Analytics";
+import BusinessSettings from "./pages/business/Settings";
 const MyCompanies = lazy(() => import("./pages/business/MyCompanies"));
 const AddEditCompany = lazy(() => import("./pages/business/AddEditCompany"));
 const CompanyDetails = lazy(() => import("./pages/business/CompanyDetails"));
@@ -159,7 +159,7 @@ const App = () => (
               <Route path="/register" element={<MemberRegister />} />
 
               {/* Member Routes */}
-              <Route path="/member/dashboard" element={<MemberDashboard />} />
+
               <Route path="/member/unpaid-dashboard" element={<UnpaidDashboard />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/member/profile-view" element={<ProfileView />} />

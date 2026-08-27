@@ -1,397 +1,196 @@
-import React from 'react';
-import MemberPageShell from '@/pages/member/MemberPageShell';
+/**
+ * Application Submitted — the website's version of the mobile screen.
+ *
+ * Ported from `frontend/src/screens/application/ApplicationSubmittedScreen.tsx`:
+ * a pulsing success mark, the statement, an "Approval Progress" card carrying a
+ * "Stage 1 of 3" pill and the numbered review rail, the notification notice, and
+ * the two actions in mobile's order — View Application Status, then Go to
+ * Dashboard.
+ *
+ * What changes for the web is the frame. This is a confirmation: a mark, a
+ * sentence, one card and one action. It is a single line of reading whatever the
+ * window is, so it keeps mobile's column and centres it rather than stretching a
+ * three-stage list across a monitor because the room is there.
+ *
+ * The reference and the stage states are read from the application itself, not
+ * from localStorage. The screen previously showed
+ * `localStorage.getItem('applicationId') || 'ACTV2024001'` — a hardcoded
+ * placeholder that every member saw whenever that key was missing, which is
+ * always, because nothing writes it any more.
+ */
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertTriangle, Download, Eye, Home, Calendar, FileText, Clock, ArrowRight, Shield, Bell, Mail } from 'lucide-react';
+import MemberPageShell from '@/pages/member/MemberPageShell';
+import { Bell, Loader2, Copy, Check } from 'lucide-react';
+import { getUserApplication } from '@/services/applicationApi';
+import { deriveApprovalFlags } from '@/services/activApi';
+import { formatApplicationRef } from '@/lib/applicationRef';
+import { dashboardPathFor } from '@/features/member/memberAccess';
+import useMembershipGate from '@/features/member/useMembershipGate';
+import {
+    PALETTE, SuccessMark, ScreenTitle, ScreenSubtitle, KitCard, KitCardHeader,
+    StageRail, NoticeRow, PrimaryAction, GhostAction, type KitStage,
+} from '@/features/member/memberScreenKit';
+
+/** Mobile's three review stages, with its captions. */
+const STAGE_LABELS = [
+    { key: 'block', label: 'Block Admin Review' },
+    { key: 'district', label: 'District Admin Review' },
+    { key: 'state', label: 'State Admin Review' },
+];
 
 export default function ApplicationSubmitted() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const { isPaid } = useMembershipGate();
+    const [application, setApplication] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [copied, setCopied] = useState(false);
 
-  // Get application ID from localStorage (set after profile completion)
-  const id = localStorage.getItem('applicationId') || 'ACTV2024001';
+    const load = useCallback(async () => {
+        setApplication(await getUserApplication().catch(() => null));
+        setLoading(false);
+    }, []);
 
-  if (!id) {
-    return (
-      <MemberPageShell
-          title="Application Submitted"
-          subtitle="Your membership application is under review"
-          width="wide"
-            sidebar={false}
-      >
-        <Card
-          className="max-w-md w-full border-0"
-          style={{
-            borderRadius: '20px',
-            boxShadow: '0 8px 32px -8px rgba(0, 0, 0, 0.12)'
-          }}
-        >
-          <CardContent className="p-8 text-center">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
-              style={{ background: '#fef3c7' }}
-            >
-              <AlertTriangle className="w-8 h-8 text-amber-500" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">No Application Found</h3>
-            <p className="text-sm text-gray-500 mb-6">Please submit your application first.</p>
-            <Button
-              className="w-full py-5 rounded-xl font-semibold"
-              style={{
-                background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-                boxShadow: '0 8px 24px -4px rgba(15, 118, 110, 0.4)'
-              }}
-              onClick={() => navigate('/member/dashboard')}
-            >
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </MemberPageShell>
-    );
-  }
+    useEffect(() => { load(); }, [load]);
 
-  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const flags = deriveApprovalFlags(application);
+    const appRef = formatApplicationRef(application);
+    const dashboard = dashboardPathFor(isPaid === true);
 
-  const steps = [
-    {
-      id: 1,
-      title: 'Application Received',
-      description: 'Your application has been received and assigned for review.',
-      status: 'completed',
-      icon: CheckCircle
-    },
-    {
-      id: 2,
-      title: 'Block Admin Review',
-      description: 'Pending review by block administrator.',
-      status: 'in-progress',
-      icon: Clock
-    },
-    {
-      id: 3,
-      title: 'District Admin Review',
-      description: 'Pending review by district administrator.',
-      status: 'pending',
-      icon: Clock
-    },
-    {
-      id: 4,
-      title: 'State Admin Review',
-      description: 'Pending review by state administrator.',
-      status: 'pending',
-      icon: Clock
-    },
-    {
-      id: 5,
-      title: 'Final Approval',
-      description: 'Final approval and membership activation.',
-      status: 'pending',
-      icon: FileText
+    /**
+     * Which stage the file is actually at.
+     *
+     * Mobile hardcodes "Stage 1 of 3" because it only ever reaches this screen
+     * the moment an application is created. That is true here too — but a member
+     * can come back to this URL later, and telling someone whose district review
+     * is under way that they are at stage 1 is worse than doing the small amount
+     * of work to look.
+     */
+    const cleared = [flags.isBlockApproved, flags.isDistrictApproved, flags.isStateApproved]
+        .filter(Boolean).length;
+    const currentStage = Math.min(cleared + 1, STAGE_LABELS.length);
+
+    const stages: KitStage[] = STAGE_LABELS.map((stage, i) => {
+        const done = i < cleared;
+        const active = i === cleared;
+        return {
+            key: stage.key,
+            label: stage.label,
+            caption: done ? 'Approved' : active ? 'In progress' : 'Waiting',
+            done,
+            active,
+        };
+    });
+
+    const copyRef = () => {
+        if (!appRef.full) return;
+        navigator.clipboard?.writeText(appRef.full)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1600);
+            })
+            .catch(() => { /* clipboard blocked; the tooltip still carries it */ });
+    };
+
+    if (loading) {
+        return (
+            <MemberPageShell title="Application Submitted" width="wide" sidebar={false} backTo={dashboard}>
+                <div className="flex flex-col items-center justify-center py-24">
+                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: PALETTE.primary }} />
+                </div>
+            </MemberPageShell>
+        );
     }
-  ];
 
-  return (
-    <MemberPageShell
-        title="Application Submitted"
-        subtitle="Your membership application is under review"
-        width="wide"
+    return (
+        <MemberPageShell
+            title="Application Submitted"
+            subtitle="Your application is in and moving through review"
+            width="wide"
             sidebar={false}
-    >
-      <div className="max-w-5xl mx-auto">
-        {/* Success Header */}
-        <div
-          className="rounded-3xl overflow-hidden mb-6"
-          style={{
-            boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.15)'
-          }}
+            backTo={dashboard}
         >
-          {/* Success Banner */}
-          <div
-            className="p-8 md:p-12 text-center"
-            style={{ background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)' }}
-          >
-            <div
-              className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5"
-              style={{ background: 'rgba(255, 255, 255, 0.15)' }}
-            >
-              <CheckCircle className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
-              Application Submitted!
-            </h1>
-            <p className="text-teal-100 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-              Your membership application has been successfully submitted and is now under review.
-            </p>
-          </div>
+            <div className="mx-auto w-full max-w-[1400px]">
+                <SuccessMark />
 
-          {/* Application Summary */}
-          <div className="bg-white p-5 md:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div
-                className="flex items-center gap-3 p-4 rounded-xl"
-                style={{ background: '#f8fafc' }}
-              >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
-                >
-                  <FileText className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Application ID</p>
-                  <p className="font-bold text-gray-900">{id}</p>
-                </div>
-              </div>
+                <ScreenTitle>Application Submitted</ScreenTitle>
+                <ScreenSubtitle>
+                    Your membership application is in and moving through review.
+                </ScreenSubtitle>
 
-              <div
-                className="flex items-center gap-3 p-4 rounded-xl"
-                style={{ background: '#f8fafc' }}
-              >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}
-                >
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Submitted On</p>
-                  <p className="font-semibold text-gray-900 text-sm">{today}</p>
-                </div>
-              </div>
+                <div className="grid gap-6 lg:grid-cols-3 items-start mt-2">
 
-              <div
-                className="flex items-center gap-3 p-4 rounded-xl"
-                style={{ background: '#f8fafc' }}
-              >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}
-                >
-                  <Clock className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Current Status</p>
-                  <span
-                    className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold"
-                    style={{ background: '#fef3c7', color: '#b45309' }}
-                  >
-                    Under Review
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left - Progress Steps */}
-          <div className="lg:col-span-2">
-            <Card
-              className="border-0"
-              style={{
-                borderRadius: '20px',
-                boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.08)'
-              }}
-            >
-              <CardContent className="p-6 md:p-8">
-                <h2 className="text-lg font-bold text-gray-900 mb-6">Review Progress</h2>
-
-                <div className="space-y-0">
-                  {steps.map((step, index) => {
-                    const isCompleted = step.status === 'completed';
-                    const isInProgress = step.status === 'in-progress';
-                    const Icon = step.icon;
-
-                    return (
-                      <div key={step.id} className="flex gap-4">
-                        {/* Step Indicator */}
-                        <div className="flex flex-col items-center">
-                          <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300"
-                            style={{
-                              background: isCompleted
-                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                                : isInProgress
-                                  ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
-                                  : '#e2e8f0',
-                              boxShadow: isCompleted || isInProgress
-                                ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
-                                : 'none'
-                            }}
-                          >
-                            <Icon className={`w-5 h-5 ${isCompleted || isInProgress ? 'text-white' : 'text-gray-400'}`} />
-                          </div>
-                          {index < steps.length - 1 && (
-                            <div
-                              className="w-0.5 h-12 my-1 rounded-full"
-                              style={{
-                                background: isCompleted ? '#10b981' : '#e2e8f0'
-                              }}
-                            />
-                          )}
-                        </div>
-
-                        {/* Step Content */}
-                        <div className="flex-1 pb-6">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900">{step.title}</h4>
-                            <span
-                              className="px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
-                              style={{
-                                background: isCompleted ? '#dcfce7' : isInProgress ? '#dbeafe' : '#f1f5f9',
-                                color: isCompleted ? '#166534' : isInProgress ? '#1e40af' : '#64748b'
-                              }}
-                            >
-                              {isCompleted ? 'Done' : isInProgress ? 'In Progress' : 'Pending'}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-500">{step.description}</p>
-
-                          {isInProgress && (
-                            <div
-                              className="mt-3 p-3 rounded-xl flex items-center gap-2"
-                              style={{ background: '#eff6ff' }}
-                            >
-                              <Clock className="w-4 h-4 text-blue-500" />
-                              <span className="text-xs text-blue-700">Expected: 2-3 business days</span>
+                <div className="lg:col-span-2 space-y-4">
+                {/*
+                  * The reference, on the screen that creates it.
+                  *
+                  * This is the one moment a member is most likely to write it
+                  * down, so it is shown here rather than only on the status
+                  * screen — same short form as everywhere else, with the full
+                  * `_id` one click away for support.
+                  */}
+                {appRef.short ? (
+                    <KitCard>
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.06em]"
+                                   style={{ color: PALETTE.muted }}>
+                                    Application Reference
+                                </p>
+                                <p className="font-display text-lg font-extrabold mt-0.5"
+                                   style={{ color: PALETTE.ink }} title={appRef.full}>
+                                    {appRef.short}
+                                </p>
                             </div>
-                          )}
+                            <button
+                                type="button"
+                                onClick={copyRef}
+                                title={`Copy full ID: ${appRef.full}`}
+                                aria-label="Copy full application ID"
+                                className="shrink-0 h-9 px-3 rounded-lg border text-xs font-semibold
+                                           flex items-center gap-1.5 hover:bg-slate-50 transition-colors"
+                                style={{ borderColor: PALETTE.border, color: PALETTE.muted }}
+                            >
+                                {copied
+                                    ? <><Check className="w-3.5 h-3.5" style={{ color: PALETTE.success }} /> Copied</>
+                                    : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                            </button>
                         </div>
-                      </div>
-                    );
-                  })}
+                    </KitCard>
+                ) : null}
+
+                <KitCard>
+                    <KitCardHeader
+                        title="Approval Progress"
+                        pill={`Stage ${currentStage} of ${STAGE_LABELS.length}`}
+                    />
+                    <StageRail stages={stages} />
+                </KitCard>
+
+                <NoticeRow icon={<Bell className="w-4 h-4" />}>
+                    You&apos;ll be notified as each stage is completed.
+                </NoticeRow>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Right - Actions & Info */}
-          <div className="lg:col-span-1 space-y-5">
-            {/* Important Notice */}
-            <Card
-              className="border-0 overflow-hidden"
-              style={{
-                borderRadius: '20px',
-                boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.08)'
-              }}
-            >
-              <div
-                className="p-5"
-                style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center"
-                    style={{ background: '#f59e0b' }}
-                  >
-                    <AlertTriangle className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="font-bold text-amber-900">Important</h3>
+                {/*
+                  * The two ways on, beside the progress rather than under it.
+                  *
+                  * On a narrow screen they stack in mobile's order — status
+                  * first, dashboard second. On a wide one they sit level with
+                  * the card they follow from, so the member is not scrolling
+                  * past a three-item list to find the button.
+                  */}
+                <div className="lg:sticky lg:top-6">
+                    <PrimaryAction onClick={() => navigate('/member/application-status')}>
+                        View Application Status
+                    </PrimaryAction>
+                    <GhostAction onClick={() => navigate(dashboard)}>
+                        Go to Dashboard
+                    </GhostAction>
                 </div>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-xs text-amber-800">
-                    <span className="w-1 h-1 rounded-full bg-amber-600 mt-1.5 flex-shrink-0"></span>
-                    <span>Keep your Application ID <strong>{id}</strong> safe</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-xs text-amber-800">
-                    <span className="w-1 h-1 rounded-full bg-amber-600 mt-1.5 flex-shrink-0"></span>
-                    <span>Review takes 5-7 business days</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-xs text-amber-800">
-                    <span className="w-1 h-1 rounded-full bg-amber-600 mt-1.5 flex-shrink-0"></span>
-                    <span>Updates via email & SMS</span>
-                  </li>
-                </ul>
-              </div>
-            </Card>
 
-            {/* Notifications Info */}
-            <Card
-              className="border-0"
-              style={{
-                borderRadius: '20px',
-                boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.08)'
-              }}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center"
-                    style={{ background: '#eff6ff' }}
-                  >
-                    <Bell className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-sm">Stay Updated</h3>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <Mail className="w-3.5 h-3.5 text-gray-400" />
-                    <span>Email notifications enabled</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <Shield className="w-3.5 h-3.5 text-gray-400" />
-                    <span>SMS alerts active</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button
-                className="w-full py-5 rounded-xl font-semibold text-sm transition-all duration-200"
-                style={{
-                  background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-                  boxShadow: '0 8px 24px -4px rgba(15, 118, 110, 0.4)'
-                }}
-                onClick={() => navigate(`/member/application-status?id=${id}`)}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Full Status
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full py-5 rounded-xl font-semibold text-sm border-2"
-                style={{ borderColor: '#e2e8f0', color: '#475569' }}
-                onClick={() => {
-                  const applicationData = {
-                    id: id,
-                    submittedDate: `${today}, ${time}`,
-                    status: 'Under Review'
-                  };
-                  const blob = new Blob([JSON.stringify(applicationData, null, 2)], { type: 'application/json' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `Application_${id}.json`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  URL.revokeObjectURL(url);
-                }}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Copy
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="w-full py-5 rounded-xl font-semibold text-sm"
-                style={{ color: '#64748b' }}
-                onClick={() => navigate('/member/dashboard')}
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
             </div>
-          </div>
-        </div>
-      </div>
-    </MemberPageShell>
-  );
+        </MemberPageShell>
+    );
 }

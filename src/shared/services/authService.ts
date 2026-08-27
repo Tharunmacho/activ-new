@@ -156,7 +156,7 @@ export const getUserRole = (): string | null => getStoredRole();
 /** Where the signed-in role belongs, for redirects after login. */
 export const getHomeRoute = (): string => {
     const role = getStoredRole();
-    return (role && HOME_FOR_ROLE[role]) || '/member/dashboard';
+    return (role && HOME_FOR_ROLE[role]) || '/member/unpaid-dashboard';
 };
 
 export const forgotPassword = apiForgotPassword;

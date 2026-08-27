@@ -28,7 +28,7 @@ export default function MemberPageShell({
     actions,
     width = 'standard',
     sidebar = true,
-    backTo = '/member/dashboard',
+    backTo = '/member/unpaid-dashboard',
     children,
 }: {
     title: string;

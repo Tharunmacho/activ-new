@@ -13,6 +13,18 @@ export default {
       },
     },
     extend: {
+      /*
+       * `font-sans` is the default for everything, so setting it here changes
+       * the whole product at once rather than leaving each screen to remember.
+       * `font-display` is opt-in for headings.
+       *
+       * The system stack stays behind both as the fallback that renders while
+       * the web fonts are still in flight.
+       */
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

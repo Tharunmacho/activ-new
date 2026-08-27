@@ -30,11 +30,48 @@ import {
  * Prefer the typed functions below in new code; they also normalise the
  * response envelope, which this deliberately does not.
  */
+/**
+ * Collapse of duplicate GETs.
+ *
+ * Nine components call `/members/my-profile` independently on mount, and the
+ * sidebar renders on every member page alongside whichever page is loading, so
+ * one navigation fired it five times inside four seconds in the production log
+ * — each a real round trip, each waiting on the same answer.
+ *
+ * Two layers, both keyed on method + URL + the token the call goes out with, so
+ * a session change can never be served another account's response:
+ *
+ *   in-flight  – concurrent callers share one request. Always correct: they
+ *                would have received the same body a moment apart anyway.
+ *   fresh      – a completed GET is reusable for GET_CACHE_MS. This is what
+ *                catches the mount-a-second-later case that dedupe alone misses.
+ *
+ * `Response` bodies are single-use, so every caller gets its own `.clone()` and
+ * nobody's `.json()` steals another's stream.
+ *
+ * Any non-GET drops the fresh layer wholesale. Saves here are cross-cutting —
+ * writing business info changes what the profile and application endpoints say
+ * — and a stale read after a save is the one failure this must not introduce.
+ */
+const GET_CACHE_MS = 4000;
+
+type CacheEntry = { at: number; response: Response };
+
+const inFlight = new Map<string, Promise<Response>>();
+const fresh = new Map<string, CacheEntry>();
+
+/** Drop every cached GET. Called after any mutation, and on sign-in/out. */
+export const clearApiCache = (): void => {
+    inFlight.clear();
+    fresh.clear();
+};
+
 export const apiFetch = (path: string, init: RequestInit = {}): Promise<Response> => {
     const headers = new Headers(init.headers as HeadersInit);
 
+    let token: string | null = null;
     try {
-        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+        token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (token) headers.set('Authorization', `Bearer ${token}`);
     } catch {
         /* storage unavailable */
@@ -44,7 +81,47 @@ export const apiFetch = (path: string, init: RequestInit = {}): Promise<Response
     if (init.body instanceof FormData) headers.delete('Content-Type');
     else if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
-    return fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+    const method = String(init.method || 'GET').toUpperCase();
+    const url = `${API_BASE_URL}${path}`;
+
+    // A caller that passes its own AbortSignal owns that request's lifetime;
+    // sharing it would let one component's unmount cancel another's fetch.
+    const shareable = method === 'GET' && !init.signal && !init.cache;
+
+    if (!shareable) {
+        const request = fetch(url, { ...init, headers });
+        if (method !== 'GET') {
+            // Clear on completion, not before: a read that resolves while the
+            // write is still open would otherwise be cached as post-write.
+            request.then(clearApiCache, clearApiCache);
+        }
+        return request;
+    }
+
+    const key = `${method} ${url} ${token || ''}`;
+
+    const cached = fresh.get(key);
+    if (cached && Date.now() - cached.at < GET_CACHE_MS) {
+        return Promise.resolve(cached.response.clone());
+    }
+    if (cached) fresh.delete(key);
+
+    const pending = inFlight.get(key);
+    if (pending) return pending.then(response => response.clone());
+
+    const request = fetch(url, { ...init, headers })
+        .then((response) => {
+            // Only successful reads are worth replaying; a 401 or a 500 should
+            // be retried by the next caller, not handed round.
+            if (response.ok) fresh.set(key, { at: Date.now(), response: response.clone() });
+            return response;
+        })
+        .finally(() => {
+            inFlight.delete(key);
+        });
+
+    inFlight.set(key, request);
+    return request.then(response => response.clone());
 };
 
 // ============================================================ types
@@ -156,6 +233,22 @@ const EMPTY_DASHBOARD: AdminDashboard = {
  * website used to do, and that endpoint has never existed on this backend.
  */
 export const login = async (email: string, password: string): Promise<LoginResult> => {
+    /*
+     * Forget the previous session before asking about the next one.
+     *
+     * A failed sign-in used to leave the old one entirely intact — token, role,
+     * everything — because nothing on the error path cleared it. The visible
+     * consequence is in the console of a state admin's dashboard: a 401 from
+     * `/auth/login`, then four 404s from `/members/my-profile`,
+     * `business-info`, `financial-info` and `declaration-info`. Those come from
+     * `ProfileContext`, which correctly skips them unless the stored role says
+     * 'member' — and after a failed login over a stale member session, it still
+     * did. Four round trips that cannot succeed, competing for the browser's
+     * six connections with the dashboard request that actually matters.
+     */
+    clearSession();
+    clearApiCache();
+
     const res = await api.post(ENDPOINTS.AUTH.LOGIN, {
         email: String(email || '').toLowerCase().trim(),
         password,
@@ -168,7 +261,6 @@ export const login = async (email: string, password: string): Promise<LoginResul
     const user = data.user || {};
     const role = (data.role || user.role || 'member') as UserRole;
 
-    setAuthToken(token);
     try {
         localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
         localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
@@ -196,13 +288,15 @@ export const login = async (email: string, password: string): Promise<LoginResul
     } catch {
         /* storage unavailable; the session still works for this tab */
     }
+    
+    setAuthToken(token);
 
     return {
         token,
         role,
         user,
         memberDetails: data.memberDetails || user,
-        home: HOME_FOR_ROLE[role] || '/member/dashboard',
+        home: HOME_FOR_ROLE[role] || '/member/unpaid-dashboard',
     };
 };
 
@@ -230,6 +324,17 @@ export const register = async (payload: {
             localStorage.setItem(STORAGE_KEYS.USER_ID, String(user.id || ''));
             localStorage.setItem(STORAGE_KEYS.USER_EMAIL, String(user.email || ''));
             localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
+            /*
+             * The name too — `login()` writes it and this did not.
+             *
+             * A member who registers is signed in on the spot and never passes
+             * through `login()`, so nothing had ever written `userName` for
+             * them. Every screen that greets a member reads that key, which is
+             * why a brand-new account was welcomed as "Member". The register
+             * response already carries it on `memberDetails`.
+             */
+            const registeredName = String(data.memberDetails?.fullName || user.fullName || '');
+            if (registeredName) localStorage.setItem(STORAGE_KEYS.USER_NAME, registeredName);
         } catch { /* ignore */ }
     }
 
@@ -241,6 +346,7 @@ export const logout = async (): Promise<void> => {
     // not stop the client from forgetting its own token.
     await api.post(ENDPOINTS.AUTH.LOGOUT).catch(() => null);
     clearSession();
+    clearApiCache();
 };
 
 export const changePassword = async (oldPassword: string, newPassword: string) =>
@@ -305,6 +411,7 @@ export const restoreSession = async () => {
     if (!claims) return null;
     if (claims.exp && claims.exp * 1000 < Date.now()) {
         clearSession();
+    clearApiCache();
         return null;
     }
 

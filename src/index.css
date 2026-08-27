@@ -134,3 +134,72 @@ All colors MUST be HSL.
 }
 
 /* Import additional styles (moved to top) */
+/*
+ * The member rail's own scrollbar.
+ *
+ * The rail scrolls independently of the page — the mark and the Log out button
+ * are pinned, and the navigation between them moves. On Windows that produces a
+ * full-width native scrollbar inside a 288px column, which reads as a second
+ * border down the middle of the sidebar and shifts every nav label sideways
+ * when it appears. Slim, and only visible while there is something to scroll.
+ */
+.member-rail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.gray.300') transparent;
+}
+
+.member-rail-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.member-rail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.member-rail-scroll::-webkit-scrollbar-thumb {
+  background-color: theme('colors.gray.300');
+  border-radius: 9999px;
+}
+
+.member-rail-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: theme('colors.gray.400');
+}
+
+/*
+ * Typography defaults.
+ *
+ * `tnum` is the one that earns its place on this product: without tabular
+ * figures, "100%" and "33%" are different widths, so the progress figure in the
+ * profile card and the percentage pill in the tracker shift sideways every time
+ * the number changes. `cv11` gives Inter the single-storey lowercase l, which is
+ * what stops "Il1" being three identical strokes in an application id.
+ *
+ * `antialiased` because these faces are drawn for screen and render heavy under
+ * the default subpixel smoothing on Windows.
+ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-feature-settings: 'tnum' 1, 'cv11' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*
+   * Headings take the display face automatically, so no screen has to remember
+   * to ask for it. Slightly negative tracking: at 18px and up, default letter
+   * spacing on a geometric face reads loose.
+   */
+  h1, h2, h3, h4 {
+    font-family: theme('fontFamily.display');
+    letter-spacing: -0.018em;
+  }
+
+  /* Numbers in a column should never be a proportional face. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

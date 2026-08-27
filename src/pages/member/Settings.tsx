@@ -296,6 +296,7 @@ const MemberSettings = () => {
                     chamberDetails: formData.chamberDetails,
                     govtOrgs: formData.govtOrgs
                 })
+                });
             }
 
             // Update declaration form - POST works
@@ -329,6 +330,7 @@ const MemberSettings = () => {
                     turnoverRange: formData.turnoverRange,
                     govtSchemes: formData.govtSchemes || undefined,
                 })
+                });
             }
 
             if (personalResponse.ok) {
@@ -748,7 +750,8 @@ const MemberSettings = () => {
                                 </div>
                             </CardContent>
                         </Card>
-                        </>}
+                        </>
+                        )}
 
                         {/* Declaration Information */}
                         <Card>

@@ -81,7 +81,7 @@ export default function EnhancedLoginPage() {
           status === 'active' ||
           (!status && (await getPaymentStatus().catch(() => 'pending')) === 'completed');
 
-        navigate(paid ? '/payment/member-dashboard' : '/member/dashboard');
+        navigate(paid ? '/payment/member-dashboard' : '/member/unpaid-dashboard');
         return;
       }
 
@@ -135,7 +135,7 @@ export default function EnhancedLoginPage() {
         }
 
         // Default to unpaid dashboard for unpaid members
-        navigate('/member/dashboard');
+        navigate('/member/unpaid-dashboard');
       }
     };
 

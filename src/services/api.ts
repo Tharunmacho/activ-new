@@ -107,7 +107,18 @@ export const clearSession = (): void => {
         Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
         // Written by older code paths; cleared too so a stale identity cannot
         // outlive the token that authorised it.
-        ['adminToken', 'adminData', 'memberId', 'userProfilePhoto'].forEach((key) =>
+        /*
+         * `userDataLastFetch` belongs here too, and leaving it out had teeth.
+         *
+         * The sidebar used it as a two-minute "do not re-fetch the profile"
+         * stamp. It survived sign-out, so registering a second account in the
+         * same browser inside two minutes meant the new session skipped its
+         * profile fetch entirely — the previous member's timestamp said the data
+         * was fresh. The name was cleared with everything else and never
+         * refilled, so a brand-new account greeted its owner as "Member".
+         */
+        ['adminToken', 'adminData', 'memberId', 'userProfilePhoto', 'userDataLastFetch',
+            'userOrganization', 'profileCompletion', 'hasVisitedDashboard'].forEach((key) =>
             localStorage.removeItem(key),
         );
     } catch {

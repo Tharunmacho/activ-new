@@ -91,7 +91,7 @@ export type UserRole =
  * separate admin login to branch on.
  */
 export const HOME_FOR_ROLE: Record<UserRole, string> = {
-    member: '/member/dashboard',
+    member: '/member/unpaid-dashboard',
     block_admin: '/block-admin/dashboard',
     district_admin: '/district-admin/dashboard',
     state_admin: '/state-admin/dashboard',

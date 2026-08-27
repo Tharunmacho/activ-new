@@ -226,10 +226,10 @@ const Settings = () => {
     const handleExitBusiness = async () => {
         try {
             const isPaid = (await getPaymentStatus()) === 'completed';
-            navigate(isPaid ? '/payment/member-dashboard' : '/member/dashboard');
+            navigate(isPaid ? '/payment/member-dashboard' : '/member/unpaid-dashboard');
         } catch (error) {
             console.warn('Exit navigation safely caught:', error);
-            navigate('/member/dashboard');
+            navigate('/member/unpaid-dashboard');
         }
     };
 

@@ -50,7 +50,7 @@ export default function PaymentRegistration() {
       // Check if already paid
       if (await getPaymentStatus() === 'completed') {
         toast.info('Payment already completed');
-        navigate('/member/dashboard');
+        navigate('/member/unpaid-dashboard');
         return;
       }
 
