@@ -332,7 +332,7 @@ const BusinessInformationForm = () => {
                   value={formData.businessActivities}
                   onChange={(e) => setField("businessActivities", e.target.value)}
                   placeholder="Describe what your business does"
-                  className="min-h-[100px] border-slate-200 focus-visible:ring-blue-500"
+                  className="min-h-[6.25rem] border-slate-200 focus-visible:ring-blue-500"
                 />
               </FormField>
             </FormGrid>

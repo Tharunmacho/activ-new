@@ -10,7 +10,42 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /**
+   * The public site's brand blue — the logo navy, #1C2E68.
+   *
+   * Scoped to the ONBOARDING / public pages on purpose. It reaches the header,
+   * the footer and the marketing sections through `brand-*` classes, and it
+   * reaches nothing else: the shadcn tokens below (`--primary`, `--accent`,
+   * `--ring`) and Tailwind's stock `blue-*` palette are untouched, so the
+   * member area and every admin dashboard keep the colours they always had.
+   *
+   * An earlier version of this change repointed `--primary` and the whole
+   * `blue` palette instead, which recoloured every button, select, dropdown
+   * and focus ring in the product. That was far wider than the brief.
+   */
   :root {
+    /*
+     * One hue, 226, all the way down — these are tints and shades of the mark,
+     * not a hand-picked ramp.
+     *
+     * The first attempt held saturation near 55% at every step, and a 55%
+     * saturated hue-226 at 71% lightness is periwinkle: "Better Future" in the
+     * hero came out lavender and read as a *second* colour sitting next to the
+     * navy, which is exactly what it was supposed to stop doing. Saturation now
+     * falls away as lightness rises, the way it does when you actually mix a
+     * colour with white, so every light step reads as "the logo, lighter".
+     */
+    --brand-50:  226 30% 96%;
+    --brand-100: 226 30% 91%;
+    --brand-200: 226 28% 82%;
+    --brand-300: 226 26% 70%;
+    --brand-400: 226 28% 58%;
+    --brand-500: 226 34% 46%;
+    --brand-600: 226 45% 35%;
+    --brand-700: 226 52% 30%;
+    --brand-800: 226 58% 26%; /* the mark, #1C2E68 */
+    --brand-900: 226 58% 19%;
+
     --background: 210 40% 98%;
     --foreground: 220 30% 15%;
 
@@ -98,6 +133,61 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  /**
+   * The public site scales with the viewport instead of pinning to it.
+   *
+   * At 100% zoom on a 1920px screen the onboarding pages look right. Zoom out
+   * to 90% and the CSS viewport becomes ~2133px wide — but the container stops
+   * at 80rem and every type size is a fixed number of rem, so the whole design
+   * stayed exactly the same physical size while the window around it grew. The
+   * result reads as small and stranded in the middle of the screen, which is
+   * not what 100% looks like.
+   *
+   * Tailwind's spacing, type and max-width scales are all rem-based, so moving
+   * the root size moves the entire layout together — `max-w-7xl` grows from
+   * 1280px to 1422px at 90% zoom, and the type, gaps and radii grow with it.
+   * The proportions are then identical at any zoom level.
+   *
+   * ONBOARDING ONLY. `rem` is root-relative, so this must sit on `<html>` and
+   * cannot be scoped with CSS alone — `useFluidScale()` adds the class while a
+   * public page is mounted and takes it off again on the way out. Without the
+   * class the root stays at the browser default, which is what the member and
+   * admin screens were built against.
+   *
+   * Written in `rem`, not `px`, so a reader who has set a larger default font
+   * size in their browser still gets it — a `px` floor would silently override
+   * that. Floored at 1rem so nothing below 1920px changes, and capped at
+   * 1.25rem so a very wide display does not get a comically large page.
+   */
+  /**
+   * The signed-in product's base size.
+   *
+   * Back at 1rem — the browser's own default, and full size. A 0.9375rem step
+   * was tried here to tighten the application up, and it did shrink the cards,
+   * but rem drives type and spacing from the same number: the text came down
+   * with them and ended up too small to read comfortably. Legibility wins.
+   *
+   * Tailwind's type, spacing, radius and max-width scales are all rem-based, so
+   * this one value moves the whole application together and every relationship
+   * between elements is preserved whatever it is set to.
+   *
+   * The 330 hard pixel values that used to sit across these screens were
+   * converted to rem on the way through, so they now follow this number too —
+   * previously they would have stayed put while everything around them moved.
+   *
+   * In `rem` rather than `px` so a reader who has raised their browser's
+   * default font size still gets a proportionally larger interface.
+   */
+  html {
+    font-size: 1rem;
+  }
+
+  /* Onboarding opts out — see the note above. Higher specificity, so the
+     public pages keep their own fluid scale and are untouched by the above. */
+  html.fluid-scale {
+    font-size: clamp(1rem, 0.833vw, 1.25rem);
+  }
+
   * {
     @apply border-border;
   }

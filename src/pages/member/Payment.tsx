@@ -125,17 +125,17 @@ export default function Payment() {
             sidebar={false}
             backTo={dashboard}
         >
-            <div className="mx-auto w-full max-w-[1400px] space-y-6">
+            <div className="mx-auto w-full max-w-[87.5rem] space-y-6">
 
                 {/* ---------------- title header ---------------- */}
                 <div className="text-center">
                     <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5
-                                     text-[11px] font-extrabold tracking-wide mb-3"
+                                     text-[0.6875rem] font-extrabold tracking-wide mb-3"
                           style={{ backgroundColor: '#F3E8FF', color: '#8B5CF6' }}>
                         <Star className="w-3.5 h-3.5" />
                         MEMBERSHIP PLAN
                     </span>
-                    <h1 className="font-display text-[26px] lg:text-3xl font-extrabold tracking-tight"
+                    <h1 className="font-display text-[1.625rem] lg:text-3xl font-extrabold tracking-tight"
                         style={{ color: PALETTE.ink }}>
                         {isCompany ? 'Select Business Plan' : 'Aspirant Membership Plan'}
                     </h1>
@@ -211,7 +211,7 @@ export default function Payment() {
                                             {plan.name}
                                         </p>
                                         {plan.popular ? (
-                                            <span className="shrink-0 rounded-md px-2 py-0.5 text-[10px] font-extrabold"
+                                            <span className="shrink-0 rounded-md px-2 py-0.5 text-[0.625rem] font-extrabold"
                                                   style={{ backgroundColor: '#FEF3C7', color: '#B45309' }}>
                                                 POPULAR
                                             </span>
@@ -235,7 +235,7 @@ export default function Payment() {
                                             <li key={f} className="flex items-start gap-1.5">
                                                 <Check className="w-3.5 h-3.5 shrink-0 mt-0.5"
                                                        style={{ color: PALETTE.success }} />
-                                                <span className="text-[11px] leading-snug"
+                                                <span className="text-[0.6875rem] leading-snug"
                                                       style={{ color: PALETTE.muted }}>{f}</span>
                                             </li>
                                         ))}
@@ -254,7 +254,7 @@ export default function Payment() {
                             <Lock className="w-5 h-5" />
                         </span>
                         <div className="min-w-0">
-                            <p className="font-display text-[15px] font-bold">Secure Payment</p>
+                            <p className="font-display text-[0.9375rem] font-bold">Secure Payment</p>
                             <p className="text-xs text-white/80 mt-0.5 leading-relaxed">
                                 Your payment is processed over an encrypted connection.
                             </p>
@@ -262,7 +262,7 @@ export default function Payment() {
                     </div>
                     <div className="flex flex-wrap gap-2 mt-4">
                         {['SSL Encrypted', 'PCI-DSS Compliant'].map(tag => (
-                            <span key={tag} className="rounded-lg bg-white/20 px-2.5 py-1 text-[11px] font-bold">
+                            <span key={tag} className="rounded-lg bg-white/20 px-2.5 py-1 text-[0.6875rem] font-bold">
                                 {tag}
                             </span>
                         ))}
@@ -271,7 +271,7 @@ export default function Payment() {
 
                 {/* ---------------- what's next ---------------- */}
                 <KitCard>
-                    <p className="font-display text-[15px] font-bold mb-4" style={{ color: PALETTE.ink }}>
+                    <p className="font-display text-[0.9375rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
                         What&apos;s Next After Payment?
                     </p>
                     <div className="grid grid-cols-2 gap-4">
@@ -279,7 +279,7 @@ export default function Payment() {
                             <div key={text} className="flex items-start gap-2.5">
                                 <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                                       style={{ backgroundColor: `${color}15`, color }}>
-                                    <Icon className="w-[18px] h-[18px]" />
+                                    <Icon className="w-[1.125rem] h-[1.125rem]" />
                                 </span>
                                 <span className="text-xs font-medium leading-snug pt-2"
                                       style={{ color: PALETTE.ink }}>{text}</span>
@@ -294,7 +294,7 @@ export default function Payment() {
                 <div className="space-y-5 lg:sticky lg:top-6">
                 {activePlan ? (
                     <KitCard>
-                        <p className="font-display text-[15px] font-bold mb-4" style={{ color: PALETTE.ink }}>
+                        <p className="font-display text-[0.9375rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
                             Payment Summary
                         </p>
                         <div className="space-y-2.5">
@@ -325,7 +325,7 @@ export default function Payment() {
 
                 <div className="flex items-center justify-center gap-5">
                     {['100% Safe & Secure', 'Instant Activation'].map(t => (
-                        <span key={t} className="flex items-center gap-1.5 text-[11px]"
+                        <span key={t} className="flex items-center gap-1.5 text-[0.6875rem]"
                               style={{ color: PALETTE.muted }}>
                             <ShieldCheck className="w-3.5 h-3.5" />
                             {t}

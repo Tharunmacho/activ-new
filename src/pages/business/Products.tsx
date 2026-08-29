@@ -335,13 +335,13 @@ const Products = () => {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-[70px]">Image</TableHead>
+                                        <TableHead className="w-[4.375rem]">Image</TableHead>
                                         <TableHead>Product</TableHead>
                                         <TableHead className="hidden md:table-cell">Category</TableHead>
                                         <TableHead className="hidden lg:table-cell">SKU</TableHead>
                                         <TableHead className="text-right">Price</TableHead>
                                         <TableHead className="text-right">Stock</TableHead>
-                                        <TableHead className="text-right w-[160px]">Actions</TableHead>
+                                        <TableHead className="text-right w-[10rem]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>

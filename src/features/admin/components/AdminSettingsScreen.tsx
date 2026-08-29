@@ -244,8 +244,8 @@ export default function AdminSettingsScreen({
             {sidebar}
 
             <div className="flex-1 min-w-0 flex flex-col">
-                <header className="h-[72px] shrink-0 bg-white border-b border-slate-200 flex items-center px-5 lg:px-8">
-                    <h1 className="text-[21px] font-bold tracking-tight text-slate-900">Settings</h1>
+                <header className="h-[4.5rem] shrink-0 bg-white border-b border-slate-200 flex items-center px-5 lg:px-8">
+                    <h1 className="text-[1.3125rem] font-bold tracking-tight text-slate-900">Settings</h1>
 
                     {/* Mobile's header Edit/Save toggle. */}
                     <div className="ml-auto">

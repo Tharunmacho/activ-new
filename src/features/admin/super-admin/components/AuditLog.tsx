@@ -115,7 +115,7 @@ export default function AuditLog() {
             </header>
 
             <div className="px-6 py-4 border-b flex flex-wrap items-center gap-3">
-                <div className="relative flex-1 min-w-[200px]">
+                <div className="relative flex-1 min-w-[12.5rem]">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                         value={query}
@@ -146,7 +146,7 @@ export default function AuditLog() {
                 </div>
             </div>
 
-            <div className="divide-y max-h-[520px] overflow-y-auto">
+            <div className="divide-y max-h-[32.5rem] overflow-y-auto">
                 {entries.length === 0 && !loading ? (
                     <p className="text-center text-gray-500 py-12">
                         {query || category !== 'all' ? 'Nothing matches that filter.' : 'No activity recorded yet.'}
@@ -169,7 +169,7 @@ export default function AuditLog() {
                                     {/* A super admin acting on a tier's behalf is worth
                                         marking: the decision was not the region's own. */}
                                     {e.proxy && (
-                                        <span className="inline-flex items-center gap-1 mt-1 text-[10px]
+                                        <span className="inline-flex items-center gap-1 mt-1 text-[0.625rem]
                                                          bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
                                             <ShieldAlert className="w-3 h-3" /> proxy
                                         </span>

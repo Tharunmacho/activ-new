@@ -151,7 +151,7 @@ export default function RegistrationFormShell({
     return (
         <div className="min-h-screen flex flex-col bg-slate-100">
             <div className="flex-1 min-w-0 flex flex-col">
-                <header className="h-[72px] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8">
+                <header className="h-[4.5rem] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8">
                     <button
                         type="button"
                         className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 flex items-center
@@ -162,8 +162,8 @@ export default function RegistrationFormShell({
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div className="min-w-0">
-                        <h1 className="text-[21px] font-bold tracking-tight text-slate-900 truncate">{title}</h1>
-                        <p className="text-[13px] text-slate-500 truncate hidden sm:block">{description}</p>
+                        <h1 className="text-[1.3125rem] font-bold tracking-tight text-slate-900 truncate">{title}</h1>
+                        <p className="text-[0.8125rem] text-slate-500 truncate hidden sm:block">{description}</p>
                     </div>
                     <span className="ml-auto text-sm font-medium text-slate-500 shrink-0">
                         Step {step} of {TOTAL_STEPS}

@@ -26,6 +26,28 @@ export default {
         display: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'sans-serif'],
       },
       colors: {
+        /**
+         * The logo navy, as a scale. `bg-brand`, `text-brand-600`,
+         * `border-brand-100` and so on. Defined once in index.css.
+         *
+         * Use it on the PUBLIC / onboarding pages only. Tailwind's stock
+         * `blue-*` is deliberately left alone so the member and admin screens
+         * keep their own palette.
+         */
+        brand: {
+          DEFAULT: "hsl(var(--brand-800))",
+          50: "hsl(var(--brand-50))",
+          100: "hsl(var(--brand-100))",
+          200: "hsl(var(--brand-200))",
+          300: "hsl(var(--brand-300))",
+          400: "hsl(var(--brand-400))",
+          500: "hsl(var(--brand-500))",
+          600: "hsl(var(--brand-600))",
+          700: "hsl(var(--brand-700))",
+          800: "hsl(var(--brand-800))",
+          900: "hsl(var(--brand-900))",
+        },
+
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

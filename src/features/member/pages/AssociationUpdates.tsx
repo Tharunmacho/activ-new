@@ -106,7 +106,7 @@ export default function AssociationUpdates() {
                                         key={key}
                                         type="button"
                                         onClick={() => setCategory(key)}
-                                        className={`px-3 py-1.5 rounded-full text-[12.5px] font-semibold
+                                        className={`px-3 py-1.5 rounded-full text-[0.78125rem] font-semibold
                                                     transition-colors ${
                                             active
                                                 ? 'bg-blue-600 text-white'

@@ -160,7 +160,7 @@ const AddProduct = () => {
 
                 This was an unconditional `grid grid-cols-3`, with no responsive
                 prefix at all — so a 375px screen got a ~110px image dropzone that
-                still carried `min-h-[300px]`, beside two columns of fields.
+                still carried `min-h-[18.75rem]`, beside two columns of fields.
             */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <Card className="lg:sticky lg:top-0">
@@ -211,7 +211,7 @@ const AddProduct = () => {
                                     placeholder="Describe your product features & specifications…"
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="min-h-[120px] border-slate-200 focus-visible:ring-blue-500"
+                                    className="min-h-[7.5rem] border-slate-200 focus-visible:ring-blue-500"
                                 />
                             </Field>
 

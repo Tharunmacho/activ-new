@@ -68,7 +68,7 @@ export default function BusinessPageShell({
             />
 
             <div className="flex-1 min-w-0 flex flex-col">
-                <header className="h-[72px] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8">
+                <header className="h-[4.5rem] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8">
                     <button
                         type="button"
                         className="lg:hidden text-slate-500 hover:text-slate-700 shrink-0"
@@ -79,11 +79,11 @@ export default function BusinessPageShell({
                     </button>
 
                     <div className="min-w-0">
-                        <h1 className="text-[21px] font-bold tracking-tight text-slate-900 truncate">
+                        <h1 className="text-[1.3125rem] font-bold tracking-tight text-slate-900 truncate">
                             {title}
                         </h1>
                         {subtitle ? (
-                            <p className="text-[13px] text-slate-500 truncate hidden sm:block">{subtitle}</p>
+                            <p className="text-[0.8125rem] text-slate-500 truncate hidden sm:block">{subtitle}</p>
                         ) : null}
                     </div>
 

@@ -50,7 +50,7 @@ export function IconPicker({ value, onChange, label = 'Icon' }: {
                                 border border-slate-200 dark:border-[#2a2a2a] rounded-lg shadow-xl p-3 space-y-3">
                     {ICON_GROUPS.map(group => (
                         <div key={group.label}>
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">
+                            <p className="text-[0.625rem] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">
                                 {group.label}
                             </p>
                             <div className="grid grid-cols-8 gap-1">

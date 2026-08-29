@@ -161,7 +161,7 @@ export default function ApplicationStatus() {
         return (
             <MemberPageShell title="Application Status" subtitle="Track your membership approval progress" width="wide" sidebar={false} backTo={dashboard}>
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-[76px] h-[76px] rounded-full bg-white border border-slate-200
+                    <div className="w-[4.75rem] h-[4.75rem] rounded-full bg-white border border-slate-200
                                     flex items-center justify-center mb-5">
                         {error
                             ? <AlertTriangle className="w-9 h-9 text-[#DC2626]" />
@@ -227,14 +227,14 @@ export default function ApplicationStatus() {
                     </Button>
             }
         >
-            <div className="mx-auto w-full max-w-[1400px] space-y-6">
+            <div className="mx-auto w-full max-w-[87.5rem] space-y-6">
 
                 {/* ---------------- gradient status hero ---------------- */}
                 <div className={`rounded-3xl bg-gradient-to-br ${heroGradient} p-6 lg:p-8
                                  text-white shadow-xl shadow-blue-900/20`}>
                     <div className="flex items-center justify-between gap-4">
                         <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/20
-                                         px-3 py-1.5 text-[11px] font-bold tracking-wide">
+                                         px-3 py-1.5 text-[0.6875rem] font-bold tracking-wide">
                             {isRejected ? <X className="w-3.5 h-3.5" />
                                 : isApproved ? <BadgeCheck className="w-3.5 h-3.5" />
                                     : <Hourglass className="w-3.5 h-3.5" />}
@@ -272,7 +272,7 @@ export default function ApplicationStatus() {
                                 }`}>
                                     {stage.completed ? <Check className="w-3 h-3 text-[#1E3FA8]" strokeWidth={3} /> : null}
                                 </span>
-                                <span className="text-[11px] font-semibold text-white/90">{stage.short}</span>
+                                <span className="text-[0.6875rem] font-semibold text-white/90">{stage.short}</span>
                             </div>
                         ))}
                     </div>
@@ -303,11 +303,11 @@ export default function ApplicationStatus() {
                 {isRejected && application.rejectionReason ? (
                     <div className="rounded-2xl bg-[#FEF2F2] border border-[#FECACA] p-4 flex gap-3">
                         <span className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0">
-                            <AlertTriangle className="w-[18px] h-[18px] text-[#DC2626]" />
+                            <AlertTriangle className="w-[1.125rem] h-[1.125rem] text-[#DC2626]" />
                         </span>
                         <div className="min-w-0">
                             <p className="font-display text-sm font-bold text-[#991B1B]">Reviewer Note</p>
-                            <p className="text-[13px] text-[#B91C1C] mt-1 leading-relaxed">
+                            <p className="text-[0.8125rem] text-[#B91C1C] mt-1 leading-relaxed">
                                 {application.rejectionReason}
                             </p>
                         </div>
@@ -318,7 +318,7 @@ export default function ApplicationStatus() {
                 <div className="grid gap-6 lg:grid-cols-3 items-start">
 
                     <div className="lg:col-span-2">
-                        <p className="font-display text-[13px] font-extrabold uppercase tracking-[0.08em]
+                        <p className="font-display text-[0.8125rem] font-extrabold uppercase tracking-[0.08em]
                                       text-[#64748B] mb-4">
                             Review Timeline
                         </p>
@@ -330,8 +330,8 @@ export default function ApplicationStatus() {
                             return (
                                 <div key={stage.key} className="flex">
                                     {/* rail */}
-                                    <div className="w-[30px] shrink-0 flex flex-col items-center">
-                                        <span className={`relative w-[30px] h-[30px] rounded-full ${tone.dot}
+                                    <div className="w-[1.875rem] shrink-0 flex flex-col items-center">
+                                        <span className={`relative w-[1.875rem] h-[1.875rem] rounded-full ${tone.dot}
                                                           flex items-center justify-center shrink-0`}>
                                             {stage.active ? (
                                                 <span className={`absolute inset-0 rounded-full ${tone.dot}
@@ -354,10 +354,10 @@ export default function ApplicationStatus() {
                                             : 'border-[#E8EEF6] shadow-sm'
                                     }`}>
                                         <div className="flex items-center justify-between gap-3">
-                                            <p className="font-display text-[15px] font-bold text-[#0F172A] truncate">
+                                            <p className="font-display text-[0.9375rem] font-bold text-[#0F172A] truncate">
                                                 {stage.name}
                                             </p>
-                                            <span className={`shrink-0 rounded-lg px-2.5 py-1 text-[10.5px]
+                                            <span className={`shrink-0 rounded-lg px-2.5 py-1 text-[0.65625rem]
                                                               font-extrabold ${tone.soft} ${tone.text}`}>
                                                 {tone.label}
                                             </span>
@@ -370,7 +370,7 @@ export default function ApplicationStatus() {
                                             <MetaLine icon={<Calendar className="w-3.5 h-3.5" />} text={stage.date} />
                                         ) : null}
                                         {stage.message ? (
-                                            <p className="text-[13px] text-[#475569] mt-2 leading-relaxed">
+                                            <p className="text-[0.8125rem] text-[#475569] mt-2 leading-relaxed">
                                                 {stage.message}
                                             </p>
                                         ) : null}
@@ -390,7 +390,7 @@ export default function ApplicationStatus() {
                       */}
                     <div className="space-y-6 lg:sticky lg:top-6">
                         <div className="rounded-2xl bg-white border border-[#E8EEF6] p-5 shadow-sm">
-                            <p className="font-display text-[13px] font-extrabold uppercase tracking-[0.08em]
+                            <p className="font-display text-[0.8125rem] font-extrabold uppercase tracking-[0.08em]
                                           text-[#64748B] mb-4">
                                 Applicant
                             </p>
@@ -435,7 +435,7 @@ const StripCell = ({ label, value, className = '', title }: {
     label: string; value: string; className?: string; title?: string;
 }) => (
     <div className={`px-4 text-center min-w-0 ${className}`}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
+        <p className="text-[0.625rem] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
         <p className="font-display text-sm font-bold text-[#0F172A] mt-1 truncate" title={title || value}>
             {value}
         </p>
@@ -445,7 +445,7 @@ const StripCell = ({ label, value, className = '', title }: {
 const MetaLine = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
     <div className="flex items-center gap-1.5 mt-2 text-[#64748B]">
         <span className="shrink-0">{icon}</span>
-        <span className="text-[12.5px] truncate">{text}</span>
+        <span className="text-[0.78125rem] truncate">{text}</span>
     </div>
 );
 
@@ -456,8 +456,8 @@ const DetailLine = ({ icon, label, value }: { icon: React.ReactNode; label: stri
             {icon}
         </span>
         <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
-            <p className="text-[13px] font-medium text-[#0F172A] break-words leading-snug mt-0.5">{value}</p>
+            <p className="text-[0.625rem] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
+            <p className="text-[0.8125rem] font-medium text-[#0F172A] break-words leading-snug mt-0.5">{value}</p>
         </div>
     </div>
 );

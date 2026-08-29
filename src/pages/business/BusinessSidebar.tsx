@@ -117,12 +117,12 @@ export default function BusinessSidebar({
             )}
 
             <aside
-                className={`fixed lg:static inset-y-0 left-0 z-40 w-[280px] shrink-0 bg-white border-r
+                className={`fixed lg:static inset-y-0 left-0 z-40 w-[17.5rem] shrink-0 bg-white border-r
                             border-slate-200 flex flex-col transition-transform duration-200
                             ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
             >
                 {/* Company identity */}
-                <div className="h-[72px] flex items-center justify-between gap-3 px-5 border-b border-slate-200">
+                <div className="h-[4.5rem] flex items-center justify-between gap-3 px-5 border-b border-slate-200">
                     <Link
                         to="/business/settings"
                         onClick={onClose}
@@ -142,10 +142,10 @@ export default function BusinessSidebar({
                             </AvatarFallback>
                         </Avatar>
                         <span className="min-w-0">
-                            <span className="block text-[15px] font-semibold text-slate-900 truncate">
+                            <span className="block text-[0.9375rem] font-semibold text-slate-900 truncate">
                                 {companyName}
                             </span>
-                            <span className="block text-[13px] text-slate-500 truncate">
+                            <span className="block text-[0.8125rem] text-slate-500 truncate">
                                 {companyPhone || 'No phone'}
                             </span>
                         </span>
@@ -178,7 +178,7 @@ export default function BusinessSidebar({
                                     }
                                     onClose();
                                 }}
-                                className={`flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[15px] transition-colors ${
+                                className={`flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[0.9375rem] transition-colors ${
                                     isDisabled
                                         ? 'text-slate-300 cursor-not-allowed'
                                         : active
@@ -186,7 +186,7 @@ export default function BusinessSidebar({
                                             : 'text-slate-600 hover:bg-slate-100'
                                 }`}
                             >
-                                <Icon className="w-[18px] h-[18px] shrink-0" />
+                                <Icon className="w-[1.125rem] h-[1.125rem] shrink-0" />
                                 <span className="truncate">{label}</span>
                             </Link>
                         );
@@ -197,10 +197,10 @@ export default function BusinessSidebar({
                     <button
                         type="button"
                         onClick={handleBackToDashboard}
-                        className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[15px]
+                        className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[0.9375rem]
                                    text-blue-600 hover:bg-blue-50 transition-colors"
                     >
-                        <ArrowLeft className="w-[18px] h-[18px]" />
+                        <ArrowLeft className="w-[1.125rem] h-[1.125rem]" />
                         Back to Dashboard
                     </button>
                 </div>

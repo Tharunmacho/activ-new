@@ -265,7 +265,7 @@ const Settings = () => {
                         hover:bg-slate-50 transition-colors ${last ? '' : 'border-b border-slate-100'}`}
         >
             <span className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <Icon className="h-[18px] w-[18px] text-blue-600" />
+                <Icon className="h-[1.125rem] w-[1.125rem] text-blue-600" />
             </span>
             <span className="flex-1 min-w-0">
                 <span className="block font-semibold text-sm text-slate-800">{title}</span>
@@ -404,7 +404,7 @@ const Settings = () => {
 
                             <div className="flex items-center gap-4 py-3.5 border-b border-slate-100">
                                 <span className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                                    <Compass className="h-[18px] w-[18px] text-blue-600" />
+                                    <Compass className="h-[1.125rem] w-[1.125rem] text-blue-600" />
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-sm text-slate-800">List in Discover</p>
@@ -460,7 +460,7 @@ const Settings = () => {
                                 className="w-full flex items-center gap-4 py-3.5 px-3 -mx-3 text-left rounded-lg hover:bg-red-50 transition-colors"
                             >
                                 <span className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                                    <Trash2 className="h-[18px] w-[18px] text-red-500" />
+                                    <Trash2 className="h-[1.125rem] w-[1.125rem] text-red-500" />
                                 </span>
                                 <span className="flex-1 min-w-0">
                                     <span className="block font-semibold text-sm text-red-600">Delete This Company</span>

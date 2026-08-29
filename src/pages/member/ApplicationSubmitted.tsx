@@ -110,7 +110,7 @@ export default function ApplicationSubmitted() {
             sidebar={false}
             backTo={dashboard}
         >
-            <div className="mx-auto w-full max-w-[1400px]">
+            <div className="mx-auto w-full max-w-[87.5rem]">
                 <SuccessMark />
 
                 <ScreenTitle>Application Submitted</ScreenTitle>
@@ -133,7 +133,7 @@ export default function ApplicationSubmitted() {
                     <KitCard>
                         <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.06em]"
+                                <p className="text-[0.625rem] font-bold uppercase tracking-[0.06em]"
                                    style={{ color: PALETTE.muted }}>
                                     Application Reference
                                 </p>

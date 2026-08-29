@@ -394,7 +394,7 @@ export default function SuperAdminUpdates() {
                             {/* ---- who it reaches ---- */}
                             <div className="border-t border-slate-100 pt-5">
                                 <h3 className="text-sm font-bold text-slate-900">Who it reaches</h3>
-                                <p className="text-[12.5px] text-slate-500 mt-0.5 mb-4">
+                                <p className="text-[0.78125rem] text-slate-500 mt-0.5 mb-4">
                                     Leave a region blank to reach everyone below that level. A block-level
                                     update goes only to that block.
                                 </p>
@@ -560,7 +560,7 @@ export default function SuperAdminUpdates() {
                                                     <span className="font-medium text-slate-800">{row.title}</span>
                                                     {row.pinned ? (
                                                         <span className="ml-2 inline-flex items-center gap-1
-                                                                         text-[10px] font-bold uppercase
+                                                                         text-[0.625rem] font-bold uppercase
                                                                          text-blue-700 align-middle">
                                                             <Pin className="w-3 h-3" /> Pinned
                                                         </span>
@@ -646,9 +646,9 @@ function Field({
 }: { label: string; hint?: string; children: React.ReactNode }) {
     return (
         <label className="block min-w-0">
-            <span className="block text-[12px] font-semibold text-slate-700 mb-1">{label}</span>
+            <span className="block text-[0.75rem] font-semibold text-slate-700 mb-1">{label}</span>
             {children}
-            {hint ? <span className="block text-[11.5px] text-slate-400 mt-1">{hint}</span> : null}
+            {hint ? <span className="block text-[0.71875rem] text-slate-400 mt-1">{hint}</span> : null}
         </label>
     );
 }

@@ -12,6 +12,9 @@ import {
 import { SESSION_EVENT } from "@/services/api";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+/** The roles that have an admin dashboard instead of a member profile. */
+const ADMIN_ROLES = ['block_admin', 'district_admin', 'state_admin', 'super_admin', 'cms_admin', 'admin'];
+
 /**
  * Whether the signed-in user is a member with a profile to load.
  *
@@ -19,8 +22,18 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
  * for an admin there is nothing to return and the API answers 404. Checking the
  * role here keeps those requests from being made at all, rather than firing
  * them on every page and discarding the failures.
+ *
+ * Asked as "not an admin" rather than `=== 'member'`, because that exact match
+ * is what broke. The backend used to overwrite a member's role with their
+ * declared member type, so accounts that had submitted an application signed
+ * back in as role 'business' — not an admin, but not the literal string either.
+ * This provider then returned early for a perfectly ordinary member and the
+ * completion bar sat at 0% for the whole session. The backend no longer writes
+ * that, but a stored session from before the fix still carries it, and any role
+ * this list does not name belongs to someone with a member profile.
  */
-const isMemberSession = () => isAuthenticated() && getStoredRole() === 'member';
+const isMemberSession = () =>
+  isAuthenticated() && !ADMIN_ROLES.includes(String(getStoredRole() || '').toLowerCase());
 
 interface ProfileContextType {
   profileCompletion: number;
@@ -129,7 +142,10 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
       // Once the application is in, or the membership is paid, the profile is
       // done by definition — the forms are locked and cannot be added to.
       const hasSubmitted = !!(application && (application._id || application.id || application.status));
-      const isPaid = ['approved', 'active'].includes(String(profile?.membershipStatus || '').toLowerCase());
+      // Paid means paid. `approved` is the application's approval, not the
+      // payment — see `getPaymentStatus()`. It is irrelevant to the figure
+      // anyway, since `hasSubmitted` already covers an approved application.
+      const isPaid = ['active', 'completed'].includes(String(profile?.membershipStatus || '').toLowerCase());
 
       const percentage = hasSubmitted || isPaid
         ? 100

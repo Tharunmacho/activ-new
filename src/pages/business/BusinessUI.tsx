@@ -87,7 +87,7 @@ export function StatTile({
                 <span className="text-sm font-medium text-slate-500">{label}</span>
                 {Icon ? (
                     <span className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                        <Icon className="w-[18px] h-[18px] text-blue-600" />
+                        <Icon className="w-[1.125rem] h-[1.125rem] text-blue-600" />
                     </span>
                 ) : null}
             </div>

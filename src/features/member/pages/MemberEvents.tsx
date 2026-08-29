@@ -107,7 +107,7 @@ export default function MemberEvents() {
                                 key={key}
                                 type="button"
                                 onClick={() => setTab(key)}
-                                className={`flex-1 min-w-0 px-2 py-2.5 rounded-xl text-[12.5px] font-semibold
+                                className={`flex-1 min-w-0 px-2 py-2.5 rounded-xl text-[0.78125rem] font-semibold
                                             transition-colors flex items-center justify-center gap-1.5 ${
                                     active
                                         ? 'bg-blue-600 text-white'
@@ -116,7 +116,7 @@ export default function MemberEvents() {
                             >
                                 <span className="truncate">{label}</span>
                                 {count > 0 ? (
-                                    <span className={`shrink-0 text-[10.5px] font-bold px-1.5 rounded-full ${
+                                    <span className={`shrink-0 text-[0.65625rem] font-bold px-1.5 rounded-full ${
                                         active ? 'bg-white/25' : 'bg-slate-200 text-slate-600'
                                     }`}>
                                         {count}

@@ -58,43 +58,43 @@ export default function UpdateCard({
 
             <div className="p-4 lg:p-5">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className={`text-[10.5px] font-bold uppercase tracking-wide px-2 py-0.5
+                    <span className={`text-[0.65625rem] font-bold uppercase tracking-wide px-2 py-0.5
                                       rounded-full ${style.cls}`}>
                         {style.label}
                     </span>
 
                     {update.pinned ? (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-bold uppercase
+                        <span className="inline-flex items-center gap-1 text-[0.65625rem] font-bold uppercase
                                          tracking-wide text-blue-700">
                             <Pin className="w-3 h-3" /> Pinned
                         </span>
                     ) : null}
 
                     {update.targetLabel ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 min-w-0">
+                        <span className="inline-flex items-center gap-1 text-[0.6875rem] text-slate-500 min-w-0">
                             <MapPin className="w-3 h-3 shrink-0" />
                             <span className="truncate">{update.targetLabel}</span>
                         </span>
                     ) : null}
 
-                    <span className="text-[11px] text-slate-400 ml-auto shrink-0">
+                    <span className="text-[0.6875rem] text-slate-400 ml-auto shrink-0">
                         {formatDate(update.publishedAt)}
                     </span>
                 </div>
 
-                <h3 className="text-[15px] font-bold text-slate-900 leading-snug
+                <h3 className="text-[0.9375rem] font-bold text-slate-900 leading-snug
                                group-hover:text-blue-700 transition-colors">
                     {update.title}
                 </h3>
 
                 {update.summary ? (
-                    <p className="text-[13px] text-slate-600 mt-1.5 leading-relaxed line-clamp-2">
+                    <p className="text-[0.8125rem] text-slate-600 mt-1.5 leading-relaxed line-clamp-2">
                         {update.summary}
                     </p>
                 ) : null}
 
                 {update.attachmentUrl ? (
-                    <p className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-blue-600">
+                    <p className="mt-2.5 inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-blue-600">
                         <Paperclip className="w-3.5 h-3.5" />
                         {update.attachmentLabel || 'Attachment'}
                     </p>

@@ -59,7 +59,7 @@ export default function EventCard({
                         membership buys. */}
                     {event.audience === 'paid' ? (
                         <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-blue-600
-                                         text-white text-[11px] font-bold uppercase tracking-wide
+                                         text-white text-[0.6875rem] font-bold uppercase tracking-wide
                                          px-2.5 py-1 rounded-full shadow-sm">
                             <Lock className="w-3 h-3" /> Members only
                         </span>
@@ -67,7 +67,7 @@ export default function EventCard({
 
                     {registered ? (
                         <span className="absolute top-3 right-3 inline-flex items-center gap-1
-                                         bg-emerald-600 text-white text-[11px] font-bold uppercase
+                                         bg-emerald-600 text-white text-[0.6875rem] font-bold uppercase
                                          tracking-wide px-2.5 py-1 rounded-full shadow-sm">
                             <BadgeCheck className="w-3 h-3" />
                             {waitlisted ? 'Waiting list' : 'Registered'}
@@ -81,22 +81,22 @@ export default function EventCard({
                     a poster rarely repeats the date in a form the eye can scan. */}
                 <div className="shrink-0 w-14 rounded-xl bg-blue-50 text-blue-700 text-center py-2">
                     <p className="text-lg font-bold leading-none tabular-nums">{tile.day}</p>
-                    <p className="text-[10px] font-bold tracking-wider mt-0.5">{tile.month}</p>
+                    <p className="text-[0.625rem] font-bold tracking-wider mt-0.5">{tile.month}</p>
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <h3 className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2
+                    <h3 className="text-[0.9375rem] font-bold text-slate-900 leading-snug line-clamp-2
                                    group-hover:text-blue-700 transition-colors">
                         {event.title}
                     </h3>
 
-                    <p className="text-[12.5px] text-slate-500 mt-1 flex items-center gap-1.5">
+                    <p className="text-[0.78125rem] text-slate-500 mt-1 flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 shrink-0" />
                         <span className="truncate">{formatWhen(event)}</span>
                     </p>
 
                     {event.venue ? (
-                        <p className="text-[12.5px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                        <p className="text-[0.78125rem] text-slate-500 mt-0.5 flex items-center gap-1.5">
                             <MapPin className="w-3.5 h-3.5 shrink-0" />
                             <span className="truncate">{event.venue}</span>
                         </p>
@@ -104,14 +104,14 @@ export default function EventCard({
 
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2.5">
                         {compact && event.audience === 'paid' ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold
+                            <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold
                                              text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
                                 <Lock className="w-3 h-3" /> Members only
                             </span>
                         ) : null}
 
                         {compact && registered ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold
+                            <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold
                                              text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
                                 <BadgeCheck className="w-3 h-3" />
                                 {waitlisted ? 'Waiting list' : 'Registered'}
@@ -119,7 +119,7 @@ export default function EventCard({
                         ) : null}
 
                         {event.agenda.length > 0 ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-500">
+                            <span className="inline-flex items-center gap-1 text-[0.6875rem] text-slate-500">
                                 <CalendarDays className="w-3 h-3" />
                                 {event.agenda.length} sessions
                             </span>
@@ -132,7 +132,7 @@ export default function EventCard({
                           * second would otherwise print a confident "0 left".
                           */}
                         {!past && left !== null ? (
-                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold
+                            <span className={`inline-flex items-center gap-1 text-[0.6875rem] font-semibold
                                               ${left === 0 ? 'text-amber-600' : 'text-slate-500'}`}>
                                 <Users className="w-3 h-3" />
                                 {left === 0 ? 'Full — waiting list' : `${left} seats left`}
@@ -140,10 +140,10 @@ export default function EventCard({
                         ) : null}
 
                         {!past && gate.open && !registered ? (
-                            <span className="text-[11px] font-bold text-blue-600">Registration open</span>
+                            <span className="text-[0.6875rem] font-bold text-blue-600">Registration open</span>
                         ) : null}
 
-                        {past ? <span className="text-[11px] font-semibold text-slate-400">Past event</span> : null}
+                        {past ? <span className="text-[0.6875rem] font-semibold text-slate-400">Past event</span> : null}
                     </div>
                 </div>
             </div>

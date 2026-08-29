@@ -149,9 +149,11 @@ const decorate = (app: any, member?: any): Application => {
     },
 
     // Approval and payment are separate states: a fully approved application
-    // still leaves membershipStatus at 'pending' until the member pays.
+    // still leaves membershipStatus at 'pending' until the member pays. This
+    // list said so and then counted 'approved' as paid anyway, which is what
+    // marked approved-but-unpaid members as having settled their membership.
     paymentStatus:
-      member && ['approved', 'active'].includes(String(member.membershipStatus || '').toLowerCase())
+      member && ['active', 'completed'].includes(String(member.membershipStatus || '').toLowerCase())
         ? 'completed'
         : 'pending',
     paymentDate: member?.lastPaymentDate || member?.membershipActivatedAt || null,

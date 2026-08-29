@@ -339,7 +339,16 @@ export const register = async (payload: {
     const role = (user.role || 'member') as UserRole;
 
     if (token) {
-        setAuthToken(token);
+        /*
+         * Identity first, token last.
+         *
+         * `setAuthToken` fires SESSION_EVENT, and everything listening for it
+         * asks "who is this?" the moment it arrives. Writing the token first
+         * meant that question was answered from an empty `USER_ROLE`, so a
+         * brand-new member looked like nobody in particular for the rest of the
+         * session. `login()` already writes the identity first; this now
+         * matches it.
+         */
         try {
             localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
             localStorage.setItem(STORAGE_KEYS.USER_ID, String(user.id || ''));
@@ -357,6 +366,8 @@ export const register = async (payload: {
             const registeredName = String(data.memberDetails?.fullName || user.fullName || '');
             if (registeredName) localStorage.setItem(STORAGE_KEYS.USER_NAME, registeredName);
         } catch { /* ignore */ }
+
+        setAuthToken(token);
     }
 
     return { token, role, user, memberDetails: data.memberDetails || {}, home: HOME_FOR_ROLE[role] };
@@ -762,7 +773,16 @@ export const getPaymentStatus = async (): Promise<'completed' | 'pending'> => {
     try {
         const profile = await getMyProfile();
         const status = String(profile?.membershipStatus || '').toLowerCase();
-        return status === 'approved' || status === 'active' ? 'completed' : 'pending';
+        /*
+         * `approved` is not paid, and treating it as paid contradicted the
+         * paragraph directly above. It is the three-tier workflow approving the
+         * APPLICATION — the event that unlocks the payment step. Collapsing it
+         * with `active` showed the paid dashboard to members who had never paid,
+         * hid the Pay button they needed, and left the backend refusing to open
+         * a payment order for them. `PAID_STATUSES` in the backend's
+         * `memberContext.js` is the same list.
+         */
+        return status === 'active' || status === 'completed' ? 'completed' : 'pending';
     } catch {
         // Unknown is treated as unpaid: showing paid-only features to someone
         // who has not paid is the worse failure.

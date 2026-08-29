@@ -487,7 +487,7 @@ export default function EventsManager() {
                                                 members-only event and a published open one
                                                 both read "published". */}
                                             {e.audience === 'paid' ? (
-                                                <span className="ml-2 inline-flex items-center gap-1 text-[10px]
+                                                <span className="ml-2 inline-flex items-center gap-1 text-[0.625rem]
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-blue-100 dark:bg-blue-950
                                                                  text-blue-700 dark:text-blue-400 align-middle">
@@ -495,7 +495,7 @@ export default function EventsManager() {
                                                 </span>
                                             ) : null}
                                             {e.registrationEnabled ? (
-                                                <span className="ml-1.5 text-[10px] font-medium text-neutral-500
+                                                <span className="ml-1.5 text-[0.625rem] font-medium text-neutral-500
                                                                  align-middle">
                                                     registration open
                                                 </span>

@@ -102,11 +102,11 @@ export default function RegionInput({
             <div key={title}>
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 sticky top-0">
                     <Icon className={`w-3.5 h-3.5 ${tone}`} />
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                    <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
                         {title}
                     </span>
                     {/* The count is here so it is obvious nothing was truncated. */}
-                    <span className="text-[11px] text-gray-400">{names.length}</span>
+                    <span className="text-[0.6875rem] text-gray-400">{names.length}</span>
                 </div>
 
                 {names.map(name => (

@@ -208,7 +208,7 @@ export default function MemberDirectory() {
                         <button
                             type="button"
                             onClick={() => setShowFilters((open) => !open)}
-                            className={`shrink-0 h-11 px-3.5 rounded-xl border text-[13px] font-semibold
+                            className={`shrink-0 h-11 px-3.5 rounded-xl border text-[0.8125rem] font-semibold
                                         inline-flex items-center gap-1.5 transition-colors ${
                                 activeCount > 0
                                     ? 'border-blue-400 bg-blue-50 text-blue-700'
@@ -218,7 +218,7 @@ export default function MemberDirectory() {
                             <SlidersHorizontal className="w-4 h-4" />
                             <span className="hidden sm:inline">Filters</span>
                             {activeCount > 0 ? (
-                                <span className="bg-blue-600 text-white text-[10.5px] font-bold w-4 h-4
+                                <span className="bg-blue-600 text-white text-[0.65625rem] font-bold w-4 h-4
                                                  rounded-full flex items-center justify-center">
                                     {activeCount}
                                 </span>
@@ -269,7 +269,7 @@ export default function MemberDirectory() {
                                 <button
                                     type="button"
                                     onClick={clearAll}
-                                    className="inline-flex items-center gap-1 text-[12.5px] font-semibold
+                                    className="inline-flex items-center gap-1 text-[0.78125rem] font-semibold
                                                text-slate-500 hover:text-slate-700"
                                 >
                                     <X className="w-3.5 h-3.5" /> Clear all filters
@@ -300,7 +300,7 @@ export default function MemberDirectory() {
                     />
                 ) : (
                     <>
-                        <p className="text-[12.5px] text-slate-500 px-1">
+                        <p className="text-[0.78125rem] text-slate-500 px-1">
                             {total} {total === 1 ? 'member' : 'members'}
                             {activeCount > 0 || term ? ' matching' : ''}
                         </p>
@@ -315,14 +315,14 @@ export default function MemberDirectory() {
                                     type="button"
                                     disabled={page <= 1}
                                     onClick={() => setPage((current) => Math.max(1, current - 1))}
-                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[13px]
+                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[0.8125rem]
                                                font-semibold text-slate-600 hover:bg-slate-50
                                                disabled:opacity-40 disabled:hover:bg-transparent"
                                 >
                                     Previous
                                 </button>
 
-                                <span className="text-[12.5px] text-slate-500 tabular-nums">
+                                <span className="text-[0.78125rem] text-slate-500 tabular-nums">
                                     Page {page} of {pages}
                                 </span>
 
@@ -330,7 +330,7 @@ export default function MemberDirectory() {
                                     type="button"
                                     disabled={page >= pages}
                                     onClick={() => setPage((current) => current + 1)}
-                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[13px]
+                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[0.8125rem]
                                                font-semibold text-slate-600 hover:bg-slate-50
                                                disabled:opacity-40 disabled:hover:bg-transparent"
                                 >
@@ -374,20 +374,20 @@ function DirectoryRow({ member }: { member: DirectoryEntry }) {
             )}
 
             <div className="min-w-0 flex-1">
-                <p className="text-[14.5px] font-bold text-slate-900 truncate
+                <p className="text-[0.90625rem] font-bold text-slate-900 truncate
                               group-hover:text-blue-700 transition-colors">
                     {member.fullName}
                 </p>
 
                 {primary ? (
-                    <p className="text-[12.5px] text-slate-600 truncate flex items-center gap-1.5 mt-0.5">
+                    <p className="text-[0.78125rem] text-slate-600 truncate flex items-center gap-1.5 mt-0.5">
                         <Building2 className="w-3.5 h-3.5 shrink-0" />
                         {primary.businessName}
                     </p>
                 ) : null}
 
                 {where ? (
-                    <p className="text-[12px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+                    <p className="text-[0.75rem] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
                         <MapPin className="w-3 h-3 shrink-0" />
                         {where}
                     </p>
@@ -397,14 +397,14 @@ function DirectoryRow({ member }: { member: DirectoryEntry }) {
                     {member.sectors.map((sector) => (
                         <span
                             key={sector}
-                            className="text-[10.5px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full"
+                            className="text-[0.65625rem] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full"
                         >
                             {sector}
                         </span>
                     ))}
 
                     {member.productCount > 0 ? (
-                        <span className="text-[10.5px] text-slate-500 inline-flex items-center gap-1">
+                        <span className="text-[0.65625rem] text-slate-500 inline-flex items-center gap-1">
                             <Package className="w-3 h-3" />
                             {member.productCount} listed
                         </span>
@@ -434,7 +434,7 @@ function Select({
 }) {
     return (
         <label className="block min-w-0">
-            <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1">
+            <span className="block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 mb-1">
                 {label}
             </span>
             <select

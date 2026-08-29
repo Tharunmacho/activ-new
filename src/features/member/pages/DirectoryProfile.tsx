@@ -65,7 +65,7 @@ export default function DirectoryProfile() {
                         <button
                             type="button"
                             onClick={() => navigate('/member/directory')}
-                            className="text-[13px] font-semibold text-blue-600 hover:underline"
+                            className="text-[0.8125rem] font-semibold text-blue-600 hover:underline"
                         >
                             Back to the directory
                         </button>
@@ -87,7 +87,7 @@ export default function DirectoryProfile() {
                 <button
                     type="button"
                     onClick={() => navigate('/member/directory')}
-                    className="text-[13px] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="text-[0.8125rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                     All members
                 </button>
@@ -115,7 +115,7 @@ export default function DirectoryProfile() {
                         <h2 className="text-xl font-bold text-slate-900">{entry.fullName}</h2>
 
                         {where ? (
-                            <p className="text-[13px] text-slate-500 mt-1 flex items-center gap-1.5">
+                            <p className="text-[0.8125rem] text-slate-500 mt-1 flex items-center gap-1.5">
                                 <MapPin className="w-3.5 h-3.5 shrink-0" /> {where}
                             </p>
                         ) : null}
@@ -124,7 +124,7 @@ export default function DirectoryProfile() {
                             {entry.sectors.map((sector) => (
                                 <span
                                     key={sector}
-                                    className="text-[11px] font-semibold text-blue-700 bg-blue-50
+                                    className="text-[0.6875rem] font-semibold text-blue-700 bg-blue-50
                                                px-2.5 py-1 rounded-full"
                                 >
                                     {sector}
@@ -132,7 +132,7 @@ export default function DirectoryProfile() {
                             ))}
 
                             {entry.memberSince ? (
-                                <span className="text-[11px] text-slate-500 inline-flex items-center gap-1">
+                                <span className="text-[0.6875rem] text-slate-500 inline-flex items-center gap-1">
                                     <CalendarDays className="w-3 h-3" />
                                     Member since {formatDate(entry.memberSince)}
                                 </span>
@@ -171,16 +171,16 @@ export default function DirectoryProfile() {
                                         )}
 
                                         <div className="min-w-0">
-                                            <p className="text-[14px] font-semibold text-slate-900 truncate">
+                                            <p className="text-[0.875rem] font-semibold text-slate-900 truncate">
                                                 {company.businessName}
                                             </p>
                                             {company.businessType ? (
-                                                <p className="text-[12px] text-blue-700 font-medium">
+                                                <p className="text-[0.75rem] text-blue-700 font-medium">
                                                     {company.businessType}
                                                 </p>
                                             ) : null}
                                             {company.location || company.area ? (
-                                                <p className="text-[12px] text-slate-500 truncate mt-0.5">
+                                                <p className="text-[0.75rem] text-slate-500 truncate mt-0.5">
                                                     {[company.area, company.location].filter(Boolean).join(', ')}
                                                 </p>
                                             ) : null}
@@ -237,14 +237,14 @@ export default function DirectoryProfile() {
                                         </div>
 
                                         <div className="p-2.5">
-                                            <p className="text-[12.5px] font-semibold text-slate-900 truncate">
+                                            <p className="text-[0.78125rem] font-semibold text-slate-900 truncate">
                                                 {product.name}
                                             </p>
-                                            <p className="text-[11px] text-slate-500 truncate">
+                                            <p className="text-[0.6875rem] text-slate-500 truncate">
                                                 {product.category}
                                             </p>
                                             {product.price > 0 ? (
-                                                <p className="text-[12.5px] font-bold text-blue-700 mt-0.5 tabular-nums">
+                                                <p className="text-[0.78125rem] font-bold text-blue-700 mt-0.5 tabular-nums">
                                                     ₹{product.price.toLocaleString('en-IN')}
                                                 </p>
                                             ) : null}

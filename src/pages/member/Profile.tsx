@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Menu, Eye, EyeOff, Bell, User, CheckCircle } from "lucide-react";
+import {
+  Check, FileText, ArrowLeft, ArrowRight, User, MapPin, KeyRound, UsersRound,
+  Building2, Receipt, Landmark, Award, ScrollText, type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import MemberPageShell from "./MemberPageShell";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -120,6 +122,68 @@ const defaultProfile: ProfileData = {
   companyNames: "",
   declarationAccepted: false,
 };
+
+/**
+ * The four steps, as the left rail names them.
+ *
+ * `hint` is what the step is actually for, in the member's words. A rail that
+ * lists "Business" and nothing else asks someone to guess what is behind it.
+ */
+const RAIL = [
+  { n: 1, name: 'Personal', hint: 'Who you are and where' },
+  { n: 2, name: 'Business', hint: 'Your organisation' },
+  { n: 3, name: 'Financial', hint: 'Tax and compliance' },
+  { n: 4, name: 'Declaration', hint: 'Confirm and submit' },
+] as const;
+
+const STEP_HEADING: Record<number, { title: string; blurb: string }> = {
+  1: { title: 'Personal details', blurb: 'Your name, how we reach you, and the region your application is reviewed in.' },
+  2: { title: 'Business details', blurb: 'Tell us about your organisation. Not running a business? Answer “No” and we will skip ahead.' },
+  3: { title: 'Financial & compliance', blurb: 'Registration numbers and turnover. Nothing here is shown in the public directory.' },
+  4: { title: 'Declaration', blurb: 'A last look, then confirm the undertaking and submit for review.' },
+};
+
+/**
+ * One titled block of fields.
+ *
+ * Each step used to be an unbroken run of inputs under a single heading — ten
+ * deep on step 1, with the password boxes sitting between "Email" and
+ * "Religion" as though they were the same thought. Small captioned cards are
+ * what make a long form scannable: you can tell what a block is for before
+ * reading a single label.
+ */
+function Section({
+  icon: Icon,
+  title,
+  subtitle,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl bg-white border border-[#E8EEF6] shadow-sm p-5 lg:p-6">
+      <div className="flex items-start gap-3 pb-4 mb-5 border-b border-[#F1F5F9]">
+        <span className="w-10 h-10 rounded-xl bg-[#EEF3FE] flex items-center justify-center shrink-0">
+          <Icon className="w-[1.125rem] h-[1.125rem] text-[#1E50E6]" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-display text-[0.9375rem] font-bold text-[#0F172A] leading-tight">{title}</h3>
+          {subtitle ? <p className="text-[0.78125rem] text-[#64748B] mt-1 leading-snug">{subtitle}</p> : null}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Columns from md up, so a phone number stops being a 700px-wide input. */
+function Fields({ children, cols = 2 }: { children: React.ReactNode; cols?: 1 | 2 | 3 }) {
+  const grid = cols === 1 ? '' : cols === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2';
+  return <div className={`grid gap-5 ${grid}`}>{children}</div>;
+}
 
 export default function Profile() {
   const [states, setStates] = useState<string[]>([]);
@@ -887,74 +951,160 @@ export default function Profile() {
     4: 'Step 4 of 4 — your declaration',
   }[currentStep] || 'Complete the four steps to submit your application');
 
+  /**
+   * The hero's node rail — one node per step, named as the header names it.
+   *
+   * Completion is counted in *finished* steps, so a member on step 1 sees 0%
+   * rather than a quarter of the work already credited to them. It reaches 100%
+   * only on submission, when the screen hands over to Application Status.
+   */
+  const progress = Math.round(((currentStep - 1) / RAIL.length) * 100);
+  const heading = STEP_HEADING[currentStep] || STEP_HEADING[1];
+
   return (
     <MemberPageShell
       title="Profile Completion"
       subtitle={getSubtitle()}
-      width="standard"
-            sidebar={false}
+      /*
+       * Laid out as the Application Status screen is, deliberately.
+       *
+       * That screen is the reference for what a member page looks like on this
+       * site: `width="wide"` with a 1400px inner column, one blue gradient hero
+       * carrying the headline, the percentage and a node rail, and plain white
+       * `rounded-2xl` cards on `#E8EEF6` borders beneath it. This page had a
+       * visual identity of its own — a free-standing square stepper above a
+       * teal banner, teal gradient buttons, `text-gray-*` body copy — so it
+       * read as a different product from the screen a member reaches one click
+       * later. Same shell, same palette, same card treatment now.
+       */
+      width="wide"
+      sidebar={false}
     >
-      <div className="relative">
-        {/* Step Indicators */}
-        <div className="mb-8 md:mb-10">
-          <div className="flex items-center justify-center gap-3 md:gap-6 lg:gap-8 mb-4">
-            {[1, 2, 3, 4].map((s, index) => (
-              <div key={s} className="flex items-center gap-3 md:gap-6 lg:gap-8">
-                <div
-                  className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center font-bold text-base md:text-lg transition-all cursor-pointer hover:scale-105"
-                  style={{
-                    background: s < currentStep
-                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                      : s === currentStep
-                        ? 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)'
-                        : '#e2e8f0',
-                    color: s <= currentStep ? '#ffffff' : '#94a3b8',
-                    boxShadow: s === currentStep ? '0 10px 25px -5px rgba(15, 118, 110, 0.4)' : 'none'
-                  }}
-                >
-                  {s < currentStep ? <CheckCircle className="w-6 h-6 md:w-7 md:h-7" /> : s}
+      <div className="mx-auto w-full max-w-[87.5rem]">
+        <div className="grid gap-6 lg:grid-cols-[292px_minmax(0,1fr)] items-start">
+
+          {/* ======================================================= left rail */}
+          <aside className="lg:sticky lg:top-6">
+            <div className="rounded-2xl border border-[#E8EEF6] bg-white shadow-sm overflow-hidden">
+
+              {/* Brand and progress, in one block, so "how far am I" is answered
+                  before the eye reaches the steps. */}
+              <div className="bg-gradient-to-br from-[#3B6FF5] to-[#1E3FA8] text-white p-5 lg:p-6">
+                <p className="text-[0.625rem] font-bold uppercase tracking-[0.14em] text-white/70">
+                  Membership application
+                </p>
+                <h2 className="font-display text-xl font-extrabold mt-1.5 tracking-tight">
+                  ACTIV Membership
+                </h2>
+                <p className="text-[0.78125rem] text-white/80 mt-1 leading-snug">
+                  Four steps. Everything saves as you go.
+                </p>
+
+                <div className="flex items-center gap-3 mt-5">
+                  <div className="h-1.5 flex-1 rounded-full bg-white/25 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-white transition-all duration-500 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <span className="font-display text-[0.8125rem] font-extrabold tabular shrink-0">
+                    {progress}%
+                  </span>
                 </div>
-                {index < 3 && (
-                  <div
-                    className="hidden md:block w-12 lg:w-20 h-1 rounded-full transition-all"
-                    style={{
-                      background: s < currentStep ? '#10b981' : '#e2e8f0'
-                    }}
-                  />
-                )}
               </div>
-            ))}
-          </div>
-          <p className="text-center text-sm md:text-base text-gray-500 font-medium">Step {currentStep} of 4</p>
-        </div>
 
-        <Card
-          className="border-0 overflow-hidden"
-          style={{
-            borderRadius: '24px',
-            boxShadow: '0 20px 60px -15px rgba(0, 0, 0, 0.12)'
-          }}
-        >
-          <div
-            className="py-6 md:py-8 px-6 md:px-10"
-            style={{ background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)' }}
-          >
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">ACTIV Membership</h2>
-            <p className="text-teal-200 text-sm md:text-base mt-1">Complete your profile to apply for membership</p>
-          </div>
+              {/* The four steps. A cleared step links back to itself; an unreached
+                  one does not, so the rail can never skip a member past a form
+                  they have not filled in. */}
+              <nav className="p-3" aria-label="Application steps">
+                {RAIL.map((s, i) => {
+                  const done = s.n < currentStep;
+                  const active = s.n === currentStep;
+                  const last = i === RAIL.length - 1;
+                  return (
+                    <button
+                      key={s.n}
+                      type="button"
+                      onClick={() => done && setCurrentStep(s.n)}
+                      disabled={!done}
+                      aria-current={active ? 'step' : undefined}
+                      className={`w-full flex gap-3 text-left rounded-xl px-3 py-2.5 transition-colors
+                                  focus-visible:outline focus-visible:outline-2
+                                  focus-visible:outline-offset-2 focus-visible:outline-[#1E50E6]
+                                  ${active ? 'bg-[#EEF3FE]' : done ? 'hover:bg-slate-50' : 'cursor-default'}`}
+                    >
+                      <span className="flex flex-col items-center shrink-0">
+                        <span className={`w-7 h-7 rounded-full flex items-center justify-center
+                                          text-[0.75rem] font-bold transition-colors ${done
+                            ? 'bg-[#16A34A] text-white'
+                            : active
+                              ? 'bg-[#1E50E6] text-white ring-4 ring-[#DBE6FD]'
+                              : 'bg-slate-100 text-[#94A3B8]'
+                          }`}>
+                          {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : s.n}
+                        </span>
+                        {!last ? (
+                          <span className={`w-0.5 flex-1 min-h-[1rem] mt-1.5 rounded-full
+                                            ${done ? 'bg-[#16A34A]' : 'bg-slate-200'}`} />
+                        ) : null}
+                      </span>
 
-          <CardContent className="p-6 md:p-8 lg:p-10">
+                      <span className="min-w-0 pb-1">
+                        <span className={`block text-[0.84375rem] font-bold leading-tight ${active
+                            ? 'text-[#1E50E6]'
+                            : done ? 'text-[#0F172A]' : 'text-[#94A3B8]'
+                          }`}>
+                          {s.name}
+                        </span>
+                        <span className={`block text-[0.71875rem] mt-0.5 leading-snug ${active ? 'text-[#475569]' : 'text-[#94A3B8]'
+                          }`}>
+                          {s.hint}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="px-5 py-4 border-t border-[#F1F5F9] bg-slate-50/70">
+                <p className="text-[0.625rem] font-bold uppercase tracking-[0.08em] text-[#64748B]">
+                  Need help?
+                </p>
+                <a
+                  href="https://activ.org.in"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[0.78125rem] font-semibold text-[#1E50E6] hover:underline"
+                >
+                  activ.org.in
+                </a>
+              </div>
+            </div>
+          </aside>
+
+          {/* ==================================================== the step form */}
+          <div className="min-w-0 space-y-5">
+
+            <div>
+              <h2 className="font-display text-[1.375rem] lg:text-[1.5625rem] font-extrabold
+                             tracking-tight text-[#0F172A]">
+                {heading.title}
+              </h2>
+              <p className="text-[0.84375rem] text-[#64748B] mt-1 max-w-[68ch]">{heading.blurb}</p>
+            </div>
+
             {isLocked && currentStep === 1 && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
-                <p className="text-sm text-green-800">
-                  ✓ Profile saved successfully
+              <div className="rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] p-4
+                              flex flex-wrap items-center justify-between gap-3">
+                <p className="font-display text-sm font-bold text-[#15803D]">
+                  Profile saved successfully
                 </p>
                 <Button
                   type="button"
                   onClick={() => setIsLocked(false)}
                   variant="outline"
                   size="sm"
-                  className="border-green-600 text-green-600 hover:bg-green-50"
+                  className="border-[#BBF7D0] text-[#15803D] hover:bg-[#DCFCE7] font-semibold"
                 >
                   Edit Profile
                 </Button>
@@ -966,11 +1116,11 @@ export default function Profile() {
               empty form it can neither fill from nor save to.
             */}
             {noMemberRecord && (
-              <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
-                <h3 className="text-base font-semibold text-amber-900 mb-1">
+              <div className="rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] p-5">
+                <h3 className="font-display text-[0.9375rem] font-bold text-[#92400E] mb-1">
                   This account has no member profile
                 </h3>
-                <p className="text-sm text-amber-800">
+                <p className="text-[0.8125rem] text-[#B45309] leading-relaxed">
                   You are signed in with an administrator account, which is stored
                   separately from member records — so there are no personal details to
                   load here, and saving this form would not work. Use an admin dashboard
@@ -980,10 +1130,10 @@ export default function Profile() {
             )}
 
             {currentStep === 1 && (
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-lg md:text-xl font-semibold mb-6 text-gray-800">Personal details</h3>
-                  <div className="space-y-5 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+              <div className="space-y-5">
+
+                <Section icon={User} title="About you" subtitle="The name and contact details your membership is issued against.">
+                  <Fields>
                     <div>
                       <Label htmlFor="name">Name *</Label>
                       <Input
@@ -996,6 +1146,36 @@ export default function Profile() {
                       {errors.name && <p className="text-red-500 text-sm mt-1">Name is required</p>}
                     </div>
 
+                    <div>
+                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="Enter phone number"
+                        {...register("phone", { required: true })}
+                        className="mt-1"
+                        disabled={isLocked}
+                      />
+                      {errors.phone && <p className="text-red-500 text-sm mt-1">Phone number is required</p>}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email">Email ID *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter email"
+                        {...register("email", { required: true })}
+                        className="mt-1"
+                        disabled={isLocked}
+                      />
+                      {errors.email && <p className="text-red-500 text-sm mt-1">Email is required</p>}
+                    </div>
+                  </Fields>
+                </Section>
+
+                <Section icon={MapPin} title="Location" subtitle="This decides which Block, District and State admins review your application.">
+                  <Fields>
                     <div>
                       <Label htmlFor="state">State *</Label>
                       <Controller
@@ -1079,7 +1259,7 @@ export default function Profile() {
                                   </SelectItem>
                                 ))
                               ) : (
-                                <div className="px-2 py-1.5 text-sm text-gray-500">No blocks available</div>
+                                <div className="px-2 py-1.5 text-sm text-[#64748B]">No blocks available</div>
                               )}
                             </SelectContent>
                           </Select>
@@ -1099,33 +1279,25 @@ export default function Profile() {
                       />
                       {errors.city && <p className="text-red-500 text-sm mt-1">City is required</p>}
                     </div>
+                  </Fields>
+                </Section>
 
-                    <div>
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="Enter phone number"
-                        {...register("phone", { required: true })}
-                        className="mt-1"
-                        disabled={isLocked}
-                      />
-                      {errors.phone && <p className="text-red-500 text-sm mt-1">Phone number is required</p>}
-                    </div>
+                {/*
+                  Password fields are their own block now.
 
-                    <div>
-                      <Label htmlFor="email">Email ID *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter email"
-                        {...register("email", { required: true })}
-                        className="mt-1"
-                        disabled={isLocked}
-                      />
-                      {errors.email && <p className="text-red-500 text-sm mt-1">Email is required</p>}
-                    </div>
-
+                  They used to sit in the middle of the personal-details grid,
+                  between "Email" and "Religion", where they read as three more
+                  required fields on a form that had not mentioned passwords.
+                  Every member filling this in already has a password; almost
+                  nobody wants to change it here. Saying that once, above the
+                  three inputs, is the whole fix.
+                */}
+                <Section
+                  icon={KeyRound}
+                  title="Change your password"
+                  subtitle="Optional — leave all three blank to keep the password you sign in with."
+                >
+                  <Fields cols={3}>
                     <div>
                       <Label htmlFor="currentPassword">Current Password</Label>
                       <PasswordInput
@@ -1136,20 +1308,20 @@ export default function Profile() {
                         {...register("currentPassword")}
                         disabled={isLocked}
                       />
-                      <p className="text-xs text-gray-500 mt-1">Required only if you want to change your password. Enter the password you use to login.</p>
+                      <p className="text-xs text-[#64748B] mt-1">The password you use to sign in.</p>
                     </div>
 
                     <div>
                       <Label htmlFor="password">New Password</Label>
                       <PasswordInput
                         id="password"
-                        placeholder="Enter new password (optional)"
+                        placeholder="Enter new password"
                         autoComplete="new-password"
                         wrapperClassName="mt-1"
                         {...register("password")}
                         disabled={isLocked}
                       />
-                      <p className="text-xs text-gray-500 mt-1">Leave blank to keep your current password.</p>
+                      <p className="text-xs text-[#64748B] mt-1">At least 8 characters.</p>
                     </div>
 
                     <div>
@@ -1163,12 +1335,11 @@ export default function Profile() {
                         disabled={isLocked}
                       />
                     </div>
-                  </div>
-                </div>
+                  </Fields>
+                </Section>
 
-                <div className="border-t pt-6 md:pt-8">
-                  <h3 className="text-lg md:text-xl font-semibold mb-6 text-gray-800">Demographic details</h3>
-                  <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+                <Section icon={UsersRound} title="Demographic details" subtitle="Optional. Used for association reporting only, never shown in the member directory.">
+                  <Fields>
                     <div>
                       <Label htmlFor="religion">Religion</Label>
                       <Input
@@ -1198,33 +1369,49 @@ export default function Profile() {
                         )}
                       />
                     </div>
-                  </div>
-                </div>
+                  </Fields>
+                </Section>
 
-                <div className="border-t pt-6 md:pt-8">
+                {/*
+                  The step's actions live in a bar of their own.
+
+                  Every step ends the same way and in the same place, so the
+                  button does not move as a card above it grows or a conditional
+                  block opens.
+                */}
+                <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-sm
+                                px-5 py-4 flex items-center gap-3">
+                  <p className="text-[0.78125rem] text-[#64748B] hidden sm:block">Step 1 of 4</p>
                   <Button
                     type="button"
                     onClick={handleNext}
                     disabled={isLocked}
-                    className="w-full py-5 rounded-xl font-semibold text-white"
-                    style={{
-                      background: isLocked
-                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                        : 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-                      boxShadow: isLocked ? 'none' : '0 8px 20px -4px rgba(15, 118, 110, 0.4)'
-                    }}
+                    className="ml-auto bg-[#1E50E6] hover:bg-[#1a45c9] font-bold h-11 min-w-[9rem]"
                   >
-                    {isLocked ? 'Profile Saved ✓' : 'Next'}
+                    {isLocked ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Profile Saved
+                      </>
+                    ) : (
+                      <>
+                        Next
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
             )}
 
             {currentStep === 2 && (
-              <div className="space-y-8">
-                <h3 className="text-lg md:text-xl font-semibold mb-6 text-gray-800">Business Information</h3>
-
-                <div>
+              <div className="space-y-5">
+                <Section
+                  icon={Building2}
+                  title="Business information"
+                  subtitle="Answer “No” below if you are applying as an aspirant — the rest of this step disappears and you skip the financial forms entirely."
+                >
+                <div className="space-y-6"><div>
                   <Label className="text-sm font-medium">Doing Business</Label>
                   <div className="flex gap-6 mt-2">
                     <label className="flex items-center gap-2">
@@ -1304,7 +1491,7 @@ export default function Profile() {
                         id="businessActivities"
                         placeholder="Describe your business activities"
                         {...register("businessYear")}
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md min-h-[100px]"
+                        className="w-full mt-1 px-3 py-2 border border-input bg-background rounded-md min-h-[6.25rem] text-sm"
                       />
                     </div>
 
@@ -1368,7 +1555,7 @@ export default function Profile() {
                         <textarea
                           placeholder="Please specify chamber/association details"
                           {...register("chamberDetails")}
-                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md min-h-[80px]"
+                          className="w-full mt-1 px-3 py-2 border border-input bg-background rounded-md min-h-[5rem] text-sm"
                         />
                       </div>
                     )}
@@ -1429,9 +1616,9 @@ export default function Profile() {
                             <input
                               type="checkbox"
                               {...register("declarationAccepted")}
-                              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="mt-1 w-4 h-4 accent-[#1E50E6] rounded"
                             />
-                            <label className="text-sm text-gray-700">
+                            <label className="text-sm text-[#475569]">
                               I hereby declare that all the information provided above is true and correct to the best of my knowledge. I understand that providing false information may result in rejection of my application.
                             </label>
                           </div>
@@ -1441,34 +1628,39 @@ export default function Profile() {
                   </>
                 )}
 
-                <div className="border-t pt-6 md:pt-8 flex gap-4">
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep(1)}
-                    className="flex-1 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50 py-5 rounded-xl font-semibold"
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex-1 py-5 rounded-xl font-semibold text-white"
-                    style={{
-                      background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-                      boxShadow: '0 8px 20px -4px rgba(15, 118, 110, 0.4)'
-                    }}
-                  >
-                    Next →
-                  </Button>
+                </div>
+                </Section>
+
+                <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-sm
+                                px-5 py-4 flex items-center gap-3">
+                  <p className="text-[0.78125rem] text-[#64748B] hidden sm:block">Step 2 of 4</p>
+                  <div className="ml-auto flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep(1)}
+                      className="font-semibold h-11"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      className="bg-[#1E50E6] hover:bg-[#1a45c9] font-bold h-11 min-w-[9rem]"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
 
             {currentStep === 3 && (
-              <div className="space-y-8">
-                <h3 className="text-lg md:text-xl font-semibold mb-6 text-gray-800">Financial & Compliance Information</h3>
-
-                <div className="space-y-5 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+              <div className="space-y-5">
+                <Section icon={Receipt} title="Registration numbers" subtitle="Leave any of these blank if it does not apply to your business.">
+                  <Fields>
                   <div>
                     <Label htmlFor="pan">PAN Number</Label>
                     <Input
@@ -1478,7 +1670,7 @@ export default function Profile() {
                       className="mt-1"
                       maxLength={10}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Validate PAN Number (10 chars Alphanumeric)</p>
+                    <p className="text-xs text-[#64748B] mt-1">Validate PAN Number (10 chars Alphanumeric)</p>
                   </div>
 
                   <div>
@@ -1490,7 +1682,7 @@ export default function Profile() {
                       className="mt-1"
                       maxLength={15}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Validate GSTIN Number (15 chars)</p>
+                    <p className="text-xs text-[#64748B] mt-1">Validate GSTIN Number (15 chars)</p>
                   </div>
 
                   <div>
@@ -1501,9 +1693,14 @@ export default function Profile() {
                       {...register("udyam")}
                       className="mt-1"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Optional</p>
+                    <p className="text-xs text-[#64748B] mt-1">Optional</p>
                   </div>
 
+                  </Fields>
+                </Section>
+
+                <Section icon={Landmark} title="Income tax and turnover" subtitle="Your filing history and the turnover band the business falls into.">
+                  <Fields>
                   <div>
                     <Label className="text-sm font-medium">Filed Income Tax Returns</Label>
                     <div className="flex gap-6 mt-2">
@@ -1569,7 +1766,7 @@ export default function Profile() {
                           {...register("turnover1")}
                           className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">FY 2024-25</p>
+                        <p className="text-xs text-[#64748B] mt-1">FY 2024-25</p>
                       </div>
 
                       <div>
@@ -1578,7 +1775,7 @@ export default function Profile() {
                           {...register("turnover2")}
                           className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">FY 2023-24</p>
+                        <p className="text-xs text-[#64748B] mt-1">FY 2023-24</p>
                       </div>
 
                       <div>
@@ -1587,11 +1784,16 @@ export default function Profile() {
                           {...register("turnover3")}
                           className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">FY 2022-23</p>
+                        <p className="text-xs text-[#64748B] mt-1">FY 2022-23</p>
                       </div>
                     </div>
                   </div>
 
+                  </Fields>
+                </Section>
+
+                <Section icon={Award} title="Government schemes" subtitle="Any central or state scheme your business has benefited from.">
+                  <Fields>
                   <div>
                     <Label className="text-sm font-medium">Have you got benefitted through any Govt. Schemes to your Business?</Label>
                     <div className="flex gap-6 mt-2">
@@ -1633,35 +1835,39 @@ export default function Profile() {
                       />
                     </div>
                   )}
-                </div>
+                  </Fields>
+                </Section>
 
-                <div className="border-t pt-6 md:pt-8 flex gap-4">
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep(2)}
-                    className="flex-1 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50 py-5 rounded-xl font-semibold"
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex-1 py-5 rounded-xl font-semibold text-white"
-                    style={{
-                      background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-                      boxShadow: '0 8px 20px -4px rgba(15, 118, 110, 0.4)'
-                    }}
-                  >
-                    Next →
-                  </Button>
+                <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-sm
+                                px-5 py-4 flex items-center gap-3">
+                  <p className="text-[0.78125rem] text-[#64748B] hidden sm:block">Step 3 of 4</p>
+                  <div className="ml-auto flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep(2)}
+                      className="font-semibold h-11"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      className="bg-[#1E50E6] hover:bg-[#1a45c9] font-bold h-11 min-w-[9rem]"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
 
             {currentStep === 4 && (
-              <div className="space-y-8">
-                <h3 className="text-lg md:text-xl font-semibold mb-6 text-gray-800">Declaration</h3>
-
+              <div className="space-y-5">
+                <Section icon={Building2} title="Sister concerns" subtitle="Other companies under the same ownership. Enter 0 if there are none.">
+                <div className="space-y-6">
                 <div>
                   <Label htmlFor="sisterConcerns">No. of Sister Concerns</Label>
                   <Input
@@ -1672,7 +1878,7 @@ export default function Profile() {
                     {...register("sisterConcerns")}
                     className="mt-1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Positive integers only</p>
+                  <p className="text-xs text-[#64748B] mt-1">Positive integers only</p>
                 </div>
 
                 <div>
@@ -1705,7 +1911,7 @@ export default function Profile() {
                   <Button
                     type="button"
                     onClick={() => setCompanyNames([...companyNames, ""])}
-                    className="mt-3 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    className="mt-3 font-semibold"
                   >
                     Add Another Company
                   </Button>
@@ -1718,58 +1924,65 @@ export default function Profile() {
                         onChange={(e) => setShowSeparateFields(e.target.checked)}
                         className="rounded"
                       />
-                      <span className="text-sm text-gray-600">Show one field per name entered above</span>
+                      <span className="text-sm text-[#475569]">Show one field per name entered above</span>
                     </label>
                   </div>
                 </div>
 
-                <div className="border-t pt-6 md:pt-8">
-                  <div className="p-5 md:p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl">
-                    <Label className="text-base md:text-lg font-semibold mb-3 block text-amber-900">Declaration</Label>
-                    <p className="text-sm md:text-base text-amber-800 mb-4">
-                      This application is under the Verification and Screening Process. We have every right to ACCEPT or REJECT this application according to our membership policy.
+                </div>
+                </Section>
+
+                <Section icon={ScrollText} title="The undertaking" subtitle="Read this before you submit — it is the agreement your application is reviewed under.">
+                  <div className="rounded-xl bg-[#FFFBEB] border border-[#FDE68A] p-5">
+                    <p className="text-[0.84375rem] text-[#92400E] leading-relaxed">
+                      This application is under the Verification and Screening Process. We have every
+                      right to ACCEPT or REJECT this application according to our membership policy.
                     </p>
 
-                    <label className="flex items-start gap-3 cursor-pointer">
+                    <label className="flex items-start gap-3 cursor-pointer mt-4 pt-4
+                                      border-t border-[#FDE68A]">
                       <input
                         type="checkbox"
                         checked={declarationAccepted}
                         onChange={(e) => setDeclarationAccepted(e.target.checked)}
-                        className="mt-1 w-4 h-4 accent-amber-600"
+                        className="mt-0.5 w-4 h-4 accent-[#B45309] shrink-0"
                       />
-                      <span className="text-sm md:text-base font-medium text-amber-900">
+                      <span className="text-[0.84375rem] font-semibold text-[#92400E]">
                         I confirm the above information is true and correct
                         <span className="text-red-600 ml-0.5">*</span>
                       </span>
                     </label>
                   </div>
-                </div>
+                </Section>
 
-                <div className="border-t pt-6 md:pt-8 flex gap-4">
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep(3)}
-                    className="flex-1 py-5 rounded-xl font-semibold border-2"
-                    style={{ borderColor: '#0f766e', color: '#0f766e', background: 'transparent' }}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleFinalSubmit}
-                    className="flex-1 py-5 rounded-xl font-semibold text-white"
-                    style={{
-                      background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)',
-                      boxShadow: '0 8px 20px -4px rgba(15, 118, 110, 0.4)'
-                    }}
-                  >
-                    Submit Application
-                  </Button>
+                <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-sm
+                                px-5 py-4 flex items-center gap-3">
+                  <p className="text-[0.78125rem] text-[#64748B] hidden sm:block">Last step</p>
+                  <div className="ml-auto flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCurrentStep(3)}
+                      className="font-semibold h-11"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleFinalSubmit}
+                      className="bg-[#1E50E6] hover:bg-[#1a45c9] font-bold h-11 min-w-[11rem]"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Submit Application
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+
+          </div>
+        </div>
       </div>
     </MemberPageShell>
   );

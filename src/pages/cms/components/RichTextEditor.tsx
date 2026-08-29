@@ -174,7 +174,7 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
                 />
             )}
 
-            <p className="px-3 py-1.5 text-[11px] text-neutral-500 border-t border-slate-200 dark:border-[#1f1f1f]">
+            <p className="px-3 py-1.5 text-[0.6875rem] text-neutral-500 border-t border-slate-200 dark:border-[#1f1f1f]">
                 Bold, italic and links are kept. Anything else is removed when saved.
             </p>
         </div>

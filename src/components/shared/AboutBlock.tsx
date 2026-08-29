@@ -1,6 +1,7 @@
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import type { CmsBullet, CmsMedia, CmsStat } from '@/services/cmsApi';
+import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
 
 /**
  * The "About" split layout — copy and icon bullets on the left, media on the
@@ -63,7 +64,7 @@ export function AboutBlock({
                 </svg>
             </div>
 
-            <div className="container mx-auto px-4 md:px-8 max-w-7xl relative z-10">
+            <div className={`${PAGE_CONTAINER} relative z-10`}>
 
                 <div className={`flex flex-col lg:flex-row gap-12 lg:gap-16 items-center ${statsBar.length ? 'mb-24' : ''}`}>
 
@@ -72,10 +73,10 @@ export function AboutBlock({
                         <div className={`w-full ${hasMedia ? 'lg:w-1/2' : ''}`}>
 
                             {badgeText && (
-                                <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-600 px-4 py-1.5
-                                                rounded-full mb-6 border border-blue-100 shadow-sm">
+                                <div className="inline-flex items-center space-x-2 bg-brand-50 text-brand-600 px-4 py-1.5
+                                                rounded-full mb-6 border border-brand-100 shadow-sm">
                                     <CmsIcon name={badgeIcon} size={14} className="stroke-[3]" fallback="users" />
-                                    <span className="text-[11px] font-extrabold uppercase tracking-widest">{badgeText}</span>
+                                    <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest">{badgeText}</span>
                                 </div>
                             )}
 
@@ -83,7 +84,7 @@ export function AboutBlock({
                                 <h2 className="text-4xl md:text-5xl font-black text-[#111827] leading-tight mb-6 font-serif">
                                     {heading}
                                     {heading && headingHighlight && <br />}
-                                    {headingHighlight && <span className="text-[#2563eb]">{headingHighlight}</span>}
+                                    {headingHighlight && <span className="text-[#31417F]">{headingHighlight}</span>}
                                 </h2>
                             )}
 
@@ -91,7 +92,8 @@ export function AboutBlock({
                                 // Authored HTML: the editor writes it, and only a
                                 // signed-in super admin can. It is not visitor input.
                                 <div
-                                    className="text-gray-600 text-base md:text-lg leading-relaxed mb-10 font-medium
+                                    className="text-gray-600 text-lg md:text-xl leading-relaxed mb-10 font-medium
+                                               [&_p]:mb-4 [&_p:last-child]:mb-0
                                                [&_strong]:text-gray-900 [&_strong]:font-bold"
                                     dangerouslySetInnerHTML={{ __html: body }}
                                 />
@@ -102,17 +104,25 @@ export function AboutBlock({
                                     {bullets.map((bullet, i) => (
                                         <div
                                             key={i}
-                                            className={`flex items-start space-x-4 py-4 ${
+                                            className={`flex items-start gap-5 py-5 ${
                                                 i < bullets.length - 1 ? 'border-b border-dashed border-gray-200' : ''
                                             }`}
                                         >
-                                            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center
+                                            <div className="w-12 h-12 rounded-full bg-brand-50 flex items-center
                                                             justify-center shrink-0">
-                                                <CmsIcon name={bullet.icon} size={18} className="text-blue-600" fallback="users" />
+                                                <CmsIcon name={bullet.icon} size={22} className="text-brand-600" fallback="users" />
                                             </div>
+                                            {/*
+                                              `text-base md:text-[1.0625rem]`, up from `text-sm`.
+                                              These bullets carry two and three-line
+                                              sentences describing what the association
+                                              actually does — at 14px they read as
+                                              captions under the 48px heading rather
+                                              than as the substance of the section.
+                                            */}
                                             <div
-                                                className="text-gray-600 text-sm leading-relaxed pt-0.5
-                                                           [&_strong]:text-gray-800"
+                                                className="text-gray-600 text-base md:text-[1.0625rem] leading-relaxed pt-1.5
+                                                           [&_strong]:text-gray-900 [&_strong]:font-semibold"
                                                 dangerouslySetInnerHTML={{ __html: bullet.text || '' }}
                                             />
                                         </div>
@@ -134,12 +144,12 @@ export function AboutBlock({
                             </div>
 
                             <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl bg-white p-2">
-                                <div className="rounded-[2rem] overflow-hidden relative h-[500px] w-full">
+                                <div className="rounded-[2rem] overflow-hidden relative h-[31.25rem] w-full">
                                     <CmsMediaFrame media={media} />
 
                                     {logoOverlay?.url && (
                                         <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-md px-6 py-4
-                                                        rounded-xl shadow-[0_10px_30px_rgb(0,0,0,0.15)] max-w-[200px]">
+                                                        rounded-xl shadow-[0_10px_30px_rgb(0,0,0,0.15)] max-w-[12.5rem]">
                                             <CmsMediaFrame
                                                 media={logoOverlay}
                                                 className="w-full h-auto max-h-16 object-contain"
@@ -166,12 +176,13 @@ export function AboutBlock({
                                     key={i}
                                     className="flex items-center space-x-5 justify-center pt-4 sm:pt-0"
                                 >
-                                    <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                                        <CmsIcon name={stat.icon} size={24} className="text-blue-600" fallback="users" />
+                                    <div className="w-14 h-14 rounded-full bg-brand-50 flex items-center justify-center shrink-0">
+                                        <CmsIcon name={stat.icon} size={24} className="text-brand-600" fallback="users" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-black text-[#1c2e68]">{stat.value}</p>
-                                        <p className="text-xs font-bold text-gray-500 mt-1">{stat.label}</p>
+                                        <p className="text-3xl font-black text-[#1c2e68] tabular-nums">{stat.value}</p>
+                                        <p className="text-[0.8125rem] font-bold uppercase tracking-[0.06em]
+                                                      text-gray-500 mt-1">{stat.label}</p>
                                     </div>
                                 </div>
                             ))}

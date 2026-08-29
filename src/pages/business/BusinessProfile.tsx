@@ -266,7 +266,7 @@ const BusinessProfile = () => {
                                     placeholder="Describe what your business does, your products/services, and what makes you unique…"
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="min-h-[120px] border-slate-200 focus-visible:ring-blue-500"
+                                    className="min-h-[7.5rem] border-slate-200 focus-visible:ring-blue-500"
                                 />
                             </Field>
                         </FieldGrid>

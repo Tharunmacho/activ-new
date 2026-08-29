@@ -294,7 +294,7 @@ const FinancialForm = () => {
               value={formData.schemeDetails}
               onChange={(e) => setField("schemeDetails", e.target.value)}
               placeholder="Name the scheme and the benefit availed"
-              className="min-h-[90px] border-slate-200 focus-visible:ring-blue-500"
+              className="min-h-[5.625rem] border-slate-200 focus-visible:ring-blue-500"
             />
           </FormField>
         )}

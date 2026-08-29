@@ -306,7 +306,7 @@ const ProfileEditModal = ({ open, onClose, adminData, onProfileUpdate }: Profile
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[37.5rem] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         <Lock className="w-6 h-6 text-blue-600" />

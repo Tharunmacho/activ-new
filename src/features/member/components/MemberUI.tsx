@@ -50,7 +50,7 @@ export function SectionCard({
 
                 <div className="min-w-0 flex-1">
                     <h2 className="text-base lg:text-lg font-bold text-slate-900 leading-tight">{title}</h2>
-                    {subtitle ? <p className="text-[13px] text-slate-500 mt-0.5">{subtitle}</p> : null}
+                    {subtitle ? <p className="text-[0.8125rem] text-slate-500 mt-0.5">{subtitle}</p> : null}
                 </div>
 
                 {action ? (
@@ -58,7 +58,7 @@ export function SectionCard({
                 ) : actionTo ? (
                     <Link
                         to={actionTo}
-                        className="shrink-0 inline-flex items-center gap-0.5 text-[13px] font-semibold
+                        className="shrink-0 inline-flex items-center gap-0.5 text-[0.8125rem] font-semibold
                                    text-blue-600 hover:text-blue-700 hover:underline"
                     >
                         {actionLabel || 'See all'}
@@ -100,7 +100,7 @@ export function EmptyState({
                 {icon || <Inbox className="w-6 h-6" />}
             </span>
             <p className="text-sm font-semibold text-slate-700">{title}</p>
-            <p className="text-[13px] text-slate-500 mt-1 max-w-sm mx-auto">{detail}</p>
+            <p className="text-[0.8125rem] text-slate-500 mt-1 max-w-sm mx-auto">{detail}</p>
             {action ? <div className="mt-4">{action}</div> : null}
         </div>
     );
@@ -138,10 +138,10 @@ export function PlanLockedCard({
                 </span>
                 <div className="min-w-0">
                     <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-                    <p className="text-[13px] text-slate-600 mt-1 leading-relaxed">{explanation}</p>
+                    <p className="text-[0.8125rem] text-slate-600 mt-1 leading-relaxed">{explanation}</p>
                     <Link
                         to={upgradeTo}
-                        className="inline-flex items-center gap-1 mt-3 text-[13px] font-semibold
+                        className="inline-flex items-center gap-1 mt-3 text-[0.8125rem] font-semibold
                                    text-blue-600 hover:text-blue-700 hover:underline"
                     >
                         Compare memberships <ChevronRight className="w-4 h-4" />
@@ -186,10 +186,10 @@ export function StatTile({
         <>
             <div className="flex items-center gap-2 text-slate-500">
                 {icon ? <span className="w-4 h-4 shrink-0">{icon}</span> : null}
-                <span className="text-[11px] font-semibold uppercase tracking-wide truncate">{label}</span>
+                <span className="text-[0.6875rem] font-semibold uppercase tracking-wide truncate">{label}</span>
             </div>
             <p className={`text-2xl font-bold mt-2 tabular-nums ${TONES[tone]}`}>{value}</p>
-            {hint ? <p className="text-[11px] text-slate-400 mt-0.5 truncate">{hint}</p> : null}
+            {hint ? <p className="text-[0.6875rem] text-slate-400 mt-0.5 truncate">{hint}</p> : null}
         </>
     );
 

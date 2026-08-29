@@ -3,6 +3,7 @@ import { MapPin, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getCmsEvents, getEventsSettings, type CmsEvent, type EventsSettings } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
+import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
 
 /**
  * The events grid, shown on the home page and on `/events`.
@@ -61,7 +62,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
     if (isLoading) {
         return (
             <section className="w-full py-24 bg-[#fafbfc]">
-                <div className="container mx-auto px-4 md:px-8 max-w-7xl animate-pulse">
+                <div className={`${PAGE_CONTAINER} animate-pulse`}>
                     <div className="flex flex-col items-center text-center mb-16 space-y-6">
                         <div className="h-6 bg-slate-200 rounded w-24"></div>
                         <div className="h-10 bg-slate-200 rounded w-1/2"></div>
@@ -101,13 +102,13 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
 
     return (
         <section className="w-full py-24 bg-[#fafbfc]">
-            <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+            <div className={PAGE_CONTAINER}>
 
                 {(badge || heading || subtitle) && (
                     <div className="flex flex-col items-center text-center mb-16">
                         {badge && (
                             <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-1.5 mb-6">
-                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{badge}</span>
+                                <span className="text-[0.8125rem] font-bold text-gray-500 uppercase tracking-[0.1em]">{badge}</span>
                             </div>
                         )}
 
@@ -118,7 +119,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                         {subtitle && (
                             <div className="flex items-center space-x-4">
                                 <div className="h-px w-10 bg-gray-400" />
-                                <span className="text-sm font-medium text-gray-500 lowercase tracking-wider">
+                                <span className="text-base font-medium text-gray-500 lowercase tracking-wider">
                                     {subtitle}
                                 </span>
                                 <div className="h-px w-10 bg-gray-400" />
@@ -151,7 +152,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
 
                                 <div className="p-8 flex flex-col flex-grow">
                                     {formatDate(event.startAt) && (
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                                        <p className="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mb-4">
                                             {formatDate(event.startAt)}
                                         </p>
                                     )}
@@ -165,20 +166,20 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                     {/* Was captured in the CMS and rendered nowhere, which made it
                                         a field that quietly did nothing. */}
                                     {event.description && (
-                                        <p className="text-sm text-gray-500 leading-relaxed mb-8 flex-grow line-clamp-3">
+                                        <p className="text-base md:text-[1.0625rem] text-gray-500 leading-relaxed mb-8 flex-grow line-clamp-3">
                                             {event.description}
                                         </p>
                                     )}
 
                                     <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-auto">
                                         <div className="flex items-center space-x-3 w-3/4">
-                                            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center
+                                            <div className="w-10 h-10 rounded-full bg-brand-50 flex items-center
                                                             justify-center shrink-0">
-                                                <MapPin size={18} className="text-[#2563eb]" />
+                                                <MapPin size={18} className="text-[#31417F]" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-xs font-bold text-[#1c2e68] truncate pr-2">Location</p>
-                                                <p className="text-[10px] text-gray-500 uppercase tracking-wide truncate pr-2">
+                                                <p className="text-[0.8125rem] font-bold text-[#1c2e68] truncate pr-2">Location</p>
+                                                <p className="text-[0.625rem] text-gray-500 uppercase tracking-wide truncate pr-2">
                                                     {event.location || '—'}
                                                 </p>
                                             </div>
@@ -205,7 +206,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                         <Link
                             to={settings.viewAllHref || '/events'}
                             className="border-2 border-gray-200 hover:border-[#1c2e68] text-gray-600 hover:text-[#1c2e68]
-                                       px-8 py-3 rounded-full font-bold text-xs uppercase tracking-widest transition-colors"
+                                       px-8 py-3.5 rounded-full font-bold text-[0.8125rem] uppercase tracking-[0.1em] transition-colors"
                         >
                             {settings.viewAllLabel}
                         </Link>

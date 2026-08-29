@@ -382,7 +382,7 @@ const UnpaidDashboard = () => {
                           * before either question had been put.
                           */}
                         {access.applicationSubmitted && (
-                            <div className="grid grid-cols-2 gap-4 w-full lg:w-[460px] lg:shrink-0">
+                            <div className="grid grid-cols-2 gap-4 w-full lg:w-[28.75rem] lg:shrink-0">
                                 <IdentityTile
                                     icon={<FileText className="h-3.5 w-3.5" />}
                                     tone="text-blue-600 bg-blue-50"
@@ -427,7 +427,7 @@ const UnpaidDashboard = () => {
                                         <span className="ml-2 text-base text-white/85">completed</span>
                                     </p>
 
-                                    <div className="h-1.5 bg-white/25 rounded-full overflow-hidden mb-4 max-w-[220px]">
+                                    <div className="h-1.5 bg-white/25 rounded-full overflow-hidden mb-4 max-w-[13.75rem]">
                                         <div
                                             className="h-full bg-white rounded-full transition-all duration-500"
                                             style={{ width: `${profileCompletion}%` }}
@@ -693,7 +693,7 @@ const UnpaidDashboard = () => {
                                         <div className="mt-4 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2
                                                         flex items-start gap-2">
                                             <Info className="h-3.5 w-3.5 text-blue-600 mt-0.5 shrink-0" />
-                                            <p className="text-[11px] text-blue-800 leading-snug">
+                                            <p className="text-[0.6875rem] text-blue-800 leading-snug">
                                                 You will be notified at each stage of the review process.
                                             </p>
                                         </div>
@@ -703,7 +703,7 @@ const UnpaidDashboard = () => {
                                         <div className="rounded-lg border bg-white shadow-sm p-5">
                                             <div className="flex items-center justify-between gap-2 mb-2">
                                                 <p className="font-display text-lg font-extrabold text-gray-800">Current Status</p>
-                                                <span className={`text-[13px] font-bold rounded-full px-3 py-1.5 shrink-0 ${
+                                                <span className={`text-[0.8125rem] font-bold rounded-full px-3 py-1.5 shrink-0 ${
                                                     application
                                                         ? flags.isRejected
                                                             ? 'bg-red-100 text-red-700'
@@ -926,7 +926,7 @@ const UnpaidDashboard = () => {
                                         </SupportRow>
                                     )}
                                     {supportHours.length === 0 && !supportEmail && !supportPhone && (
-                                        <p className="text-[11px] text-gray-500">
+                                        <p className="text-[0.6875rem] text-gray-500">
                                             Send us a message and the team will get back to you.
                                         </p>
                                     )}
@@ -957,7 +957,7 @@ const UnpaidDashboard = () => {
                                         </a>
                                     </Button>
                                 ) : (
-                                    <p className="text-[11px] text-gray-500 font-medium">
+                                    <p className="text-[0.6875rem] text-gray-500 font-medium">
                                         In-app support is coming soon.
                                     </p>
                                 )}
@@ -1068,7 +1068,7 @@ const StageNode = ({ label, state, at }: { label: string; state: TimelineStageSt
                 {done ? <CheckCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
             </div>
             <p className="text-sm font-bold text-gray-800 leading-tight">{label}</p>
-            <span className={`inline-block mt-2 text-[11px] font-bold rounded px-2.5 py-1 ${chip.cls}`}>
+            <span className={`inline-block mt-2 text-[0.6875rem] font-bold rounded px-2.5 py-1 ${chip.cls}`}>
                 {chip.label}
             </span>
             {at && <p className="text-xs text-gray-400 mt-2">{at}</p>}
@@ -1102,7 +1102,7 @@ const EmptyState = ({ icon, title, detail }: { icon: React.ReactNode; title: str
             {icon}
         </div>
         <p className="text-base font-semibold text-gray-700">{title}</p>
-        <p className="text-sm text-gray-500 mt-1 max-w-[220px] mx-auto leading-snug">{detail}</p>
+        <p className="text-sm text-gray-500 mt-1 max-w-[13.75rem] mx-auto leading-snug">{detail}</p>
     </div>
 );
 

@@ -150,7 +150,7 @@ export default function MemberEventDetail() {
                         <button
                             type="button"
                             onClick={() => navigate('/member/events')}
-                            className="text-[13px] font-semibold text-blue-600 hover:underline"
+                            className="text-[0.8125rem] font-semibold text-blue-600 hover:underline"
                         >
                             Back to events
                         </button>
@@ -172,7 +172,7 @@ export default function MemberEventDetail() {
                 <button
                     type="button"
                     onClick={() => navigate('/member/events')}
-                    className="text-[13px] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="text-[0.8125rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                     All events
                 </button>
@@ -185,7 +185,7 @@ export default function MemberEventDetail() {
                         <img
                             src={banner}
                             alt={event.bannerAlt || event.title}
-                            className="w-full h-auto max-h-[640px] object-contain mx-auto"
+                            className="w-full h-auto max-h-[40rem] object-contain mx-auto"
                         />
                     </div>
                 ) : null}
@@ -199,14 +199,14 @@ export default function MemberEventDetail() {
                         >
                             <div className="flex flex-wrap gap-2 mb-4">
                                 {event.audience === 'paid' ? (
-                                    <span className="inline-flex items-center gap-1 text-[11px] font-bold
+                                    <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold
                                                      uppercase tracking-wide text-blue-700 bg-blue-50
                                                      px-2.5 py-1 rounded-full">
                                         <Lock className="w-3 h-3" /> Members only
                                     </span>
                                 ) : null}
                                 {past ? (
-                                    <span className="text-[11px] font-bold uppercase tracking-wide
+                                    <span className="text-[0.6875rem] font-bold uppercase tracking-wide
                                                      text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                                         Past event
                                     </span>
@@ -214,11 +214,11 @@ export default function MemberEventDetail() {
                             </div>
 
                             {event.description ? (
-                                <p className="text-[14.5px] text-slate-700 leading-relaxed whitespace-pre-line">
+                                <p className="text-[0.90625rem] text-slate-700 leading-relaxed whitespace-pre-line">
                                     {event.description}
                                 </p>
                             ) : (
-                                <p className="text-[13px] text-slate-400">
+                                <p className="text-[0.8125rem] text-slate-400">
                                     No description was published for this event.
                                 </p>
                             )}
@@ -238,12 +238,12 @@ export default function MemberEventDetail() {
                                                 tabular so the rail of times reads
                                                 as a column rather than a ragged
                                                 edge. */}
-                                            <div className="w-[68px] shrink-0 text-right">
-                                                <p className="text-[13px] font-bold text-slate-900 tabular-nums">
+                                            <div className="w-[4.25rem] shrink-0 text-right">
+                                                <p className="text-[0.8125rem] font-bold text-slate-900 tabular-nums">
                                                     {item.startTime || '—'}
                                                 </p>
                                                 {item.endTime ? (
-                                                    <p className="text-[11px] text-slate-400 tabular-nums">
+                                                    <p className="text-[0.6875rem] text-slate-400 tabular-nums">
                                                         {item.endTime}
                                                     </p>
                                                 ) : null}
@@ -254,25 +254,25 @@ export default function MemberEventDetail() {
                                                 <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5
                                                                  rounded-full bg-blue-600" />
 
-                                                <p className="text-[14px] font-semibold text-slate-900 leading-snug">
+                                                <p className="text-[0.875rem] font-semibold text-slate-900 leading-snug">
                                                     {item.title || 'Session'}
                                                 </p>
 
                                                 {item.speaker ? (
-                                                    <p className="text-[12.5px] text-blue-700 mt-0.5 font-medium">
+                                                    <p className="text-[0.78125rem] text-blue-700 mt-0.5 font-medium">
                                                         {item.speaker}
                                                     </p>
                                                 ) : null}
 
                                                 {item.location ? (
-                                                    <p className="text-[12px] text-slate-500 mt-0.5
+                                                    <p className="text-[0.75rem] text-slate-500 mt-0.5
                                                                   inline-flex items-center gap-1">
                                                         <MapPin className="w-3 h-3" /> {item.location}
                                                     </p>
                                                 ) : null}
 
                                                 {item.description ? (
-                                                    <p className="text-[12.5px] text-slate-600 mt-1 leading-relaxed">
+                                                    <p className="text-[0.78125rem] text-slate-600 mt-1 leading-relaxed">
                                                         {item.description}
                                                     </p>
                                                 ) : null}
@@ -314,21 +314,21 @@ export default function MemberEventDetail() {
                                                 )}
 
                                                 <div className="min-w-0">
-                                                    <p className="text-[14px] font-semibold text-slate-900 truncate">
+                                                    <p className="text-[0.875rem] font-semibold text-slate-900 truncate">
                                                         {speaker.name}
                                                     </p>
                                                     {speaker.role ? (
-                                                        <p className="text-[12.5px] text-slate-600 truncate">
+                                                        <p className="text-[0.78125rem] text-slate-600 truncate">
                                                             {speaker.role}
                                                         </p>
                                                     ) : null}
                                                     {speaker.organization ? (
-                                                        <p className="text-[12px] text-slate-400 truncate">
+                                                        <p className="text-[0.75rem] text-slate-400 truncate">
                                                             {speaker.organization}
                                                         </p>
                                                     ) : null}
                                                     {speaker.bio ? (
-                                                        <p className="text-[12px] text-slate-600 mt-1 leading-relaxed">
+                                                        <p className="text-[0.75rem] text-slate-600 mt-1 leading-relaxed">
                                                             {speaker.bio}
                                                         </p>
                                                     ) : null}
@@ -346,23 +346,23 @@ export default function MemberEventDetail() {
                         <SectionCard title="When and where" icon={<MapPin className="w-5 h-5" />}>
                             <dl className="space-y-3.5">
                                 <div>
-                                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                    <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                                         Date and time
                                     </dt>
-                                    <dd className="text-[14px] text-slate-900 font-medium mt-0.5">
+                                    <dd className="text-[0.875rem] text-slate-900 font-medium mt-0.5">
                                         {formatWhen(event)}
                                     </dd>
                                 </div>
 
                                 {event.venue || event.venueAddress ? (
                                     <div>
-                                        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                        <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                                             Venue
                                         </dt>
-                                        <dd className="text-[14px] text-slate-900 font-medium mt-0.5">
+                                        <dd className="text-[0.875rem] text-slate-900 font-medium mt-0.5">
                                             {event.venue}
                                             {event.venueAddress ? (
-                                                <span className="block text-[13px] text-slate-600 font-normal mt-0.5">
+                                                <span className="block text-[0.8125rem] text-slate-600 font-normal mt-0.5">
                                                     {event.venueAddress}
                                                 </span>
                                             ) : null}
@@ -373,7 +373,7 @@ export default function MemberEventDetail() {
                                                 href={event.venueMapUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="mt-1.5 inline-flex items-center gap-1 text-[12.5px]
+                                                className="mt-1.5 inline-flex items-center gap-1 text-[0.78125rem]
                                                            font-semibold text-blue-600 hover:underline"
                                             >
                                                 Open in maps <ExternalLink className="w-3.5 h-3.5" />
@@ -384,10 +384,10 @@ export default function MemberEventDetail() {
 
                                 {[event.block, event.district, event.state].filter(Boolean).length > 0 ? (
                                     <div>
-                                        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                        <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                                             Region
                                         </dt>
-                                        <dd className="text-[14px] text-slate-700 mt-0.5">
+                                        <dd className="text-[0.875rem] text-slate-700 mt-0.5">
                                             {[event.block, event.district, event.state].filter(Boolean).join(', ')}
                                         </dd>
                                     </div>
@@ -395,10 +395,10 @@ export default function MemberEventDetail() {
 
                                 {event.contactName || event.contactPhone || event.contactEmail ? (
                                     <div>
-                                        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                        <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                                             Contact
                                         </dt>
-                                        <dd className="text-[13.5px] text-slate-700 mt-0.5 space-y-1">
+                                        <dd className="text-[0.84375rem] text-slate-700 mt-0.5 space-y-1">
                                             {event.contactName ? <p>{event.contactName}</p> : null}
                                             {event.contactPhone ? (
                                                 <a
@@ -443,7 +443,7 @@ export default function MemberEventDetail() {
                                                 ? 'You are on the waiting list'
                                                 : 'You are registered'}
                                         </p>
-                                        <p className="text-[12.5px] text-slate-600 mt-1">
+                                        <p className="text-[0.78125rem] text-slate-600 mt-1">
                                             {registration.status === 'waitlist'
                                                 ? 'You will move into a seat automatically if one is given up.'
                                                 : `Registered on ${formatDate(registration.registeredAt)}.`}
@@ -455,7 +455,7 @@ export default function MemberEventDetail() {
                                             type="button"
                                             onClick={cancel}
                                             disabled={working}
-                                            className="w-full h-11 rounded-xl border border-slate-200 text-[13.5px]
+                                            className="w-full h-11 rounded-xl border border-slate-200 text-[0.84375rem]
                                                        font-semibold text-slate-600 hover:bg-slate-50
                                                        disabled:opacity-60 transition-colors
                                                        inline-flex items-center justify-center gap-2"
@@ -466,7 +466,7 @@ export default function MemberEventDetail() {
                                     ) : null}
                                 </div>
                             ) : !gate.open ? (
-                                <p className="text-[13px] text-slate-500 py-2">{gate.reason}</p>
+                                <p className="text-[0.8125rem] text-slate-500 py-2">{gate.reason}</p>
                             ) : showForm ? (
                                 <form
                                     onSubmit={(e) => { e.preventDefault(); register(); }}
@@ -499,7 +499,7 @@ export default function MemberEventDetail() {
                                         <button
                                             type="submit"
                                             disabled={working || !form.memberName.trim()}
-                                            className="flex-1 h-11 rounded-xl bg-blue-600 text-white text-[13.5px]
+                                            className="flex-1 h-11 rounded-xl bg-blue-600 text-white text-[0.84375rem]
                                                        font-bold hover:bg-blue-700 disabled:opacity-60
                                                        transition-colors inline-flex items-center
                                                        justify-center gap-2"
@@ -510,7 +510,7 @@ export default function MemberEventDetail() {
                                         <button
                                             type="button"
                                             onClick={() => setShowForm(false)}
-                                            className="px-4 h-11 rounded-xl border border-slate-200 text-[13.5px]
+                                            className="px-4 h-11 rounded-xl border border-slate-200 text-[0.84375rem]
                                                        font-semibold text-slate-600 hover:bg-slate-50"
                                         >
                                             Cancel
@@ -520,13 +520,13 @@ export default function MemberEventDetail() {
                             ) : (
                                 <div className="space-y-3">
                                     {event.registrationNote ? (
-                                        <p className="text-[13px] text-slate-600 leading-relaxed">
+                                        <p className="text-[0.8125rem] text-slate-600 leading-relaxed">
                                             {event.registrationNote}
                                         </p>
                                     ) : null}
 
                                     {left !== null ? (
-                                        <p className={`text-[13px] font-semibold ${
+                                        <p className={`text-[0.8125rem] font-semibold ${
                                             left === 0 ? 'text-amber-600' : 'text-slate-600'
                                         }`}>
                                             {left === 0
@@ -536,7 +536,7 @@ export default function MemberEventDetail() {
                                     ) : null}
 
                                     {event.registrationDeadline ? (
-                                        <p className="text-[12.5px] text-slate-500">
+                                        <p className="text-[0.78125rem] text-slate-500">
                                             Registration closes {formatDate(event.registrationClosesAt)}.
                                         </p>
                                     ) : null}
@@ -544,7 +544,7 @@ export default function MemberEventDetail() {
                                     <button
                                         type="button"
                                         onClick={() => setShowForm(true)}
-                                        className="w-full h-11 rounded-xl bg-blue-600 text-white text-[13.5px]
+                                        className="w-full h-11 rounded-xl bg-blue-600 text-white text-[0.84375rem]
                                                    font-bold hover:bg-blue-700 transition-colors"
                                     >
                                         {left === 0 ? 'Join the waiting list' : 'Register for this event'}
@@ -553,7 +553,7 @@ export default function MemberEventDetail() {
                             )}
 
                             {reminders ? (
-                                <p className="mt-4 pt-3 border-t border-slate-100 text-[12px] text-slate-500
+                                <p className="mt-4 pt-3 border-t border-slate-100 text-[0.75rem] text-slate-500
                                               inline-flex items-center gap-1.5">
                                     <Bell className="w-3.5 h-3.5" /> {reminders}
                                 </p>
@@ -589,7 +589,7 @@ function Field({
 }) {
     return (
         <label className="block">
-            <span className="block text-[12px] font-semibold text-slate-600 mb-1">{label}</span>
+            <span className="block text-[0.75rem] font-semibold text-slate-600 mb-1">{label}</span>
             <input
                 type="text"
                 value={value}

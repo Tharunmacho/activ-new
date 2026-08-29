@@ -169,7 +169,7 @@ export default function CmsLayout() {
         };
 
     const linkClass = ({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[15px] transition-colors ${
+        `flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[0.9375rem] transition-colors ${
             isActive ? 'bg-blue-600 text-white font-medium' : t.item
         }`;
 
@@ -196,13 +196,13 @@ export default function CmsLayout() {
                 `min-h-0` lets the nav inside actually shrink.
             */}
             <aside
-                className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-[290px] shrink-0 border-r
+                className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-[18.125rem] shrink-0 border-r
                             h-screen min-h-0 flex flex-col
                             transition-transform duration-200 ${t.side}
                             ${drawer ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
             >
-                <div className={`h-[72px] shrink-0 flex items-center justify-between px-6 border-b ${t.divide}`}>
-                    <span className={`text-[21px] font-bold tracking-tight ${t.title}`}>Admin Panel</span>
+                <div className={`h-[4.5rem] shrink-0 flex items-center justify-between px-6 border-b ${t.divide}`}>
+                    <span className={`text-[1.3125rem] font-bold tracking-tight ${t.title}`}>Admin Panel</span>
                     <button className={`lg:hidden ${t.muted}`} onClick={() => setDrawer(false)} aria-label="Close menu">
                         <X className="w-5 h-5" />
                     </button>
@@ -220,14 +220,14 @@ export default function CmsLayout() {
                             {initial}
                         </span>
                         <span className="min-w-0 flex-1 text-left">
-                            <span className={`block text-[15px] font-semibold truncate ${t.title}`}>{displayName}</span>
-                            <span className={`block text-[13px] truncate ${t.muted}`}>Administrator</span>
+                            <span className={`block text-[0.9375rem] font-semibold truncate ${t.title}`}>{displayName}</span>
+                            <span className={`block text-[0.8125rem] truncate ${t.muted}`}>Administrator</span>
                         </span>
                         <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${t.muted} ${userOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {userOpen && (
-                        <p className={`mt-2 px-2 text-[13px] break-all ${t.faint}`}>
+                        <p className={`mt-2 px-2 text-[0.8125rem] break-all ${t.faint}`}>
                             {email || 'No email on record'}
                         </p>
                     )}
@@ -238,11 +238,11 @@ export default function CmsLayout() {
                     shrink it below its content and `overflow-y-auto` never
                     engages. */}
                 <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-1">
-                    <p className={`px-4 pb-2 text-[11px] font-semibold tracking-[0.12em] ${t.faint}`}>MAIN</p>
+                    <p className={`px-4 pb-2 text-[0.6875rem] font-semibold tracking-[0.12em] ${t.faint}`}>MAIN</p>
                     {MAIN_NAV.filter(i => !i.superOnly || role === 'super_admin')
                         .map(({ to, end, label, icon: Icon }) => (
                         <NavLink key={to} to={to} end={end} onClick={() => setDrawer(false)} className={linkClass}>
-                            <Icon className="w-[18px] h-[18px] shrink-0" />
+                            <Icon className="w-[1.125rem] h-[1.125rem] shrink-0" />
                             <span className="truncate">{label}</span>
                         </NavLink>
                     ))}
@@ -250,7 +250,7 @@ export default function CmsLayout() {
                     <button
                         type="button"
                         onClick={() => setContentOpen((v) => !v)}
-                        className={`w-full flex items-center justify-between px-4 pt-6 pb-2 text-[11px]
+                        className={`w-full flex items-center justify-between px-4 pt-6 pb-2 text-[0.6875rem]
                                     font-semibold tracking-[0.12em] ${t.faint}`}
                     >
                         CONTENT
@@ -259,10 +259,10 @@ export default function CmsLayout() {
 
                     {contentOpen && CONTENT_NAV.map(({ to, label, icon: Icon, badge }) => (
                         <NavLink key={to} to={to} onClick={() => setDrawer(false)} className={linkClass}>
-                            <Icon className="w-[18px] h-[18px] shrink-0" />
+                            <Icon className="w-[1.125rem] h-[1.125rem] shrink-0" />
                             <span className="truncate flex-1">{label}</span>
                             {badge === 'unread' && unread > 0 && (
-                                <span className="text-[11px] bg-red-500 text-white rounded-full px-2 py-0.5 shrink-0">
+                                <span className="text-[0.6875rem] bg-red-500 text-white rounded-full px-2 py-0.5 shrink-0">
                                     {unread}
                                 </span>
                             )}
@@ -275,10 +275,10 @@ export default function CmsLayout() {
                 <div className={`px-3 py-4 shrink-0 border-t ${t.divide}`}>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[15px]
+                        className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[0.9375rem]
                                    text-red-400 hover:bg-red-500/10 transition-colors"
                     >
-                        <LogOut className="w-[18px] h-[18px]" />
+                        <LogOut className="w-[1.125rem] h-[1.125rem]" />
                         Logout
                     </button>
                 </div>
@@ -286,12 +286,12 @@ export default function CmsLayout() {
 
             {/* --------------------------------------------------- main column */}
             <div className="flex-1 min-w-0 min-h-0 flex flex-col">
-                <header className={`h-[72px] shrink-0 border-b flex items-center gap-3 px-5 lg:px-8 ${t.head}`}>
+                <header className={`h-[4.5rem] shrink-0 border-b flex items-center gap-3 px-5 lg:px-8 ${t.head}`}>
                     <button className={`lg:hidden ${t.muted}`} onClick={() => setDrawer(true)} aria-label="Open menu">
                         <Menu className="w-5 h-5" />
                     </button>
 
-                    <h1 className={`text-[21px] font-bold tracking-tight ${t.title}`}>{pageTitle}</h1>
+                    <h1 className={`text-[1.3125rem] font-bold tracking-tight ${t.title}`}>{pageTitle}</h1>
 
                     <button
                         type="button"

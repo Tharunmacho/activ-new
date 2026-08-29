@@ -6,6 +6,7 @@ import {
 } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
+import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
 
 /**
  * The gallery page.
@@ -80,9 +81,9 @@ export function GallerySection() {
                 </svg>
             </div>
             {/* Added transform-gpu to prevent heavy scrolling lag from blur-3xl */}
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl -z-10 -translate-x-1/3 translate-y-1/3 transform-gpu will-change-transform pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-50/50 rounded-full blur-3xl -z-10 -translate-x-1/3 translate-y-1/3 transform-gpu will-change-transform pointer-events-none" />
 
-            <div className="container mx-auto px-4 md:px-8 max-w-[1400px] relative z-10">
+            <div className={`${PAGE_CONTAINER} relative z-10`}>
 
                 {/* ---- intro and collage ---- */}
                 {(hasIntro || collage.length > 0) && (
@@ -91,10 +92,10 @@ export function GallerySection() {
                         {hasIntro && (
                             <div className={`w-full ${collage.length ? 'lg:w-5/12' : ''} relative`}>
                                 {settings?.badgeText && (
-                                    <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-600 px-4 py-1.5
-                                                    rounded-full mb-6 border border-blue-100 shadow-sm">
+                                    <div className="inline-flex items-center space-x-2 bg-brand-50 text-brand-600 px-4 py-1.5
+                                                    rounded-full mb-6 border border-brand-100 shadow-sm">
                                         <CmsIcon name={settings.badgeIcon} size={14} className="stroke-[3]" fallback="image" />
-                                        <span className="text-[11px] font-extrabold uppercase tracking-widest">
+                                        <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest">
                                             {settings.badgeText}
                                         </span>
                                     </div>
@@ -105,22 +106,22 @@ export function GallerySection() {
                                                    leading-[1.1] mb-6 font-serif">
                                         {settings.heading}
                                         {settings.headingHighlight && (
-                                            <> <span className="text-[#2563eb]">{settings.headingHighlight}</span></>
+                                            <> <span className="text-[#31417F]">{settings.headingHighlight}</span></>
                                         )}
                                     </h2>
                                 )}
 
                                 {settings?.description && (
-                                    <p className="text-gray-500 text-base md:text-lg leading-relaxed max-w-md font-medium">
+                                    <p className="text-gray-500 text-lg md:text-xl leading-relaxed max-w-xl font-medium">
                                         {settings.description}
                                     </p>
                                 )}
 
                                 {noteLines.length > 0 && (
-                                    <div className="hidden lg:block absolute -right-28 top-32 w-64 h-64 text-blue-600">
+                                    <div className="hidden lg:block absolute -right-28 top-32 w-64 h-64 text-brand-600">
                                         <div className="relative w-full h-full">
                                             <p
-                                                className="absolute top-0 left-0 text-2xl rotate-[-10deg] font-bold text-[#2563eb]"
+                                                className="absolute top-0 left-0 text-2xl rotate-[-10deg] font-bold text-[#31417F]"
                                                 style={{ fontFamily: "'Caveat', cursive, serif" }}
                                             >
                                                 {noteLines.map((line, i) => (
@@ -129,7 +130,7 @@ export function GallerySection() {
                                             </p>
                                             <svg
                                                 className="absolute top-16 left-12 w-32 h-32"
-                                                viewBox="0 0 100 100" fill="none" stroke="#2563eb"
+                                                viewBox="0 0 100 100" fill="none" stroke="#31417F"
                                                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                                             >
                                                 <path d="M10,20 Q40,60 80,40" />
@@ -144,7 +145,7 @@ export function GallerySection() {
                         {collage.length > 0 && (
                             <div className={`w-full ${hasIntro ? 'lg:w-7/12' : ''} mt-12 lg:mt-0 relative`}>
                                 {/* Added isolate to prevent z-index issues with sticky header during scroll */}
-                                <div className="relative h-[450px] md:h-[500px] w-full max-w-3xl mx-auto isolate">
+                                <div className="relative h-[28.125rem] md:h-[31.25rem] w-full max-w-3xl mx-auto isolate">
                                     {/* Fixed positions rather than a loop: the three frames
                                         are deliberately different sizes and angles. */}
                                     {collage[0] && (
@@ -197,14 +198,14 @@ export function GallerySection() {
                                             transition-all duration-200 border ${
                                     activeFilter === filter.label
                                         ? 'bg-[#1c2e68] border-[#1c2e68] text-white shadow-md'
-                                        : 'bg-white border-gray-200 text-[#1c2e68] hover:border-[#1c2e68] hover:bg-blue-50'
+                                        : 'bg-white border-gray-200 text-[#1c2e68] hover:border-[#1c2e68] hover:bg-brand-50'
                                 }`}
                             >
                                 {filter.icon && (
                                     <CmsIcon
                                         name={filter.icon}
                                         size={16}
-                                        className={activeFilter === filter.label ? 'text-white' : 'text-blue-600'}
+                                        className={activeFilter === filter.label ? 'text-white' : 'text-brand-600'}
                                         fallback="image"
                                     />
                                 )}
@@ -246,12 +247,12 @@ export function GallerySection() {
 
                                         {card.category && (
                                             <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm border
-                                                            border-gray-100 text-blue-700 text-[10px] font-bold px-3 py-1.5
+                                                            border-gray-100 text-brand-700 text-[0.625rem] font-bold px-3 py-1.5
                                                             rounded-full flex items-center space-x-1.5 shadow-sm">
                                                 <CmsIcon
                                                     name={categories.find(c => c.label === card.category)?.icon}
                                                     size={12}
-                                                    className="text-blue-600"
+                                                    className="text-brand-600"
                                                     fallback="image"
                                                 />
                                                 <span className="uppercase tracking-wider">{card.category}</span>
@@ -262,8 +263,8 @@ export function GallerySection() {
 
                                 <div className="p-5 flex flex-col flex-grow">
                                     {card.title && (
-                                        <h3 className="text-[15px] font-extrabold text-[#111827] mb-4 leading-snug
-                                                       line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                        <h3 className="text-[0.9375rem] font-extrabold text-[#111827] mb-4 leading-snug
+                                                       line-clamp-2 group-hover:text-brand-600 transition-colors">
                                             {card.title}
                                         </h3>
                                     )}
@@ -280,7 +281,7 @@ export function GallerySection() {
                                             {card.location && (
                                                 <div className="flex items-center space-x-1.5">
                                                     <MapPin size={14} className="text-gray-400" />
-                                                    <span className="truncate max-w-[90px]">{card.location}</span>
+                                                    <span className="truncate max-w-[5.625rem]">{card.location}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -296,8 +297,8 @@ export function GallerySection() {
                     <div className="flex justify-center mt-12">
                         <button
                             onClick={() => setExpanded(true)}
-                            className="flex items-center space-x-2 bg-white border-2 border-blue-100 hover:border-blue-200
-                                       text-blue-700 hover:bg-blue-50 px-8 py-3 rounded-full font-bold transition-all shadow-sm"
+                            className="flex items-center space-x-2 bg-white border-2 border-brand-100 hover:border-brand-200
+                                       text-brand-700 hover:bg-brand-50 px-8 py-3 rounded-full font-bold transition-all shadow-sm"
                         >
                             <Grid3x3 size={16} />
                             <span>{settings.viewMoreLabel}</span>

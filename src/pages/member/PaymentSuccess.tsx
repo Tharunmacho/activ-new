@@ -108,28 +108,28 @@ export default function PaymentSuccess() {
             sidebar={false}
             backTo="/payment/member-dashboard"
         >
-            <div className="mx-auto w-full max-w-[1400px]">
+            <div className="mx-auto w-full max-w-[87.5rem]">
 
                 {/* ---------------- celebration hero ---------------- */}
                 <div className="rounded-3xl bg-white border p-7 text-center shadow-sm mb-5"
                      style={{ borderColor: PALETTE.border }}>
-                    <div className="relative h-[120px] flex items-center justify-center">
-                        <span aria-hidden className="absolute w-[104px] h-[104px] rounded-full opacity-20 animate-ping"
+                    <div className="relative h-[7.5rem] flex items-center justify-center">
+                        <span aria-hidden className="absolute w-[6.5rem] h-[6.5rem] rounded-full opacity-20 animate-ping"
                               style={{ backgroundColor: '#10B981', animationDuration: '2.4s' }} />
-                        <span className="relative w-[92px] h-[92px] rounded-full flex items-center justify-center"
+                        <span className="relative w-[5.75rem] h-[5.75rem] rounded-full flex items-center justify-center"
                               style={{ backgroundColor: '#ECFDF5' }}>
                             <BadgeCheck className="w-14 h-14" style={{ color: '#10B981' }} strokeWidth={1.8} />
                         </span>
                     </div>
 
                     <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5
-                                     text-[11px] font-extrabold tracking-wide mt-2"
+                                     text-[0.6875rem] font-extrabold tracking-wide mt-2"
                           style={{ backgroundColor: '#ECFDF5', color: '#059669' }}>
                         <BadgeCheck className="w-3.5 h-3.5" />
                         PAYMENT CONFIRMED
                     </span>
 
-                    <h1 className="font-display text-[26px] lg:text-3xl font-extrabold tracking-tight mt-4"
+                    <h1 className="font-display text-[1.625rem] lg:text-3xl font-extrabold tracking-tight mt-4"
                         style={{ color: PALETTE.ink }}>
                         Payment Successful!
                     </h1>
@@ -139,7 +139,7 @@ export default function PaymentSuccess() {
 
                     <div className="inline-block rounded-2xl px-6 py-3 mt-5"
                          style={{ backgroundColor: '#F8FAFC' }}>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.06em]"
+                        <p className="text-[0.625rem] font-bold uppercase tracking-[0.06em]"
                            style={{ color: PALETTE.muted }}>
                             Total Paid
                         </p>
@@ -155,7 +155,7 @@ export default function PaymentSuccess() {
                 {/* ---------------- membership receipt ---------------- */}
                 <div className="lg:col-span-2">
                 <KitCard>
-                    <p className="font-display text-[15px] font-bold mb-4" style={{ color: PALETTE.ink }}>
+                    <p className="font-display text-[0.9375rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
                         Membership Details
                     </p>
 
@@ -167,7 +167,7 @@ export default function PaymentSuccess() {
                     </div>
 
                     <div className="rounded-xl mt-5 px-4 py-3" style={{ backgroundColor: '#F8FAFC' }}>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.06em]"
+                        <p className="text-[0.625rem] font-bold uppercase tracking-[0.06em]"
                            style={{ color: PALETTE.muted }}>
                             Transaction Reference
                         </p>
@@ -176,7 +176,7 @@ export default function PaymentSuccess() {
                             {txnRef}
                         </p>
                         {paidAt ? (
-                            <p className="text-[11px] mt-1" style={{ color: PALETTE.muted }}>
+                            <p className="text-[0.6875rem] mt-1" style={{ color: PALETTE.muted }}>
                                 Paid on {formatDate(paidAt)}
                             </p>
                         ) : null}
@@ -188,7 +188,7 @@ export default function PaymentSuccess() {
                 {/* ---------------- member documents ---------------- */}
                 <div className="space-y-5 lg:sticky lg:top-6">
                 <div>
-                    <p className="font-display text-[13px] font-extrabold uppercase tracking-[0.08em] mb-3"
+                    <p className="font-display text-[0.8125rem] font-extrabold uppercase tracking-[0.08em] mb-3"
                        style={{ color: PALETTE.muted }}>
                         Member Documents
                     </p>
@@ -216,7 +216,7 @@ export default function PaymentSuccess() {
                 <div className="rounded-2xl border p-4 flex gap-3"
                      style={{ backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' }}>
                     <span className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0">
-                        <MailCheck className="w-[18px] h-[18px]" style={{ color: '#0284C7' }} />
+                        <MailCheck className="w-[1.125rem] h-[1.125rem]" style={{ color: '#0284C7' }} />
                     </span>
                     <div className="min-w-0">
                         <p className="font-display text-sm font-bold" style={{ color: '#075985' }}>
@@ -231,7 +231,7 @@ export default function PaymentSuccess() {
                 <button
                     type="button"
                     onClick={() => navigate('/payment/member-dashboard')}
-                    className="w-full h-12 rounded-xl text-white font-bold text-[15px] flex items-center
+                    className="w-full h-12 rounded-xl text-white font-bold text-[0.9375rem] flex items-center
                                justify-center gap-2 transition-opacity hover:opacity-90"
                     style={{ backgroundColor: PALETTE.primary }}
                 >
@@ -249,7 +249,7 @@ export default function PaymentSuccess() {
 
 const Metric = ({ label, value }: { label: string; value: string }) => (
     <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.06em]" style={{ color: PALETTE.muted }}>
+        <p className="text-[0.625rem] font-bold uppercase tracking-[0.06em]" style={{ color: PALETTE.muted }}>
             {label}
         </p>
         <p className="font-display text-sm font-bold mt-1 break-words" style={{ color: PALETTE.ink }} title={value}>
@@ -273,6 +273,6 @@ const DocCard = ({ Icon, tone, soft, title, subtitle, onClick }: {
             <Icon className="w-6 h-6" />
         </span>
         <p className="text-xs font-bold" style={{ color: PALETTE.ink }}>{title}</p>
-        <p className="text-[11px] mt-0.5" style={{ color: PALETTE.muted }}>{subtitle}</p>
+        <p className="text-[0.6875rem] mt-0.5" style={{ color: PALETTE.muted }}>{subtitle}</p>
     </button>
 );

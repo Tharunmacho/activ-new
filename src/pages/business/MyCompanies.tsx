@@ -179,7 +179,7 @@ const MyCompanies = () => {
                 className={`relative flex flex-col ${isActive ? 'ring-2 ring-blue-500' : ''}`}
               >
                 {isActive && (
-                  <span className="absolute -top-2.5 left-5 inline-flex items-center gap-1 bg-blue-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                  <span className="absolute -top-2.5 left-5 inline-flex items-center gap-1 bg-blue-600 text-white text-[0.6875rem] font-semibold px-2.5 py-1 rounded-full">
                     <CheckCircle className="h-3 w-3" />
                     Active
                   </span>

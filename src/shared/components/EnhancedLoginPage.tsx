@@ -75,10 +75,13 @@ export default function EnhancedLoginPage() {
       if (result.role === 'member') {
         // Payment is recorded on the member. The login response already carries
         // the profile, so prefer it and only ask the server if it is absent.
+        // `approved` is the application's approval, not the payment — routing a
+        // member there sent someone who still owed a membership fee to the paid
+        // dashboard, where nothing offers to take it.
         const status = String(result.memberDetails?.membershipStatus || '').toLowerCase();
         const paid =
-          status === 'approved' ||
           status === 'active' ||
+          status === 'completed' ||
           (!status && (await getPaymentStatus().catch(() => 'pending')) === 'completed');
 
         navigate(paid ? '/payment/member-dashboard' : '/member/unpaid-dashboard');

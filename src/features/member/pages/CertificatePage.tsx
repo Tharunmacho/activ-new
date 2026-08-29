@@ -118,7 +118,7 @@ export default function CertificatePage() {
                         alt=""
                         className="h-16 mx-auto mb-4 object-contain"
                     />
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+                    <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-gray-500">
                         {cert.issuedBy}
                     </p>
                 </div>
@@ -142,7 +142,7 @@ export default function CertificatePage() {
 
                 <div className="grid grid-cols-2 gap-6 text-sm border-t border-gray-200 pt-6">
                     <div>
-                        <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">
+                        <p className="text-[0.625rem] uppercase tracking-wider text-gray-400 mb-1">
                             Membership number
                         </p>
                         <p className="font-semibold text-gray-900">{member.membershipNumber}</p>
@@ -150,14 +150,14 @@ export default function CertificatePage() {
 
                     {region && (
                         <div>
-                            <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Region</p>
+                            <p className="text-[0.625rem] uppercase tracking-wider text-gray-400 mb-1">Region</p>
                             <p className="font-semibold text-gray-900">{region}</p>
                         </div>
                     )}
 
                     {formatDate(cert.memberSince) && (
                         <div>
-                            <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">
+                            <p className="text-[0.625rem] uppercase tracking-wider text-gray-400 mb-1">
                                 Member since
                             </p>
                             <p className="font-semibold text-gray-900">{formatDate(cert.memberSince)}</p>
@@ -165,12 +165,12 @@ export default function CertificatePage() {
                     )}
 
                     <div>
-                        <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Issued</p>
+                        <p className="text-[0.625rem] uppercase tracking-wider text-gray-400 mb-1">Issued</p>
                         <p className="font-semibold text-gray-900">{formatDate(cert.issuedAt)}</p>
                     </div>
                 </div>
 
-                <p className="text-center text-[10px] text-gray-400 mt-10">
+                <p className="text-center text-[0.625rem] text-gray-400 mt-10">
                     Issued electronically by {cert.issuedBy}. No signature is required.
                 </p>
             </div>

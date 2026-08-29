@@ -241,7 +241,7 @@ export default function AdminSidebar({
               * This is the one rail every tier renders - block, district, state
               * and super all re-export this file - so the four move together.
               */}
-            <div className={`hidden md:flex md:flex-col md:w-64 lg:w-[288px] xl:w-[304px] h-screen sticky top-0 min-h-0 ${shell}`}>
+            <div className={`hidden md:flex md:flex-col md:w-[17.5rem] lg:w-[20.5rem] xl:w-[22rem] h-screen sticky top-0 min-h-0 ${shell}`}>
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full filter blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full filter blur-3xl pointer-events-none" />
                 {content}

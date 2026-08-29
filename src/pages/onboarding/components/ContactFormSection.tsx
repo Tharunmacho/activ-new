@@ -4,6 +4,7 @@ import { MapPin, Phone, Mail, Clock, Loader2, MessageSquare, User, FileText, Sen
 import { getContactInfo, sendContactMessage, errorMessage, type ContactInfo } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
+import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
 
 /**
  * The contact page.
@@ -72,7 +73,7 @@ export function ContactFormSection() {
 
     const inputClass =
         'w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none ' +
-        'focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all placeholder:text-gray-400';
+        'focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all placeholder:text-gray-400';
 
     /** One detail in the right-hand card. Renders nothing when unset. */
     const detail = (label: string, icon: React.ReactNode, body: React.ReactNode, show: boolean, last = false) => {
@@ -80,12 +81,12 @@ export function ContactFormSection() {
         return (
             <>
                 <div className="flex gap-5 group">
-                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center shrink-0
-                                    text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <div className="w-10 h-10 bg-brand-50 rounded-full flex items-center justify-center shrink-0
+                                    text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
                         {icon}
                     </div>
                     <div className="min-w-0">
-                        {label && <h4 className="text-sm font-bold text-[#111827] mb-1.5">{label}</h4>}
+                        {label && <h4 className="text-[0.9375rem] font-bold text-[#111827] mb-2">{label}</h4>}
                         {body}
                     </div>
                 </div>
@@ -111,9 +112,9 @@ export function ContactFormSection() {
                     <rect x="0" y="0" width="100%" height="100%" fill="url(#dots-contact)" />
                 </svg>
             </div>
-            <div className="absolute top-20 right-10 w-64 h-64 bg-blue-50/80 rounded-full blur-3xl -z-10 transform-gpu will-change-transform pointer-events-none" />
+            <div className="absolute top-20 right-10 w-64 h-64 bg-brand-50/80 rounded-full blur-3xl -z-10 transform-gpu will-change-transform pointer-events-none" />
 
-            <div className="container mx-auto px-4 md:px-8 max-w-7xl relative z-10">
+            <div className={`${PAGE_CONTAINER} relative z-10`}>
 
                 {/* ---- heading and collage ---- */}
                 {(hasIntro || heroMedia.length > 0) && (
@@ -122,10 +123,10 @@ export function ContactFormSection() {
                         {hasIntro && (
                             <div className={`w-full ${heroMedia.length ? 'lg:w-5/12' : ''} z-10`}>
                                 {info?.badgeText && (
-                                    <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-600 px-4 py-1.5
-                                                    rounded-full mb-6 border border-blue-100 shadow-sm">
+                                    <div className="inline-flex items-center space-x-2 bg-brand-50 text-brand-600 px-4 py-1.5
+                                                    rounded-full mb-6 border border-brand-100 shadow-sm">
                                         <CmsIcon name={info.badgeIcon} size={14} className="stroke-[3]" fallback="users" />
-                                        <span className="text-[11px] font-extrabold uppercase tracking-widest">
+                                        <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest">
                                             {info.badgeText}
                                         </span>
                                     </div>
@@ -136,13 +137,13 @@ export function ContactFormSection() {
                                                    leading-[1.1] mb-6 font-serif">
                                         {info.heading}
                                         {info.headingHighlight && (
-                                            <> <span className="text-[#2563eb]">{info.headingHighlight}</span></>
+                                            <> <span className="text-[#31417F]">{info.headingHighlight}</span></>
                                         )}
                                     </h2>
                                 )}
 
                                 {info?.description && (
-                                    <p className="text-gray-500 text-base md:text-lg leading-relaxed max-w-md font-medium">
+                                    <p className="text-gray-500 text-lg md:text-xl leading-relaxed max-w-xl font-medium">
                                         {info.description}
                                     </p>
                                 )}
@@ -152,8 +153,8 @@ export function ContactFormSection() {
                         {heroMedia.length > 0 && hasIntro && (
                             <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
                                             z-20 flex-col items-center">
-                                <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center
-                                                shadow-lg shadow-blue-600/30">
+                                <div className="w-14 h-14 bg-brand-600 rounded-full flex items-center justify-center
+                                                shadow-lg shadow-brand-600/30">
                                     <MessageSquare size={24} className="text-white" />
                                 </div>
                             </div>
@@ -161,7 +162,7 @@ export function ContactFormSection() {
 
                         {heroMedia.length > 0 && (
                             <div className={`w-full ${hasIntro ? 'lg:w-7/12' : ''} relative mt-8 lg:mt-0`}>
-                                <div className="relative h-[300px] md:h-[400px] w-full max-w-2xl ml-auto">
+                                <div className="relative h-[18.75rem] md:h-[25rem] w-full max-w-2xl ml-auto">
                                     {heroMedia[0] && (
                                         <div className="absolute top-0 right-10 w-[70%] h-full z-10">
                                             <div className="w-full h-full rounded-3xl overflow-hidden border-[6px]
@@ -194,7 +195,7 @@ export function ContactFormSection() {
 
                         {(formCard?.title || formCard?.subtitle) && (
                             <div className="flex items-start gap-4 mb-8">
-                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center
+                                <div className="w-12 h-12 bg-brand-50 text-brand-600 rounded-xl flex items-center
                                                 justify-center shrink-0">
                                     <CmsIcon name={formCard.icon} size={24} fallback="send" />
                                 </div>
@@ -265,16 +266,16 @@ export function ContactFormSection() {
                                 <textarea
                                     placeholder={formCard?.messagePlaceholder || 'Your Message'} rows={5} value={form.message}
                                     onChange={e => setForm({ ...form, message: e.target.value })}
-                                    className={`${inputClass} resize-none h-full min-h-[140px]`}
+                                    className={`${inputClass} resize-none h-full min-h-[8.75rem]`}
                                 />
                             </div>
 
                             <div className="pt-2">
                                 <button
                                     type="submit" disabled={sending}
-                                    className="bg-[#0b1f5e] hover:bg-blue-900 text-white px-8 py-3.5 rounded-xl text-sm
+                                    className="bg-[#0b1f5e] hover:bg-brand-900 text-white px-8 py-3.5 rounded-xl text-sm
                                                font-semibold transition-all inline-flex items-center gap-2 shadow-lg
-                                               shadow-blue-900/20 disabled:opacity-70"
+                                               shadow-brand-900/20 disabled:opacity-70"
                                 >
                                     {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                     {sending ? 'Sending…' : (formCard?.submitLabel || 'Send Message')}
@@ -297,7 +298,7 @@ export function ContactFormSection() {
 
                             {(infoCard?.title || infoCard?.subtitle) && (
                                 <div className="flex items-start gap-4 mb-10">
-                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center
+                                    <div className="w-12 h-12 bg-brand-50 text-brand-600 rounded-xl flex items-center
                                                     justify-center shrink-0">
                                         <CmsIcon name={infoCard.icon} size={24} fallback="users" />
                                     </div>
@@ -316,7 +317,7 @@ export function ContactFormSection() {
                                 {detail(
                                     infoCard?.addressLabel || '',
                                     <MapPin size={18} />,
-                                    <p className="text-sm text-gray-500 leading-relaxed max-w-sm">
+                                    <p className="text-base text-gray-500 leading-relaxed max-w-md">
                                         {addressLines.map((line, i) => (
                                             <React.Fragment key={i}>
                                                 {line}
@@ -333,7 +334,7 @@ export function ContactFormSection() {
                                     <div className="text-sm text-gray-500 space-y-1">
                                         {[phone, info?.alternatePhone].filter(Boolean).map((p, i) => (
                                             <p key={i}>
-                                                <a href={`tel:${(p || '').replace(/\s+/g, '')}`} className="hover:text-blue-600 transition-colors">
+                                                <a href={`tel:${(p || '').replace(/\s+/g, '')}`} className="hover:text-brand-600 transition-colors">
                                                     {p}
                                                 </a>
                                             </p>
@@ -345,7 +346,7 @@ export function ContactFormSection() {
                                 {detail(
                                     infoCard?.emailLabel || '',
                                     <Mail size={18} />,
-                                    <a href={`mailto:${email}`} className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                                    <a href={`mailto:${email}`} className="text-sm text-gray-500 hover:text-brand-600 transition-colors">
                                         {email}
                                     </a>,
                                     !!email,
@@ -382,7 +383,7 @@ export function ContactFormSection() {
                     <div className="bg-[#f8fafc] rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center
                                     justify-between gap-6 border border-gray-100">
                         <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center
+                            <div className="w-14 h-14 bg-brand-100 text-brand-600 rounded-2xl flex items-center
                                             justify-center shrink-0">
                                 <CmsIcon name={banner.icon} size={28} fallback="users" />
                             </div>
@@ -401,7 +402,7 @@ export function ContactFormSection() {
                                 ? (
                                     <Link
                                         to={banner.ctaHref}
-                                        className="bg-[#0b1f5e] hover:bg-blue-900 text-white px-6 py-3 rounded-xl text-sm
+                                        className="bg-[#0b1f5e] hover:bg-brand-900 text-white px-6 py-3 rounded-xl text-sm
                                                    font-semibold transition-all whitespace-nowrap shrink-0 shadow-md"
                                     >
                                         {banner.ctaLabel}
@@ -409,7 +410,7 @@ export function ContactFormSection() {
                                 ) : (
                                     <a
                                         href={banner.ctaHref || '#'}
-                                        className="bg-[#0b1f5e] hover:bg-blue-900 text-white px-6 py-3 rounded-xl text-sm
+                                        className="bg-[#0b1f5e] hover:bg-brand-900 text-white px-6 py-3 rounded-xl text-sm
                                                    font-semibold transition-all whitespace-nowrap shrink-0 shadow-md"
                                     >
                                         {banner.ctaLabel}

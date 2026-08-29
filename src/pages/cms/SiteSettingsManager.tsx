@@ -191,7 +191,7 @@ export default function SiteSettingsManager() {
                             style={{ backgroundColor: site.header.background || '#ffffff' }}
                         >
                             <span
-                                className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap"
+                                className="text-[0.625rem] font-bold uppercase tracking-wider whitespace-nowrap"
                                 style={{ color: site.header.textColor || '#1c2e68' }}
                             >
                                 {site.brand.fullName || 'Your organisation'}
@@ -268,7 +268,7 @@ export default function SiteSettingsManager() {
                                 <img
                                     src={site.brand.logo.url}
                                     alt={site.brand.logo.alt || ''}
-                                    className="h-10 w-auto max-w-[140px] object-contain shrink-0"
+                                    className="h-10 w-auto max-w-[8.75rem] object-contain shrink-0"
                                 />
                             ) : (
                                 <span className="text-xs text-neutral-400 shrink-0">No logo set</span>

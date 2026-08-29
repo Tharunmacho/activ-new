@@ -293,7 +293,7 @@ const AddEditCompany = () => {
                     placeholder="Describe your company offerings…"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="min-h-[120px] border-slate-200 focus-visible:ring-blue-500"
+                    className="min-h-[7.5rem] border-slate-200 focus-visible:ring-blue-500"
                   />
                 </Field>
               </FieldGrid>

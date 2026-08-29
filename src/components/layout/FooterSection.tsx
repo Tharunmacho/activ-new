@@ -4,6 +4,7 @@ import { Phone, Mail } from 'lucide-react';
 import { getSiteSettings, type SiteSettings } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
+import { BAR_CONTAINER } from './pageContainer';
 
 /**
  * The public site's footer.
@@ -74,96 +75,124 @@ export function FooterSection() {
     );
 
     return (
-        <footer className="w-full bg-[#f8fafc] text-gray-700 pt-20 pb-10 border-t border-gray-200 font-sans">
-            <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 border-b border-gray-200 pb-16">
+        <footer className="w-full bg-[#f8fafc] text-gray-700 pt-16 pb-8 border-t border-gray-200 font-sans">
+            <div className={BAR_CONTAINER}>
+                {/*
+                  Brand on the left, the columns to its right, all on one row.
 
-                    {/* Brand and address */}
-                    <div className="space-y-6 md:col-span-4">
-                        {(brand?.logo?.url || brand?.tagline) && (
-                            <div>
-                                {brand?.logo?.url && (
-                                    <CmsMediaFrame
-                                        media={brand.logo}
-                                        className="h-16 w-auto max-w-[220px] object-contain mb-3"
-                                    />
-                                )}
-                                {brand?.tagline && (
-                                    <p className="text-gray-500 text-sm font-medium">{brand.tagline}</p>
-                                )}
-                            </div>
-                        )}
+                  A flex row rather than a fixed `grid-cols-4`: the number of
+                  columns depends entirely on what the CMS holds, and a fixed
+                  four left an empty cell whenever it held three — which is why
+                  the whole right-hand third of the footer was blank. Every
+                  column takes `flex-1`, the brand takes half again as much, so
+                  they fill the width at any count.
+                */}
+                <div className="flex flex-wrap lg:flex-nowrap items-start
+                                gap-x-8 xl:gap-x-14 gap-y-10 border-b border-gray-200 pb-12">
 
-                        {brand?.fullName && (
-                            <h3 className="font-bold text-[#1c2e68] text-sm">{brand.fullName}</h3>
-                        )}
+                    {/* ------------------------------------------------ brand */}
+                    {(brand?.logo?.url || brand?.fullName || brand?.tagline) && (
+                        <div className="w-full lg:w-auto lg:flex-[1.6_1_0%] min-w-0">
+                            {/* Sized by the wrapper — see the note in HeaderSection. */}
+                            {brand?.logo?.url && (
+                                <span className="block h-14 w-auto max-w-[12.5rem]">
+                                    <CmsMediaFrame media={brand.logo} className="object-contain object-left" />
+                                </span>
+                            )}
 
-                        {addressLines.length > 0 && (
+                            {brand?.fullName && (
+                                <p className="font-bold text-[#1c2e68] text-[0.8125rem] uppercase
+                                              tracking-[0.06em] leading-[1.45] mt-4 max-w-[22rem]">
+                                    {brand.fullName}
+                                </p>
+                            )}
+
+                            {brand?.tagline && (
+                                <p className="text-gray-500 text-sm font-medium mt-2">{brand.tagline}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ---------------------------------------------- address */}
+                    {addressLines.length > 0 && (
+                        <div className="w-1/2 lg:w-auto lg:flex-1 min-w-0">
+                            <ColumnHeading>Address</ColumnHeading>
                             <address className="not-italic text-sm text-gray-500 leading-relaxed">
                                 {addressLines.map((line, i) => (
                                     <span key={i} className="block">{line}</span>
                                 ))}
                             </address>
-                        )}
-                    </div>
-
-                    {/* Link columns — count follows the CMS, so a third can be added */}
-                    {linkColumns.length > 0 && (
-                        <div
-                            className="md:col-span-4 grid gap-8"
-                            style={{ gridTemplateColumns: `repeat(${Math.min(linkColumns.length, 3)}, minmax(0, 1fr))` }}
-                        >
-                            {linkColumns.map((column, ci) => (
-                                <ul key={ci} className="space-y-4 text-sm font-medium text-[#1c2e68]">
-                                    {column.heading && (
-                                        <li><h4 className="font-bold text-[#1c2e68] mb-4">{column.heading}</h4></li>
-                                    )}
-                                    {(column.links || []).map((item, li) => (
-                                        <li key={li}>
-                                            {renderLink(
-                                                item.label,
-                                                item.href,
-                                                'hover:text-[#2563eb] transition-colors',
-                                                `${ci}-${li}`,
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            ))}
                         </div>
                     )}
 
-                    {/* Contact and socials */}
+                    {/* ----------------------------------------- link columns */}
+                    {linkColumns.map((column, ci) => (
+                        <div key={ci} className="w-1/2 lg:w-auto lg:flex-1 min-w-0">
+                            {/*
+                              A column the CMS gave no heading still reserves the
+                              heading's height. Without this its first link sat
+                              on the same line as its neighbours' HEADINGS, one
+                              row above their content — which is exactly what put
+                              "Home" level with "ADDRESS" and "CONTACT" instead of
+                              with the address itself.
+                            */}
+                            {column.heading
+                                ? <ColumnHeading>{column.heading}</ColumnHeading>
+                                : <div aria-hidden="true" className="h-4 mb-4" />}
+
+                            <ul className="space-y-3 text-sm font-medium text-[#1c2e68]">
+                                {(column.links || []).map((item, li) => (
+                                    <li key={li}>
+                                        {renderLink(
+                                            item.label,
+                                            item.href,
+                                            'hover:text-[#31417F] transition-colors',
+                                            `${ci}-${li}`,
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+
+                    {/* --------------------------------------- contact and socials */}
                     {hasContactColumn && (
-                        <div className="space-y-6 md:col-span-4">
-                            {footer?.contactHeading && (
-                                <h4 className="font-bold text-[#1c2e68] text-base mb-4">{footer.contactHeading}</h4>
-                            )}
+                        <div className="w-1/2 lg:w-auto lg:flex-1 min-w-0">
+                            {footer?.contactHeading && <ColumnHeading>{footer.contactHeading}</ColumnHeading>}
 
                             <div className="space-y-3 text-sm text-gray-600">
                                 {phones.length > 0 && (
-                                    <div className="flex items-start space-x-3">
-                                        <Phone size={18} className="text-gray-400 mt-0.5 shrink-0" />
-                                        <div>
+                                    <div className="flex items-start gap-3">
+                                        <Phone size={17} className="text-gray-400 mt-[3px] shrink-0" />
+                                        <div className="space-y-1">
                                             {phones.map((p, i) => (
-                                                <p key={i}>
-                                                    <a href={`tel:${p.replace(/\s+/g, '')}`} className="hover:text-[#2563eb]">{p}</a>
-                                                </p>
+                                                <a
+                                                    key={i}
+                                                    href={`tel:${p.replace(/\s+/g, '')}`}
+                                                    className="block hover:text-[#31417F] transition-colors"
+                                                >
+                                                    {p}
+                                                </a>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
                                 {footer?.email && (
-                                    <div className="flex items-center space-x-3">
-                                        <Mail size={18} className="text-gray-400 shrink-0" />
-                                        <a href={`mailto:${footer.email}`} className="hover:text-[#2563eb]">{footer.email}</a>
+                                    <div className="flex items-start gap-3">
+                                        <Mail size={17} className="text-gray-400 mt-[3px] shrink-0" />
+                                        <a
+                                            href={`mailto:${footer.email}`}
+                                            className="hover:text-[#31417F] transition-colors break-all"
+                                        >
+                                            {footer.email}
+                                        </a>
                                     </div>
                                 )}
                             </div>
 
                             {socials.length > 0 && (
-                                <div className="flex flex-wrap gap-3 pt-4">
+                                <div className="flex flex-wrap gap-2.5 mt-6">
                                     {socials.map((s, i) => (
                                         <a
                                             key={i}
@@ -171,8 +200,11 @@ export function FooterSection() {
                                             target={s.href?.startsWith('http') ? '_blank' : undefined}
                                             rel="noreferrer"
                                             aria-label={s.icon}
-                                            className="w-9 h-9 bg-[#0f172a] rounded-full flex items-center justify-center
-                                                       text-white hover:bg-[#2563eb] transition-colors"
+                                            /* The mark's navy, not slate-900 — a
+                                               near-black circle was one more
+                                               colour that answered to nothing. */
+                                            className="w-9 h-9 bg-[#1c2e68] rounded-full flex items-center justify-center
+                                                       text-white hover:bg-[#31417F] transition-colors"
                                         >
                                             <CmsIcon name={s.icon} size={16} fallback="globe" />
                                         </a>
@@ -184,13 +216,19 @@ export function FooterSection() {
                 </div>
 
                 {hasBottomBar && (
-                    <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+                    <div className="pt-6 flex flex-col md:flex-row md:justify-between md:items-center
+                                    gap-3 text-xs text-gray-500">
                         {copyright && <p className="text-center md:text-left">{copyright}</p>}
 
                         {(legalLinks.length > 0 || footer?.note) && (
-                            <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
+                            <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2">
                                 {legalLinks.map((item, i) =>
-                                    renderLink(item.label, item.href, 'hover:text-[#1c2e68]', `legal-${i}`),
+                                    renderLink(
+                                        item.label,
+                                        item.href,
+                                        'hover:text-[#1c2e68] transition-colors',
+                                        `legal-${i}`,
+                                    ),
                                 )}
                                 {footer?.note && <span>{footer.note}</span>}
                             </div>
@@ -199,5 +237,21 @@ export function FooterSection() {
                 )}
             </div>
         </footer>
+    );
+}
+
+/**
+ * One heading treatment for all three columns.
+ *
+ * They were three different things: the link columns used a bold `<h4>` nested
+ * inside an `<li>` (a heading is not a list item), the contact column used the
+ * same tag at `text-base`, and the brand column had none at all. Sized and
+ * spaced once here, the columns start on the same line.
+ */
+function ColumnHeading({ children }: { children: React.ReactNode }) {
+    return (
+        <h4 className="text-[0.6875rem] font-bold uppercase tracking-[0.09em] text-[#1c2e68] mb-4">
+            {children}
+        </h4>
     );
 }

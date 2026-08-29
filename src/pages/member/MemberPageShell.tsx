@@ -51,7 +51,7 @@ export default function MemberPageShell({
             ) : null}
 
             <div className="flex-1 min-w-0 flex flex-col relative">
-                <header className="h-[72px] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8 sticky top-0 z-10">
+                <header className="h-[4.5rem] shrink-0 bg-white border-b border-slate-200 flex items-center gap-3 px-5 lg:px-8 sticky top-0 z-10">
                     {sidebar ? (
                         <button
                             type="button"
@@ -75,11 +75,11 @@ export default function MemberPageShell({
                     )}
 
                     <div className="min-w-0">
-                        <h1 className="text-[21px] font-bold tracking-tight text-slate-900 truncate">
+                        <h1 className="text-[1.3125rem] font-bold tracking-tight text-slate-900 truncate">
                             {title}
                         </h1>
                         {subtitle ? (
-                            <p className="text-[13px] text-slate-500 truncate hidden sm:block">{subtitle}</p>
+                            <p className="text-[0.8125rem] text-slate-500 truncate hidden sm:block">{subtitle}</p>
                         ) : null}
                     </div>
 

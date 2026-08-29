@@ -234,7 +234,7 @@ export default function ApprovalQueue({
                     */}
                     <div className="mt-3 grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
                         <div>
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
+                            <p className="text-[0.6875rem] uppercase tracking-wider text-gray-400 font-semibold">
                                 Applied on
                             </p>
                             <p className="text-sm text-gray-800 font-medium">
@@ -246,7 +246,7 @@ export default function ApprovalQueue({
                             </p>
                         </div>
                         <div>
-                            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
+                            <p className="text-[0.6875rem] uppercase tracking-wider text-gray-400 font-semibold">
                                 Membership Type
                             </p>
                             <p className="text-sm text-gray-800 font-medium capitalize">

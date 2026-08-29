@@ -32,7 +32,7 @@ export const PALETTE = {
  * the fidelity CSS gives for free.
  */
 export const SuccessMark = ({ tone = PALETTE.success }: { tone?: string }) => (
-    <div className="relative h-[150px] flex items-center justify-center mb-6">
+    <div className="relative h-[9.375rem] flex items-center justify-center mb-6">
         <span
             aria-hidden
             className="absolute w-24 h-24 rounded-full opacity-20 animate-ping"
@@ -44,7 +44,7 @@ export const SuccessMark = ({ tone = PALETTE.success }: { tone?: string }) => (
             style={{ backgroundColor: tone }}
         />
         <span
-            className="relative w-[92px] h-[92px] rounded-full flex items-center justify-center shadow-xl"
+            className="relative w-[5.75rem] h-[5.75rem] rounded-full flex items-center justify-center shadow-xl"
             style={{ backgroundColor: tone, boxShadow: `0 10px 28px -6px ${tone}66` }}
         >
             <Check className="w-11 h-11 text-white" strokeWidth={3} />
@@ -53,7 +53,7 @@ export const SuccessMark = ({ tone = PALETTE.success }: { tone?: string }) => (
 );
 
 export const ScreenTitle = ({ children }: { children: ReactNode }) => (
-    <h1 className="font-display text-[26px] lg:text-3xl font-extrabold tracking-tight text-center"
+    <h1 className="font-display text-[1.625rem] lg:text-3xl font-extrabold tracking-tight text-center"
         style={{ color: PALETTE.ink }}>
         {children}
     </h1>
@@ -76,9 +76,9 @@ export const KitCard = ({ children, className = '' }: { children: ReactNode; cla
 
 export const KitCardHeader = ({ title, pill }: { title: string; pill?: string }) => (
     <div className="flex items-center justify-between gap-3 mb-4">
-        <p className="font-display text-[15px] font-bold" style={{ color: PALETTE.ink }}>{title}</p>
+        <p className="font-display text-[0.9375rem] font-bold" style={{ color: PALETTE.ink }}>{title}</p>
         {pill ? (
-            <span className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-extrabold"
+            <span className="shrink-0 rounded-lg px-2.5 py-1 text-[0.6875rem] font-extrabold"
                   style={{ backgroundColor: '#E0E7FF', color: PALETTE.primary }}>
                 {pill}
             </span>
@@ -111,10 +111,10 @@ export const StageRail = ({ stages }: { stages: KitStage[] }) => (
             const tone = stage.done ? PALETTE.success : stage.active ? PALETTE.primary : '#CBD5E1';
             return (
                 <div key={stage.key} className="flex">
-                    <div className="w-[26px] shrink-0 flex flex-col items-center">
+                    <div className="w-[1.625rem] shrink-0 flex flex-col items-center">
                         <span
-                            className="w-[26px] h-[26px] rounded-full flex items-center justify-center
-                                       text-[11px] font-extrabold text-white shrink-0"
+                            className="w-[1.625rem] h-[1.625rem] rounded-full flex items-center justify-center
+                                       text-[0.6875rem] font-extrabold text-white shrink-0"
                             style={{ backgroundColor: tone }}
                         >
                             {stage.done ? <Check className="w-3.5 h-3.5" strokeWidth={3} />
@@ -158,7 +158,7 @@ export const PrimaryAction = ({ onClick, children, tone = PALETTE.primary, disab
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-12 rounded-xl text-white font-bold text-[15px] flex items-center
+        className="w-full h-12 rounded-xl text-white font-bold text-[0.9375rem] flex items-center
                    justify-center gap-2 transition-opacity hover:opacity-90
                    disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ backgroundColor: tone }}
@@ -172,7 +172,7 @@ export const GhostAction = ({ onClick, children }: { onClick: () => void; childr
     <button
         type="button"
         onClick={onClick}
-        className="w-full h-12 rounded-xl font-semibold text-[15px] bg-white border
+        className="w-full h-12 rounded-xl font-semibold text-[0.9375rem] bg-white border
                    transition-colors hover:bg-slate-50 mt-3"
         style={{ borderColor: PALETTE.border, color: PALETTE.ink }}
     >

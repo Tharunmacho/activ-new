@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getHome, type HomeCarousel } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
+import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
 
 /**
  * The landing banner.
@@ -53,7 +54,7 @@ export function CarouselSection() {
     if (isLoading) {
         return (
             <div className="w-full mb-12">
-                <div className="relative w-full h-[85vh] min-h-[600px] bg-slate-200 animate-pulse" />
+                <div className="relative w-full h-[85vh] min-h-[37.5rem] bg-slate-200 animate-pulse" />
             </div>
         );
     }
@@ -67,7 +68,7 @@ export function CarouselSection() {
     const button = (label: string, href: string, icon: string, primary: boolean) => {
         if (!label) return null;
         const className = primary
-            ? 'bg-[#2563eb] hover:bg-blue-700 text-white px-8 py-3.5 rounded-full font-bold transition-all shadow-lg flex items-center space-x-2 transform hover:scale-105 transform-gpu'
+            ? 'bg-[#31417F] hover:bg-brand-700 text-white px-8 py-3.5 rounded-full font-bold transition-all shadow-lg flex items-center space-x-2 transform hover:scale-105 transform-gpu'
             : 'border-2 border-white hover:bg-white/10 text-white px-8 py-3.5 rounded-full font-medium transition-all flex items-center space-x-2';
 
         const inner = (
@@ -84,7 +85,7 @@ export function CarouselSection() {
 
     return (
         <div className={`w-full ${showCard ? 'mb-32' : 'mb-12'}`}>
-            <div className="relative w-full h-[85vh] min-h-[600px] bg-slate-900 overflow-visible">
+            <div className="relative w-full h-[85vh] min-h-[37.5rem] bg-slate-900 overflow-visible">
 
                 {slides.length > 0 && (
                     <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
@@ -102,7 +103,7 @@ export function CarouselSection() {
 
                                     {slide.caption && (
                                         <div className="absolute inset-x-0 bottom-24 z-20 flex justify-center px-6">
-                                            <p className="text-white/90 text-base md:text-lg text-center max-w-3xl drop-shadow">
+                                            <p className="text-white/90 text-lg md:text-xl text-center max-w-3xl drop-shadow">
                                                 {slide.caption}
                                             </p>
                                         </div>
@@ -140,19 +141,19 @@ export function CarouselSection() {
                 {/* Headline and buttons */}
                 {hasOverlay && (
                     <div className="absolute inset-0 z-20 flex items-center pointer-events-none">
-                        <div className="container mx-auto px-4 md:px-8">
+                        <div className={PAGE_CONTAINER}>
                             <div className="max-w-3xl text-white pointer-events-auto">
                                 {(carousel.headline || carousel.headlineHighlight) && (
                                     <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] mb-6 font-serif">
                                         {carousel.headline}
                                         {carousel.headlineHighlight && (
-                                            <> <span className="text-[#60a5fa]">{carousel.headlineHighlight}</span></>
+                                            <> <span className="text-[#9FA8C6]">{carousel.headlineHighlight}</span></>
                                         )}
                                     </h1>
                                 )}
 
                                 {carousel.subheadline && (
-                                    <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-xl font-light leading-relaxed">
+                                    <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl font-light leading-relaxed">
                                         {carousel.subheadline}
                                     </p>
                                 )}
@@ -174,20 +175,20 @@ export function CarouselSection() {
 
                         {(card!.value || card!.eyebrow) && (
                             <div className="flex items-center space-x-6 w-full md:w-auto mb-8 md:mb-0">
-                                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center
-                                                text-[#2563eb] shrink-0">
+                                <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center
+                                                text-[#31417F] shrink-0">
                                     <CmsIcon name={card!.icon} size={32} fallback="users" />
                                 </div>
                                 <div>
                                     {card!.eyebrow && (
-                                        <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                        <p className="text-[0.8125rem] font-bold text-gray-400 uppercase tracking-[0.08em] mb-1.5">
                                             {card!.eyebrow}
                                         </p>
                                     )}
                                     <p className="text-3xl font-black text-[#1c2e68]">
                                         {card!.value}
                                         {card!.caption && (
-                                            <span className="text-sm font-medium text-gray-500 ml-2">{card!.caption}</span>
+                                            <span className="text-base font-medium text-gray-500 ml-2">{card!.caption}</span>
                                         )}
                                     </p>
                                 </div>
@@ -202,9 +203,9 @@ export function CarouselSection() {
                             <div className="flex w-full md:w-auto justify-between md:space-x-16">
                                 {card!.stats.map((stat, i) => (
                                     <div key={i} className="text-center flex flex-col items-center">
-                                        <CmsIcon name={stat.icon} size={28} className="text-[#2563eb] mb-3" fallback="users" />
-                                        <p className="font-black text-[#1c2e68] text-2xl">{stat.value}</p>
-                                        <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mt-1">
+                                        <CmsIcon name={stat.icon} size={28} className="text-[#31417F] mb-3" fallback="users" />
+                                        <p className="font-black text-[#1c2e68] text-3xl tabular-nums">{stat.value}</p>
+                                        <p className="text-[0.8125rem] text-gray-500 uppercase font-bold tracking-[0.08em] mt-1.5">
                                             {stat.label}
                                         </p>
                                     </div>

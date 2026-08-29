@@ -394,7 +394,7 @@ export default function PaidDashboard() {
                                   */}
                                 {lowStock.length > 0 ? (
                                     <div className="mt-4 pt-4 border-t border-slate-100">
-                                        <p className="text-[12px] font-semibold uppercase tracking-wide
+                                        <p className="text-[0.75rem] font-semibold uppercase tracking-wide
                                                       text-slate-500 mb-2.5">
                                             Needs restocking
                                         </p>
@@ -402,7 +402,7 @@ export default function PaidDashboard() {
                                             {lowStock.slice(0, 4).map((line) => (
                                                 <li
                                                     key={line.id}
-                                                    className="flex items-center gap-3 text-[13px]"
+                                                    className="flex items-center gap-3 text-[0.8125rem]"
                                                 >
                                                     <span className={`w-2 h-2 rounded-full shrink-0 ${
                                                         line.stockState === 'out' ? 'bg-red-500' : 'bg-amber-500'
@@ -456,7 +456,7 @@ export default function PaidDashboard() {
                                                          justify-center mb-2">
                                             <Icon className="w-5 h-5 text-blue-600" />
                                         </span>
-                                        <span className="text-[12.5px] font-semibold text-slate-800 text-center">
+                                        <span className="text-[0.78125rem] font-semibold text-slate-800 text-center">
                                             {label}
                                         </span>
                                     </button>
@@ -547,10 +547,10 @@ export default function PaidDashboard() {
                                                 <Clock className="w-4 h-4" />
                                             </span>
                                             <span className="min-w-0 flex-1">
-                                                <span className="block text-[13.5px] font-medium text-slate-900">
+                                                <span className="block text-[0.84375rem] font-medium text-slate-900">
                                                     {row.description || row.type}
                                                 </span>
-                                                <span className="block text-[11.5px] text-slate-400 mt-0.5">
+                                                <span className="block text-[0.71875rem] text-slate-400 mt-0.5">
                                                     {row.at ? new Date(row.at).toLocaleString() : ''}
                                                 </span>
                                             </span>

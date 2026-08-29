@@ -365,7 +365,7 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       placeholder="Explain why this application is being rejected"
-                      className="min-h-[80px]"
+                      className="min-h-[5rem]"
                     />
                     <div className="flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => { setRejecting(false); setReason(""); }}>

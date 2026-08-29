@@ -445,7 +445,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                     <div className="mt-4 mx-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
                         <div className="flex items-center gap-2 text-gray-500 mb-2.5">
                             <FaLock className="h-3 w-3" />
-                            <span className="text-[11px] font-semibold uppercase tracking-wide">
+                            <span className="text-[0.6875rem] font-semibold uppercase tracking-wide">
                                 Upcoming Features
                             </span>
                         </div>
@@ -459,7 +459,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                                         <span className="block text-xs font-medium text-gray-600 leading-tight">
                                             {item.label}
                                         </span>
-                                        <span className="block text-[10px] text-gray-400 leading-tight mt-0.5">
+                                        <span className="block text-[0.625rem] text-gray-400 leading-tight mt-0.5">
                                             {item.requirement}
                                         </span>
                                     </span>
@@ -483,7 +483,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
     return (
         <>
             {/* Desktop/Tablet: Permanent Sidebar - Always visible on md screens and above */}
-            <div className="hidden lg:flex lg:flex-col lg:w-[288px] xl:w-[304px] bg-white border-r h-screen sticky top-0">
+            <div className="hidden lg:flex lg:flex-col lg:w-[20.5rem] xl:w-[22rem] bg-white border-r h-screen sticky top-0">
                 <SidebarContent />
             </div>
 
@@ -491,7 +491,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
             {isOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
                     <div className="absolute inset-0 bg-black opacity-50" onClick={onClose}></div>
-                    <div className="absolute left-0 top-0 bottom-0 w-[85%] max-w-[304px] bg-white flex flex-col shadow-2xl">
+                    <div className="absolute left-0 top-0 bottom-0 w-[85%] max-w-[22rem] bg-white flex flex-col shadow-2xl">
                         <SidebarContent />
                     </div>
                 </div>
