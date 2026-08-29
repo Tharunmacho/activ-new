@@ -16,6 +16,13 @@ import EventsManager from '@/pages/cms/EventsManager';
  * controls, reachable from both places. Two copies would be two things to keep
  * in step, and events are the one collection the public site, the member app and
  * this screen all read.
+ *
+ * What differs is the audience an event opens with. Everything posted HERE is
+ * for paying members: `defaultAudience="paid"` means a new event is members-only
+ * unless the administrator deliberately changes it, and the public listing
+ * (`cms.service.listEvents`) filters `audience: 'paid'` out, so nothing posted
+ * here reaches the onboarding pages. An event meant for the public site is
+ * posted from the CMS instead, where the default is `all`.
  */
 export default function SuperAdminEvents() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -36,13 +43,14 @@ export default function SuperAdminEvents() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Events</h1>
                         <p className="text-sm text-gray-600 mt-0.5">
-                            Published events appear on the public site and to signed-in members.
+                            For paying members. Events posted here do not appear on the public
+                            site — post those from the CMS.
                         </p>
                     </div>
                 </header>
 
                 <main className="p-6">
-                    <EventsManager />
+                    <EventsManager defaultAudience="paid" />
                 </main>
             </div>
         </div>

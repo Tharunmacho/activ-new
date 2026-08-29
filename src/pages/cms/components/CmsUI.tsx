@@ -18,11 +18,11 @@ export function CmsCard({ title, description, children, actions }: {
     actions?: ReactNode;
 }) {
     return (
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-6">
+        <section className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#1F1F1F] rounded-2xl overflow-hidden mb-6">
             <header className="px-6 pt-6 pb-2 flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">{title}</h2>
-                    {description && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{description}</p>}
+                    <h2 className="font-display text-xl font-bold tracking-tight text-slate-900 dark:text-white">{title}</h2>
+                    {description && <p className="text-sm text-slate-500 dark:text-[#A1A1AA] mt-1">{description}</p>}
                 </div>
                 {actions}
             </header>
@@ -116,11 +116,11 @@ export function CmsSection({ title, hint, actions, children }: {
     children: ReactNode;
 }) {
     return (
-        <section className="pt-7 first:pt-0 border-t first:border-t-0 border-slate-200 dark:border-slate-800">
+        <section className="pt-7 first:pt-0 border-t first:border-t-0 border-slate-200 dark:border-[#1F1F1F]">
             <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-                    {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+                    {hint && <p className="text-xs text-slate-500 dark:text-[#A1A1AA] mt-1">{hint}</p>}
                 </div>
                 {actions}
             </div>
@@ -135,17 +135,17 @@ export function CmsField({ label, hint, children }: { label?: string; hint?: str
             {/* Skipped when empty: a blank span still carries its bottom margin,
                 which reads as a stray gap above the control. */}
             {label ? (
-                <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{label}</span>
+                <span className="block text-sm font-medium text-slate-700 dark:text-[#D4D4D8] mb-1.5">{label}</span>
             ) : null}
             {children}
-            {hint && <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</span>}
+            {hint && <span className="block text-xs text-slate-500 dark:text-[#A1A1AA] mt-1">{hint}</span>}
         </label>
     );
 }
 
 const inputBase =
-    'w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 ' +
-    'placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all';
+    'w-full bg-slate-50 dark:bg-[#050505] border border-slate-300 dark:border-[#262626] rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-white ' +
+    'placeholder:text-slate-400 dark:placeholder:text-[#52525B] focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all';
 
 export function CmsInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
     return <input {...props} className={`${inputBase} ${props.className || ''}`} />;
@@ -178,7 +178,7 @@ export function CmsColorInput({ value, onChange, fallback = '#ffffff' }: {
                 aria-label="Pick a colour"
                 value={valid ? raw : fallback}
                 onChange={e => onChange(e.target.value)}
-                className="h-11 w-14 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700
+                className="h-11 w-14 shrink-0 rounded-lg border border-slate-300 dark:border-[#262626]
                            bg-transparent p-1 cursor-pointer"
             />
             <CmsInput
@@ -204,7 +204,7 @@ export function CmsButton({
 }) {
     const styles = {
         primary: 'bg-blue-600 hover:bg-blue-500 text-white',
-        ghost: 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200',
+        ghost: 'bg-slate-100 dark:bg-[#1A1A1A] hover:bg-slate-200 dark:hover:bg-[#262626] text-slate-800 dark:text-[#E4E4E7]',
         danger: 'bg-red-600 hover:bg-red-500 text-white',
     }[variant];
 
@@ -234,7 +234,7 @@ export function SaveButton({ loading, label = 'Save changes' }: { loading?: bool
 
 export function CmsLoading({ label = 'Loading…' }: { label?: string }) {
     return (
-        <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 py-10 justify-center">
+        <div className="flex items-center gap-3 text-slate-500 dark:text-[#A1A1AA] py-10 justify-center">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm">{label}</span>
         </div>
@@ -268,8 +268,8 @@ export function CmsError({ message, onRetry }: { message: string; onRetry?: () =
 export function CmsEmpty({ title, hint }: { title: string; hint?: string }) {
     return (
         <div className="text-center py-12">
-            <p className="text-slate-700 dark:text-slate-300 font-medium">{title}</p>
-            {hint && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
+            <p className="text-slate-700 dark:text-[#D4D4D8] font-medium">{title}</p>
+            {hint && <p className="text-sm text-slate-500 dark:text-[#A1A1AA] mt-1">{hint}</p>}
         </div>
     );
 }

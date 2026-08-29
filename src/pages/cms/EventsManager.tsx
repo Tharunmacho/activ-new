@@ -32,10 +32,23 @@ import { Lock } from 'lucide-react';
  * Events.
  *
  * These are the platform's events, not a CMS-only copy: the same records the
- * member app reads. Publishing here puts an event on the public site and in
- * front of members at once, which is why the draft/published control matters —
- * it is the only thing separating "written" from "announced".
+ * member app reads. The draft/published control is what separates "written"
+ * from "announced".
+ *
+ * `defaultAudience` is what makes one component serve two surfaces:
+ *
+ *   - **Super Admin -> Events** opens every new event as `paid`. Those are for
+ *     members who have paid, and they never reach the public site — the public
+ *     listing in `cms.service.listEvents` filters `audience: 'paid'` out.
+ *   - **CMS -> Events** opens every new event as `all`, which is what the
+ *     onboarding and public pages render.
+ *
+ * The audience is still editable in either place; this only decides where the
+ * switch starts, so the common case needs no thought and the uncommon one is
+ * still one click away.
  */
+
+export type EventAudienceDefault = 'all' | 'paid';
 
 const BLANK = {
     title: '',
@@ -98,7 +111,9 @@ const toInstant = (date: string, time: string): string => {
     return d.toISOString();
 };
 
-export default function EventsManager() {
+export default function EventsManager({
+    defaultAudience = 'all',
+}: { defaultAudience?: EventAudienceDefault } = {}) {
     const [events, setEvents] = useState<CmsEvent[]>([]);
     const [settings, setSettings] = useState<EventsSettings | null>(null);
     const [loading, setLoading] = useState(true);
@@ -149,7 +164,12 @@ export default function EventsManager() {
 
     const openNew = () => {
         setEditing(null);
-        setForm({ ...BLANK });
+        // The audience the surface is for — paid-only under Super Admin, public
+        // under the CMS. See the note at the top of this file.
+        setForm({
+            ...BLANK,
+            detail: { ...BLANK.detail, audience: defaultAudience },
+        });
         setShowForm(true);
     };
 

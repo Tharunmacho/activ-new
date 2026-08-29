@@ -79,7 +79,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
             <div className="flex flex-wrap items-start gap-4">
                 {/* Preview at the real slot ratio, with the real fit applied. */}
                 <div
-                    className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700
+                    className="bg-slate-50 dark:bg-[#050505] border border-slate-200 dark:border-[#262626]
                                rounded-lg overflow-hidden flex items-center justify-center
                                w-full sm:w-[13.75rem] shrink-0"
                     style={{ aspectRatio: aspect }}
@@ -115,8 +115,8 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                             type="button"
                             onClick={() => fileRef.current?.click()}
                             disabled={uploading}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-slate-100 dark:bg-slate-800
-                                       hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-slate-100 dark:bg-[#1A1A1A]
+                                       hover:bg-slate-200 dark:hover:bg-[#262626] text-slate-800 dark:text-[#E4E4E7] disabled:opacity-50"
                         >
                             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                             {uploading ? 'Uploading…' : 'Upload image or video'}
@@ -127,14 +127,14 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                                 type="button"
                                 onClick={() => set({ ...EMPTY_MEDIA })}
                                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm
-                                           text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                           text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-[#1A1A1A]"
                             >
                                 <Trash2 className="w-4 h-4" /> Remove
                             </button>
                         )}
 
                         {media.url && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs text-slate-500 dark:text-slate-400">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs text-slate-500 dark:text-[#A1A1AA]">
                                 {media.type === 'video' ? <Film className="w-3.5 h-3.5" /> : <ImageIcon className="w-3.5 h-3.5" />}
                                 {media.type}
                             </span>
@@ -176,7 +176,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                                     className={`flex-1 px-3 py-2.5 rounded-lg text-xs border transition-colors ${
                                         media.fit === f.key
                                             ? 'bg-blue-600 border-blue-600 text-white'
-                                            : 'bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                            : 'bg-slate-50 dark:bg-[#050505] border-slate-300 dark:border-[#262626] text-slate-700 dark:text-[#D4D4D8] hover:bg-slate-100 dark:hover:bg-[#1A1A1A]'
                                     }`}
                                 >
                                     {f.label}
@@ -193,8 +193,8 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                             value={media.position}
                             onChange={(e) => set({ position: e.target.value })}
                             disabled={media.fit === 'contain'}
-                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700
-                                       rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 disabled:opacity-40"
+                            className="w-full bg-slate-50 dark:bg-[#050505] border border-slate-300 dark:border-[#262626]
+                                       rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white disabled:opacity-40"
                         >
                             {POSITIONS.map((p) => (
                                 <option key={p} value={p}>{p}</option>
