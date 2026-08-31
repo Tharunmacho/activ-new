@@ -5,6 +5,8 @@ import { getContactInfo, sendContactMessage, errorMessage, type ContactInfo } fr
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
+import { SECTION_HEADING, SECTION_LEDE, EYEBROW } from '@/components/layout/typography';
+import { Reveal } from '@/components/shared/Reveal';
 
 /**
  * The contact page.
@@ -106,7 +108,7 @@ export function ContactFormSection() {
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <pattern id="dots-contact" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                            <circle fill="#93c5fd" cx="2" cy="2" r="1.5" />
+                            <circle className="fill-brand-300" cx="2" cy="2" r="1.5" />
                         </pattern>
                     </defs>
                     <rect x="0" y="0" width="100%" height="100%" fill="url(#dots-contact)" />
@@ -126,24 +128,21 @@ export function ContactFormSection() {
                                     <div className="inline-flex items-center space-x-2 bg-brand-50 text-brand-600 px-4 py-1.5
                                                     rounded-full mb-6 border border-brand-100 shadow-sm">
                                         <CmsIcon name={info.badgeIcon} size={14} className="stroke-[3]" fallback="users" />
-                                        <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest">
-                                            {info.badgeText}
-                                        </span>
+                                        <span className={EYEBROW}>{info.badgeText}</span>
                                     </div>
                                 )}
 
                                 {(info?.heading || info?.headingHighlight) && (
-                                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#111827]
-                                                   leading-[1.1] mb-6 font-serif">
+                                    <h2 className={`${SECTION_HEADING} text-[#111827] mb-6`}>
                                         {info.heading}
                                         {info.headingHighlight && (
-                                            <> <span className="text-[#31417F]">{info.headingHighlight}</span></>
+                                            <> <span className="text-brand-600">{info.headingHighlight}</span></>
                                         )}
                                     </h2>
                                 )}
 
                                 {info?.description && (
-                                    <p className="text-gray-500 text-lg md:text-xl leading-relaxed max-w-xl font-medium">
+                                    <p className={`${SECTION_LEDE} text-gray-500 max-w-xl`}>
                                         {info.description}
                                     </p>
                                 )}
@@ -167,7 +166,7 @@ export function ContactFormSection() {
                                         <div className="absolute top-0 right-10 w-[70%] h-full z-10">
                                             <div className="w-full h-full rounded-3xl overflow-hidden border-[6px]
                                                             border-white shadow-xl bg-gray-100">
-                                                <CmsMediaFrame media={heroMedia[0]} />
+                                                <CmsMediaFrame media={heroMedia[0]} priority width={560} />
                                             </div>
                                         </div>
                                     )}
@@ -175,7 +174,7 @@ export function ContactFormSection() {
                                         <div className="absolute top-1/2 -translate-y-1/2 right-0 -mr-6 w-[45%] h-[55%]
                                                         z-20 rotate-3 shadow-2xl rounded-2xl bg-white p-1">
                                             <div className="w-full h-full rounded-[14px] overflow-hidden relative">
-                                                <CmsMediaFrame media={heroMedia[1]} />
+                                                <CmsMediaFrame media={heroMedia[1]} width={360} />
                                                 <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
                                             </div>
                                         </div>
@@ -189,9 +188,15 @@ export function ContactFormSection() {
                 {/* ---- the two cards ---- */}
                 <div className={`grid grid-cols-1 ${hasInfoCard ? 'lg:grid-cols-2' : ''} gap-8 mb-10`}>
 
-                    {/* Form */}
-                    <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)]
-                                    p-8 md:p-10 flex flex-col">
+                    {/* Form. Revealed but never tilted: a panel that shifts under the
+                        pointer while somebody is filling in a field is an obstacle,
+                        not an effect. */}
+                    <Reveal
+                        variant="left"
+                        className="bg-white rounded-[2rem] border border-brand-100/70
+                                   shadow-[0_14px_46px_-16px_rgb(28_46_104/0.22)]
+                                   p-8 md:p-10 flex flex-col"
+                    >
 
                         {(formCard?.title || formCard?.subtitle) && (
                             <div className="flex items-start gap-4 mb-8">
@@ -273,7 +278,7 @@ export function ContactFormSection() {
                             <div className="pt-2">
                                 <button
                                     type="submit" disabled={sending}
-                                    className="bg-[#0b1f5e] hover:bg-brand-900 text-white px-8 py-3.5 rounded-xl text-sm
+                                    className="bg-brand-900 hover:bg-brand-900 text-white px-8 py-3.5 rounded-xl text-sm
                                                font-semibold transition-all inline-flex items-center gap-2 shadow-lg
                                                shadow-brand-900/20 disabled:opacity-70"
                                 >
@@ -289,12 +294,17 @@ export function ContactFormSection() {
                                 </p>
                             )}
                         </form>
-                    </div>
+                    </Reveal>
 
                     {/* Details */}
                     {hasInfoCard && (
-                        <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_10px_40px_rgb(0,0,0,0.04)]
-                                        p-8 md:p-10 flex flex-col">
+                        <Reveal
+                            variant="right"
+                            delay={120}
+                            className="bg-white rounded-[2rem] border border-brand-100/70
+                                       shadow-[0_14px_46px_-16px_rgb(28_46_104/0.22)]
+                                       p-8 md:p-10 flex flex-col"
+                        >
 
                             {(infoCard?.title || infoCard?.subtitle) && (
                                 <div className="flex items-start gap-4 mb-10">
@@ -374,7 +384,7 @@ export function ContactFormSection() {
                                     />
                                 </div>
                             )}
-                        </div>
+                        </Reveal>
                     )}
                 </div>
 
@@ -402,7 +412,7 @@ export function ContactFormSection() {
                                 ? (
                                     <Link
                                         to={banner.ctaHref}
-                                        className="bg-[#0b1f5e] hover:bg-brand-900 text-white px-6 py-3 rounded-xl text-sm
+                                        className="bg-brand-900 hover:bg-brand-900 text-white px-6 py-3 rounded-xl text-sm
                                                    font-semibold transition-all whitespace-nowrap shrink-0 shadow-md"
                                     >
                                         {banner.ctaLabel}
@@ -410,7 +420,7 @@ export function ContactFormSection() {
                                 ) : (
                                     <a
                                         href={banner.ctaHref || '#'}
-                                        className="bg-[#0b1f5e] hover:bg-brand-900 text-white px-6 py-3 rounded-xl text-sm
+                                        className="bg-brand-900 hover:bg-brand-900 text-white px-6 py-3 rounded-xl text-sm
                                                    font-semibold transition-all whitespace-nowrap shrink-0 shadow-md"
                                     >
                                         {banner.ctaLabel}

@@ -1,18 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
 import { getSiteSettings, type SiteSettings } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
-import { BAR_CONTAINER } from './pageContainer';
+import { FOOTER_CONTAINER } from './pageContainer';
 
 /**
- * The public site's footer.
+ * The public site's footer — the brand mark centred on the navy, contact on one
+ * side, address on the other, and the site's own navigation on a rule beneath.
  *
  * Every column, link, phone number and social button is authored in the CMS.
  * Sections with nothing in them are not rendered at all — an empty column would
  * leave a gap in the grid that reads as a layout bug rather than as absent
  * content.
+ *
+ * The centre column is the reason this is a three-column grid rather than the
+ * flex row it used to be. A `flex-1` on each of three children centres the
+ * middle one only when the two outer ones happen to be the same width, and
+ * "Contact" and "Address" never are — the mark drifted left or right depending
+ * on how many phone numbers were authored. `1fr auto 1fr` pins the centre to
+ * the page's centre and lets the outer two take what is left, so the logo sits
+ * on the same vertical line as the heading above it on every page.
  */
 export function FooterSection() {
     const [site, setSite] = useState<SiteSettings | null>(null);
@@ -45,20 +54,24 @@ export function FooterSection() {
 
     const addressLines = footer?.addressLines || [];
     const phones = footer?.phones || [];
-
-    // Columns are filtered link-by-link, then any column left with nothing is
-    // dropped outright — an empty heading would leave a hole in the grid.
-    const linkColumns = (footer?.linkColumns || [])
-        .map((column) => ({ ...column, links: (column.links || []).filter((l) => isLive(l?.href)) }))
-        .filter((column) => column.links.length > 0);
-
     const socials = (footer?.socials || []).filter((s) => isLive(s?.href));
     const legalLinks = (footer?.legalLinks || []).filter((l) => isLive(l?.href));
+
+    /**
+     * The navigation rule.
+     *
+     * Flattened from every authored column rather than taken from the first:
+     * the footer's link columns are "the site's own pages" and "News", and only
+     * the ones pointing somewhere real belong on a single centred row.
+     */
+    const navLinks = (footer?.linkColumns || [])
+        .flatMap((column) => column?.links || [])
+        .filter((link) => isLive(link?.href));
 
     // `{year}` rather than a literal, so the notice never has to be re-edited.
     const copyright = (footer?.copyright || '').replace('{year}', String(new Date().getFullYear()));
 
-    const hasContactColumn = !!(footer?.contactHeading || phones.length || footer?.email || socials.length);
+    const hasContact = !!(phones.length || footer?.email || socials.length);
     const hasBottomBar = !!(copyright || legalLinks.length || footer?.note);
 
     // An internal path routes; an absolute URL or a placeholder must not.
@@ -75,101 +88,39 @@ export function FooterSection() {
     );
 
     return (
-        <footer className="w-full bg-[#f8fafc] text-gray-700 pt-16 pb-8 border-t border-gray-200 font-sans">
-            <div className={BAR_CONTAINER}>
-                {/*
-                  Brand on the left, the columns to its right, all on one row.
+        <footer className="relative w-full overflow-hidden bg-brand-900 text-white font-sans">
+            {/*
+              Depth, not decoration for its own sake: a flat fill this large
+              reads as a block of colour dropped under the page. Two very soft
+              brand blooms and a hairline of light along the top edge give it a
+              surface. `pointer-events-none` throughout — none of it is content.
+            */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-brand-700/40 blur-3xl" />
+                <div className="absolute -bottom-48 -right-24 h-[32rem] w-[32rem] rounded-full bg-brand-600/25 blur-3xl" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            </div>
 
-                  A flex row rather than a fixed `grid-cols-4`: the number of
-                  columns depends entirely on what the CMS holds, and a fixed
-                  four left an empty cell whenever it held three — which is why
-                  the whole right-hand third of the footer was blank. Every
-                  column takes `flex-1`, the brand takes half again as much, so
-                  they fill the width at any count.
-                */}
-                <div className="flex flex-wrap lg:flex-nowrap items-start
-                                gap-x-8 xl:gap-x-14 gap-y-10 border-b border-gray-200 pb-12">
+            <div className={`${FOOTER_CONTAINER} relative z-10 pt-16 pb-8`}>
 
-                    {/* ------------------------------------------------ brand */}
-                    {(brand?.logo?.url || brand?.fullName || brand?.tagline) && (
-                        <div className="w-full lg:w-auto lg:flex-[1.6_1_0%] min-w-0">
-                            {/* Sized by the wrapper — see the note in HeaderSection. */}
-                            {brand?.logo?.url && (
-                                <span className="block h-14 w-auto max-w-[12.5rem]">
-                                    <CmsMediaFrame media={brand.logo} className="object-contain object-left" />
-                                </span>
-                            )}
+                <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_auto_1fr] lg:gap-10 lg:items-start">
 
-                            {brand?.fullName && (
-                                <p className="font-bold text-[#1c2e68] text-[0.8125rem] uppercase
-                                              tracking-[0.06em] leading-[1.45] mt-4 max-w-[22rem]">
-                                    {brand.fullName}
-                                </p>
-                            )}
+                    {/* ------------------------------------------- contact */}
+                    {hasContact ? (
+                        <div className="min-w-0">
+                            <ColumnHeading>{footer?.contactHeading || 'Contact Us'}</ColumnHeading>
 
-                            {brand?.tagline && (
-                                <p className="text-gray-500 text-sm font-medium mt-2">{brand.tagline}</p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* ---------------------------------------------- address */}
-                    {addressLines.length > 0 && (
-                        <div className="w-1/2 lg:w-auto lg:flex-1 min-w-0">
-                            <ColumnHeading>Address</ColumnHeading>
-                            <address className="not-italic text-sm text-gray-500 leading-relaxed">
-                                {addressLines.map((line, i) => (
-                                    <span key={i} className="block">{line}</span>
-                                ))}
-                            </address>
-                        </div>
-                    )}
-
-                    {/* ----------------------------------------- link columns */}
-                    {linkColumns.map((column, ci) => (
-                        <div key={ci} className="w-1/2 lg:w-auto lg:flex-1 min-w-0">
-                            {/*
-                              A column the CMS gave no heading still reserves the
-                              heading's height. Without this its first link sat
-                              on the same line as its neighbours' HEADINGS, one
-                              row above their content — which is exactly what put
-                              "Home" level with "ADDRESS" and "CONTACT" instead of
-                              with the address itself.
-                            */}
-                            {column.heading
-                                ? <ColumnHeading>{column.heading}</ColumnHeading>
-                                : <div aria-hidden="true" className="h-4 mb-4" />}
-
-                            <ul className="space-y-3 text-sm font-medium text-[#1c2e68]">
-                                {(column.links || []).map((item, li) => (
-                                    <li key={li}>
-                                        {renderLink(
-                                            item.label,
-                                            item.href,
-                                            'hover:text-[#31417F] transition-colors',
-                                            `${ci}-${li}`,
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-
-                    {/* --------------------------------------- contact and socials */}
-                    {hasContactColumn && (
-                        <div className="w-1/2 lg:w-auto lg:flex-1 min-w-0">
-                            {footer?.contactHeading && <ColumnHeading>{footer.contactHeading}</ColumnHeading>}
-
-                            <div className="space-y-3 text-sm text-gray-600">
+                            <div className="space-y-4">
                                 {phones.length > 0 && (
-                                    <div className="flex items-start gap-3">
-                                        <Phone size={17} className="text-gray-400 mt-[3px] shrink-0" />
-                                        <div className="space-y-1">
+                                    <div className="flex items-start gap-3.5">
+                                        <IconPlate><Phone size={15} /></IconPlate>
+                                        <div className="space-y-1 pt-1.5">
                                             {phones.map((p, i) => (
                                                 <a
                                                     key={i}
                                                     href={`tel:${p.replace(/\s+/g, '')}`}
-                                                    className="block hover:text-[#31417F] transition-colors"
+                                                    className="block text-[0.9375rem] font-medium text-white/85
+                                                               hover:text-white transition-colors"
                                                 >
                                                     {p}
                                                 </a>
@@ -179,11 +130,12 @@ export function FooterSection() {
                                 )}
 
                                 {footer?.email && (
-                                    <div className="flex items-start gap-3">
-                                        <Mail size={17} className="text-gray-400 mt-[3px] shrink-0" />
+                                    <div className="flex items-start gap-3.5">
+                                        <IconPlate><Mail size={15} /></IconPlate>
                                         <a
                                             href={`mailto:${footer.email}`}
-                                            className="hover:text-[#31417F] transition-colors break-all"
+                                            className="pt-1.5 text-[0.9375rem] font-medium text-white/85
+                                                       hover:text-white transition-colors break-all"
                                         >
                                             {footer.email}
                                         </a>
@@ -192,7 +144,7 @@ export function FooterSection() {
                             </div>
 
                             {socials.length > 0 && (
-                                <div className="flex flex-wrap gap-2.5 mt-6">
+                                <div className="flex flex-wrap gap-2.5 mt-7">
                                     {socials.map((s, i) => (
                                         <a
                                             key={i}
@@ -200,11 +152,10 @@ export function FooterSection() {
                                             target={s.href?.startsWith('http') ? '_blank' : undefined}
                                             rel="noreferrer"
                                             aria-label={s.icon}
-                                            /* The mark's navy, not slate-900 — a
-                                               near-black circle was one more
-                                               colour that answered to nothing. */
-                                            className="w-9 h-9 bg-[#1c2e68] rounded-full flex items-center justify-center
-                                                       text-white hover:bg-[#31417F] transition-colors"
+                                            className="w-10 h-10 rounded-full bg-white/10 ring-1 ring-white/15
+                                                       flex items-center justify-center text-white
+                                                       hover:bg-white hover:text-brand-800 hover:-translate-y-0.5
+                                                       transition-all duration-300"
                                         >
                                             <CmsIcon name={s.icon} size={16} fallback="globe" />
                                         </a>
@@ -212,12 +163,94 @@ export function FooterSection() {
                                 </div>
                             )}
                         </div>
-                    )}
+                    ) : <div />}
+
+                    {/* --------------------------------------------- brand */}
+                    <div className="min-w-0 text-center lg:px-10 lg:max-w-md">
+                        {brand?.logo?.url && (
+                            /*
+                             * `brightness-0 invert` paints the mark white.
+                             * The CMS holds one logo, drawn in the navy, and it
+                             * is the same asset the header uses on white — on
+                             * this background it was navy on navy and all but
+                             * invisible. Filtering rather than asking for a
+                             * second upload keeps it to one asset to maintain,
+                             * and works because the mark is a single flat
+                             * colour on transparency.
+                             */
+                            <span className="mx-auto block h-16 w-auto max-w-[15rem]">
+                                <CmsMediaFrame
+                                    media={brand.logo}
+                                    /*
+                                     * `!bg-transparent` is load-bearing. The
+                                     * frame paints a light backdrop behind any
+                                     * media set to `contain`, so that padding
+                                     * does not show the page through — and the
+                                     * filter below whitened THAT, turning the
+                                     * mark into a solid white rectangle. The
+                                     * logo carries its own alpha, so it needs
+                                     * no backdrop here.
+                                     */
+                                    className="object-contain brightness-0 invert !bg-transparent"
+                                />
+                            </span>
+                        )}
+
+                        {brand?.tagline && (
+                            <p className="mt-5 text-[0.9375rem] font-semibold tracking-wide text-white/90">
+                                {brand.tagline}
+                            </p>
+                        )}
+
+                        {brand?.fullName && (
+                            <p className="mt-5 text-[0.9375rem] leading-relaxed font-medium text-white/65">
+                                {brand.fullName}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* ------------------------------------------- address */}
+                    {addressLines.length > 0 ? (
+                        <div className="min-w-0 lg:justify-self-end lg:text-left">
+                            <ColumnHeading>Address</ColumnHeading>
+                            <div className="flex items-start gap-3.5">
+                                <IconPlate><MapPin size={15} /></IconPlate>
+                                <address className="not-italic pt-1.5 text-[0.9375rem] font-medium
+                                                    leading-relaxed text-white/85">
+                                    {addressLines.map((line, i) => (
+                                        <span key={i} className="block">{line}</span>
+                                    ))}
+                                </address>
+                            </div>
+                        </div>
+                    ) : <div />}
                 </div>
 
+                {/* ----------------------------------------- navigation rule */}
+                {navLinks.length > 0 && (
+                    <nav className="mt-12 border-t border-white/15 pt-6">
+                        <ul className="flex flex-wrap items-center justify-center gap-y-3">
+                            {navLinks.map((item, i) => (
+                                <li key={i} className="flex items-center">
+                                    {renderLink(
+                                        item.label,
+                                        item.href,
+                                        'px-5 text-[0.9375rem] font-medium text-white/80 hover:text-white transition-colors',
+                                        `nav-${i}`,
+                                    )}
+                                    {/* Separators between, never after the last. */}
+                                    {i < navLinks.length - 1 && (
+                                        <span aria-hidden="true" className="h-4 w-px bg-white/25" />
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                )}
+
                 {hasBottomBar && (
-                    <div className="pt-6 flex flex-col md:flex-row md:justify-between md:items-center
-                                    gap-3 text-xs text-gray-500">
+                    <div className="mt-6 border-t border-white/10 pt-5 flex flex-col md:flex-row
+                                    md:justify-between md:items-center gap-3 text-xs text-white/55">
                         {copyright && <p className="text-center md:text-left">{copyright}</p>}
 
                         {(legalLinks.length > 0 || footer?.note) && (
@@ -226,7 +259,7 @@ export function FooterSection() {
                                     renderLink(
                                         item.label,
                                         item.href,
-                                        'hover:text-[#1c2e68] transition-colors',
+                                        'hover:text-white transition-colors',
                                         `legal-${i}`,
                                     ),
                                 )}
@@ -241,17 +274,25 @@ export function FooterSection() {
 }
 
 /**
- * One heading treatment for all three columns.
- *
- * They were three different things: the link columns used a bold `<h4>` nested
- * inside an `<li>` (a heading is not a list item), the contact column used the
- * same tag at `text-base`, and the brand column had none at all. Sized and
- * spaced once here, the columns start on the same line.
+ * One heading treatment for both outer columns — small, heavy, wide-tracked,
+ * over a short accent rule. The rule is what stops an 11px label from
+ * disappearing into a large field of navy.
  */
 function ColumnHeading({ children }: { children: React.ReactNode }) {
     return (
-        <h4 className="text-[0.6875rem] font-bold uppercase tracking-[0.09em] text-[#1c2e68] mb-4">
+        <h4 className="text-[0.6875rem] font-extrabold uppercase tracking-[0.16em] text-white mb-5">
             {children}
+            <span className="mt-2.5 block h-0.5 w-9 rounded-full bg-white/40" />
         </h4>
+    );
+}
+
+/** The circular plate behind a contact or address icon. */
+function IconPlate({ children }: { children: React.ReactNode }) {
+    return (
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full
+                         bg-white/10 ring-1 ring-white/15 text-white">
+            {children}
+        </span>
     );
 }

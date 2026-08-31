@@ -7,6 +7,9 @@ import {
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
+import { SECTION_HEADING, SECTION_LEDE, EYEBROW } from '@/components/layout/typography';
+import { Reveal } from '@/components/shared/Reveal';
+import { Tilt3D } from '@/components/shared/Tilt3D';
 
 /**
  * The gallery page.
@@ -74,7 +77,7 @@ export function GallerySection() {
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <pattern id="dots-gallery" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                            <circle fill="#93c5fd" cx="2" cy="2" r="1.5" />
+                            <circle className="fill-brand-300" cx="2" cy="2" r="1.5" />
                         </pattern>
                     </defs>
                     <rect x="0" y="0" width="100%" height="100%" fill="url(#dots-gallery)" />
@@ -95,33 +98,45 @@ export function GallerySection() {
                                     <div className="inline-flex items-center space-x-2 bg-brand-50 text-brand-600 px-4 py-1.5
                                                     rounded-full mb-6 border border-brand-100 shadow-sm">
                                         <CmsIcon name={settings.badgeIcon} size={14} className="stroke-[3]" fallback="image" />
-                                        <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest">
-                                            {settings.badgeText}
-                                        </span>
+                                        <span className={EYEBROW}>{settings.badgeText}</span>
                                     </div>
                                 )}
 
                                 {(settings?.heading || settings?.headingHighlight) && (
-                                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#111827]
-                                                   leading-[1.1] mb-6 font-serif">
+                                    <h2 className={`${SECTION_HEADING} text-[#111827] mb-6`}>
                                         {settings.heading}
                                         {settings.headingHighlight && (
-                                            <> <span className="text-[#31417F]">{settings.headingHighlight}</span></>
+                                            <> <span className="text-brand-600">{settings.headingHighlight}</span></>
                                         )}
                                     </h2>
                                 )}
 
                                 {settings?.description && (
-                                    <p className="text-gray-500 text-lg md:text-xl leading-relaxed max-w-xl font-medium">
+                                    <p className={`${SECTION_LEDE} text-gray-500 max-w-xl`}>
                                         {settings.description}
                                     </p>
                                 )}
 
                                 {noteLines.length > 0 && (
-                                    <div className="hidden lg:block absolute -right-28 top-32 w-64 h-64 text-brand-600">
+                                    /*
+                                      Anchored to `left-full` — the outside edge of
+                                      the copy column — rather than pulled back in
+                                      with a negative `right`. At `-right-28` a 256px
+                                      note started 144px INSIDE the column, so the
+                                      handwriting and its arrow were drawn straight
+                                      over the paragraph they were meant to point
+                                      away from. It now sits in the gutter beside the
+                                      collage, which is where it points.
+
+                                      `z-20` because the collage is a later sibling
+                                      and would otherwise paint over it; `xl` because
+                                      below that width there is no gutter to sit in.
+                                    */
+                                    <div className="hidden xl:block absolute left-full ml-2 top-[13.5rem]
+                                                    w-56 h-56 z-20 text-brand-600 pointer-events-none">
                                         <div className="relative w-full h-full">
                                             <p
-                                                className="absolute top-0 left-0 text-2xl rotate-[-10deg] font-bold text-[#31417F]"
+                                                className="absolute top-0 left-0 text-2xl rotate-[-10deg] font-bold text-brand-600"
                                                 style={{ fontFamily: "'Caveat', cursive, serif" }}
                                             >
                                                 {noteLines.map((line, i) => (
@@ -129,8 +144,8 @@ export function GallerySection() {
                                                 ))}
                                             </p>
                                             <svg
-                                                className="absolute top-16 left-12 w-32 h-32"
-                                                viewBox="0 0 100 100" fill="none" stroke="#31417F"
+                                                className="absolute top-16 left-12 w-32 h-32 stroke-brand-600"
+                                                viewBox="0 0 100 100" fill="none"
                                                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                                             >
                                                 <path d="M10,20 Q40,60 80,40" />
@@ -154,6 +169,8 @@ export function GallerySection() {
                                                             border-white shadow-xl bg-gray-100 transform-gpu">
                                                 <CmsMediaFrame
                                                     media={collage[0].media}
+                                                    priority
+                                                    width={520}
                                                     className="group-hover:scale-105 transition-transform duration-700 transform-gpu"
                                                 />
                                             </div>
@@ -165,6 +182,7 @@ export function GallerySection() {
                                                             border-white shadow-xl bg-gray-100 transform-gpu">
                                                 <CmsMediaFrame
                                                     media={collage[1].media}
+                                                    width={380}
                                                     className="group-hover:scale-105 transition-transform duration-700 transform-gpu"
                                                 />
                                             </div>
@@ -176,6 +194,7 @@ export function GallerySection() {
                                                             border-white shadow-xl bg-gray-100 transform-gpu">
                                                 <CmsMediaFrame
                                                     media={collage[2].media}
+                                                    width={380}
                                                     className="group-hover:scale-105 transition-transform duration-700 transform-gpu"
                                                 />
                                             </div>
@@ -197,8 +216,8 @@ export function GallerySection() {
                                 className={`flex items-center space-x-2 px-6 py-2.5 rounded-full text-sm font-semibold
                                             transition-all duration-200 border ${
                                     activeFilter === filter.label
-                                        ? 'bg-[#1c2e68] border-[#1c2e68] text-white shadow-md'
-                                        : 'bg-white border-gray-200 text-[#1c2e68] hover:border-[#1c2e68] hover:bg-brand-50'
+                                        ? 'bg-brand-800 border-brand-800 text-white shadow-md'
+                                        : 'bg-white border-gray-200 text-brand-800 hover:border-brand-800 hover:bg-brand-50'
                                 }`}
                             >
                                 {filter.icon && (
@@ -231,17 +250,24 @@ export function GallerySection() {
                     </p>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                        {visible.map((card) => (
-                            <div
-                                key={card._id}
-                                className="bg-white rounded-[1.25rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]
-                                           border border-gray-100 hover:shadow-xl transition-shadow duration-300
-                                           flex flex-col group"
-                            >
+                        {visible.map((card, i) => (
+                            /* Staggered across the row, capped so the last tile of a
+                               long gallery never looks like it failed to load. */
+                            <Reveal key={card._id} delay={Math.min(i % 4, 3) * 80} className="h-full">
+                                <Tilt3D className="h-full" intensity={9} lift={1.03} glare={false} perspective={800}>
+                                    <div
+                                        className="bg-white rounded-[1.25rem] overflow-hidden h-full
+                                                   border border-brand-100/70
+                                                   shadow-[0_10px_36px_-14px_rgb(28_46_104/0.18)]
+                                                   transition-shadow duration-500
+                                                   hover:shadow-[0_26px_56px_-18px_rgb(28_46_104/0.38)]
+                                                   flex flex-col group"
+                                    >
                                 <div className="w-full h-48 relative overflow-hidden bg-gray-50 p-1">
                                     <div className="w-full h-full rounded-t-2xl overflow-hidden relative">
                                         <CmsMediaFrame
                                             media={card.media}
+                                            width={340}
                                             className="group-hover:scale-105 transition-transform duration-500 transform-gpu"
                                         />
 
@@ -286,8 +312,10 @@ export function GallerySection() {
                                             )}
                                         </div>
                                     )}
-                                </div>
-                            </div>
+                                        </div>
+                                    </div>
+                                </Tilt3D>
+                            </Reveal>
                         ))}
                     </div>
                 )}

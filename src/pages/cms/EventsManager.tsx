@@ -22,6 +22,7 @@ import {
     CmsSection,
 } from './components/CmsUI';
 import MediaPicker from './components/MediaPicker';
+import { StatList, IconPicker, RepeatableList } from './components/CmsEditors';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import EventDetailFields, {
     BLANK_DETAIL, toLocalDateTimeInput, type EventDetail,
@@ -50,6 +51,14 @@ import { Lock } from 'lucide-react';
 
 export type EventAudienceDefault = 'all' | 'paid';
 
+/** Hints long enough that inlining them buries the markup they sit in. */
+const NO_MATCH_HINT =
+    'Shown when a search or filter finds nothing. {query} is replaced with what was searched for.';
+
+const CHIP_HINT =
+    'An "All" chip is always shown first. A chip label is what the category on an event '
+    + 'must match to appear under that filter.';
+
 const BLANK = {
     title: '',
     description: '',
@@ -57,6 +66,7 @@ const BLANK = {
     time: '',
     endTime: '',
     location: '',
+    category: '',
     media: { ...EMPTY_MEDIA } as CmsMedia,
     status: 'published' as 'published' | 'draft',
     /*
@@ -182,6 +192,7 @@ export default function EventsManager({
             time: toTimeInput(e.startAt),
             endTime: toTimeInput(e.endAt),
             location: e.location || '',
+            category: e.category || '',
             media: { ...EMPTY_MEDIA, ...(e.media || {}) },
             status: (e.status || 'published') as 'published' | 'draft',
             detail: {
@@ -218,6 +229,7 @@ export default function EventsManager({
                 // An end time is optional, and only means anything with a start.
                 endAt: form.endTime ? toInstant(form.date, form.endTime) : '',
                 location: form.location,
+                category: form.category,
                 imageUrl: form.media.url,
                 bannerAlt: form.media.alt,
                 bannerFit: form.media.fit,
@@ -312,13 +324,38 @@ export default function EventsManager({
                                 <CmsInput
                                     value={settings.heading}
                                     onChange={(e) => setSettings({ ...settings, heading: e.target.value })}
-                                    placeholder="Our Events and Conclaves"
+                                    placeholder="Our"
+                                />
+                            </CmsField>
+                        </div>
+
+                        <div className="mt-4">
+                            <CmsField
+                                label="Heading highlight"
+                                hint="The tail of the heading, shown in the accent colour."
+                            >
+                                <CmsInput
+                                    value={settings.headingHighlight}
+                                    onChange={(e) => setSettings({ ...settings, headingHighlight: e.target.value })}
+                                    placeholder="Events & Conclaves"
                                 />
                             </CmsField>
                         </div>
 
                         <div className="mt-4 space-y-4">
-                        <CmsField label="Subtitle" hint="Sits between two rules under the heading.">
+                        <CmsField
+                            label="Hero paragraph"
+                            hint="Under the heading on the /events band. Not shown on the home page."
+                        >
+                            <CmsTextarea
+                                rows={3}
+                                value={settings.lede}
+                                onChange={(e) => setSettings({ ...settings, lede: e.target.value })}
+                                placeholder="Discover impactful events, conclaves and programs..."
+                            />
+                        </CmsField>
+
+                        <CmsField label="Subtitle" hint="Between two rules under the heading. Home page only.">
                             <CmsInput
                                 value={settings.subtitle}
                                 onChange={(e) => setSettings({ ...settings, subtitle: e.target.value })}
@@ -333,7 +370,166 @@ export default function EventsManager({
                                 placeholder="No events are scheduled at the moment."
                             />
                         </CmsField>
+
+                        <CmsField
+                            label="No-match message"
+                            hint={NO_MATCH_HINT}
+                        >
+                            <CmsInput
+                                value={settings.emptyFilterText}
+                                onChange={(e) => setSettings({ ...settings, emptyFilterText: e.target.value })}
+                                placeholder="No events match {query}. Try another filter."
+                            />
+                        </CmsField>
                         </div>
+                        </CmsSection>
+
+                        {/* ----------------------------------------- hero band */}
+                        <CmsSection
+                            title="Hero band"
+                            hint="The navy band at the top of /events. Every part is optional, and an empty one is not drawn."
+                        >
+                            <MediaPicker
+                                label="Hero photograph"
+                                aspect="1 / 1"
+                                value={settings.heroMedia}
+                                onChange={(heroMedia) => setSettings({ ...settings, heroMedia })}
+                            />
+
+                            <div className="mt-4 grid gap-4 sm:grid-cols-[200px_1fr]">
+                                <IconPicker
+                                    value={settings.heroBadge.icon}
+                                    onChange={(icon) => setSettings({
+                                        ...settings,
+                                        heroBadge: { ...settings.heroBadge, icon },
+                                    })}
+                                    label="Badge icon"
+                                />
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <CmsField label="Badge title" hint="Blank hides the badge.">
+                                        <CmsInput
+                                            value={settings.heroBadge.title}
+                                            onChange={(e) => setSettings({
+                                                ...settings,
+                                                heroBadge: { ...settings.heroBadge, title: e.target.value },
+                                            })}
+                                            placeholder="Do not miss out"
+                                        />
+                                    </CmsField>
+                                    <CmsField label="Badge subtitle">
+                                        <CmsInput
+                                            value={settings.heroBadge.subtitle}
+                                            onChange={(e) => setSettings({
+                                                ...settings,
+                                                heroBadge: { ...settings.heroBadge, subtitle: e.target.value },
+                                            })}
+                                            placeholder="Be part of our next big event."
+                                        />
+                                    </CmsField>
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <CmsField label="Figures" hint="The tiles across the band. Four fit a row.">
+                                    <StatList
+                                        items={settings.stats}
+                                        onChange={(stats) => setSettings({ ...settings, stats })}
+                                        noun="figure"
+                                        max={4}
+                                    />
+                                </CmsField>
+                            </div>
+                        </CmsSection>
+
+                        {/* ------------------------------------ search and chips */}
+                        <CmsSection
+                            title="Search and filter chips"
+                            hint={CHIP_HINT}
+                        >
+                            <CmsField label="Search placeholder">
+                                <CmsInput
+                                    value={settings.searchPlaceholder}
+                                    onChange={(e) => setSettings({ ...settings, searchPlaceholder: e.target.value })}
+                                    placeholder="Search events..."
+                                />
+                            </CmsField>
+
+                            <div className="mt-4">
+                                <RepeatableList<{ label: string; icon: string }>
+                                    items={settings.categories}
+                                    onChange={(categories) => setSettings({ ...settings, categories })}
+                                    noun="chip"
+                                    blank={() => ({ label: '', icon: 'calendar-days' })}
+                                    row={(chip, update) => (
+                                        <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-3">
+                                            <IconPicker value={chip.icon} onChange={(icon) => update({ icon })} />
+                                            <CmsField label="Label">
+                                                <CmsInput
+                                                    value={chip.label}
+                                                    onChange={(e) => update({ label: e.target.value })}
+                                                    placeholder="Conferences"
+                                                />
+                                            </CmsField>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </CmsSection>
+
+                        {/* ------------------------------------------ cta strip */}
+                        <CmsSection
+                            title="Call-to-action strip"
+                            hint="The navy strip under the grid on /events. A blank title and label hide it."
+                        >
+                            <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
+                                <IconPicker
+                                    value={settings.banner.icon}
+                                    onChange={(icon) => setSettings({
+                                        ...settings, banner: { ...settings.banner, icon },
+                                    })}
+                                    label="Icon"
+                                />
+                                <div className="space-y-4">
+                                    <CmsField label="Title">
+                                        <CmsInput
+                                            value={settings.banner.title}
+                                            onChange={(e) => setSettings({
+                                                ...settings, banner: { ...settings.banner, title: e.target.value },
+                                            })}
+                                            placeholder="Have an Event to Share?"
+                                        />
+                                    </CmsField>
+                                    <CmsField label="Subtitle">
+                                        <CmsInput
+                                            value={settings.banner.subtitle}
+                                            onChange={(e) => setSettings({
+                                                ...settings, banner: { ...settings.banner, subtitle: e.target.value },
+                                            })}
+                                            placeholder="Partner with us to create impactful experiences."
+                                        />
+                                    </CmsField>
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <CmsField label="Button label" hint="Blank hides the button.">
+                                            <CmsInput
+                                                value={settings.banner.ctaLabel}
+                                                onChange={(e) => setSettings({
+                                                    ...settings, banner: { ...settings.banner, ctaLabel: e.target.value },
+                                                })}
+                                                placeholder="Partner With Us"
+                                            />
+                                        </CmsField>
+                                        <CmsField label="Button link">
+                                            <CmsInput
+                                                value={settings.banner.ctaHref}
+                                                onChange={(e) => setSettings({
+                                                    ...settings, banner: { ...settings.banner, ctaHref: e.target.value },
+                                                })}
+                                                placeholder="/contact"
+                                            />
+                                        </CmsField>
+                                    </div>
+                                </div>
+                            </div>
                         </CmsSection>
 
                         <CmsSection title="Grid and button" hint="How many events the home page shows, and where the button goes.">
@@ -414,11 +610,37 @@ export default function EventsManager({
                             </CmsField>
                         </div>
 
-                        <div className="sm:col-span-2">
+                        <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">
                             <CmsField label="Location / venue">
                                 <CmsInput value={form.location}
                                     onChange={(e) => setForm({ ...form, location: e.target.value })}
                                     placeholder="Chennai Trade Centre, Nandambakkam" />
+                            </CmsField>
+
+                            {/*
+                              A datalist rather than a select: the chip list
+                              below is free text an editor can add to, and a
+                              closed dropdown would make an event uncategorisable
+                              until someone had also edited the chips. This
+                              suggests the existing chips and still accepts a new
+                              word — which then shows on the card as a badge and
+                              is matched by a chip the moment one is added.
+                            */}
+                            <CmsField
+                                label="Category"
+                                hint="Matches a filter chip on /events. Blank shows no badge."
+                            >
+                                <CmsInput
+                                    list="event-category-options"
+                                    value={form.category}
+                                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                    placeholder="Conferences"
+                                />
+                                <datalist id="event-category-options">
+                                    {(settings?.categories || []).map((c, i) => (
+                                        <option key={i} value={c.label} />
+                                    ))}
+                                </datalist>
                             </CmsField>
                         </div>
 
@@ -449,7 +671,7 @@ export default function EventsManager({
                         <CmsField label="Visibility" hint="A draft is stored but shown to nobody.">
                             <select
                                 value={form.status}
-                                onChange={(e) => setForm({ ...form, status: e.target.value as any })}
+                                onChange={(e) => setForm({ ...form, status: e.target.value as 'published' | 'draft' })}
                                 className="w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-neutral-100"
                             >
                                 <option value="published">Published</option>

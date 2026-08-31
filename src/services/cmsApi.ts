@@ -151,11 +151,41 @@ export interface AboutContent {
 export interface EventsSettings {
     badgeText: string;
     heading: string;
+    /**
+     * The tail of the heading, carrying the accent colour on the hero band.
+     * Stored separately rather than split out of `heading` at render time —
+     * guessing where to cut a sentence works for one heading and produces
+     * nonsense for the next one an editor types.
+     */
+    headingHighlight: string;
+    /** The paragraph under the heading, on the Events page's hero band. */
+    lede: string;
+    /** The small centred caption between rules, on the HOME page's grid. */
     subtitle: string;
+
+    /** The photograph in the hero. No url renders no frame. */
+    heroMedia: CmsMedia;
+    /** The badge pinned to the hero photograph. */
+    heroBadge: { enabled: boolean; icon: string; title: string; subtitle: string };
+    /** The figures across the hero band. */
+    stats: CmsStat[];
+
+    searchPlaceholder: string;
+    /** Filter chips. `All` is prepended by the page. Matched on `event.category`. */
+    categories: { label: string; icon: string }[];
+
     viewAllLabel: string;
     viewAllHref: string;
     emptyText: string;
+    /** Shown when a filter matches nothing. `{query}` is substituted. */
+    emptyFilterText: string;
     homeLimit: number;
+
+    /** The call-to-action strip under the grid. */
+    banner: {
+        enabled: boolean; icon: string; title: string;
+        subtitle: string; ctaLabel: string; ctaHref: string;
+    };
 }
 
 // ---------------------------------------------------------------- gallery
@@ -245,6 +275,13 @@ export interface CmsEvent {
      * them off the one event mapper so this listing and `/events` cannot
      * describe the same row differently.
      */
+    /**
+     * What kind of event this is — matched against a chip in
+     * `eventsSettings.categories`, the same arrangement `GalleryItem.category`
+     * uses. Optional: a row created before the field existed has none, which
+     * the page reads as "no badge, matches the All chip only".
+     */
+    category?: string;
     /** `paid` restricts the event to members with an active membership. */
     audience?: 'all' | 'paid';
     agenda?: CmsAgendaItem[];
@@ -347,8 +384,18 @@ export const EMPTY_ABOUT: AboutContent = {
 };
 
 export const EMPTY_EVENTS_SETTINGS: EventsSettings = {
-    badgeText: '', heading: '', subtitle: '',
-    viewAllLabel: '', viewAllHref: '/events', emptyText: '', homeLimit: 3,
+    badgeText: '', heading: '', headingHighlight: '', lede: '', subtitle: '',
+    heroMedia: { ...EMPTY_MEDIA },
+    heroBadge: { enabled: true, icon: 'calendar-days', title: '', subtitle: '' },
+    stats: [],
+    searchPlaceholder: 'Search events...',
+    categories: [],
+    viewAllLabel: '', viewAllHref: '/events',
+    emptyText: '', emptyFilterText: '', homeLimit: 3,
+    banner: {
+        enabled: true, icon: 'calendar-days', title: '',
+        subtitle: '', ctaLabel: '', ctaHref: '',
+    },
 };
 
 export const EMPTY_GALLERY_SETTINGS: GallerySettings = {

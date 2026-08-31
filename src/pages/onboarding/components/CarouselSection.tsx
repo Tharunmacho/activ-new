@@ -7,6 +7,11 @@ import { getHome, type HomeCarousel } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { PAGE_CONTAINER } from '@/components/layout/pageContainer';
+import { CountUp } from '@/components/shared/CountUp';
+import { Tilt3D } from '@/components/shared/Tilt3D';
+import {
+    HERO_HEADING, HERO_LEDE, EYEBROW, STAT_FIGURE, STAT_LABEL,
+} from '@/components/layout/typography';
 
 /**
  * The landing banner.
@@ -68,7 +73,7 @@ export function CarouselSection() {
     const button = (label: string, href: string, icon: string, primary: boolean) => {
         if (!label) return null;
         const className = primary
-            ? 'bg-[#31417F] hover:bg-brand-700 text-white px-8 py-3.5 rounded-full font-bold transition-all shadow-lg flex items-center space-x-2 transform hover:scale-105 transform-gpu'
+            ? 'bg-brand-600 hover:bg-brand-700 text-white px-8 py-3.5 rounded-full font-bold transition-all shadow-lg flex items-center space-x-2 transform hover:scale-105 transform-gpu'
             : 'border-2 border-white hover:bg-white/10 text-white px-8 py-3.5 rounded-full font-medium transition-all flex items-center space-x-2';
 
         const inner = (
@@ -96,7 +101,7 @@ export function CarouselSection() {
                                         CMS, so a portrait upload is not cropped to a sliver in a
                                         banner this wide, and a video renders as a video. */}
                                     <div className="absolute inset-0">
-                                        <CmsMediaFrame media={slide.media} />
+                                        <CmsMediaFrame media={slide.media} priority={i === 0} width={1600} />
                                     </div>
 
                                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent z-10" />
@@ -144,16 +149,16 @@ export function CarouselSection() {
                         <div className={PAGE_CONTAINER}>
                             <div className="max-w-3xl text-white pointer-events-auto">
                                 {(carousel.headline || carousel.headlineHighlight) && (
-                                    <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] mb-6 font-serif">
+                                    <h1 className={`${HERO_HEADING} mb-6`}>
                                         {carousel.headline}
                                         {carousel.headlineHighlight && (
-                                            <> <span className="text-[#9FA8C6]">{carousel.headlineHighlight}</span></>
+                                            <> <span className="text-brand-300">{carousel.headlineHighlight}</span></>
                                         )}
                                     </h1>
                                 )}
 
                                 {carousel.subheadline && (
-                                    <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl font-light leading-relaxed">
+                                    <p className={`${HERO_LEDE} text-gray-200 mb-10 max-w-2xl`}>
                                         {carousel.subheadline}
                                     </p>
                                 )}
@@ -169,24 +174,36 @@ export function CarouselSection() {
 
                 {/* The card overlapping the bottom edge */}
                 {showCard && (
-                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-20 w-[90%] max-w-5xl bg-white
-                                    rounded-3xl shadow-2xl z-30 p-6 md:p-10 flex flex-col md:flex-row items-center
-                                    justify-between border border-gray-100">
+                    /* A wide, shallow tilt on a long card: the same degrees that
+                       look right on a 320px tile shear a 1024px one. The long
+                       perspective and the small intensity are what keep this
+                       reading as a plate lifting off the banner rather than as a
+                       skew. */
+                    <Tilt3D
+                        className="absolute left-1/2 -translate-x-1/2 -bottom-20 w-[90%] max-w-5xl z-30"
+                        intensity={4}
+                        lift={1.01}
+                        perspective={1600}
+                        glare={false}
+                    >
+                    <div className="bg-white rounded-3xl shadow-[0_30px_70px_-24px_rgb(28_46_104/0.5)]
+                                    p-6 md:p-10 flex flex-col md:flex-row items-center
+                                    justify-between border border-brand-100">
 
                         {(card!.value || card!.eyebrow) && (
                             <div className="flex items-center space-x-6 w-full md:w-auto mb-8 md:mb-0">
                                 <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center
-                                                text-[#31417F] shrink-0">
+                                                text-brand-600 shrink-0">
                                     <CmsIcon name={card!.icon} size={32} fallback="users" />
                                 </div>
                                 <div>
                                     {card!.eyebrow && (
-                                        <p className="text-[0.8125rem] font-bold text-gray-400 uppercase tracking-[0.08em] mb-1.5">
+                                        <p className={`${EYEBROW} text-brand-500 mb-1.5`}>
                                             {card!.eyebrow}
                                         </p>
                                     )}
-                                    <p className="text-3xl font-black text-[#1c2e68]">
-                                        {card!.value}
+                                    <p className={`${STAT_FIGURE} text-brand-800`}>
+                                        <CountUp value={card!.value} />
                                         {card!.caption && (
                                             <span className="text-base font-medium text-gray-500 ml-2">{card!.caption}</span>
                                         )}
@@ -203,9 +220,11 @@ export function CarouselSection() {
                             <div className="flex w-full md:w-auto justify-between md:space-x-16">
                                 {card!.stats.map((stat, i) => (
                                     <div key={i} className="text-center flex flex-col items-center">
-                                        <CmsIcon name={stat.icon} size={28} className="text-[#31417F] mb-3" fallback="users" />
-                                        <p className="font-black text-[#1c2e68] text-3xl tabular-nums">{stat.value}</p>
-                                        <p className="text-[0.8125rem] text-gray-500 uppercase font-bold tracking-[0.08em] mt-1.5">
+                                        <CmsIcon name={stat.icon} size={28} className="text-brand-600 mb-3" fallback="users" />
+                                        <p className={`${STAT_FIGURE} text-brand-800`}>
+                                            <CountUp value={stat.value} />
+                                        </p>
+                                        <p className={`${STAT_LABEL} text-gray-500 mt-1.5`}>
                                             {stat.label}
                                         </p>
                                     </div>
@@ -213,6 +232,7 @@ export function CarouselSection() {
                             </div>
                         )}
                     </div>
+                    </Tilt3D>
                 )}
             </div>
         </div>

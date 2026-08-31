@@ -46,6 +46,23 @@ All colors MUST be HSL.
     --brand-800: 226 58% 26%; /* the mark, #1C2E68 */
     --brand-900: 226 58% 19%;
 
+    /*
+     * The on-dark highlight — the Events hero, and anything else that sets a
+     * phrase apart against the navy.
+     *
+     * Not a step of the scale above, and deliberately so. That ramp sheds
+     * saturation as it lightens, because every one of its steps is read against
+     * WHITE, where a light saturated blue turns to periwinkle. Against the navy
+     * the opposite is true: brand-300 has so little saturation left that it
+     * lands as grey, and a highlight the same value as the text beside it is
+     * not a highlight. This is the same colour mixed for the other direction —
+     * hue held next to the mark's 226, saturation kept high, lightness set
+     * where it separates from white without turning pale.
+     *
+     * On-dark only. Against white it is too light to read.
+     */
+    --brand-accent: 222 83% 66%;
+
     --background: 210 40% 98%;
     --foreground: 220 30% 15%;
 
