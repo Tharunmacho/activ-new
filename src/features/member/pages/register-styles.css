@@ -1,0 +1,145 @@
+/* Enhanced dropdown animations for Registration Form */
+
+/* Smooth slide-in animation for dropdowns */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply animation to select content */
+[data-radix-select-content] {
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Enhanced select trigger with smooth transitions */
+.select-trigger-enhanced {
+  transition: all 0.2s ease-in-out;
+  border: 2px solid #e5e7eb;
+}
+
+.select-trigger-enhanced:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select-trigger-enhanced:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+/* Loading state */
+.select-loading {
+  opacity: 0.6;
+  cursor: wait;
+  background-color: #f9fafb;
+}
+
+/* Disabled state */
+.select-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f3f4f6;
+}
+
+/* Select item hover effect */
+[data-radix-select-item] {
+  transition: all 0.15s ease-in-out;
+}
+
+[data-radix-select-item]:hover {
+  background-color: #eff6ff;
+  transform: translateX(4px);
+}
+
+[data-radix-select-item][data-highlighted] {
+  background-color: #dbeafe;
+  transform: translateX(4px);
+}
+
+/* Custom scrollbar for dropdown */
+[data-radix-select-viewport]::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Form step animations */
+.form-step-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Pulse animation for loading */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth transitions for form fields */
+.form-field-wrapper {
+  transition: all 0.2s ease-in-out;
+}
+
+.form-field-wrapper:focus-within {
+  transform: translateY(-2px);
+}
+
+/* Enhanced card shadows */
+.registration-card {
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.registration-card:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Button hover effects */
+.btn-primary-enhanced {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary-enhanced:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 10px rgba(59, 130, 246, 0.2);
+}

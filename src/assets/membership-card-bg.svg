@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" preserveAspectRatio="none" role="img" aria-hidden="true">
+  <!--
+    THE WAVE ACROSS THE MEMBERSHIP CARD'S WHITE PANEL.
+
+    ONE long S-curve, not a set of stripes. The reference's wave enters at the
+    top-right corner, falls away to the left across the middle of the panel
+    and leaves through the bottom — and the two lighter crests that ride over
+    it are what give the curve its edge. Drawn as separate bands it read as a
+    coloured corner; drawn as one sweep it reads as water.
+
+    THE LEFT THIRD IS LEFT CLEAN. Every label and value on this card is ranged
+    left, and a wash under 17px bold navy is the one thing that would make a
+    credential harder to read than a plain card. Nothing here reaches x=150.
+
+    `preserveAspectRatio="none"`: wallpaper, stretched to the panel's height.
+    Nothing in it distorts in a way anybody would notice.
+  -->
+  <defs>
+    <linearGradient id="waveBody" x1="0.1" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#eaf4ff" />
+      <stop offset="0.45" stop-color="#d8eafd" />
+      <stop offset="1" stop-color="#bcd9fb" />
+    </linearGradient>
+    <linearGradient id="waveCrest" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="0.65" stop-color="#ffffff" stop-opacity="0.72" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.92" />
+    </linearGradient>
+    <linearGradient id="waveDeep" x1="0.2" y1="1" x2="1" y2="0.1">
+      <stop offset="0" stop-color="#c7dffb" stop-opacity="0" />
+      <stop offset="1" stop-color="#a8ccf6" stop-opacity="0.85" />
+    </linearGradient>
+  </defs>
+
+  <!--
+    THE SWEEP. In at the top right, down across the middle, out at the bottom.
+    Two control points rather than one, so the curve has a shoulder near the
+    top and a long tail — a single arc reads as a circle segment.
+  -->
+  <path
+    d="M600 0
+       C 470 18, 392 92, 330 168
+       C 286 222, 232 268, 168 300
+       L600 300 Z"
+    fill="url(#waveBody)" />
+
+  <!-- the crest riding over it, offset down and right -->
+  <path
+    d="M600 76
+       C 496 108, 424 178, 372 238
+       C 344 270, 312 290, 286 300
+       L600 300 Z"
+    fill="url(#waveCrest)" />
+
+  <!-- the deeper water in the corner, so the sweep has a second edge -->
+  <path
+    d="M600 182
+       C 534 208, 486 250, 452 300
+       L600 300 Z"
+    fill="url(#waveDeep)" />
+</svg>

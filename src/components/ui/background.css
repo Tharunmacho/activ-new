@@ -1,0 +1,36 @@
+/* Background styles for consistent look across the application */
+
+.app-background {
+  background: var(--gradient-primary);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Ensure cards and other elements have proper contrast */
+.card-contrast {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Main content background */
+.main-content {
+  background: var(--gradient-primary);
+  background-attachment: fixed;
+}
+
+/* Mobile-specific background adjustments */
+@media (max-width: 768px) {
+  .app-background {
+    background-attachment: scroll; /* Better performance on mobile */
+  }
+  
+  .main-content {
+    background-attachment: scroll; /* Better performance on mobile */
+  }
+  
+  .mobile-card {
+    margin: 0.5rem;
+    border-radius: var(--radius);
+  }
+}

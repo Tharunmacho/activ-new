@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" preserveAspectRatio="none" role="img" aria-hidden="true">
+  <!--
+    THE GREETING CARD'S BACKGROUND — a sunrise, not a wave.
+
+    The membership card beside it carries a flowing S-curve, and repeating
+    that here would make the two cards read as one object cut in half. This
+    one is RADIAL where that one is linear: a low sun in the top-right corner
+    with four ripples spreading from it and a pale horizon low on the card.
+
+    The motif is the greeting's own. The card already says "Good morning" or
+    "Good evening" beside a sun, and the ring that changes with the hour is
+    the one piece of furniture on this screen that can carry that without a
+    second sentence.
+
+    WARM AT THE SOURCE, COOL AT THE EDGE. The glow is amber at 8% — enough to
+    read as light rather than as a blue smudge — and the ripples fade to the
+    brand's blue as they spread, so the card still belongs beside a navy
+    header and a blue membership card.
+
+    THE LEFT HALF IS LEFT ALONE: the greeting, the name and the status chips
+    all range left, and nothing here crosses x=250 at full strength.
+
+    `preserveAspectRatio="none"`: wallpaper, stretched to the card's height.
+    Nothing in it distorts in a way anybody would notice.
+  -->
+  <defs>
+    <radialGradient id="sunGlow" cx="1" cy="0" r="0.75">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity="0.16" />
+      <stop offset="0.35" stop-color="#fcd34d" stop-opacity="0.08" />
+      <stop offset="0.7" stop-color="#bfdbfe" stop-opacity="0.10" />
+      <stop offset="1" stop-color="#bfdbfe" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="rippleInk" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#93c5fd" stop-opacity="0" />
+      <stop offset="0.55" stop-color="#93c5fd" stop-opacity="0.55" />
+      <stop offset="1" stop-color="#fcd34d" stop-opacity="0.65" />
+    </linearGradient>
+
+    <linearGradient id="horizon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#dbeafe" stop-opacity="0.55" />
+      <stop offset="0.6" stop-color="#e0f2fe" stop-opacity="0.35" />
+      <stop offset="1" stop-color="#e0f2fe" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- the light itself -->
+  <rect x="0" y="0" width="600" height="300" fill="url(#sunGlow)" />
+
+  <!--
+    The ripples. Four, spreading from the corner, each thinner and fainter
+    than the last — evenly spaced rings read as a target, so the gaps widen
+    as they go out.
+  -->
+  <g fill="none" stroke="url(#rippleInk)">
+    <circle cx="600" cy="0" r="112" stroke-width="2" opacity="0.5" />
+    <circle cx="600" cy="0" r="178" stroke-width="1.6" opacity="0.4" />
+    <circle cx="600" cy="0" r="262" stroke-width="1.3" opacity="0.3" />
+    <circle cx="600" cy="0" r="366" stroke-width="1" opacity="0.22" />
+  </g>
+
+  <!-- the sun's own disc, just breaking the corner -->
+  <circle cx="600" cy="0" r="52" fill="#fcd34d" opacity="0.14" />
+
+  <!-- the horizon, low and soft, so the card has a floor as well as a light -->
+  <path d="M0 246 C 130 228, 250 236, 380 254 C 468 266, 536 278, 600 296 L600 300 L0 300 Z"
+        fill="url(#horizon)" />
+</svg>

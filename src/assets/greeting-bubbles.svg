@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid slice" role="img" aria-hidden="true">
+  <!--
+    BUBBLES, over the greeting card's blue.
+
+    They were drawn in pale blue for a white panel. The panel is gone — the
+    card is its frame colour all the way through now — so they are drawn in
+    WHITE at low alpha instead: pale blue on blue is a stain, white on blue
+    is light.
+
+    Three rules, and each is why this does not look like a sticker sheet:
+
+      1. THEY VARY. Radii run 5 → 58 and no two neighbours are the same size;
+         a grid of equal circles reads as a pattern rather than as bubbles.
+      2. THEY CLUSTER. Most sit low and right, thinning as they rise, the way
+         bubbles do — an even scatter is wallpaper.
+      3. SOME ARE OUTLINES. A field of filled discs goes flat at these
+         opacities; the rings give the cluster its edges back.
+
+    `xMidYMid slice` rather than `none`: a circle is the one shape that
+    obviously distorts when stretched, so this one crops instead.
+
+    The LEFT THIRD is kept clear — the greeting, the name and the two lines
+    all range left, and nothing here belongs behind them.
+  -->
+  <defs>
+    <linearGradient id="bubbleFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.30" />
+      <stop offset="1" stop-color="#e0f2fe" stop-opacity="0.12" />
+    </linearGradient>
+    <linearGradient id="bubbleFillWarm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fde68a" stop-opacity="0.30" />
+      <stop offset="1" stop-color="#fcd34d" stop-opacity="0.12" />
+    </linearGradient>
+  </defs>
+
+  <!-- the large, quiet ones low and right -->
+  <circle cx="556" cy="214" r="58" fill="url(#bubbleFill)" />
+  <circle cx="452" cy="242" r="34" fill="url(#bubbleFill)" opacity="0.85" />
+  <circle cx="512" cy="126" r="26" fill="url(#bubbleFill)" opacity="0.8" />
+
+  <!-- the warm ones, picking the sun up off the corner -->
+  <circle cx="584" cy="64" r="30" fill="url(#bubbleFillWarm)" />
+  <circle cx="414" cy="176" r="12" fill="url(#bubbleFillWarm)" opacity="0.9" />
+
+  <!-- the small filled ones, thinning as they rise -->
+  <circle cx="486" cy="188" r="14" fill="url(#bubbleFill)" opacity="0.9" />
+  <circle cx="392" cy="228" r="9" fill="url(#bubbleFill)" opacity="0.85" />
+  <circle cx="548" cy="160" r="8" fill="url(#bubbleFill)" opacity="0.8" />
+  <circle cx="352" cy="196" r="6" fill="url(#bubbleFill)" opacity="0.7" />
+  <circle cx="470" cy="92" r="7" fill="url(#bubbleFill)" opacity="0.6" />
+  <circle cx="420" cy="52" r="5" fill="url(#bubbleFill)" opacity="0.5" />
+
+  <!-- the outlines, which give the cluster its edges -->
+  <g fill="none" stroke="#ffffff">
+    <circle cx="522" cy="216" r="46" stroke-width="1.6" opacity="0.28" />
+    <circle cx="430" cy="146" r="28" stroke-width="1.4" opacity="0.22" />
+    <circle cx="566" cy="112" r="18" stroke-width="1.2" opacity="0.20" />
+    <circle cx="378" cy="84" r="11" stroke-width="1.1" opacity="0.16" />
+    <circle cx="336" cy="238" r="16" stroke-width="1.2" opacity="0.14" />
+  </g>
+</svg>

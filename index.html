@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actv Portal - Member & Admin Management</title>
+    <meta name="description" content="Actv Member & Admin Portal - Comprehensive application management system with multi-tier administrative access" />
+    <meta name="author" content="Actv" />
+    <link rel="icon" type="image/png" href="/logo_ACTIVian-removebg-preview.png" />
+    <link rel="apple-touch-icon" href="/logo_ACTIVian-removebg-preview.png" />
+
+    <!--
+      One family, Inter, at the full weight range the design actually uses.
+
+      Inter was drawn for screen UI: it holds up at 13px in a card caption and
+      at 72px in the hero, and it carries `tnum` (tabular figures), so the
+      member counts, dates and district totals in the statistics rows line up in
+      a column instead of jittering as the numbers change.
+
+      The weight list is not decorative. The public pages use `font-black` and
+      `font-extrabold` throughout; when only 400-700 were served the browser
+      synthesised 800 and 900 by smearing the 700 outlines, which is what made
+      the headings look soft and slightly blurred rather than heavy. 800 and 900
+      are real cuts now.
+
+      POPPINS IS THE WHOLE PRODUCT — headings and body both. The association
+      picked it on sight for its roundness and warmth, and asked for it
+      everywhere rather than as a heading face over an Inter body, so the
+      sidebar, the card copy, the form fields and the buttons are all Poppins.
+      `sans` and `display` both resolve to it in `tailwind.config`.
+
+      It carries a real 900, so `font-black` is an actual cut and not a browser
+      smearing 700 or 800 outlines — which is what made the headings look soft
+      under two of the faces tried before it.
+
+      WHY SIX WEIGHTS AND NOT A RANGE: Poppins is a STATIC family on Google
+      Fonts, not a variable one. Each weight is its own file, so `400;...;900`
+      is six downloads where a variable face would have been one. They are all
+      genuinely in use — 400 and 500 in body copy, 600 and 700 on labels and
+      buttons, 800 and 900 on headings — and dropping one does not save the
+      request, it makes the browser synthesise that weight from a neighbour.
+
+      INTER STAYS IN THE STACK, directly behind Poppins, as the fallback that
+      renders while Poppins is still in flight. It is no longer the body face,
+      but it is a far better stand-in for one than the system UI font.
+
+      One consequence to know about: `tnum` and `cv11` in `index.css` are INTER
+      features. Poppins ships neither, so those two settings are inert now.
+      `tnum` mattered because it stopped "100%" and "33%" being different widths
+      in the progress figures — Poppins draws its digits at a uniform width
+      anyway, so the figures still do not jitter, but it is luck rather than the
+      setting doing it.
+
+      `preconnect` on both hosts because the stylesheet on fonts.googleapis.com
+      immediately pulls files from fonts.gstatic.com; without the second hint
+      that connection is opened only after the CSS has parsed.
+
+      `display=swap` so text paints in the fallback immediately and never leaves
+      a page blank while a font loads.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
