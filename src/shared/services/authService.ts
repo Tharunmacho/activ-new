@@ -11,7 +11,7 @@
  * compatibility surface over it and should eventually be deleted in favour of
  * importing that module directly.
  */
-import api, { clearSession, errorMessage } from '@/services/api';
+import api, { clearSession, errorMessage, loginPathFor } from '@/services/api';
 import {
     login as apiLogin,
     register as apiRegister,
@@ -44,6 +44,8 @@ export interface RegisterData {
     district?: string;
     block?: string;
     city?: string;
+    /** Members outside India: where they are, in place of state/district/block. */
+    place?: string;
 }
 
 export interface LoginData {
@@ -98,6 +100,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
             district: userData.district || '',
             block: userData.block || '',
             city: userData.city,
+            place: userData.place || '',
         });
 
         return {
@@ -162,9 +165,10 @@ export const getCurrentUser = async (): Promise<UserData | null> => {
 };
 
 export const logout = () => {
+    const signIn = loginPathFor();
     api.post('/auth/logout').catch(() => null);
     clearSession();
-    window.location.href = '/login';
+    window.location.href = signIn;
 };
 
 export const isAuthenticated = (): boolean => apiIsAuthenticated();

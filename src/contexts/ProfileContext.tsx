@@ -12,7 +12,7 @@ import { SESSION_EVENT } from "@/services/api";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 /** The roles that have an admin dashboard instead of a member profile. */
-const ADMIN_ROLES = ['block_admin', 'district_admin', 'state_admin', 'super_admin', 'cms_admin', 'admin'];
+const ADMIN_ROLES = ['block_admin', 'district_admin', 'state_admin', 'super_admin', 'cms_admin', 'events_admin', 'admin'];
 
 /**
  * Whether the signed-in user is a member with a profile to load.

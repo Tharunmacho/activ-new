@@ -132,7 +132,7 @@ export default function PaymentRegistration() {
           >
             <ArrowLeft className="w-6 h-6 text-slate-700" />
           </button>
-          <h1 className="text-2xl font-bold text-slate-900">Payment Registration</h1>
+          <h1 className="text-[1.5625rem] font-bold text-slate-900">Payment Registration</h1>
         </div>
       </div>
 
@@ -140,14 +140,14 @@ export default function PaymentRegistration() {
         {/* Title Section */}
         <div className="text-center mb-12">
           <div className="inline-block mb-4">
-            <span className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-full shadow-md">
+            <span className="px-5 py-2 bg-blue-600 text-white text-[1.0625rem] font-semibold rounded-full shadow-md">
               Complete Your Registration
             </span>
           </div>
-          <h1 className="text-5xl font-bold text-slate-900 mb-4">
+          <h1 className="text-[3.125rem] font-bold text-slate-900 mb-4">
             Aspirant Membership
           </h1>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-600 text-[1.1875rem] max-w-2xl mx-auto leading-relaxed">
             Join our community of aspiring professionals and unlock exclusive student benefits
           </p>
         </div>
@@ -162,11 +162,11 @@ export default function PaymentRegistration() {
               <CardContent className="p-8">
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">Aspirant Plan</h3>
-                    <p className="text-slate-600 text-sm">For students without company experience</p>
+                    <h3 className="text-[1.5625rem] font-bold text-slate-900 mb-2">Aspirant Plan</h3>
+                    <p className="text-slate-600 text-[1.0625rem]">For students without company experience</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-5xl font-bold text-blue-600">₹2,000</div>
+                    <div className="text-[3.125rem] font-bold text-blue-600">₹2,000</div>
                     <div className="text-slate-600 mt-1 font-medium">per year</div>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export default function PaymentRegistration() {
                       <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-0.5">
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div>
-                      <span className="text-slate-700 text-sm leading-relaxed">{feature}</span>
+                      <span className="text-slate-700 text-[1.0625rem] leading-relaxed">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -197,13 +197,13 @@ export default function PaymentRegistration() {
                     <Lock className="w-7 h-7 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-bold text-green-900 text-xl mb-2">
+                    <p className="font-bold text-green-900 text-[1.25rem] mb-2">
                       🔒 Secure Payment Gateway
                     </p>
-                    <p className="text-sm text-green-800 leading-relaxed mb-3">
+                    <p className="text-[1.0625rem] text-green-800 leading-relaxed mb-3">
                       Powered by Instamojo - Your payment information is encrypted with industry-standard SSL encryption. We never store your card details.
                     </p>
-                    <div className="flex items-center gap-3 text-xs text-green-700">
+                    <div className="flex items-center gap-3 text-[1.0625rem] text-green-700">
                       <span className="px-3 py-1.5 bg-white border border-green-300 rounded-full font-medium">SSL Encrypted</span>
                       <span className="px-3 py-1.5 bg-white border border-green-300 rounded-full font-medium">PCI Compliant</span>
                     </div>
@@ -219,7 +219,7 @@ export default function PaymentRegistration() {
                   <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
                     <Shield className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="font-bold text-slate-900 text-xl">What Happens Next?</h3>
+                  <h3 className="font-bold text-slate-900 text-[1.25rem]">What Happens Next?</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
@@ -229,10 +229,10 @@ export default function PaymentRegistration() {
                     { icon: '🎯', text: 'Access to member dashboard' }
                   ].map((item, idx) => (
                     <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-white border border-blue-200">
-                      <span className="text-xl">{item.icon}</span>
+                      <span className="text-[1.25rem]">{item.icon}</span>
                       <div className="flex items-start gap-2">
                         <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-slate-700 text-sm font-medium">{item.text}</span>
+                        <span className="text-slate-700 text-[1.0625rem] font-medium">{item.text}</span>
                       </div>
                     </div>
                   ))}
@@ -246,7 +246,7 @@ export default function PaymentRegistration() {
             <Card className="shadow-xl border-2 border-slate-300 sticky top-24 bg-white">
               {/* Header */}
               <div className="bg-slate-100 p-6 border-b-2 border-slate-300">
-                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <h2 className="text-[1.5625rem] font-bold text-slate-900 flex items-center gap-2">
                   <span>💳</span> Payment Summary
                 </h2>
               </div>
@@ -254,31 +254,31 @@ export default function PaymentRegistration() {
               <CardContent className="p-8">
                 <div className="space-y-5 mb-8">
                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <span className="text-slate-600 text-sm font-medium">Member Type</span>
+                    <span className="text-slate-600 text-[1.0625rem] font-medium">Member Type</span>
                     <span className="font-bold text-slate-900">Aspirant (Student)</span>
                   </div>
 
                   <div className="flex justify-between items-center p-3 rounded-lg bg-blue-50 border-2 border-blue-400">
-                    <span className="text-blue-700 text-sm font-medium">Selected Plan</span>
+                    <span className="text-blue-700 text-[1.0625rem] font-medium">Selected Plan</span>
                     <span className="font-bold text-blue-900">Aspirant Plan</span>
                   </div>
 
                   <div className="border-t-2 border-slate-300 pt-5 mt-5">
-                    <div className="flex justify-between items-center mb-3 text-sm">
+                    <div className="flex justify-between items-center mb-3 text-[1.0625rem]">
                       <span className="text-slate-600">Subtotal</span>
                       <span className="font-semibold text-slate-900">₹2,000</span>
                     </div>
-                    <div className="flex justify-between items-center mb-5 text-sm">
+                    <div className="flex justify-between items-center mb-5 text-[1.0625rem]">
                       <span className="text-slate-600">Tax & Fees</span>
                       <span className="font-semibold text-green-600">₹0 (Included)</span>
                     </div>
                     <div className="flex justify-between items-center pt-5 border-t-2 border-slate-300 bg-blue-50 -mx-8 px-8 py-5 rounded-b-lg">
-                      <span className="text-lg font-bold text-slate-900">Total Amount</span>
+                      <span className="text-[1.1875rem] font-bold text-slate-900">Total Amount</span>
                       <div className="text-right">
-                        <span className="text-4xl font-bold text-blue-600 block">
+                        <span className="text-[2.5rem] font-bold text-blue-600 block">
                           ₹2,000
                         </span>
-                        <span className="text-xs text-slate-600">One-time payment</span>
+                        <span className="text-[1.0625rem] text-slate-600">One-time payment</span>
                       </div>
                     </div>
                   </div>
@@ -286,7 +286,7 @@ export default function PaymentRegistration() {
 
                 {/* Payment Button */}
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 text-lg font-bold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 text-[1.1875rem] font-bold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
                   onClick={handlePayment}
                   disabled={processing}
                 >
@@ -304,8 +304,8 @@ export default function PaymentRegistration() {
 
                 {/* Trust Badges */}
                 <div className="mt-6 pt-6 border-t border-slate-200 text-center">
-                  <p className="text-xs text-slate-500 mb-2">Trusted by 1000+ students</p>
-                  <div className="flex items-center justify-center gap-2 text-xs text-slate-600">
+                  <p className="text-[1.0625rem] text-slate-500 mb-2">Trusted by 1000+ students</p>
+                  <div className="flex items-center justify-center gap-2 text-[1.0625rem] text-slate-600">
                     <Shield className="w-4 h-4 text-green-600" />
                     <span>Money-back guarantee</span>
                   </div>

@@ -15,6 +15,7 @@ import {
 } from '@/services/eventBookingAdminApi';
 import { errorMessage } from '@/services/api';
 import BookingPeople from './BookingPeople';
+import { adminBasePath } from '@/features/admin/components/tierConfig';
 
 /**
  * Booking Events — every event, and how full it is.
@@ -103,7 +104,7 @@ export default function SuperAdminBookingEvents() {
 
     useEffect(() => { load(); }, [load]);
 
-    const open = (row: BookingOverviewRow) => navigate(`/super-admin/bookings/${row.id}`);
+    const open = (row: BookingOverviewRow) => navigate(`${adminBasePath()}/bookings/${row.id}`);
 
     const columns: AdminColumn<BookingOverviewRow>[] = useMemo(() => [
         {
@@ -128,7 +129,7 @@ export default function SuperAdminBookingEvents() {
                     {/* The meta line steps down but stays legible: 15px, not the
                         12px it was, which was a caption under a caption. */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5
-                                    text-[1.125rem] text-slate-500">
+                                    text-[1.1875rem] text-slate-500">
                         <span className="inline-flex items-center gap-1">
                             <CalendarDays className="w-4 h-4" />
                             {/* An undated event says so. Omitting the line leaves

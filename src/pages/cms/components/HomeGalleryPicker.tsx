@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-    Loader2, ExternalLink, Images, CalendarDays, Eye, EyeOff, Pencil,
+    Loader2, ExternalLink, Images, CalendarDays, Eye, EyeOff, Pencil, Type, Check, X,
 } from 'lucide-react';
 import {
     getGallery, updateGalleryItem, invalidateCmsCache, errorMessage,
     type GalleryItem,
 } from '@/services/cmsApi';
-import { CmsEmpty, CmsError, cmsSaved } from './CmsUI';
+import { CmsEmpty, CmsError, cmsSaved, cmsFailed } from './CmsUI';
+import BannerWordsFields, { type BannerWords } from './BannerWordsFields';
+import { resolveMediaUrl } from '@/config/api.config';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 
 /**
@@ -69,6 +71,68 @@ export function HomeGalleryPicker({ onChanged }: {
     const [items, setItems] = useState<GalleryItem[] | null>(null);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState<string | null>(null);
+
+    /*
+     * THE WORDS OVER EACH POSTER, EDITED RIGHT HERE.
+     *
+     * This card is where an editor thinks about the banner, so this is where
+     * a poster's heading, subheading and Left / Right belong — not only on the
+     * Gallery screen three clicks away. One row open at a time; `words` is the
+     * draft for that row until Save.
+     */
+    const [openId, setOpenId] = useState<string | null>(null);
+    const [words, setWords] = useState<BannerWords>({ headline: '', highlight: '', subheadline: '', align: 'left' });
+
+    const openWords = (item: GalleryItem) => {
+        if (openId === item._id) { setOpenId(null); return; }
+        setOpenId(item._id);
+        setWords({
+            headline: item.bannerHeadline || '',
+            highlight: item.bannerHighlight || '',
+            subheadline: item.bannerSubheadline || '',
+            align: item.bannerAlign === 'right' ? 'right' : 'left',
+        });
+    };
+
+    const saveWords = async (item: GalleryItem) => {
+        setBusy(item._id);
+        setError('');
+        try {
+            const back = await updateGalleryItem(item._id, {
+                bannerHeadline: words.headline.trim(),
+                bannerHighlight: words.highlight.trim(),
+                bannerSubheadline: words.subheadline.trim(),
+                bannerAlign: words.align,
+            });
+            /* A backend on an older build answers 200 and drops these fields.
+               Keep the editor's text and say so, rather than a green toast. */
+            const lost = (!!words.headline.trim() && !back?.bannerHeadline)
+                || (!!words.subheadline.trim() && !back?.bannerSubheadline)
+                || (words.align === 'right' && back?.bannerAlign !== 'right');
+            if (lost) {
+                const message = 'The server did not store these words. Your backend is running an older build — '
+                    + 'restart it (npm run dev), then save again.';
+                setError(message);
+                cmsFailed('the banner words', message);
+                return;
+            }
+            setItems((list) => (list || []).map((i) => (i._id === item._id ? {
+                ...i,
+                bannerHeadline: words.headline.trim(),
+                bannerHighlight: words.highlight.trim(),
+                bannerSubheadline: words.subheadline.trim(),
+                bannerAlign: words.align,
+            } : i)));
+            invalidateCmsCache();
+            cmsSaved('Banner words');
+            setOpenId(null);
+            onChanged?.();
+        } catch (err) {
+            setError(errorMessage(err, 'Could not save the banner words'));
+        } finally {
+            setBusy(null);
+        }
+    };
 
     const load = async () => {
         setError('');
@@ -168,11 +232,12 @@ export function HomeGalleryPicker({ onChanged }: {
                             return (
                                 <li
                                     key={item._id}
-                                    className={`flex items-center gap-3 rounded-xl border p-3 transition-colors
+                                    className={`rounded-xl border p-3 transition-colors
                                                 ${live
                                             ? 'border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20'
                                             : 'border-slate-200 bg-white dark:border-[#232323] dark:bg-[#0d0d0d]'}`}
                                 >
+                                  <div className="flex items-center gap-3">
                                     <span className="h-14 w-20 shrink-0 overflow-hidden rounded-lg
                                                      bg-slate-100 dark:bg-[#161616]">
                                         {item.media?.url ? (
@@ -186,11 +251,11 @@ export function HomeGalleryPicker({ onChanged }: {
                                     </span>
 
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-[1.125rem] font-bold text-slate-900 dark:text-white">
+                                        <p className="truncate text-[1.1875rem] font-bold text-slate-900 dark:text-white">
                                             {item.title || 'Untitled image'}
                                         </p>
                                         <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5
-                                                      text-[1rem] font-medium text-slate-500 dark:text-neutral-400">
+                                                      text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
                                             {item.eventDate && (
                                                 <span className="inline-flex items-center gap-1">
                                                     <CalendarDays className="h-3.5 w-3.5 shrink-0" />
@@ -213,14 +278,38 @@ export function HomeGalleryPicker({ onChanged }: {
                                                     in the banner now
                                                 </span>
                                             )}
+                                            {/* What this poster says over itself in the banner. */}
+                                            {live && (item.bannerHeadline || item.bannerHighlight || item.bannerSubheadline ? (
+                                                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                                                    own words · {item.bannerAlign === 'right' ? 'right' : 'left'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400">
+                                                    {item.title ? 'shows its album title' : 'shows the default heading'}
+                                                </span>
+                                            ))}
                                         </p>
                                     </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => openWords(item)}
+                                        aria-expanded={openId === item._id}
+                                        title="The heading, subheading and side shown over this photo in the banner"
+                                        className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5
+                                                    text-[1.0625rem] font-semibold transition-colors
+                                                    ${openId === item._id
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40'}`}
+                                    >
+                                        <Type className="h-3.5 w-3.5" /> Banner words
+                                    </button>
 
                                     <a
                                         href="/cms/gallery"
                                         title="Open the Gallery screen to change the picture or its details"
                                         className="hidden shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5
-                                                   text-[1rem] font-semibold text-blue-700 transition-colors
+                                                   text-[1.0625rem] font-semibold text-blue-700 transition-colors
                                                    hover:bg-blue-50 sm:inline-flex
                                                    dark:text-blue-400 dark:hover:bg-blue-950/40"
                                     >
@@ -236,7 +325,7 @@ export function HomeGalleryPicker({ onChanged }: {
                                             ? 'Hidden from the gallery, so it cannot be in the banner'
                                             : on ? 'Take it out of the banner' : 'Allow it in the banner'}
                                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border
-                                                    px-3 py-1.5 text-[1rem] font-bold transition-colors
+                                                    px-3 py-1.5 text-[1.0625rem] font-bold transition-colors
                                                     disabled:opacity-40 ${on
                                                 ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                                                     + ' dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'
@@ -248,7 +337,46 @@ export function HomeGalleryPicker({ onChanged }: {
                                             : on ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                         {on ? 'On' : 'Off'}
                                     </button>
+                                  </div>
 
+                                  {/* Inline, not a dialog — see CLAUDE.md on native modals. */}
+                                  {openId === item._id && (
+                                      <div className="mt-3 space-y-3">
+                                          <BannerWordsFields
+                                              value={words}
+                                              onChange={(next) => setWords((w) => ({ ...w, ...next }))}
+                                              preview={item.media?.url ? resolveMediaUrl(item.media.url) : ''}
+                                              whenBlank={item.title
+                                                  ? `Leave them all blank and this album's own title and caption are shown instead ("${item.title}").`
+                                                  : "Leave them all blank and the banner's default heading is shown."}
+                                              fallback={{ headline: item.title || '', subheadline: item.caption || '' }}
+                                          />
+                                          <div className="flex items-center justify-end gap-2">
+                                              <button
+                                                  type="button"
+                                                  onClick={() => setOpenId(null)}
+                                                  disabled={busy === item._id}
+                                                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5
+                                                             text-[1.0625rem] font-semibold text-slate-600 hover:bg-slate-100
+                                                             dark:border-[#2a2a2a] dark:text-neutral-300"
+                                              >
+                                                  <X className="h-4 w-4" /> Cancel
+                                              </button>
+                                              <button
+                                                  type="button"
+                                                  onClick={() => saveWords(item)}
+                                                  disabled={busy === item._id}
+                                                  className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3.5 py-1.5
+                                                             text-[1.0625rem] font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+                                              >
+                                                  {busy === item._id
+                                                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                                                      : <Check className="h-4 w-4" />}
+                                                  Save banner words
+                                              </button>
+                                          </div>
+                                      </div>
+                                  )}
                                 </li>
                             );
                         })}
@@ -262,7 +390,7 @@ export function HomeGalleryPicker({ onChanged }: {
                       * different job, on the Gallery screen, which the Edit link
                       * on every row already reaches.
                       */}
-                    <p className="mt-4 text-[1rem] font-medium text-slate-400">
+                    <p className="mt-4 text-[1.0625rem] font-medium text-slate-400">
                         {ordered.length > Math.max(eligible.length + 4, 12)
                             ? `Showing the switched-on images and a few more, of ${items.length}. `
                             : ''}

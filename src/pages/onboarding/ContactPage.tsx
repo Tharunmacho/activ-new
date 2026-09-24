@@ -9,8 +9,10 @@ export default function ContactPage() {
     <div className="flex flex-col min-h-screen font-sans bg-gray-50">
       <HeaderSection />
       <ContactFormSection />
-      {/* Above the footer, on every content page — see `AcrossIndia`. */}
-      <AcrossIndia />
+      {/* The regions band in its CONTACT form: its own wording, and each
+          tile opens that region's or state's contact section — see the note
+          on `variant` in `AcrossIndia`. */}
+      <AcrossIndia variant="contact" />
 
       <FooterSection />
     </div>

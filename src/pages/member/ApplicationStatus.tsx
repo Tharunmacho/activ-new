@@ -416,7 +416,7 @@ export default function ApplicationStatus() {
                         <div className="flex flex-wrap items-start justify-between gap-6">
                             <div className="min-w-0 flex-1">
                                 <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/20
-                                                 px-3 py-1.5 text-[0.8125rem] font-bold tracking-wide">
+                                                 px-3 py-1.5 text-[1.0625rem] font-bold tracking-wide">
                                     {isRejected ? <X className="w-3.5 h-3.5" />
                                         : isApproved ? <BadgeCheck className="w-3.5 h-3.5" />
                                             : <Hourglass className="w-3.5 h-3.5" />}
@@ -437,7 +437,7 @@ export default function ApplicationStatus() {
 
                         {/* ---- the track ---- */}
                         <div className="mt-7 rounded-2xl bg-white/10 ring-1 ring-white/15 p-4 sm:p-5">
-                            <p className="text-[0.8125rem] font-bold uppercase tracking-[0.1em] text-white/70">
+                            <p className="text-[1.0625rem] font-bold uppercase tracking-[0.1em] text-white/70">
                                 All three reviews run at the same time
                             </p>
 
@@ -492,7 +492,7 @@ export default function ApplicationStatus() {
                         </span>
                         <div className="min-w-0">
                             <p className="font-display text-[1.1875rem] font-bold text-[#991B1B]">Reviewer Note</p>
-                            <p className="text-[1rem] text-[#B91C1C] mt-1 leading-relaxed">
+                            <p className="text-[1.0625rem] text-[#B91C1C] mt-1 leading-relaxed">
                                 {application.rejectionReason}
                             </p>
                         </div>
@@ -577,13 +577,13 @@ export default function ApplicationStatus() {
                                                         /* The one row whose approval admits the
                                                            applicant. Without it a green Block row
                                                            reads as "you are in", which it is not. */
-                                                        <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[0.8125rem]
+                                                        <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[1.0625rem]
                                                                          font-bold text-amber-700 ring-1 ring-amber-200">
                                                             Grants membership
                                                         </span>
                                                     ) : null}
                                                     <span className={`ml-auto shrink-0 rounded-lg px-2.5 py-1
-                                                                      text-[0.8125rem] font-extrabold ${tone.soft} ${tone.text}`}>
+                                                                      text-[1.0625rem] font-extrabold ${tone.soft} ${tone.text}`}>
                                                         {stage.badge || tone.label}
                                                     </span>
                                                 </div>
@@ -686,7 +686,7 @@ export default function ApplicationStatus() {
                                         <span className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                                             <Info className="w-4 h-4 text-[#1E50E6]" />
                                         </span>
-                                        <p className="font-display text-[1.125rem] font-bold text-[#0F172A]">
+                                        <p className="font-display text-[1.1875rem] font-bold text-[#0F172A]">
                                             What happens next
                                         </p>
                                     </div>
@@ -735,7 +735,7 @@ const StripCell = ({ label, value, className = '', title }: {
     label: string; value: string; className?: string; title?: string;
 }) => (
     <div className={`px-4 text-center min-w-0 ${className}`}>
-        <p className="text-[0.75rem] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
+        <p className="text-[1.0625rem] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
         <p className="font-display text-[1.1875rem] font-bold text-[#0F172A] mt-1 truncate" title={title || value}>
             {value}
         </p>
@@ -750,8 +750,8 @@ const DetailLine = ({ icon, label, value }: { icon: React.ReactNode; label: stri
             {icon}
         </span>
         <div className="min-w-0">
-            <p className="text-[0.75rem] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
-            <p className="text-[1rem] font-medium text-[#0F172A] break-words leading-snug mt-0.5">{value}</p>
+            <p className="text-[1.0625rem] font-bold uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
+            <p className="text-[1.0625rem] font-medium text-[#0F172A] break-words leading-snug mt-0.5">{value}</p>
         </div>
     </div>
 );
@@ -762,7 +762,7 @@ const DetailLine = ({ icon, label, value }: { icon: React.ReactNode; label: stri
  * ones, in two different places, and the page was visibly stepped.
  */
 const SectionCaption = ({ children }: { children: React.ReactNode }) => (
-    <p className="font-display text-[1rem] font-extrabold uppercase tracking-[0.08em]
+    <p className="font-display text-[1.0625rem] font-extrabold uppercase tracking-[0.08em]
                   text-[#64748B] mb-4 h-5 flex items-center">
         {children}
     </p>
@@ -795,7 +795,7 @@ const ProgressDial = ({ percent }: { percent: number }) => {
                         className="transition-[stroke-dashoffset] duration-700 ease-out" />
             </svg>
             <span className="absolute inset-0 flex items-center justify-center
-                             font-display text-[1.5rem] font-extrabold tabular tracking-tight">
+                             font-display text-[1.5625rem] font-extrabold tabular tracking-tight">
                 {safe}%
             </span>
         </div>
@@ -820,7 +820,7 @@ const TrackNode = ({ stage }: { stage: { short: string; completed: boolean; acti
         }`}>
             {stage.completed ? <Check className="w-3.5 h-3.5 text-[#1E3FA8]" strokeWidth={3} /> : null}
         </span>
-        <span className="text-[0.8125rem] font-bold text-white/90 text-center leading-tight">
+        <span className="text-[1.0625rem] font-bold text-white/90 text-center leading-tight">
             {stage.short}
         </span>
     </div>
@@ -829,7 +829,7 @@ const TrackNode = ({ stage }: { stage: { short: string; completed: boolean; acti
 /** A reviewer or a date, as a chip on the card's meta row. */
 const MetaChip = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
     <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1
-                     text-[0.9375rem] font-medium text-[#475569] max-w-full">
+                     text-[1.0625rem] font-medium text-[#475569] max-w-full">
         <span className="shrink-0 text-[#94A3B8]">{icon}</span>
         <span className="truncate">{text}</span>
     </span>

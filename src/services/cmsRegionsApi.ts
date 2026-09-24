@@ -1,5 +1,5 @@
 import api, { unwrap } from './api';
-import { cached, invalidateCmsCache } from './cmsApi';
+import { cached, invalidateCmsCache, type CmsExtraField } from './cmsApi';
 
 /**
  * The Regions & States section of the public site.
@@ -230,10 +230,102 @@ export interface CustomSection {
     displayOrder: number;
 }
 
+/**
+ * ==========================================================================
+ * THE DASHBOARD'S OWN HEADINGS
+ * ==========================================================================
+ *
+ * "Photo Gallery", "Contact Us", "Write to Us", "Reach Us", "Find us on the
+ * map" — the words the dashboard itself says, as opposed to the content it
+ * lists. Every one was a literal in `StateDashboard`, on every zone page and
+ * every state page, and editable from nowhere.
+ *
+ * Blank means the shipped wording, which `DASHBOARD_LABELS` below holds. That
+ * has to be the rule rather than "blank means blank": every page in the
+ * collection predates these fields, so an absent value must keep drawing what
+ * it drew yesterday.
+ */
+export interface DashboardLabels {
+    /** Over the page's own bench. The title carries the region's name. */
+    ownTierEyebrow: string;
+    /** Over the tier below — a zone's states, a state's regions. */
+    tierBelowEyebrow: string;
+    tierBelowHeading: string;
+    /** The state page's third band. Unused on a zone page. */
+    districtsEyebrow: string;
+    districtsHeading: string;
+    contactEyebrow: string;
+    contactHeading: string;
+}
+
+/**
+ * What a page says when a label has not been set.
+ *
+ * THE ZONE PAGE AND THE STATE PAGE DISAGREE ON FOUR OF THESE, which is why
+ * there are two tables. A zone's own bench is its "Zone" bench and the tier
+ * below it is "States"; a state's own bench is "State" and the tier below is
+ * its "Regions". One shared table would have to pick one of those and be
+ * wrong on the other page.
+ *
+ * ONE COPY OF EACH, exported, and `scripts/seed-shown-defaults.js` writes
+ * these same strings into the stored fields — so the CMS box says what the
+ * page says instead of sitting empty beside live words.
+ */
+export const STATE_LABELS: DashboardLabels = {
+    ownTierEyebrow: 'State',
+    tierBelowEyebrow: 'Regions',
+    tierBelowHeading: 'Region-wise Leadership',
+    districtsEyebrow: 'Districts',
+    districtsHeading: 'District-wise Leadership',
+    contactEyebrow: 'Contact',
+    contactHeading: 'Get in Touch',
+};
+
+export const ZONE_LABELS: DashboardLabels = {
+    ownTierEyebrow: 'Zone',
+    tierBelowEyebrow: 'States',
+    tierBelowHeading: 'State-wise Leadership',
+    /* A zone page has no districts band; the two fields ride along so one
+       shape covers both pages, and the CMS simply does not offer them. */
+    districtsEyebrow: '',
+    districtsHeading: '',
+    contactEyebrow: 'Contact',
+    contactHeading: 'Get in Touch',
+};
+
+/** The national page, which is a zone page that is not a zone. */
+export const NATIONAL_LABELS: DashboardLabels = {
+    ...ZONE_LABELS,
+    ownTierEyebrow: 'National',
+    tierBelowEyebrow: 'Zones',
+    tierBelowHeading: 'Zone-wise Leadership',
+};
+
+/**
+ * A page's labels, with the shipped wording under anything left blank.
+ *
+ * The caller passes the right default table because only the caller knows
+ * which page it is: `RegionPage` picks between the zone and national tables
+ * on the same `national` flag it uses for everything else.
+ */
+export const dashboardLabels = (
+    labels: Partial<DashboardLabels> | null | undefined,
+    shipped: DashboardLabels,
+): DashboardLabels => {
+    const out = { ...shipped };
+    (Object.keys(shipped) as (keyof DashboardLabels)[]).forEach((key) => {
+        const value = String(labels?.[key] ?? '').trim();
+        if (value) out[key] = value;
+    });
+    return out;
+};
+
 export interface RegionPage {
     id: string;
     regionKey: string;
     regionName: string;
+    /** See `DashboardLabels`. Blank fields fall back to the shipped wording. */
+    labels: DashboardLabels;
     slug: string;
     shortDescription: string;
     fullDescription: string;
@@ -296,7 +388,7 @@ export interface RegionPage {
      * On the record and served by the API since the schema was written;
      * nothing in the CMS could set one until now.
      */
-    extraFields: { label: string; value: string }[];
+    extraFields: CmsExtraField[];
     status: 'draft' | 'published';
     updatedAt: string | null;
     focusStates: FocusState[];
@@ -311,11 +403,22 @@ export interface RegionPage {
     /**
      * The tier below as DERIVED from the pages under this one.
      *
-     * Used only when `stateRegions` is empty, so a region nobody has filled
-     * in still shows its states rather than going blank the day this field
-     * was added.
+     * ADDED to `stateRegions`, never chosen between — see the note in
+     * `RegionPage.tsx`. It was read as a fallback for an empty
+     * `stateRegions`, which meant the first board typed onto a zone page
+     * took every real state page out of that zone.
      */
     statePanels: StatePanel[];
+    /**
+     * WHICH ORDER the tier below is drawn in, as an editor arranged it.
+     *
+     * Slugs on a zone page, region keys on the national one. A HINT over the
+     * list rather than the list: `statePanels` already comes back sorted by
+     * it, and this is served so the CMS can show the arrangement and change
+     * it. See the field's note on the schema for what happens to a name that
+     * no longer matches a page, and to a page the order has never heard of.
+     */
+    tierOrder: string[];
     /**
      * What the MAP is drawn from, when that is a different list.
      *
@@ -413,6 +516,8 @@ export interface RegionPanel {
 export interface StatePage {
     id: string;
     stateName: string;
+    /** See `DashboardLabels`. Blank fields fall back to the shipped wording. */
+    labels: DashboardLabels;
     slug: string;
     regionKey: string;
     regionName: string;
@@ -475,7 +580,7 @@ export interface StatePage {
      * On the record and served by the API since the schema was written;
      * nothing in the CMS could set one until now.
      */
-    extraFields: { label: string; value: string }[];
+    extraFields: CmsExtraField[];
     status: 'draft' | 'published';
     updatedAt: string | null;
     region: { key: string; slug: string; label: string } | null;
@@ -555,6 +660,21 @@ export interface GalleryPhoto {
  * `cacheKeysFor` is the one list of what a page write invalidates, so a new
  * read here cannot be given a key that nothing clears.
  */
+/**
+ * A zone's name as the site prints it: "South" -> "South Zone".
+ *
+ * The five divisions of the country are ZONES. "Region" is kept for divisions
+ * inside a state ("North Region — Tamil Nadu"), and the header menu that lists
+ * the zones is still called Regions. The map stores the short key-like label,
+ * so the word is added here, once. "National" is not a zone and is left alone,
+ * as is a label an editor already wrote with "Zone" or "Region" in it.
+ */
+export const zoneName = (label?: string | null, national = false) => {
+    const name = String(label || '').trim();
+    if (!name || national || /\b(zone|region)\b/i.test(name)) return name;
+    return `${name} Zone`;
+};
+
 export const getRegionMap = async (): Promise<RegionMapEntry[]> => cached(
     'regions:map',
     async () => {

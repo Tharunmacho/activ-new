@@ -74,7 +74,7 @@ function Fact({ icon: Icon, label, value }: {
             </span>
             <span className="min-w-0">
                 <span className={`${BIZ_DETAIL_LABEL} block`}>{label}</span>
-                <span className="mt-1 block text-[1.125rem] font-bold text-slate-900">{value}</span>
+                <span className="mt-1 block text-[1.1875rem] font-bold text-slate-900">{value}</span>
             </span>
         </div>
     );
@@ -182,7 +182,7 @@ export default function MembershipPlanDetails() {
                                     {plan?.name || planLabel(kind) || 'Membership'}
                                 </h2>
                                 {membershipType && (
-                                    <p className="mt-0.5 text-[1.125rem] font-semibold text-white/80">
+                                    <p className="mt-0.5 text-[1.1875rem] font-semibold text-white/80">
                                         {membershipType} term
                                     </p>
                                 )}
@@ -190,7 +190,7 @@ export default function MembershipPlanDetails() {
                         </div>
 
                         <span className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2
-                                          text-[1rem] font-extrabold uppercase tracking-[0.08em]
+                                          text-[1.0625rem] font-extrabold uppercase tracking-[0.08em]
                                           ${activeNow
                                 ? 'bg-emerald-400/20 text-emerald-50 ring-1 ring-emerald-200/40'
                                 : 'bg-amber-400/20 text-amber-50 ring-1 ring-amber-200/40'}`}>
@@ -231,7 +231,7 @@ export default function MembershipPlanDetails() {
                         */}
                         {priceFailed || !plan ? (
                             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-                                <p className="text-[1.125rem] font-bold text-amber-900">
+                                <p className="text-[1.1875rem] font-bold text-amber-900">
                                     The current rate could not be loaded
                                 </p>
                                 <p className="mt-1 text-[1.1875rem] font-semibold text-amber-800">
@@ -241,7 +241,7 @@ export default function MembershipPlanDetails() {
                                     type="button"
                                     onClick={() => { setLoading(true); setAttempt((n) => n + 1); }}
                                     className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-3
-                                               text-[1.125rem] font-bold text-white transition-colors
+                                               text-[1.1875rem] font-bold text-white transition-colors
                                                hover:bg-amber-700"
                                 >
                                     <RefreshCw className="h-5 w-5" /> Try again
@@ -257,7 +257,7 @@ export default function MembershipPlanDetails() {
                                             {rupees(plan.price)}
                                         </span>
                                         {membershipType && (
-                                            <span className="text-[1.125rem] font-bold text-slate-500">
+                                            <span className="text-[1.1875rem] font-bold text-slate-500">
                                                 per {membershipType.toLowerCase() === 'annual' ? 'year' : 'term'}
                                             </span>
                                         )}
@@ -308,7 +308,7 @@ export default function MembershipPlanDetails() {
                             {txnRef && (
                                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                                     <p className={BIZ_DETAIL_LABEL}>Transaction reference</p>
-                                    <p className="mt-1 break-all text-[1.125rem] font-bold tracking-wide tabular-nums text-slate-900">
+                                    <p className="mt-1 break-all text-[1.1875rem] font-bold tracking-wide tabular-nums text-slate-900">
                                         {txnRef}
                                     </p>
                                 </div>
@@ -318,7 +318,7 @@ export default function MembershipPlanDetails() {
                                 type="button"
                                 onClick={() => navigate('/member/payment-success?view=receipt')}
                                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl
-                                           bg-blue-600 px-5 py-3.5 text-[1.125rem] font-bold text-white
+                                           bg-blue-600 px-5 py-3.5 text-[1.1875rem] font-bold text-white
                                            transition-colors hover:bg-blue-700"
                             >
                                 <ReceiptText className="h-5 w-5" /> View payment receipt
@@ -352,7 +352,7 @@ export default function MembershipPlanDetails() {
                                     <Icon className="h-5 w-5" />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block text-[1.125rem] font-bold text-slate-900">{label}</span>
+                                    <span className="block text-[1.1875rem] font-bold text-slate-900">{label}</span>
                                     <span className="block text-[1.1875rem] font-semibold text-slate-500">
                                         View / download
                                     </span>
@@ -373,7 +373,7 @@ export default function MembershipPlanDetails() {
                                 <Sparkles className="h-6 w-6" />
                             </span>
                             <div>
-                                <p className="text-[1.5rem] font-extrabold tracking-tight text-slate-900">
+                                <p className="text-[1.5625rem] font-extrabold tracking-tight text-slate-900">
                                     {lifetime ? 'This membership does not expire' : 'Keep your membership active'}
                                 </p>
                                 <p className="text-[1.1875rem] font-semibold text-slate-500">
@@ -389,7 +389,7 @@ export default function MembershipPlanDetails() {
                         <Link
                             to="/member/help"
                             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white
-                                       px-6 py-3.5 text-[1.125rem] font-bold text-slate-700 transition-colors
+                                       px-6 py-3.5 text-[1.1875rem] font-bold text-slate-700 transition-colors
                                        hover:border-blue-300 hover:text-blue-700"
                         >
                             Ask about renewal <ArrowRight className="h-5 w-5" />

@@ -656,7 +656,7 @@ function Shell({ children }: { children: React.ReactNode }) {
  */
 function Heading({ heading }: { heading: string }) {
     return (
-        <h1 className="mb-7 text-2xl sm:text-[2.1875rem] font-black tracking-tight text-brand-800">
+        <h1 className="mb-7 text-[1.5625rem] sm:text-[2.1875rem] font-black tracking-tight text-brand-800">
             {heading}
         </h1>
     );

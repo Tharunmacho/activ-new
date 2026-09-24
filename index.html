@@ -10,18 +10,19 @@
     <link rel="apple-touch-icon" href="/logo_ACTIVian-removebg-preview.png" />
 
     <!--
-      One family, Inter, at the full weight range the design actually uses.
-
-      Inter was drawn for screen UI: it holds up at 13px in a card caption and
-      at 72px in the hero, and it carries `tnum` (tabular figures), so the
-      member counts, dates and district totals in the statistics rows line up in
-      a column instead of jittering as the numbers change.
+      One family, POPPINS, at the full weight range the design actually uses.
 
       The weight list is not decorative. The public pages use `font-black` and
       `font-extrabold` throughout; when only 400-700 were served the browser
       synthesised 800 and 900 by smearing the 700 outlines, which is what made
       the headings look soft and slightly blurred rather than heavy. 800 and 900
       are real cuts now.
+
+      NOTHING ELSE IS LOADED HERE, so a `fontFamily` naming a face that is not
+      in this link does not fall back to Poppins — it falls through to whatever
+      the generic keyword after it resolves to. One such declaration named
+      Caveat and painted a note on the gallery in Comic Sans for as long as it
+      stood. If a new face is genuinely wanted, it is added to THIS link first.
 
       POPPINS IS THE WHOLE PRODUCT — headings and body both. The association
       picked it on sight for its roundness and warmth, and asked for it
@@ -60,8 +61,29 @@
     -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      PLAYFAIR DISPLAY IS THE ONE EXCEPTION TO THE ONE-FAMILY RULE, and it is
+      scoped to a single element: the member's name on the membership
+      certificate (`font-certificate` in `tailwind.config`).
+
+      The association chose a certificate template whose whole character comes
+      from a high-contrast serif holding the holder's name, with everything
+      round it in a grotesque. That contrast is the design; setting the name in
+      Poppins like the rest of the product produces a competent certificate and
+      not that one.
+
+      It is loaded here and NOWHERE ELSE has access to it beyond that one
+      Tailwind key, because a second family available everywhere is a second
+      family that turns up everywhere. 700 only — a certificate name is one
+      weight.
+
+      The lesson from the gallery note applies: a `font-family` naming a face
+      this link does not request does not fall back to Poppins, it falls through
+      to whatever generic keyword follows it. Adding a face means adding it HERE
+      first.
+    -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700&display=swap"
       rel="stylesheet"
     />
   </head>

@@ -1,5 +1,8 @@
 import api, { unwrap } from './api';
 import { ENDPOINTS } from '@/config/api.config';
+/* Which checkout is live, and how to start a hosted one — one implementation,
+   shared with the membership flow so the two cannot disagree. */
+import { getPaymentConfig, startHostedBookingPayment } from './paymentApi';
 
 /**
  * "Book Now" — seats at an event, bought by a guest or by a signed-in member.
@@ -264,22 +267,45 @@ export const payEventBooking = async (input: {
     );
 
 /**
- * Book and pay, for a caller that just wants it done.
- *
- * Take the booking, authorise it, settle it. When a real gateway is connected
- * the middle step becomes its checkout and this helper is where that swap lands
- * — exactly as `payForMembership` is for memberships.
+ * ==========================================================================
+ * BOOK, THEN PAY — through the gateway, or through the stand-in
+ * ==========================================================================
  *
  * A FREE EVENT NEVER REACHES THE GATEWAY. `payment.status` comes back
  * `not_required` and the booking is already confirmed; running it through the
  * payment steps would ask the server to verify a signature over a zero-rupee
  * order that was never created.
+ *
+ * WHICH CHECKOUT IS THE SERVER'S ANSWER, not this file's. This used to call
+ * `authorizeEventBooking` unconditionally — the mock stand-in — so the moment
+ * `PAYMENT_MODE` was set to `gateway` every paid booking died on
+ * "Mock authorisation is disabled. Complete the payment through the gateway."
+ * with no gateway to go to. That is exactly what happened on the live site,
+ * and it is the same hole `payForMembership` had.
+ *
+ * The hosted path returns nothing, because it NAVIGATES AWAY: the member
+ * finishes on Instamojo's page, and the booking is confirmed by the webhook
+ * (`orderType: 'event_booking'` in `processPaymentWebhook`), never by this
+ * client. A caller must treat `null` as "we are leaving now".
  */
-export const bookAndPay = async (eventId: string, input: BookingRequest) => {
+export const bookAndPay = async (
+    eventId: string,
+    input: BookingRequest,
+): Promise<EventBooking | null> => {
     const booking = await createEventBooking(eventId, input);
     if (!booking?.bookingRef) throw new Error('The booking could not be started');
 
     if (booking.payment.status !== 'pending') return booking;
+
+    const config = await getPaymentConfig();
+
+    if (config.mode === 'gateway') {
+        const start = await startHostedBookingPayment(booking.bookingRef);
+        if (!start?.payment_url) throw new Error('The payment could not be started');
+        try { sessionStorage.setItem('activ:lastOrderId', start.orderId || ''); } catch { /* private mode */ }
+        window.location.replace(start.payment_url);
+        return null;
+    }
 
     const authorized = await authorizeEventBooking(booking.bookingRef);
     if (!authorized?.signature) throw new Error('The payment was not authorised');

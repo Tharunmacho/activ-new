@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown, Globe2, MapPin } from 'lucide-react';
 import { Reveal } from '@/components/shared/Reveal';
-import { getRegionMap, type RegionMapEntry } from '@/services/cmsRegionsApi';
-import { getSiteSettings, EMPTY_SITE, type SiteSettings } from '@/services/cmsApi';
+import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
+import { getRegionMap, zoneName, type RegionMapEntry } from '@/services/cmsRegionsApi';
+import { getSiteSettings, getContactInfo, EMPTY_SITE, type SiteSettings } from '@/services/cmsApi';
 
 /**
  * ============================================================================
@@ -50,7 +51,27 @@ import { getSiteSettings, EMPTY_SITE, type SiteSettings } from '@/services/cmsAp
  * asked for, and a band that says "could not load the regions" is an apology
  * for something the reader was not waiting on.
  */
-export function AcrossIndia() {
+/**
+ * `variant="contact"` is the Contact page's copy of this band.
+ *
+ * Same tiles, two differences. Its wording is the Contact screen's
+ * (`regionsBand`), not the site-wide one — "Across India / Find ACTIV where you
+ * are" describes the association, and a reader on the Contact page is looking
+ * for somebody to call. And every tile opens that page's GET IN TOUCH section
+ * (`#contact`) instead of the top of its leadership page, so choosing "Tamil
+ * Nadu" lands on Tamil Nadu's contacts rather than on its chairman's photograph
+ * with the phone numbers several screens further down.
+ */
+const CONTACT_DEFAULTS = {
+    eyebrow: 'Contacts across India',
+    heading: 'Reach ACTIV in your zone',
+    subtitle: 'Choose your zone or state to see who to contact there.',
+};
+
+export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contact' } = {}) {
+    const contact = variant === 'contact';
+    /* Where a tile goes: the page, or that page's contact section. */
+    const hash = contact ? '#contact' : '';
     const [regions, setRegions] = useState<RegionMapEntry[] | null>(null);
     const [openKey, setOpenKey] = useState('');
 
@@ -68,7 +89,9 @@ export function AcrossIndia() {
      * Header & Footer screen changes it everywhere, which is what an editor
      * changing site furniture means.
      */
-    const [band, setBand] = useState<SiteSettings['acrossIndia']>(EMPTY_SITE.acrossIndia);
+    const [band, setBand] = useState<SiteSettings['acrossIndia']>(
+        variant === 'contact' ? { ...EMPTY_SITE.acrossIndia, ...CONTACT_DEFAULTS } : EMPTY_SITE.acrossIndia,
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -81,11 +104,34 @@ export function AcrossIndia() {
         // request. A failure leaves the shipped wording rather than a band
         // of tiles with no heading.
         getSiteSettings()
-            .then((site) => { if (!cancelled && site?.acrossIndia) setBand(site.acrossIndia); })
+            .then((site) => {
+                if (cancelled || !site?.acrossIndia) return;
+                /* On the Contact page only the HIDDEN list comes from the site
+                   band — which regions exist is the same question everywhere.
+                   The wording is the Contact screen's, below. */
+                if (!contact) { setBand(site.acrossIndia); return; }
+                setBand((prev) => ({ ...prev, hidden: site.acrossIndia.hidden || [] }));
+            })
             .catch(() => { /* the shipped wording stands */ });
 
+        if (contact) {
+            getContactInfo()
+                .then((info) => {
+                    if (cancelled) return;
+                    const own = info?.regionsBand;
+                    setBand((prev) => ({
+                        ...prev,
+                        enabled: own?.enabled !== false,
+                        eyebrow: own?.eyebrow || CONTACT_DEFAULTS.eyebrow,
+                        heading: own?.heading || CONTACT_DEFAULTS.heading,
+                        subtitle: own?.subtitle || CONTACT_DEFAULTS.subtitle,
+                    }));
+                })
+                .catch(() => { /* the defaults below stand */ });
+        }
+
         return () => { cancelled = true; };
-    }, []);
+    }, [contact]);
 
     /*
      * Regions the editor left out of this BAND.
@@ -118,7 +164,10 @@ export function AcrossIndia() {
 
     return (
         <section className="w-full border-t border-gray-100 bg-gray-50/60 py-14 md:py-16">
-            <div className="mx-auto w-full max-w-[90rem] px-6 lg:px-10">
+            {/* On the Contact page, the Contact page's own column — the tiles
+                used to run ~70px past the form and the cards above them on
+                each side, because this band has its own wider width. */}
+            <div className={contact ? SCREEN_CONTAINER : 'mx-auto w-full max-w-[90rem] px-6 lg:px-10'}>
                 <Reveal as="header" className="mb-8 text-center">
                     {band?.eyebrow && (
                         <p className="text-[1.0625rem] font-bold uppercase tracking-[0.18em] text-brand-500">
@@ -140,7 +189,7 @@ export function AcrossIndia() {
                 </Reveal>
 
                 <Reveal>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                    <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${contact ? '2xl:grid-cols-6' : 'xl:grid-cols-6'}`}>
                         {/*
                           * THE COUNTRY FIRST, and drawn as the tier above rather
                           * than as a sixth region — solid where the others are
@@ -149,7 +198,7 @@ export function AcrossIndia() {
                           */}
                         {national && (
                             <Link
-                                to={`/regions/${national.slug}`}
+                                to={`/regions/${national.slug}${hash}`}
                                 className="group flex items-center gap-3 rounded-2xl bg-brand-900 px-5 py-4
                                            text-white transition-all duration-300 hover:-translate-y-1
                                            hover:shadow-[0_18px_40px_-20px_rgba(28,46,104,0.6)]
@@ -161,7 +210,7 @@ export function AcrossIndia() {
                                         {national.label}
                                     </span>
                                     <span className="block text-[1rem] text-white/60">
-                                        The whole country
+                                        {contact ? 'National office' : 'The whole country'}
                                     </span>
                                 </span>
                                 <ArrowRight
@@ -191,7 +240,7 @@ export function AcrossIndia() {
                                       */}
                                     {region.hasPage ? (
                                         <Link
-                                            to={`/regions/${region.slug}`}
+                                            to={`/regions/${region.slug}${hash}`}
                                             className="group min-w-0 flex-1"
                                         >
                                             <span className="flex items-center gap-2">
@@ -199,7 +248,7 @@ export function AcrossIndia() {
                                                 <span className="truncate text-[1.1875rem] font-extrabold
                                                                  text-brand-900 transition-colors
                                                                  group-hover:text-brand-600">
-                                                    {region.label}
+                                                    {zoneName(region.label)}
                                                 </span>
                                             </span>
                                             <span className="mt-0.5 block pl-[1.4rem] text-[1rem] text-gray-500">
@@ -212,7 +261,7 @@ export function AcrossIndia() {
                                                 <MapPin size={15} className="shrink-0 text-gray-300" />
                                                 <span className="truncate text-[1.1875rem] font-extrabold
                                                                  text-gray-400">
-                                                    {region.label}
+                                                    {zoneName(region.label)}
                                                 </span>
                                             </span>
                                             <span className="mt-0.5 block pl-[1.4rem] text-[1rem] text-gray-400">
@@ -226,7 +275,7 @@ export function AcrossIndia() {
                                         onClick={() => setOpenKey(isOpen ? '' : region.key)}
                                         disabled={!states.length}
                                         aria-expanded={isOpen}
-                                        aria-label={`${isOpen ? 'Hide' : 'Show'} the states of the ${region.label}`}
+                                        aria-label={`${isOpen ? 'Hide' : 'Show'} the states of the ${zoneName(region.label)}`}
                                         className="shrink-0 rounded-lg p-2 text-gray-400 transition-colors
                                                    hover:bg-brand-50 hover:text-brand-700
                                                    disabled:opacity-30 disabled:hover:bg-transparent"
@@ -253,13 +302,13 @@ export function AcrossIndia() {
                 {open && openStates.length > 0 && (
                     <div className="mt-4 rounded-2xl border border-brand-100 bg-white p-5">
                         <p className="mb-3 text-[1rem] font-bold uppercase tracking-[0.14em] text-brand-500">
-                            {open.label} · states
+                            {zoneName(open.label)} · states
                         </p>
                         <div className="flex flex-wrap gap-2">
                             {openStates.map((state) => (
                                 <Link
                                     key={state.slug}
-                                    to={`/states/${state.slug}`}
+                                    to={`/states/${state.slug}${hash}`}
                                     className="rounded-full border border-gray-200 px-4 py-2 text-[1.0625rem]
                                                font-semibold text-brand-700 transition-colors
                                                hover:border-brand-300 hover:bg-brand-50"

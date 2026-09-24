@@ -7,6 +7,11 @@ import { FooterSection } from '../../components/layout/FooterSection';
 import { AcrossIndia } from '@/components/shared/AcrossIndia';
 import { getHome, type CmsSectionOverride } from '@/services/cmsApi';
 import { sectionHidden } from '@/components/shared/cmsSections';
+import { SectionFields } from '@/components/shared/SectionFields';
+import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
+
+/** The home page's band copy, for the rows added to those bands. */
+const BAND_PROSE = 'text-[1.125rem] sm:text-[1.25rem] font-medium leading-relaxed text-gray-600';
 
 /**
  * The home page.
@@ -98,13 +103,30 @@ export default function Hero() {
             <AboutSection />
 
             {/* 3. Upcoming Events Section */}
-            {!sectionHidden(sections, 'home.eventsBand') && <EventsGrid showViewAll />}
+            {!sectionHidden(sections, 'home.eventsBand') && (
+                <>
+                    <EventsGrid showViewAll />
+                    {/* This band's own rows, inside the band. They were never
+                        drawn anywhere: the card offered the control and the
+                        page had nowhere to put the answer. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={sections} sectionKey="home.eventsBand" />
+                    </div>
+                </>
+            )}
 
             {/* 4. Footer */}
             {/* Above the footer, as on every other page — see `AcrossIndia`. On the
                 home page it is the last thing a reader passes, which is where
                 "where else can I go" is the useful question. */}
-            {!sectionHidden(sections, 'home.acrossIndia') && <AcrossIndia />}
+            {!sectionHidden(sections, 'home.acrossIndia') && (
+                <>
+                    <AcrossIndia />
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={sections} sectionKey="home.acrossIndia" />
+                    </div>
+                </>
+            )}
 
             <FooterSection />
         </div>

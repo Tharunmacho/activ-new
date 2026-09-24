@@ -160,7 +160,7 @@ export default function PaymentSuccess() {
                     </div>
 
                     <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5
-                                     text-[0.8125rem] font-extrabold tracking-wide mt-2"
+                                     text-[1.0625rem] font-extrabold tracking-wide mt-2"
                           style={{ backgroundColor: '#ECFDF5', color: '#059669' }}>
                         <BadgeCheck className="w-3.5 h-3.5" />
                         PAYMENT CONFIRMED
@@ -176,7 +176,7 @@ export default function PaymentSuccess() {
 
                     <div className="inline-block rounded-2xl px-6 py-3 mt-5"
                          style={{ backgroundColor: '#F8FAFC' }}>
-                        <p className="text-[0.75rem] font-bold uppercase tracking-[0.06em]"
+                        <p className="text-[1.0625rem] font-bold uppercase tracking-[0.06em]"
                            style={{ color: PALETTE.muted }}>
                             Total Paid
                         </p>
@@ -237,7 +237,7 @@ export default function PaymentSuccess() {
                     {/* ---- and the reference that proves it ---- */}
                     <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">
                         <p className={BIZ_DETAIL_LABEL}>Transaction reference</p>
-                        <p className="mt-1.5 break-all text-[1.125rem] font-bold tracking-wide tabular-nums text-slate-900">
+                        <p className="mt-1.5 break-all text-[1.1875rem] font-bold tracking-wide tabular-nums text-slate-900">
                             {txnRef}
                         </p>
                     </div>
@@ -248,7 +248,7 @@ export default function PaymentSuccess() {
                             type="button"
                             onClick={() => window.print()}
                             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5
-                                       text-[1.125rem] font-bold text-white transition-colors hover:bg-blue-700"
+                                       text-[1.1875rem] font-bold text-white transition-colors hover:bg-blue-700"
                         >
                             <Printer className="h-5 w-5" /> Print or save as PDF
                         </button>
@@ -256,7 +256,7 @@ export default function PaymentSuccess() {
                             type="button"
                             onClick={() => navigate('/member/plan')}
                             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white
-                                       px-6 py-3.5 text-[1.125rem] font-bold text-slate-700 transition-colors
+                                       px-6 py-3.5 text-[1.1875rem] font-bold text-slate-700 transition-colors
                                        hover:border-blue-300 hover:text-blue-700"
                         >
                             View plan details
@@ -311,7 +311,7 @@ export default function PaymentSuccess() {
                 <button
                     type="button"
                     onClick={() => navigate('/payment/member-dashboard')}
-                    className="w-full h-12 rounded-xl text-white font-bold text-[1.125rem] flex items-center
+                    className="w-full h-12 rounded-xl text-white font-bold text-[1.1875rem] flex items-center
                                justify-center gap-2 transition-opacity hover:opacity-90"
                     style={{ backgroundColor: PALETTE.primary }}
                 >
@@ -338,7 +338,7 @@ export default function PaymentSuccess() {
 const Metric = ({ label, value }: { label: string; value: string }) => (
     <div className="min-w-0">
         <p className={BIZ_DETAIL_LABEL}>{label}</p>
-        <p className={`${BIZ_DETAIL_VALUE} mt-1.5 break-words text-[1.125rem]`} title={value}>
+        <p className={`${BIZ_DETAIL_VALUE} mt-1.5 break-words text-[1.1875rem]`} title={value}>
             {value}
         </p>
     </div>
@@ -361,7 +361,7 @@ const DocCard = ({ Icon, tone, soft, title, subtitle, onClick }: {
               style={{ backgroundColor: soft, color: tone }}>
             <Icon className="h-7 w-7" />
         </span>
-        <p className="text-[1.125rem] font-bold text-slate-900">{title}</p>
+        <p className="text-[1.1875rem] font-bold text-slate-900">{title}</p>
         <p className="mt-1 text-[1.1875rem] font-semibold text-slate-500">{subtitle}</p>
     </button>
 );

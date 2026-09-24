@@ -170,7 +170,7 @@ export default function AuditLog() {
                                     {/* A super admin acting on a tier's behalf is worth
                                         marking: the decision was not the region's own. */}
                                     {e.proxy && (
-                                        <span className="inline-flex items-center gap-1 mt-1 text-[0.75rem]
+                                        <span className="inline-flex items-center gap-1 mt-1 text-[1.0625rem]
                                                          bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
                                             <ShieldAlert className="w-3 h-3" /> proxy
                                         </span>

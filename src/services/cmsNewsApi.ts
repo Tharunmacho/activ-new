@@ -1,5 +1,5 @@
 import api, { unwrap } from './api';
-import { cached, invalidateCmsCache, type CmsSectionOverride } from './cmsApi';
+import { cached, invalidateCmsCache, type CmsSectionOverride, type CmsExtraField } from './cmsApi';
 
 /**
  * ============================================================================
@@ -56,7 +56,7 @@ export interface NewsArticle {
      * it, and every reader has to cope with that rather than assume an
      * array is there.
      */
-    extraFields?: { label: string; value: string }[];
+    extraFields?: CmsExtraField[];
     status: string;
     sortOrder: number;
 }
@@ -84,7 +84,7 @@ export interface Scheme {
      * it, and every reader has to cope with that rather than assume an
      * array is there.
      */
-    extraFields?: { label: string; value: string }[];
+    extraFields?: CmsExtraField[];
     status: string;
     sortOrder: number;
 }

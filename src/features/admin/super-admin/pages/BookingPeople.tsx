@@ -145,7 +145,7 @@ export default function BookingPeople() {
                                         text-slate-900 truncate">
                             {row.name || <span className="text-slate-400 italic">No name given</span>}
                         </div>
-                        <div className="text-[1.125rem] text-slate-500 truncate mt-0.5">{row.email}</div>
+                        <div className="text-[1.1875rem] text-slate-500 truncate mt-0.5">{row.email}</div>
                     </div>
                 </div>
             ),

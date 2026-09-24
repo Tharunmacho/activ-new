@@ -5,14 +5,47 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, CreditCard, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { payForMembership } from '@/services/paymentApi';
+import {
+  payForMembership, getPaymentConfig, startHostedMembershipPayment,
+  type PaymentConfig,
+} from '@/services/paymentApi';
 import MemberPageShell from '../member/MemberPageShell';
 
 export default function PaymentGateway() {
   const navigate = useNavigate();
   const location = useLocation();
   const paymentDetails = location.state;
-  
+
+  /*
+   * ======================================================================
+   * WHICH CHECKOUT, ASKED OF THE SERVER
+   * ======================================================================
+   *
+   * `null` until the answer arrives, and the Pay button waits for it. A
+   * default of "mock" would have this screen run the simulated flow for the
+   * fraction of a second before the real answer lands — and a member who
+   * clicked in that window would get a 403 from `/mock-authorize` with no
+   * payment and no explanation.
+   *
+   * With a hosted gateway the card, UPI and net-banking fields below are not
+   * drawn at all. They belong to Instamojo's page, and collecting a card
+   * number on a site that does not process one is both useless and the exact
+   * shape of a phishing form.
+   */
+  const [payConfig, setPayConfig] = useState<PaymentConfig | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPaymentConfig()
+      .then((cfg) => { if (!cancelled) setPayConfig(cfg); })
+      /* A failed read leaves it null, which keeps the button disabled rather
+         than guessing a flow and failing after the member has committed. */
+      .catch(() => { if (!cancelled) setPayConfig(null); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const hosted = payConfig?.mode === 'gateway';
+
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'netbanking'>('card');
   
@@ -38,6 +71,55 @@ export default function PaymentGateway() {
   }, [paymentDetails, navigate]);
 
   const handlePayment = async () => {
+    if (!paymentDetails?.planId) {
+      toast.error('Choose a plan first');
+      navigate('/payment/membership-plans', { replace: true });
+      return;
+    }
+
+    /*
+     * ==================================================================
+     * HOSTED GATEWAY: LEAVE THE SITE. Nothing is validated here.
+     * ==================================================================
+     *
+     * The card, UPI and bank fields below are not drawn in this mode, so
+     * there is nothing of the member's to check — Instamojo collects and
+     * validates all of it on its own page, which is the only place on this
+     * flow that is allowed to see a card number.
+     *
+     * `processing` is never cleared on the success path, deliberately: the
+     * browser is navigating away, and re-enabling the button would offer a
+     * second click that starts a SECOND payment request while the first is
+     * still loading.
+     */
+    if (hosted) {
+      setProcessing(true);
+      try {
+        const start = await startHostedMembershipPayment(
+          paymentDetails.planId,
+          paymentDetails.applicationId,
+        );
+        if (!start?.payment_url) throw new Error('The payment could not be started');
+        /* A fallback for the return page. The order id is also carried in
+           `redirect_url` by the server, which is the reliable copy; this
+           covers a redirect that arrives without the query string. */
+        try { sessionStorage.setItem('activ:lastOrderId', start.orderId || ''); } catch { /* private mode */ }
+        /* `replace`, not `assign`: Back from Instamojo's page should return
+           to the plans, not to a checkout that immediately redirects out
+           again and traps the member in a loop. */
+        window.location.replace(start.payment_url);
+        return;
+      } catch (error: unknown) {
+        console.error('Payment error:', error);
+        /* The server names the field Instamojo rejected — "phone: Enter a
+           valid phone number" — so that sentence is worth showing. */
+        const message = error instanceof Error ? error.message : '';
+        toast.error(message || 'Payment failed. Please try again.');
+        setProcessing(false);
+        return;
+      }
+    }
+
     // Validation
     if (paymentMethod === 'card') {
       if (!cardNumber || !cardName || !expiryDate || !cvv) {
@@ -164,7 +246,7 @@ export default function PaymentGateway() {
               <Lock className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Payment Gateway</h1>
+          <h1 className="text-[2.1875rem] font-bold mb-2">Payment Gateway</h1>
           <p className="text-slate-500">Choose your preferred payment method</p>
         </div>
 
@@ -174,20 +256,35 @@ export default function PaymentGateway() {
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-slate-600 mb-1">Total Amount to Pay</p>
-                <p className="text-3xl font-bold text-blue-600">₹{paymentDetails.totalAmount}</p>
+                <p className="text-[2.1875rem] font-bold text-blue-600">₹{paymentDetails.totalAmount}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-slate-600">{paymentDetails.planType === 'annual' ? 'Annual' : 'Lifetime'} Membership</p>
-                <p className="text-sm text-slate-600">₹{paymentDetails.planAmount}</p>
+                <p className="text-[1.0625rem] text-slate-600">{paymentDetails.planType === 'annual' ? 'Annual' : 'Lifetime'} Membership</p>
+                <p className="text-[1.0625rem] text-slate-600">₹{paymentDetails.planAmount}</p>
                 {paymentDetails.supportAmount > 0 && (
-                  <p className="text-sm text-slate-600">+ Support: ₹{paymentDetails.supportAmount}</p>
+                  <p className="text-[1.0625rem] text-slate-600">+ Support: ₹{paymentDetails.supportAmount}</p>
                 )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Payment Method Selection */}
+        {/*
+          * ================================================================
+          * THE CARD FORM IS NOT DRAWN WHEN A HOSTED GATEWAY IS LIVE
+          * ================================================================
+          *
+          * Instamojo collects the card, the UPI id and the bank on its own
+          * page. Asking for a card number here would be asking for one this
+          * site never sends anywhere — useless at best, and at worst a form
+          * that looks exactly like the thing members are told to watch for.
+          *
+          * While the config is still loading (`payConfig === null`) nothing
+          * is drawn either, because drawing the form and then removing it is
+          * how a member ends up half-way through typing a card number.
+          */}
+        {payConfig?.mode === 'mock' && (
+        <>
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Select Payment Method</CardTitle>
@@ -200,7 +297,7 @@ export default function PaymentGateway() {
                 onClick={() => setPaymentMethod('card')}
               >
                 <CreditCard className="w-6 h-6 mb-1" />
-                <span className="text-sm">Card</span>
+                <span className="text-[1.0625rem]">Card</span>
               </Button>
               <Button
                 variant={paymentMethod === 'upi' ? 'default' : 'outline'}
@@ -210,7 +307,7 @@ export default function PaymentGateway() {
                 <svg className="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
                 </svg>
-                <span className="text-sm">UPI</span>
+                <span className="text-[1.0625rem]">UPI</span>
               </Button>
               <Button
                 variant={paymentMethod === 'netbanking' ? 'default' : 'outline'}
@@ -220,7 +317,7 @@ export default function PaymentGateway() {
                 <svg className="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
                 </svg>
-                <span className="text-sm">Net Banking</span>
+                <span className="text-[1.0625rem]">Net Banking</span>
               </Button>
             </div>
 
@@ -228,7 +325,7 @@ export default function PaymentGateway() {
             {paymentMethod === 'card' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
                     Card Number
                   </label>
                   <Input
@@ -237,11 +334,11 @@ export default function PaymentGateway() {
                     value={cardNumber}
                     onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                     maxLength={19}
-                    className="text-lg"
+                    className="text-[1.1875rem]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
                     Cardholder Name
                   </label>
                   <Input
@@ -253,7 +350,7 @@ export default function PaymentGateway() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
                       Expiry Date
                     </label>
                     <Input
@@ -265,7 +362,7 @@ export default function PaymentGateway() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
                       CVV
                     </label>
                     <Input
@@ -284,7 +381,7 @@ export default function PaymentGateway() {
             {paymentMethod === 'upi' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
                     UPI ID
                   </label>
                   <Input
@@ -297,7 +394,7 @@ export default function PaymentGateway() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-900">
+                    <p className="text-[1.0625rem] text-blue-900">
                       You will receive a payment request on your UPI app. 
                       Please approve it to complete the payment.
                     </p>
@@ -310,7 +407,7 @@ export default function PaymentGateway() {
             {paymentMethod === 'netbanking' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
                     Select Your Bank
                   </label>
                   <select
@@ -329,7 +426,7 @@ export default function PaymentGateway() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-900">
+                    <p className="text-[1.0625rem] text-blue-900">
                       You will be redirected to your bank's secure login page to complete the payment.
                     </p>
                   </div>
@@ -346,33 +443,67 @@ export default function PaymentGateway() {
               <Lock className="w-6 h-6 text-green-600" />
               <div>
                 <p className="font-semibold text-green-900">Secure Payment</p>
-                <p className="text-sm text-green-700">
+                <p className="text-[1.0625rem] text-green-700">
                   Your payment information is encrypted and secure. We never store your card details.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
+        </>
+        )}
+
+        {/* Where the money actually goes, said before they commit. */}
+        {hosted && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>How you will pay</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" />
+                <div className="text-[1.0625rem] leading-relaxed text-blue-900">
+                  <p className="font-semibold">
+                    You will be taken to Instamojo to pay.
+                  </p>
+                  <p className="mt-1">
+                    Card, UPI and net banking are all offered there. ACTIV never
+                    sees or stores your card details. Your membership is
+                    activated once Instamojo confirms the payment to us — come
+                    back to this site and it will be waiting.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
             variant="outline"
-            className="flex-1 py-6 text-lg"
+            className="flex-1 py-6 text-[1.1875rem]"
             onClick={() => navigate('/payment/membership-plans')}
             disabled={processing}
           >
             Cancel
           </Button>
           <Button
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-6 text-lg"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-6 text-[1.1875rem]"
             onClick={handlePayment}
-            disabled={processing}
+            /* Disabled until the server has said which checkout is live —
+               see `payConfig`. A click before then has no flow to run. */
+            disabled={processing || !payConfig}
           >
-            {processing ? (
+            {!payConfig ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                Processing Payment...
+                Preparing…
+              </>
+            ) : processing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                {hosted ? 'Taking you to Instamojo…' : 'Processing Payment…'}
               </>
             ) : (
               <>

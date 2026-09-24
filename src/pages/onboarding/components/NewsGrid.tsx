@@ -42,16 +42,20 @@ const dateOf = (article: NewsArticle) => {
 };
 
 /**
- * Where a card goes, and whether it leaves the site.
+ * Where a card goes, and whether it leaves the site. One decision, taken once.
  *
- * One decision, taken once, so a card and its keyboard behaviour cannot
- * disagree about it.
+ * A story the editor WROTE UP — a summary or a body — opens its page here,
+ * even when it came from a newspaper: that page carries the editor's account
+ * and a "Read the full story" button to the original. Only a bare link, with
+ * nothing written about it, goes straight to the other site; an article page
+ * with nothing on it but a button is a click wasted.
  */
-const destinationOf = (article: NewsArticle) => (
-    article.externalUrl
+const destinationOf = (article: NewsArticle) => {
+    const written = !!(String(article.summary || '').trim() || String(article.body || '').trim());
+    return article.externalUrl && !written
         ? { external: true as const, href: article.externalUrl }
-        : { external: false as const, href: `/news/${article.slug}` }
-);
+        : { external: false as const, href: `/news/${article.slug}` };
+};
 
 function CardShell({ article, className = '', children }: {
     article: NewsArticle;
@@ -144,10 +148,12 @@ function Meta({ article }: { article: NewsArticle }) {
                     {article.location}
                 </span>
             )}
-            {to.external && (
+            {/* The source, on every card that has one — "via The Hindu" —
+                so a reader knows whose reporting this is before clicking. */}
+            {article.externalUrl && (
                 <span className="inline-flex items-center gap-1 font-semibold text-brand-600">
-                    {article.sourceName || 'Read at source'}
-                    <ArrowUpRight size={14} className="shrink-0" />
+                    {to.external ? (article.sourceName || 'Read at source') : `via ${article.sourceName || 'the original source'}`}
+                    {to.external && <ArrowUpRight size={14} className="shrink-0" />}
                 </span>
             )}
         </div>

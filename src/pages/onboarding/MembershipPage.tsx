@@ -7,14 +7,14 @@ import { HeaderSection } from '../../components/layout/HeaderSection';
 import { FooterSection } from '../../components/layout/FooterSection';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import {
-    SECTION_HEADING, SECTION_LEDE, EYEBROW, MICRO_LABEL, HERO_HEADING, HERO_LEDE,
-} from '@/components/layout/typography';
+    SECTION_HEADING, SECTION_LEDE, EYEBROW, MICRO_LABEL, HERO_HEADING, HERO_LEDE, BAND_MEASURE } from '@/components/layout/typography';
 import { BIZ_CARD } from '@/components/layout/surface';
 import { Reveal } from '@/components/shared/Reveal';
 import { AcrossIndia } from '@/components/shared/AcrossIndia';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
-import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
+import { sectionHidden } from '@/components/shared/cmsSections';
+import { SectionFields } from '@/components/shared/SectionFields';
 import {
     getMembership, EMPTY_MEMBERSHIP,
     type MembershipContent, type MembershipAdvantage, type MembershipStep,
@@ -242,6 +242,16 @@ const CARD_TEXT = 'text-[1.3125rem] xl:text-[1.1875rem] leading-relaxed font-med
 /** `BusinessUI.Field`'s label — the line that introduces a list. */
 const CARD_LEAD = 'text-[1.3125rem] xl:text-[1.1875rem] font-bold text-slate-800';
 
+/**
+ * What a band's own added fields are set in.
+ *
+ * The second and later paragraphs of the opening column, which is the page's
+ * ordinary body copy — not the first, which is a lead-in set larger. A field
+ * an editor adds is a continuation of the band's prose, so it reads at the
+ * size that prose reads at rather than at the browser's default.
+ */
+const BAND_PROSE = 'text-[1.3125rem] md:text-[1.5625rem] font-bold leading-relaxed tracking-tight text-slate-700';
+
 /** A card's sub-heading — the document's own line under each title. */
 const CARD_SUB = 'text-[1.1875rem] font-bold leading-snug text-brand-600';
 
@@ -290,7 +300,7 @@ function SectionHead({
             )}
             <h2 className={`${SECTION_HEADING} ${dark ? 'text-white' : 'text-brand-800'}`}>{heading}</h2>
             {subtitle && (
-                <p className={`${SECTION_LEDE} mt-4 max-w-3xl ${dark ? 'text-white/70' : 'text-brand-600'}`}>
+                <p className={`${SECTION_LEDE} mt-4 ${BAND_MEASURE} ${dark ? 'text-white/70' : 'text-brand-600'}`}>
                     {subtitle}
                 </p>
             )}
@@ -486,14 +496,6 @@ export default function MembershipPage() {
      * the page, not that it renders empty with its heading still on it.
      */
     const show = (key: string) => !sectionHidden(copy.sections, key);
-    const rowsOf = (key: string) => (show(key) ? sectionFields(copy.sections, key) : []);
-
-    const ownRows = [
-        ...rowsOf('membership.opening'), ...rowsOf('membership.why'),
-        ...rowsOf('membership.advantages'), ...rowsOf('membership.journey'),
-        ...rowsOf('membership.who'), ...rowsOf('membership.matters'),
-        ...rowsOf('membership.closing'), ...(copy.extraFields || []),
-    ];
 
     /** Which advantages are open, by slug. Shut is the default for all fifteen. */
     const [opened, setOpened] = useState<Record<string, boolean>>({});
@@ -583,7 +585,7 @@ export default function MembershipPage() {
                     </div>
 
                     <div className={`${SCREEN_CONTAINER} relative z-10 pt-16 pb-16 md:pt-20 md:pb-20`}>
-                        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.1fr_0.9fr]">
+                        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
 
                             {/* ---------------------------------------- copy */}
                             <Reveal variant="left" className="min-w-0">
@@ -732,6 +734,13 @@ export default function MembershipPage() {
                             </div>
                         </Reveal>
                     </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.opening" />
+                    </div>
                 </section>
                 )}
 
@@ -802,6 +811,13 @@ export default function MembershipPage() {
                                 </div>
                             </Reveal>
                         </div>
+                    </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.why" />
                     </div>
                 </section>
                 )}
@@ -905,6 +921,13 @@ export default function MembershipPage() {
                             ))}
                         </div>
                     </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.advantages" />
+                    </div>
                 </section>
                 )}
 
@@ -954,6 +977,13 @@ export default function MembershipPage() {
                             })}
                         </div>
                     </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.journey" />
+                    </div>
                 </section>
                 )}
 
@@ -986,6 +1016,13 @@ export default function MembershipPage() {
                                 </span>
                             ))}
                         </Reveal>
+                    </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.who" />
                     </div>
                 </section>
                 )}
@@ -1020,6 +1057,13 @@ export default function MembershipPage() {
                                 );
                             })}
                         </div>
+                    </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.matters" />
                     </div>
                 </section>
                 )}
@@ -1127,13 +1171,29 @@ export default function MembershipPage() {
                             </Reveal>
                         </div>
                     </div>
+
+                    {/* This card's own fields, inside this card — see
+                        `SectionFields`. They used to be pooled with every
+                        other band's and printed at the foot of the page. */}
+                    <div className={SCREEN_CONTAINER}>
+                        <SectionFields proseClass={BAND_PROSE} sections={copy.sections} sectionKey="membership.closing" />
+                    </div>
                 </section>
                 )}
 
-                {/* The editor's own rows, per band, then the page's own list. */}
-                {ownRows.length > 0 && (
-                    <div className={`${SCREEN_CONTAINER} py-12`}>
-                        <CmsExtraFields fields={ownRows} />
+                {/*
+                  * THE PAGE'S OWN FIELDS — and only the page's.
+                  *
+                  * Every band's rows were pooled into this one list and printed
+                  * here, so a field added to "Why join" appeared at the foot of
+                  * the page in the page's type rather than inside that card in
+                  * the card's. Each band draws its own now; what is left here is
+                  * the list attached to the PAGE, which has always belonged at
+                  * the end of it.
+                  */}
+                {(copy.extraFields || []).length > 0 && (
+                    <div className={`${SCREEN_CONTAINER} py-12 ${BAND_PROSE}`}>
+                        <CmsExtraFields fields={copy.extraFields} />
                     </div>
                 )}
             </main>

@@ -50,8 +50,19 @@
  * headings: at 60px a geometric face needs noticeably more negative tracking
  * than it does at 24px, and a single global value cannot be right at both ends.
  */
+/*
+ * FLUID, for the reason `HERO_HEADING` is — see the note there.
+ *
+ * Four fixed steps each chosen against a heading of a particular length, so a
+ * longer one ran to more lines and pushed the band below it down. `clamp` is
+ * one continuous curve from 35px to 60px against the viewport, meeting the
+ * screen it is on rather than the nearest breakpoint.
+ *
+ * Floor and ceiling are the old mobile and `lg` sizes, so nothing on the site
+ * gets smaller or larger than it was — only the steps between are smoothed.
+ */
 export const SECTION_HEADING =
-    'text-[2.1875rem] sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.08] md:leading-[1.05] tracking-tight';
+    'text-[clamp(2.1875rem,1.35rem+3.7vw,3.75rem)] font-black leading-[1.08] md:leading-[1.05] tracking-tight';
 
 /**
  * The hero `<h1>`. One step above a section heading, and the only 7xl on the site.
@@ -61,12 +72,49 @@ export const SECTION_HEADING =
  * below the hero's own bottom edge and straight under the statistics card —
  * the primary call to action on the site was covered up on every phone.
  */
+/*
+ * FLUID, not four fixed steps.
+ *
+ * The four breakpoints jumped between sizes and each one was chosen against a
+ * headline of a particular length, so a longer one simply ran to more lines
+ * and pushed everything under it down — which is what put a banner's added
+ * fields under the statistics card. `clamp` gives one continuous curve from
+ * 34px to 72px against the viewport, so the headline meets the screen it is on
+ * rather than the nearest breakpoint, and the band around it is free to grow
+ * for whatever is left.
+ *
+ * The floor is the old mobile size and the ceiling the old `lg` size, so
+ * nothing gets smaller or larger than it was — only the steps between are
+ * smoothed.
+ */
 export const HERO_HEADING =
-    'text-[2.125rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.06] md:leading-[1.02] tracking-tight';
+    'text-[clamp(2.125rem,1.1rem+4.6vw,4.5rem)] font-black leading-[1.06] md:leading-[1.02] tracking-tight';
 
 /** The paragraph directly under a heading. */
 export const SECTION_LEDE =
     'text-[1.3125rem] md:text-[1.75rem] leading-relaxed font-semibold';
+
+/**
+ * ============================================================================
+ * A BAND'S MEASURE OPENS WITH THE DISPLAY
+ * ============================================================================
+ *
+ * Every hero on the site capped its words at `max-w-xl` or `max-w-2xl` — 576
+ * or 672px — inside a column that is 1676px wide at 1900. So two thirds of
+ * the room sat empty while the copy wrapped early, and the moment an editor
+ * added anything the band either grew or ran its words under whatever sat
+ * below it. That is what "the page does not adapt" means in practice: there
+ * was room, and nothing used it.
+ *
+ * One constant rather than a number retyped in seven files, so the bands stay
+ * in step and a change is made once.
+ *
+ * Capped rather than full width. 1024px of 20px type is about 110 characters a
+ * line, which is already past comfortable; and on a hero the words sit on a
+ * photograph whose gradient fades out around 60%, so white type beyond that is
+ * unreadable whatever its size.
+ */
+export const BAND_MEASURE = 'max-w-2xl lg:max-w-3xl xl:max-w-4xl';
 
 /** The hero's lede, one step larger because it sits on a photograph. */
 export const HERO_LEDE =

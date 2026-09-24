@@ -389,7 +389,7 @@ export default function SuperAdminUpdates() {
                             {/* ---- who it reaches ---- */}
                             <div className="border-t border-slate-100 pt-5">
                                 <h3 className={`${CARD_TITLE} text-slate-900`}>Who it reaches</h3>
-                                <p className="text-[0.9375rem] text-slate-500 mt-0.5 mb-4">
+                                <p className="text-[1.0625rem] text-slate-500 mt-0.5 mb-4">
                                     Leave a region blank to reach everyone below that level. A block-level
                                     update goes only to that block.
                                 </p>
@@ -542,10 +542,10 @@ export default function SuperAdminUpdates() {
                                 <table className="w-full text-[1.25rem]">
                                     <thead>
                                         <tr className="text-left text-slate-500 border-b border-slate-200">
-                                            <th className="pb-3 pr-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Headline</th>
-                                            <th className="pb-3 pr-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Reaches</th>
-                                            <th className="pb-3 pr-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Published</th>
-                                            <th className="pb-3 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-right">Actions</th>
+                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Headline</th>
+                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Reaches</th>
+                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Published</th>
+                                            <th className="pb-3 text-[1.0625rem] font-semibold uppercase tracking-wider text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -555,7 +555,7 @@ export default function SuperAdminUpdates() {
                                                     <span className="font-medium text-slate-800">{row.title}</span>
                                                     {row.pinned ? (
                                                         <span className="ml-2 inline-flex items-center gap-1
-                                                                         text-[0.75rem] font-bold uppercase
+                                                                         text-[1.0625rem] font-bold uppercase
                                                                          text-blue-700 align-middle">
                                                             <Pin className="w-3 h-3" /> Pinned
                                                         </span>
@@ -641,9 +641,9 @@ function Field({
 }: { label: string; hint?: string; children: React.ReactNode }) {
     return (
         <label className="block min-w-0">
-            <span className="block text-[0.9375rem] font-semibold text-slate-700 mb-1">{label}</span>
+            <span className="block text-[1.0625rem] font-semibold text-slate-700 mb-1">{label}</span>
             {children}
-            {hint ? <span className="block text-[0.875rem] text-slate-400 mt-1">{hint}</span> : null}
+            {hint ? <span className="block text-[1.0625rem] text-slate-400 mt-1">{hint}</span> : null}
         </label>
     );
 }

@@ -72,6 +72,8 @@ const MemberRegister = () => {
     districtName?: string;
     block?: string;
     city?: string;
+    /** Members outside India: where they are, in place of the region. */
+    place?: string;
   };
 
   const {
@@ -107,6 +109,19 @@ const MemberRegister = () => {
   const whatsappDialHint = countryByIso2(phoneCountry)?.dial || '91';
 
   /*
+   * A MEMBER OUTSIDE INDIA — any phone country but India.
+   *
+   * They are not asked for a state, district or block: those are India's
+   * region tree, and a member in Dubai picking a Tamil Nadu block would land
+   * in a queue that is not theirs. They give the place they are in instead,
+   * which their certificate and dashboard print. The server makes the same
+   * decision from the stored number (`internationalFromPhone`), so this only
+   * decides what the form ASKS; it cannot opt anybody out of the region rules.
+   */
+  const isAbroad = phoneCountry !== DEFAULT_COUNTRY;
+  const abroadCountry = countryByIso2(phoneCountry)?.name || '';
+
+  /*
    * Keep the mirrored field in step while the box is ticked.
    *
    * Without this, ticking the box copies the number ONCE and then goes stale
@@ -126,7 +141,7 @@ const MemberRegister = () => {
   }, [sameWhatsapp, mobileValue, phoneCountry, setValueStep1]);
   const { register: registerStep2, handleSubmit: handleSubmitStep2, control: controlStep2, watch: watchStep2, setValue: setValueStep2, formState: { errors: errorsStep2 } } = useForm<Step2Form>({
     mode: 'onSubmit',
-    defaultValues: { stateName: '', districtName: '', block: '', city: '' },
+    defaultValues: { stateName: '', districtName: '', block: '', city: '', place: '' },
   });
 
   // Watch for state and district changes
@@ -265,11 +280,17 @@ const MemberRegister = () => {
         whatsappNumber: partialData.whatsapp || partialData.mobile || '',
         password: partialData.password,
         confirmPassword: partialData.confirmPassword || partialData.password,
-        state: data.stateName || '',
-        district: data.districtName || '',
-        block: data.block || '',
-        city: data.city || ''
+        state: isAbroad ? '' : (data.stateName || ''),
+        district: isAbroad ? '' : (data.districtName || ''),
+        block: isAbroad ? '' : (data.block || ''),
+        city: isAbroad ? (data.place || '').trim() : (data.city || ''),
+        place: isAbroad ? (data.place || '').trim() : '',
       };
+
+      if (isAbroad && !registrationData.place) {
+        toast.error('Please enter the place you are in — your city and country.');
+        return;
+      }
 
 
       toast.loading('Registering your account...');
@@ -291,10 +312,12 @@ const MemberRegister = () => {
           phone: partialData.mobile || '',
           mobile: partialData.mobile || '',
           whatsapp: partialData.whatsapp || partialData.mobile || '',
-          state: data.stateName || '',
-          district: data.districtName || '',
-          block: data.block || '',
-          city: data.city || '',
+          state: registrationData.state,
+          district: registrationData.district,
+          block: registrationData.block,
+          city: registrationData.city,
+          place: registrationData.place,
+          isInternational: isAbroad,
           memberId: response.data.user.id,
         };
 
@@ -354,10 +377,10 @@ const MemberRegister = () => {
       <div className="mb-5 flex items-start gap-2">
         <UserPlus className="mt-1 h-5 w-5 shrink-0 text-blue-600" />
         <div className="min-w-0">
-          <h2 className="text-[1.5rem] font-bold tracking-tight text-slate-900">
+          <h2 className="text-[1.5625rem] font-bold tracking-tight text-slate-900">
             {step === 1 ? 'Account credentials' : 'Profile details'}
           </h2>
-          <p className="mt-1 text-[1.125rem] text-slate-500">
+          <p className="mt-1 text-[1.1875rem] text-slate-500">
             {step === 1
               ? 'Required — this is what you will sign in with.'
               : 'Optional — you can finish this later from your dashboard.'}
@@ -451,7 +474,7 @@ const MemberRegister = () => {
                       disabled={sameWhatsapp}
                       {...registerStep1('whatsapp')}
                     />
-                    <label className="mt-2.5 flex items-center gap-2.5 text-[1.125rem] font-normal text-slate-600 cursor-pointer">
+                    <label className="mt-2.5 flex items-center gap-2.5 text-[1.1875rem] font-normal text-slate-600 cursor-pointer">
                       <input
                         type="checkbox"
                         className="h-4 w-4 rounded border-slate-300 accent-blue-600"
@@ -468,7 +491,7 @@ const MemberRegister = () => {
                       />
                       Same as my phone number
                     </label>
-                    <p className="mt-2 text-[1.125rem] text-slate-500">
+                    <p className="mt-2 text-[1.1875rem] text-slate-500">
                       Application updates are sent here on WhatsApp.
                     </p>
                   </div>
@@ -493,7 +516,7 @@ const MemberRegister = () => {
                         pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' }
                       })}
                     />
-                    {errorsStep1.email && <p className="text-[1.125rem] font-medium text-red-600 mt-1.5">{errorsStep1.email.message}</p>}
+                    {errorsStep1.email && <p className="text-[1.1875rem] font-medium text-red-600 mt-1.5">{errorsStep1.email.message}</p>}
                   </div>
 
                   <div>
@@ -511,7 +534,7 @@ const MemberRegister = () => {
                         minLength: { value: 6, message: 'At least 6 characters' },
                       })}
                     />
-                    {errorsStep1.password && <p className="text-[1.125rem] font-medium text-red-600 mt-1.5">{errorsStep1.password.message}</p>}
+                    {errorsStep1.password && <p className="text-[1.1875rem] font-medium text-red-600 mt-1.5">{errorsStep1.password.message}</p>}
                   </div>
 
                   <div>
@@ -538,6 +561,30 @@ const MemberRegister = () => {
                 </form>
               ) : (
                 <form onSubmit={handleSubmitStep2(handleStep2Submit)} className="space-y-5">
+                  {isAbroad ? (
+                    <>
+                      {/* Outside India: no region, the place they are in instead. */}
+                      <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-[1.125rem] leading-relaxed text-blue-900">
+                        You are registering from <span className="font-bold">{abroadCountry || 'outside India'}</span>.
+                        State, district and block are not needed — your application goes straight to the
+                        ACTIV head office for approval.
+                      </div>
+                      <div>
+                        <Label htmlFor="place" className={LABEL}>Place *</Label>
+                        <Input
+                          id="place"
+                          placeholder={abroadCountry ? `Your city, ${abroadCountry}` : 'Your city and country'}
+                          className={FIELD}
+                          autoComplete="address-level2"
+                          {...registerStep2('place')}
+                        />
+                        <p className="mt-1.5 text-[1rem] text-slate-500">
+                          Shown on your membership certificate and your dashboard.
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
                   <div>
                     <Label htmlFor="state" className={LABEL}>State</Label>
                     <Controller
@@ -618,6 +665,9 @@ const MemberRegister = () => {
                     />
                   </div>
 
+                    </>
+                  )}
+
                   <div className="space-y-3">
                     <div className="flex gap-3">
                       <Button
@@ -633,14 +683,16 @@ const MemberRegister = () => {
                         Complete Registration
                       </Button>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className={`w-full ${BUTTON} font-semibold text-slate-500 hover:text-slate-900`}
-                      onClick={() => handleStep2Submit({ stateName: '', districtName: '', block: '', city: '' })}
-                    >
-                      Skip & Go to Dashboard
-                    </Button>
+                    {!isAbroad && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className={`w-full ${BUTTON} font-semibold text-slate-500 hover:text-slate-900`}
+                        onClick={() => handleStep2Submit({ stateName: '', districtName: '', block: '', city: '' })}
+                      >
+                        Skip & Go to Dashboard
+                      </Button>
+                    )}
                   </div>
 
                   <p className="text-center text-[1.1875rem] text-slate-500">

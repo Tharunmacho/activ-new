@@ -171,7 +171,7 @@ export default function DirectoryProfile() {
                         <button
                             type="button"
                             onClick={() => navigate('/member/directory')}
-                            className="text-[1rem] font-semibold text-blue-600 hover:underline"
+                            className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
                         >
                             Back to the directory
                         </button>
@@ -201,7 +201,7 @@ export default function DirectoryProfile() {
                 <button
                     type="button"
                     onClick={() => navigate('/member/directory')}
-                    className="text-[1rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="text-[1.0625rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                     All members
                 </button>
@@ -305,7 +305,7 @@ export default function DirectoryProfile() {
                           */}
                         <div className="mt-5">
                             {isSelf ? (
-                                <p className="text-[1rem] font-semibold text-slate-500">
+                                <p className="text-[1.0625rem] font-semibold text-slate-500">
                                     This is how other members see your profile.
                                 </p>
                             ) : (
@@ -329,21 +329,21 @@ export default function DirectoryProfile() {
                             )}
 
                             {openError ? (
-                                <p className="mt-2 text-[1rem] font-medium text-amber-700">{openError}</p>
+                                <p className="mt-2 text-[1.0625rem] font-medium text-amber-700">{openError}</p>
                             ) : null}
 
                             {askedToConnect && !access.membershipActive ? (
                                 <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                                    <p className="text-[1rem] font-bold text-slate-900">
+                                    <p className="text-[1.0625rem] font-bold text-slate-900">
                                         {MEMBERS_ONLY_COPY.title}
                                     </p>
-                                    <p className="text-[1rem] text-slate-600 mt-1 leading-relaxed">
+                                    <p className="text-[1.0625rem] text-slate-600 mt-1 leading-relaxed">
                                         {MEMBERS_ONLY_COPY.short} {cta.detail}
                                     </p>
                                     <button
                                         type="button"
                                         onClick={() => navigate(cta.to)}
-                                        className="inline-flex items-center gap-1 mt-3 text-[1rem]
+                                        className="inline-flex items-center gap-1 mt-3 text-[1.0625rem]
                                                    font-bold text-blue-700 hover:underline"
                                     >
                                         {cta.label} →
@@ -448,14 +448,14 @@ export default function DirectoryProfile() {
                                         </div>
 
                                         <div className="p-2.5">
-                                            <p className="text-[1rem] font-semibold text-slate-900 truncate">
+                                            <p className="text-[1.0625rem] font-semibold text-slate-900 truncate">
                                                 {product.name}
                                             </p>
-                                            <p className="text-[0.8125rem] text-slate-500 truncate">
+                                            <p className="text-[1.0625rem] text-slate-500 truncate">
                                                 {product.category}
                                             </p>
                                             {product.price > 0 ? (
-                                                <p className="text-[1rem] font-bold text-blue-700 mt-0.5 tabular-nums">
+                                                <p className="text-[1.0625rem] font-bold text-blue-700 mt-0.5 tabular-nums">
                                                     ₹{product.price.toLocaleString('en-IN')}
                                                 </p>
                                             ) : null}

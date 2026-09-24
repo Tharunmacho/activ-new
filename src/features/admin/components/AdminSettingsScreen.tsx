@@ -40,12 +40,17 @@ import { PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
  * `{ oldPassword, newPassword }`, sent only when a new password was typed.
  */
 
-type Tier = "block" | "district" | "state";
+/*
+ * `events` is the Events Admin — a platform-level account with NO region, so
+ * the region field is neither shown nor sent for it (see `hasRegion`).
+ */
+type Tier = "block" | "district" | "state" | "events";
 
 const TIER_LABEL: Record<Tier, string> = {
     block: "Block",
     district: "District",
     state: "State",
+    events: "Events",
 };
 
 /** A field that is plain text until the screen is put into edit mode. */
@@ -131,6 +136,7 @@ export default function AdminSettingsScreen({
 }) {
     const navigate = useNavigate();
     const regionLabel = TIER_LABEL[tier];
+    const hasRegion = tier !== "events";
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -156,7 +162,7 @@ export default function AdminSettingsScreen({
                     fullName: profile?.fullName || profile?.name || "",
                     email: profile?.email || "",
                     phoneNumber: profile?.phoneNumber || profile?.phone || "",
-                    region: profile?.[tier] || "",
+                    region: hasRegion ? (profile?.[tier] || "") : "",
                 };
                 setSaved(next);
                 setNameInput(next.fullName);
@@ -204,7 +210,7 @@ export default function AdminSettingsScreen({
                         fullName: nameInput,
                         email: emailInput,
                         phoneNumber: phone,
-                        [tier]: regionInput,
+                        ...(hasRegion ? { [tier]: regionInput } : {}),
                     }),
                 });
                 const body = await res.json();
@@ -246,7 +252,7 @@ export default function AdminSettingsScreen({
         } catch (err) {
             console.warn("Logout safely caught:", err);
         }
-        navigate("/login");
+        navigate("/admin/login");
     };
 
     const initials =
@@ -388,10 +394,12 @@ export default function AdminSettingsScreen({
                                         label="Mobile Number" value={phoneInput} onChange={setPhoneInput}
                                         editing={editing} type="tel" placeholder="Enter your mobile number"
                                     />
-                                    <EditableField
-                                        label={`${regionLabel} Name`} value={regionInput} onChange={setRegionInput}
-                                        editing={editing} placeholder={`Enter ${regionLabel.toLowerCase()} name`}
-                                    />
+                                    {hasRegion && (
+                                        <EditableField
+                                            label={`${regionLabel} Name`} value={regionInput} onChange={setRegionInput}
+                                            editing={editing} placeholder={`Enter ${regionLabel.toLowerCase()} name`}
+                                        />
+                                    )}
                                 </div>
                             )}
 

@@ -1,19 +1,18 @@
+import { BAND_MEASURE } from '@/components/layout/typography';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { HeaderSection } from '../../components/layout/HeaderSection';
 import { FooterSection } from '../../components/layout/FooterSection';
 import { NewsGrid } from './components/NewsGrid';
-import { SchemesSection } from './components/SchemesSection';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
 import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
 import { Reveal } from '@/components/shared/Reveal';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { sizedMediaUrl } from '@/config/api.config';
-import { CARD_BODY } from '@/components/layout/appTypography';
 import { AcrossIndia } from '@/components/shared/AcrossIndia';
 import {
-    getNews, getSchemes, getNewsSettings,
-    type NewsArticle, type SchemeGroups, type NewsSettings,
+    getNews, getNewsSettings,
+    type NewsArticle, type NewsSettings,
 } from '@/services/cmsNewsApi';
 
 /**
@@ -21,13 +20,13 @@ import {
  * THE NEWSROOM — `/news`
  * ============================================================================
  *
- * A band, the articles, then the schemes. Three bands, in that order, because
- * that is the order the questions come in: what is happening, then what can I
- * apply to.
+ * A band, then the articles. The schemes that used to follow them have their
+ * own page at /schemes — a scheme does not age like news, and the question a
+ * reader brings to one is "which apply to me", not "what is new".
  *
  * ------------------------------------------------------------ the filter
  *
- * `?state=` and `?district=` narrow both halves at once, and they live in the
+ * `?state=` and `?district=` narrow the list, and they live in the
  * URL rather than in component state so that a link to a state's news is a
  * link somebody can send. It is the same decision the gallery took, for the
  * same reason, and the two pages behave alike because of it.
@@ -36,11 +35,11 @@ import {
  * `listNews` — and the page does not second-guess it: a reader filtering to
  * Tamil Nadu has not asked to stop hearing about the association as a whole.
  *
- * ------------------------------------------------------- one load, not three
+ * ------------------------------------------------------- one load, not two
  *
- * The three calls go together. The band needs the settings, the grid the
- * articles and the schemes band its own list; fetching them in sequence would
- * stack three round trips on a page that is one screen.
+ * The two calls go together. The band needs the settings and the grid the
+ * articles; fetching them in sequence would stack two round trips on a page
+ * that is one screen.
  */
 export default function NewsPage() {
     const [params, setParams] = useSearchParams();
@@ -49,7 +48,6 @@ export default function NewsPage() {
     const category = params.get('category') || '';
 
     const [articles, setArticles] = useState<NewsArticle[] | null>(null);
-    const [schemes, setSchemes] = useState<SchemeGroups | null>(null);
     const [settings, setSettings] = useState<NewsSettings | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -59,22 +57,19 @@ export default function NewsPage() {
 
         Promise.all([
             getNews({ state, district, category }),
-            getSchemes({ state, district }),
             getNewsSettings(),
         ])
-            .then(([list, groups, config]) => {
+            .then(([list, config]) => {
                 if (cancelled) return;
                 setArticles(list);
-                setSchemes(groups);
                 setSettings(config);
                 setLoading(false);
             })
             /* A failed newsroom is an empty newsroom, not a white screen. The
-               header, the footer and the schemes band still render. */
+               header and the footer still render. */
             .catch(() => {
                 if (cancelled) return;
                 setArticles([]);
-                setSchemes({ national: [], state: [], district: [] });
                 setLoading(false);
             });
 
@@ -102,16 +97,13 @@ export default function NewsPage() {
     };
 
     const where = [district, state].filter(Boolean).join(', ');
-    /* The two cards on the News settings tab — see `cmsSections`. Removing
-       the band leaves the articles, which is still a newsroom; removing the
-       schemes band takes the three tiers off the page. The ARTICLES are not
-       a card and cannot be removed: a newsroom with no news is not a page. */
+    /* The band is a card on the News settings tab — see `cmsSections`.
+       Removing it leaves the articles, which is still a newsroom. The
+       ARTICLES are not a card and cannot be removed. */
     const showBand = !sectionHidden(settings?.sections, 'news.header');
-    const showSchemes = !sectionHidden(settings?.sections, 'news.schemes');
 
     const hero = showBand ? settings?.heroImage?.url : undefined;
     const bandRows = showBand ? sectionFields(settings?.sections, 'news.header') : [];
-    const schemeRows = showSchemes ? sectionFields(settings?.sections, 'news.schemes') : [];
 
     return (
         <div className="flex min-h-screen flex-col bg-white font-sans">
@@ -152,7 +144,7 @@ export default function NewsPage() {
                                 </span>
                             </span>
 
-                            <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-black
+                            <h1 className="mt-4 text-[2.1875rem] sm:text-4xl md:text-5xl font-black
                                            leading-[1.06] tracking-tight text-white">
                                 {settings?.heading || 'What is happening at'}
                                 {settings?.headingHighlight && (
@@ -161,9 +153,9 @@ export default function NewsPage() {
                             </h1>
 
                             {settings?.description && (
-                                <p className="mt-4 max-w-2xl text-[1.0625rem] sm:text-[1.1875rem]
+                                <p className={`mt-4 ${BAND_MEASURE} text-[1.0625rem] sm:text-[1.1875rem]
                                               font-semibold leading-relaxed text-white/80
-                                              line-clamp-3">
+                                              line-clamp-3`}>
                                     {settings.description}
                                 </p>
                             )}
@@ -239,29 +231,14 @@ export default function NewsPage() {
                     </div>
                 </section>
 
-                {/* -------------------------------------------- the schemes */}
-                {showSchemes && !loading && schemes && (
-                    <SchemesSection
-                        groups={schemes}
-                        heading={settings?.schemesHeading}
-                        description={settings?.schemesDescription}
-                    />
-                )}
-
                 {/* The editor's own rows on these two cards. */}
-                {(bandRows.length > 0 || schemeRows.length > 0) && (
-                    <div className="mx-auto w-full max-w-[90rem] px-6 pb-16 lg:px-10">
-                        <CmsExtraFields fields={[...bandRows, ...schemeRows]} />
+                {bandRows.length > 0 && (
+                    <div className="mx-auto w-full max-w-[90rem] px-6 pb-16 lg:px-10
+                                    text-[1.125rem] font-medium leading-relaxed text-gray-600">
+                        <CmsExtraFields fields={bandRows} force="content" />
                     </div>
                 )}
 
-                {showSchemes && loading && (
-                    <div className="w-full bg-gray-50/70 py-16">
-                        <div className="mx-auto w-full max-w-[90rem] px-6 lg:px-10">
-                            <p className={`text-center ${CARD_BODY} text-gray-400`}>Loading schemes…</p>
-                        </div>
-                    </div>
-                )}
             </main>
 
             {/* Above the footer, on every content page — see `AcrossIndia`. */}

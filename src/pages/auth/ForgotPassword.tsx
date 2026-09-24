@@ -54,7 +54,7 @@ export default function ForgotPassword() {
                             <MailCheck className="w-8 h-8 text-blue-600" />
                         </div>
 
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
+                        <h1 className="text-[1.5625rem] font-bold text-gray-900 mb-2">Check your email</h1>
                         <p className="text-gray-600 leading-relaxed mb-8">
                             If <span className="font-medium">{email.trim().toLowerCase()}</span> is
                             registered, a reset link is on its way. The link expires in one hour.
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
                     </div>
                 ) : (
                     <>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset your password</h1>
+                        <h1 className="text-[1.5625rem] font-bold text-gray-900 mb-2">Reset your password</h1>
                         <p className="text-gray-600 mb-8">
                             Enter the email address you registered with and we will send you a link
                             to set a new password.
@@ -77,7 +77,7 @@ export default function ForgotPassword() {
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label htmlFor="email" className="block text-[1.0625rem] font-medium text-gray-700 mb-1.5">
                                     Email address
                                 </label>
                                 <div className="relative">
@@ -90,12 +90,12 @@ export default function ForgotPassword() {
                                         placeholder="you@example.com"
                                         autoComplete="email"
                                         disabled={loading}
-                                        className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none
+                                        className={`w-full pl-10 pr-4 py-3 border rounded-xl text-[1.0625rem] focus:outline-none
                                                     focus:ring-2 focus:ring-blue-600 focus:border-transparent
                                                     ${error ? 'border-red-400' : 'border-gray-200'}`}
                                     />
                                 </div>
-                                {error && <p className="text-sm text-red-600 mt-1.5">{error}</p>}
+                                {error && <p className="text-[1.0625rem] text-red-600 mt-1.5">{error}</p>}
                             </div>
 
                             <button
@@ -112,7 +112,7 @@ export default function ForgotPassword() {
 
                         <Link
                             to="/login"
-                            className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+                            className="mt-6 flex items-center justify-center gap-2 text-[1.0625rem] text-gray-600 hover:text-gray-900"
                         >
                             <ArrowLeft className="w-4 h-4" /> Back to sign in
                         </Link>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { EMPTY_MEDIA, type CmsMedia } from '@/services/cmsApi';
+import { resolveMediaUrl } from '@/config/api.config';
 
 /**
  * Render CMS media inside a fixed frame, honouring how the editor said it
@@ -70,16 +71,38 @@ const RESIZABLE_HOSTS = ['images.unsplash.com'];
  * only, so what the CMS holds stays exactly what the editor pasted, and an
  * editor who has already sized a URL themselves (`w` is present) is left alone.
  */
+/*
+ * ============================================================================
+ * AN UPLOAD IS ON THE API'S ORIGIN, NOT ON THIS ONE
+ * ============================================================================
+ *
+ * Everything the backend stores lands at `/uploads/<file>` and is SAVED AS A
+ * RELATIVE PATH. This resolved it against `window.location.origin` and handed
+ * that straight to the `<img>` — so in production, where the site is on
+ * activ.welocalhost.com and the API is on its own host, every such image asked
+ * this site for a file only the API has, got a 404, and drew an empty frame.
+ *
+ * It was reported as "speaker photos not shown". The photographs were fine:
+ * stored, served by the API, and present in the payload — pointed at the
+ * wrong host by the one component that draws them. Anything rendered through
+ * this frame had the same fault, so this is not only the speakers.
+ *
+ * `resolveMediaUrl` is the site's existing answer (it is what `sizedMediaUrl`
+ * uses) and re-anchors any `/uploads/` path to the API origin. Calling it here
+ * is what makes this component agree with the rest of the site instead of
+ * carrying its own half of the rule.
+ */
 const sizedSrc = (url: string, width: number): string => {
+    const resolved = resolveMediaUrl(url);
     try {
-        const u = new URL(url, window.location.origin);
-        if (!RESIZABLE_HOSTS.includes(u.hostname)) return url;
-        if (u.searchParams.has('w')) return url;
+        const u = new URL(resolved, window.location.origin);
+        if (!RESIZABLE_HOSTS.includes(u.hostname)) return resolved;
+        if (u.searchParams.has('w')) return resolved;
         u.searchParams.set('w', String(Math.round(width)));
         return u.toString();
     } catch {
-        // A relative path, or something unparseable: leave it exactly as it is.
-        return url;
+        // Unparseable: hand back the resolved path rather than the raw one.
+        return resolved;
     }
 };
 
@@ -157,7 +180,7 @@ export function CmsMediaFrame({
     if (m.type === 'video') {
         return (
             <video
-                src={m.url}
+                src={resolveMediaUrl(m.url)}
                 className={`w-full h-full ${plate} ${className}`}
                 style={style}
                 autoPlay

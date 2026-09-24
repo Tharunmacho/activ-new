@@ -95,7 +95,7 @@ export default function EventCard({
                         membership buys. */}
                     {event.audience === 'paid' ? (
                         <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-blue-600
-                                         text-white text-[0.8125rem] font-bold uppercase tracking-wide
+                                         text-white text-[1.0625rem] font-bold uppercase tracking-wide
                                          px-3 py-1.5 rounded-full shadow-sm">
                             <Lock className="w-3 h-3" /> Members only
                         </span>
@@ -106,7 +106,7 @@ export default function EventCard({
                         // badge reading "Payment due" says two opposite things at
                         // once, and the colour is what gets read at card size.
                         <span className={`absolute top-3 right-3 inline-flex items-center gap-1
-                                          text-white text-[0.8125rem] font-bold uppercase
+                                          text-white text-[1.0625rem] font-bold uppercase
                                           tracking-wide px-3 py-1.5 rounded-full shadow-sm ${
                             awaitingPayment ? 'bg-amber-500' : 'bg-emerald-600'
                         }`}>
@@ -122,7 +122,7 @@ export default function EventCard({
                     a poster rarely repeats the date in a form the eye can scan. */}
                 <div className="shrink-0 w-16 rounded-xl bg-blue-50 text-blue-700 text-center py-2.5">
                     <p className="text-[1.375rem] font-bold leading-none tabular-nums">{tile.day}</p>
-                    <p className="text-[0.75rem] font-bold tracking-wider mt-0.5">{tile.month}</p>
+                    <p className="text-[1.0625rem] font-bold tracking-wider mt-0.5">{tile.month}</p>
                 </div>
 
                 <div className="flex min-w-0 flex-1 flex-col">
@@ -149,13 +149,13 @@ export default function EventCard({
                         {event.title || 'Untitled event'}
                     </h3>
 
-                    <p className="text-[1rem] text-slate-500 mt-1 flex items-center gap-1.5">
+                    <p className="text-[1.0625rem] text-slate-500 mt-1 flex items-center gap-1.5">
                         <Clock className="w-4 h-4 shrink-0" />
                         <span className="truncate">{formatWhen(event)}</span>
                     </p>
 
                     {event.venue ? (
-                        <p className="text-[1rem] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                        <p className="text-[1.0625rem] text-slate-500 mt-0.5 flex items-center gap-1.5">
                             <MapPin className="w-4 h-4 shrink-0" />
                             <span className="truncate">{event.venue}</span>
                         </p>
@@ -171,7 +171,7 @@ export default function EventCard({
                       * only "₹600" would be quoted a price they cannot have.
                       */}
                     {event.registrationEnabled ? (
-                        <p className="text-[1rem] mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="text-[1.0625rem] mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span className="inline-flex items-center gap-1 font-semibold text-slate-700">
                                 <IndianRupee className="w-4 h-4 shrink-0" />
                                 {event.registrationFee > 0
@@ -193,14 +193,14 @@ export default function EventCard({
                         than wherever each title happened to end. */}
                     <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-2.5">
                         {compact && event.audience === 'paid' ? (
-                            <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold
+                            <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold
                                              text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">
                                 <Lock className="w-3 h-3" /> Members only
                             </span>
                         ) : null}
 
                         {compact && registered ? (
-                            <span className={`inline-flex items-center gap-1 text-[0.8125rem] font-semibold
+                            <span className={`inline-flex items-center gap-1 text-[1.0625rem] font-semibold
                                               px-2.5 py-1 rounded-full ${
                                 awaitingPayment
                                     ? 'text-amber-700 bg-amber-50'
@@ -214,7 +214,7 @@ export default function EventCard({
                         ) : null}
 
                         {event.agenda.length > 0 ? (
-                            <span className="inline-flex items-center gap-1 text-[0.8125rem] text-slate-500">
+                            <span className="inline-flex items-center gap-1 text-[1.0625rem] text-slate-500">
                                 <CalendarDays className="w-3 h-3" />
                                 {event.agenda.length} sessions
                             </span>
@@ -227,7 +227,7 @@ export default function EventCard({
                           * second would otherwise print a confident "0 left".
                           */}
                         {!past && left !== null ? (
-                            <span className={`inline-flex items-center gap-1 text-[0.8125rem] font-semibold
+                            <span className={`inline-flex items-center gap-1 text-[1.0625rem] font-semibold
                                               ${left === 0 ? 'text-amber-600' : 'text-slate-500'}`}>
                                 <Users className="w-3 h-3" />
                                 {left === 0 ? 'Full — waiting list' : `${left} seats left`}
@@ -235,10 +235,10 @@ export default function EventCard({
                         ) : null}
 
                         {!past && gate.open && !registered ? (
-                            <span className="text-[0.8125rem] font-bold text-blue-600">Registration open</span>
+                            <span className="text-[1.0625rem] font-bold text-blue-600">Registration open</span>
                         ) : null}
 
-                        {past ? <span className="text-[0.8125rem] font-semibold text-slate-400">Past event</span> : null}
+                        {past ? <span className="text-[1.0625rem] font-semibold text-slate-400">Past event</span> : null}
                     </div>
                 </div>
             </div>

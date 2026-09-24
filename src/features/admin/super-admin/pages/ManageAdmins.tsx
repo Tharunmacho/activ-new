@@ -490,11 +490,11 @@ export default function ManageAdmins() {
                                 <table className="w-full text-[1.25rem]">
                                     <thead className="bg-slate-50 text-left border-b border-slate-200">
                                         <tr>
-                                            <th className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Name</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Role</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Region</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Queue</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-right">Actions</th>
+                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Name</th>
+                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Role</th>
+                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Region</th>
+                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Queue</th>
+                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">

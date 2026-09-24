@@ -363,11 +363,11 @@ export default function MemberInbox() {
               */}
             {/* 26rem, not 22: a name and “Ariyalur, Ariyalur, Tamil Nadu” did
                 not fit on one line, so every row wrapped. */}
-            <div className="grid gap-5 lg:grid-cols-[26rem_1fr] items-start">
+            <div className="grid gap-5 lg:grid-cols-[26rem_minmax(0,1fr)] items-start">
                 <div className={`${CARD} ${PANE} ${openId ? 'hidden lg:flex' : 'flex'}
                                  flex-col overflow-hidden`}>
                     <div className="shrink-0 px-5 py-4 border-b border-slate-200 bg-slate-50">
-                        <p className="text-[0.8125rem] font-extrabold uppercase tracking-[0.12em] text-slate-500">
+                        <p className="text-[1.0625rem] font-extrabold uppercase tracking-[0.12em] text-slate-500">
                             Conversations
                         </p>
                     </div>
@@ -405,13 +405,13 @@ export default function MemberInbox() {
                                                 </span>
                                             </span>
                                             <span className="flex items-center justify-between gap-2 mt-0.5">
-                                                <span className="text-[1rem] font-medium text-slate-500 truncate">
+                                                <span className="text-[1.0625rem] font-medium text-slate-500 truncate">
                                                     {c.lastMessageMine ? 'You: ' : ''}
                                                     {c.lastMessageText || 'No messages yet'}
                                                 </span>
                                                 {c.unread > 0 ? (
                                                     <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full
-                                                                     bg-blue-600 text-white text-[0.8125rem]
+                                                                     bg-blue-600 text-white text-[1.0625rem]
                                                                      font-bold flex items-center justify-center">
                                                         {c.unread}
                                                     </span>
@@ -454,7 +454,7 @@ export default function MemberInbox() {
                                     {initialsOf(peerName)}
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block text-[1.3125rem] font-extrabold tracking-tight
+                                    <span className="block text-[1.25rem] font-extrabold tracking-tight
                                                      text-slate-900 truncate">
                                         {peerName}
                                     </span>
@@ -529,12 +529,12 @@ export default function MemberInbox() {
                                                     for a picture sent without a caption — an
                                                     empty paragraph is a gap under the image. */}
                                                 {m.body ? (
-                                                    <p className="text-[1.125rem] leading-relaxed whitespace-pre-wrap
+                                                    <p className="text-[1.1875rem] leading-relaxed whitespace-pre-wrap
                                                                   break-words">
                                                         {m.body}
                                                     </p>
                                                 ) : null}
-                                                <p className={`text-[0.8125rem] mt-1 ${
+                                                <p className={`text-[1.0625rem] mt-1 ${
                                                     m.mine ? 'text-blue-100' : 'text-slate-400'}`}>
                                                     {timeOf(m.at)}
                                                 </p>
@@ -579,7 +579,7 @@ export default function MemberInbox() {
                                     <p className="mb-1 text-[1.25rem] font-bold text-slate-900">
                                         What is it about?
                                     </p>
-                                    <p className="mb-3 text-[1.125rem] text-slate-500">
+                                    <p className="mb-3 text-[1.1875rem] text-slate-500">
                                         Pick one to start. It goes in the box below for you to change
                                         before you send it.
                                     </p>
@@ -619,7 +619,7 @@ export default function MemberInbox() {
                             {!threadLoading && messages.length > 0 && !draft.trim() && !picture && (
                                 <div className="shrink-0 border-t border-slate-200 bg-white px-3 pb-1 pt-2.5">
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                        <span className="text-[1rem] font-bold uppercase tracking-wider
+                                        <span className="text-[1.0625rem] font-bold uppercase tracking-wider
                                                          text-slate-400">
                                             Start with
                                         </span>
@@ -664,7 +664,7 @@ export default function MemberInbox() {
                                             className="h-16 w-16 shrink-0 rounded-lg object-cover"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-[1.125rem] font-semibold text-slate-800">
+                                            <p className="truncate text-[1.1875rem] font-semibold text-slate-800">
                                                 {picture.file.name}
                                             </p>
                                             <p className="text-[1.0625rem] text-slate-500">

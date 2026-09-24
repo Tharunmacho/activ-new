@@ -130,7 +130,10 @@ const eventDay = (iso: string | null) => {
     return {
         day: d.toLocaleDateString('en-GB', { day: '2-digit' }),
         month: d.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase(),
-        time: d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        /* 12-hour, like every other time on the site — see `formatTime` on
+           the event detail page for why a 24-hour clock read as wrong. */
+        time: d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+            .toUpperCase(),
     };
 };
 
@@ -348,6 +351,10 @@ export default function PaidDashboard() {
     const block = String(profile?.block || '').trim();
     const district = String(profile?.district || '').trim();
     const state = String(profile?.state || '').trim();
+    /* A member outside India has no region — their place and country instead. */
+    const abroad = profile?.isInternational === true;
+    const place = String(profile?.place || profile?.city || '').trim();
+    const country = String(profile?.country || '').trim();
 
     /**
      * When the membership lapses.
@@ -640,8 +647,8 @@ export default function PaidDashboard() {
                                 {/* Up a step throughout this block: it was all set
                                     smaller than the white card beside it, on a band
                                     four times its height. */}
-                                <span className="text-[1.5rem] font-extrabold text-white">{today.date}</span>
-                                <span className="text-[1.3125rem] font-semibold text-white/70">· {today.day}</span>
+                                <span className="text-[1.5625rem] font-extrabold text-white">{today.date}</span>
+                                <span className="text-[1.25rem] font-semibold text-white/70">· {today.day}</span>
                             </div>
 
                             <div className="flex items-start gap-5">
@@ -669,10 +676,10 @@ export default function PaidDashboard() {
                                     <h2 className={`${PAGE_TITLE} mt-1 text-white`}>
                                         {name} <span aria-hidden="true">👋</span>
                                     </h2>
-                                    <p className="mt-3 text-[1.5rem] font-semibold leading-relaxed text-white/85">
+                                    <p className="mt-3 text-[1.5625rem] font-semibold leading-relaxed text-white/85">
                                         Your journey with ACTIV is making a difference.
                                     </p>
-                                    <p className="text-[1.5rem] font-semibold leading-relaxed text-white/85">
+                                    <p className="text-[1.5625rem] font-semibold leading-relaxed text-white/85">
                                         Together we build a stronger community.
                                     </p>
                                 </div>
@@ -710,11 +717,13 @@ export default function PaidDashboard() {
                                         <CalendarDays className="h-4 w-4" /> Member since {memberSinceLabel}
                                     </span>
                                 )}
-                                {(district || state) && (
+                                {(abroad ? (place || country) : (district || state)) && (
                                     <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2.5
                                                      text-[1.375rem] font-bold text-white ring-1 ring-white/25
                                                      backdrop-blur-sm">
-                                        <MapPin className="h-4 w-4" /> {[district, state].filter(Boolean).join(', ')}
+                                        <MapPin className="h-4 w-4" />
+                                        {(abroad ? [place, country] : [district, state])
+                                            .filter((v, i, all) => !!v && all.indexOf(v) === i).join(', ')}
                                     </span>
                                 )}
                             </div>
@@ -744,7 +753,7 @@ export default function PaidDashboard() {
                                         <User className="h-6 w-6" strokeWidth={2.4} />
                                     </span>
                                     <div className="min-w-0">
-                                        <p className="text-[1.4375rem] font-extrabold tracking-tight text-slate-900">
+                                        <p className="text-[1.375rem] font-extrabold tracking-tight text-slate-900">
                                             {planLabel(plan) || 'Member'}
                                         </p>
                                         <p className="text-[1.25rem] font-semibold text-blue-600">
@@ -772,12 +781,21 @@ export default function PaidDashboard() {
                                 />
                             </div>
 
-                            <div className="relative mt-3 grid grid-cols-3 divide-x divide-slate-200 border-t
-                                            border-slate-200 pt-4">
-                                <CardFact icon={MapPin} label="State" value={state} />
-                                <CardFact icon={MapPin} label="District" value={district} className="px-3" />
-                                <CardFact icon={MapPin} label="Block" value={block} className="pl-3" />
-                            </div>
+                            {abroad ? (
+                                /* Outside India: the place and the country, not three empty region cells. */
+                                <div className="relative mt-3 grid grid-cols-2 divide-x divide-slate-200 border-t
+                                                border-slate-200 pt-4">
+                                    <CardFact icon={MapPin} label="Place" value={place} />
+                                    <CardFact icon={MapPin} label="Country" value={country} className="pl-3" />
+                                </div>
+                            ) : (
+                                <div className="relative mt-3 grid grid-cols-3 divide-x divide-slate-200 border-t
+                                                border-slate-200 pt-4">
+                                    <CardFact icon={MapPin} label="State" value={state} />
+                                    <CardFact icon={MapPin} label="District" value={district} className="px-3" />
+                                    <CardFact icon={MapPin} label="Block" value={block} className="pl-3" />
+                                </div>
+                            )}
 
                             {/*
                               THE TWO FACTS A MEMBER IS ASKED TO QUOTE.
@@ -921,7 +939,7 @@ export default function PaidDashboard() {
                                     <span className="mt-auto block">
                                         {doc.issued ? (
                                             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50
-                                                             px-2.5 py-1 text-[1rem] font-bold text-emerald-700">
+                                                             px-2.5 py-1 text-[1.0625rem] font-bold text-emerald-700">
                                                 <BadgeCheck className="h-4 w-4" /> Verified
                                             </span>
                                         ) : (
@@ -1018,7 +1036,7 @@ export default function PaidDashboard() {
                                                     />
                                                     {event.category && (
                                                         <span className="absolute left-1.5 top-1.5 rounded-md
-                                                                         bg-slate-900/80 px-2 py-0.5 text-[0.9375rem]
+                                                                         bg-slate-900/80 px-2 py-0.5 text-[1.0625rem]
                                                                          font-bold text-white">
                                                             {event.category}
                                                         </span>
@@ -1029,7 +1047,7 @@ export default function PaidDashboard() {
                                             <span className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-1">
                                                 {!banner && event.category && (
                                                     <span className="w-fit rounded-md bg-slate-100 px-2 py-0.5
-                                                                     text-[1rem] font-bold text-slate-600">
+                                                                     text-[1.0625rem] font-bold text-slate-600">
                                                         {event.category}
                                                     </span>
                                                 )}
@@ -1038,7 +1056,7 @@ export default function PaidDashboard() {
                                                     their time and venue rows a line
                                                     apart, and three rows down the
                                                     card nothing lines up. */}
-                                                <span className="line-clamp-2 text-[1.5rem]
+                                                <span className="line-clamp-2 text-[1.5625rem]
                                                                  font-extrabold leading-snug tracking-tight
                                                                  text-slate-900">
                                                     {event.title || 'Untitled event'}
@@ -1134,14 +1152,14 @@ export default function PaidDashboard() {
                                                 <span className="flex flex-wrap items-center gap-2">
                                                     {update.category && (
                                                         <span className="rounded-md bg-blue-50 px-2 py-0.5
-                                                                         text-[1rem] font-bold capitalize
+                                                                         text-[1.0625rem] font-bold capitalize
                                                                          text-blue-700">
                                                             {update.category}
                                                         </span>
                                                     )}
                                                     {update.pinned && (
                                                         <span className="rounded-md bg-amber-50 px-2 py-0.5
-                                                                         text-[1rem] font-bold text-amber-700">
+                                                                         text-[1.0625rem] font-bold text-amber-700">
                                                             Pinned
                                                         </span>
                                                     )}
@@ -1158,7 +1176,7 @@ export default function PaidDashboard() {
                                                     </span>
                                                 )}
                                                 {update.publishedAt && (
-                                                    <span className="mt-1.5 flex items-center gap-1.5 text-[1.125rem]
+                                                    <span className="mt-1.5 flex items-center gap-1.5 text-[1.1875rem]
                                                                      font-semibold text-slate-400">
                                                         <CalendarDays className="h-4 w-4" />
                                                         {shortDate(update.publishedAt)}
@@ -1232,7 +1250,7 @@ export default function PaidDashboard() {
                                 <Sparkles className="h-6 w-6" />
                             </span>
                             <div>
-                                <p className="text-[1.5rem] font-extrabold tracking-tight text-slate-900">
+                                <p className="text-[1.5625rem] font-extrabold tracking-tight text-slate-900">
                                     More opportunities await
                                 </p>
                                 <p className="text-[1.25rem] font-semibold text-slate-500">
@@ -1299,7 +1317,7 @@ function CardFact({ icon: Icon, label, value, className = '' }: {
                 frame the panel lost 24px, and "MEMBER SINCE" was wrapping to
                 two lines in its column while its neighbours stayed on one —
                 which pushed that one value down a line. */}
-            <p className="flex items-center gap-1.5 whitespace-nowrap text-[0.9375rem] font-extrabold
+            <p className="flex items-center gap-1.5 whitespace-nowrap text-[1.0625rem] font-extrabold
                           uppercase tracking-[0.1em] text-slate-400">
                 {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
                 {label}

@@ -77,9 +77,9 @@ export const KitCard = ({ children, className = '' }: { children: ReactNode; cla
 
 export const KitCardHeader = ({ title, pill }: { title: string; pill?: string }) => (
     <div className="flex items-center justify-between gap-3 mb-4">
-        <p className="font-display text-[1.125rem] font-bold" style={{ color: PALETTE.ink }}>{title}</p>
+        <p className="font-display text-[1.1875rem] font-bold" style={{ color: PALETTE.ink }}>{title}</p>
         {pill ? (
-            <span className="shrink-0 rounded-lg px-2.5 py-1 text-[0.8125rem] font-extrabold"
+            <span className="shrink-0 rounded-lg px-2.5 py-1 text-[1.0625rem] font-extrabold"
                   style={{ backgroundColor: '#E0E7FF', color: PALETTE.primary }}>
                 {pill}
             </span>
@@ -115,7 +115,7 @@ export const StageRail = ({ stages }: { stages: KitStage[] }) => (
                     <div className="w-[1.625rem] shrink-0 flex flex-col items-center">
                         <span
                             className="w-[1.625rem] h-[1.625rem] rounded-full flex items-center justify-center
-                                       text-[0.8125rem] font-extrabold text-white shrink-0"
+                                       text-[1.0625rem] font-extrabold text-white shrink-0"
                             style={{ backgroundColor: tone }}
                         >
                             {stage.done ? <Check className="w-3.5 h-3.5" strokeWidth={3} />
@@ -159,7 +159,7 @@ export const PrimaryAction = ({ onClick, children, tone = PALETTE.primary, disab
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-12 rounded-xl text-white font-bold text-[1.125rem] flex items-center
+        className="w-full h-12 rounded-xl text-white font-bold text-[1.1875rem] flex items-center
                    justify-center gap-2 transition-opacity hover:opacity-90
                    disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ backgroundColor: tone }}
@@ -173,7 +173,7 @@ export const GhostAction = ({ onClick, children }: { onClick: () => void; childr
     <button
         type="button"
         onClick={onClick}
-        className="w-full h-12 rounded-xl font-semibold text-[1.125rem] bg-white border
+        className="w-full h-12 rounded-xl font-semibold text-[1.1875rem] bg-white border
                    transition-colors hover:bg-slate-50 mt-3"
         style={{ borderColor: PALETTE.border, color: PALETTE.ink }}
     >

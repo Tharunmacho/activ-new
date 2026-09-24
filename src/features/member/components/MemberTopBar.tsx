@@ -428,7 +428,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
 
                     {unreadCount > 0 ? (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1.5
-                                         rounded-full bg-red-500 text-white text-[0.8125rem] font-bold
+                                         rounded-full bg-red-500 text-white text-[1.0625rem] font-bold
                                          ring-2 ring-white
                                          flex items-center justify-center tabular-nums">
                             {unreadCount > 9 ? '9+' : unreadCount}
@@ -465,7 +465,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                     type="button"
                                     onClick={markRead}
                                     className="inline-flex items-center gap-1 rounded-lg px-2 py-1
-                                               text-[0.8125rem] font-semibold text-blue-600
+                                               text-[1.0625rem] font-semibold text-blue-600
                                                transition-colors hover:bg-blue-50 hover:text-blue-700
                                                focus-visible:outline focus-visible:outline-2
                                                focus-visible:outline-offset-1 focus-visible:outline-blue-500"
@@ -489,7 +489,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                                      mb-3 flex items-center justify-center">
                                         <Inbox className="w-5 h-5" />
                                     </span>
-                                    <p className="text-[1rem] font-semibold text-slate-700">
+                                    <p className="text-[1.0625rem] font-semibold text-slate-700">
                                         Nothing in the last 24 hours
                                     </p>
                                     {/* The window is named, because an empty bell
@@ -545,7 +545,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
 
                                                     <span className="min-w-0 flex-1">
                                                         <span className="flex items-center gap-1.5">
-                                                            <span className="text-[1rem] font-semibold
+                                                            <span className="text-[1.0625rem] font-semibold
                                                                              text-slate-900 truncate">
                                                                 {item.title}
                                                             </span>
@@ -558,7 +558,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                                                          mt-0.5 line-clamp-2 leading-snug">
                                                             {item.detail}
                                                         </span>
-                                                        <span className="block text-[0.8125rem] text-slate-400
+                                                        <span className="block text-[1.0625rem] text-slate-400
                                                                          mt-1">
                                                             {when(item.at)}
                                                         </span>

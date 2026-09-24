@@ -217,6 +217,66 @@ export const downloadIcs = (event: CalendarEventLike): void => {
  * search built from the venue name is not as precise as a dropped pin, but it
  * is the difference between one tap and copying an address by hand.
  */
+/**
+ * ==========================================================================
+ * COORDINATES OUT OF A PASTED GOOGLE MAPS LINK
+ * ==========================================================================
+ *
+ * An editor pastes whatever the Maps app gave them, and that is one of
+ * several shapes: `.../@12.9716,77.5946,17z/...`, `?q=12.9716,77.5946`,
+ * `?destination=12.97,77.59`, or a `!3d12.97!4d77.59` blob inside a long
+ * place URL. A lat/lng is worth digging out because it is the one thing that
+ * points at the RIGHT gate of a large venue; the name alone can land a
+ * visitor at the wrong end of a campus.
+ *
+ * Returns '' when there is none — a short `maps.app.goo.gl` link carries no
+ * coordinates at all, and the caller falls back to the address text.
+ */
+const coordsFromMapUrl = (url: string): string => {
+    const raw = String(url || '');
+    if (!raw) return '';
+
+    const patterns = [
+        /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
+        /[?&](?:q|query|destination|daddr)=(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)/,
+        /!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/,
+    ];
+
+    for (const re of patterns) {
+        const m = re.exec(raw);
+        if (!m) continue;
+        const lat = Number(m[1]);
+        const lng = Number(m[2]);
+        /* A real place on Earth. A malformed pair would otherwise send
+           somebody to the middle of the Atlantic. */
+        if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) return `${lat},${lng}`;
+    }
+    return '';
+};
+
+/**
+ * ==========================================================================
+ * DIRECTIONS FROM WHERE THE READER IS, not a pin they have to work from
+ * ==========================================================================
+ *
+ * This handed back the pasted `venueMapUrl` unchanged, which opens Maps
+ * showing the VENUE — a pin, with no route and no distance. The reader then
+ * has to press Directions themselves and type in where they are standing.
+ *
+ * `/maps/dir/?api=1&destination=…` with NO `origin` is the documented way to
+ * ask Google for a route whose starting point is the reader's own location:
+ * Maps fills it in (asking permission if it has to) and opens on the route,
+ * with the distance and the travelling time already on screen. That is what
+ * the association asked for — "he should see the distance from there to the
+ * respective place".
+ *
+ * The destination is the pasted link's COORDINATES where it has any, because
+ * they point at the exact gate; otherwise the venue and address as text,
+ * which Maps resolves the same way a search would.
+ *
+ * `travelmode=driving` because the events are conclaves and conferences people
+ * drive or are driven to, and Maps lets the reader change it in one tap.
+ */
 export const directionsUrl = (event: CalendarEventLike): string => {
     /*
      * AN ONLINE EVENT HAS NOWHERE TO GO.
@@ -228,10 +288,19 @@ export const directionsUrl = (event: CalendarEventLike): string => {
      */
     if (event.mode === 'online') return '';
 
-    if (event.venueMapUrl) return event.venueMapUrl;
     const place = eventPlace(event);
-    if (!place) return '';
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`;
+    const destination = coordsFromMapUrl(event.venueMapUrl || '') || place;
+
+    /*
+     * Nothing to route to. A pasted link with no coordinates AND no venue
+     * text is still better than nothing, so it is opened as it was given
+     * rather than dropped — a pin the reader can work from beats no button.
+     */
+    if (!destination) return event.venueMapUrl || '';
+
+    return 'https://www.google.com/maps/dir/?api=1'
+        + `&destination=${encodeURIComponent(destination)}`
+        + '&travelmode=driving';
 };
 
 /** "Tue, 20 Jan · 10:30" — the one-line summary a share message leads with. */

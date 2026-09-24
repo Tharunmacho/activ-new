@@ -417,7 +417,7 @@ export default function LegalManager() {
                                             why their page 404s for everybody else. */}
                                         {d.status === 'draft' && (
                                             <span className="inline-flex items-center gap-1 rounded-full
-                                                             bg-amber-100 px-2 py-0.5 text-[1rem] font-semibold
+                                                             bg-amber-100 px-2 py-0.5 text-[1.0625rem] font-semibold
                                                              text-amber-800 dark:bg-amber-950/50
                                                              dark:text-amber-300">
                                                 <EyeOff className="w-3 h-3" /> Off the site

@@ -87,7 +87,7 @@ export default function MemberMessages() {
                 cta={cta}
             >
                 <div>
-                    <p className="text-[0.8125rem] font-bold uppercase tracking-wide text-slate-500 mb-3">
+                    <p className="text-[1.0625rem] font-bold uppercase tracking-wide text-slate-500 mb-3">
                         What your membership covers
                     </p>
                     <ul className="grid gap-4 sm:grid-cols-2">

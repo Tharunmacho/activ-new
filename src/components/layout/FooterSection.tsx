@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
-import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
+import { sectionHidden } from '@/components/shared/cmsSections';
+import { SectionFields } from '@/components/shared/SectionFields';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
 import { getSiteSettings, getLegalLinks, type SiteSettings } from '@/services/cmsApi';
-import { getRegionMap } from '@/services/cmsRegionsApi';
+import { zoneName, getRegionMap } from '@/services/cmsRegionsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { SCREEN_CONTAINER } from './pageContainer';
@@ -146,7 +147,7 @@ export function FooterSection() {
                 if (cancelled) return;
                 setRegionLinks((rows || [])
                     .filter((r) => r.hasPage)
-                    .map((r) => ({ label: r.label, href: `/regions/${r.slug}` })));
+                    .map((r) => ({ label: zoneName(r.label, r.national), href: `/regions/${r.slug}` })));
             })
             /* Silent: a footer must render with or without this. */
             .catch(() => { /* the row is simply not drawn */ });
@@ -169,15 +170,32 @@ export function FooterSection() {
      * labelled line dropped into the middle of a link column would read as
      * a link that lost its href.
      */
-    const ownRows = [
-        ...sectionFields(site?.sections, 'footer.brand'),
-        ...(removed('footer.address') ? [] : sectionFields(site?.sections, 'footer.address')),
-        ...(removed('footer.linkColumns') ? [] : sectionFields(site?.sections, 'footer.linkColumns')),
-        ...(removed('footer.contact') ? [] : sectionFields(site?.sections, 'footer.contact')),
-        ...(removed('footer.socials') ? [] : sectionFields(site?.sections, 'footer.socials')),
-        ...(removed('footer.bottomBar') ? [] : sectionFields(site?.sections, 'footer.bottomBar')),
-        ...(site?.extraFields || []),
-    ];
+    /*
+     * Each card's rows are drawn IN THAT COLUMN now — see `SectionFields`.
+     *
+     * They were pooled here into one strip above the bottom bar, so a field
+     * added to Contact and a field added to Brand landed in the same place,
+     * and neither sat with the thing it was about. What is left is the list
+     * attached to the SITE, which is not a column and belongs across the foot.
+     */
+    const ownRows = site?.extraFields || [];
+
+    /* The footer's ground is dark, and the columns are narrow. */
+    const columnFields = (key: string) => (
+        <SectionFields
+            /* The footer's column copy — the size its addresses and phone
+               numbers are set at, so an added row sits in the same column
+               rhythm rather than at the browser's default. */
+            proseClass="text-[1.125rem] font-medium leading-relaxed"
+            sections={site?.sections}
+            sectionKey={key}
+            /* A footer column is labelled lines and nothing else — see
+               `fieldMode` on the six CMS steps. */
+            force="card"
+            tone="dark"
+            className="mt-7"
+        />
+    );
 
     const hasContact = !!(phones.length || email || socials.length);
     const hasBottomBar = !!(copyright || legalLinks.length || note);
@@ -220,7 +238,7 @@ export function FooterSection() {
             */}
             <div className={`${SCREEN_CONTAINER} relative z-10 pt-16 pb-8`}>
 
-                <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_auto_1fr] lg:gap-10 lg:items-start">
+                <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-10 lg:items-start">
 
                     {/* ------------------------------------------- contact */}
                     {hasContact ? (
@@ -267,6 +285,8 @@ export function FooterSection() {
                                 )}
                             </div>
 
+                            {columnFields('footer.contact')}
+
                             {socials.length > 0 && (
                                 <div className="flex flex-wrap gap-2.5 mt-7">
                                     {socials.map((s, i) => (
@@ -286,6 +306,8 @@ export function FooterSection() {
                                     ))}
                                 </div>
                             )}
+
+                            {columnFields('footer.socials')}
                         </div>
                     ) : <div />}
 
@@ -335,6 +357,8 @@ export function FooterSection() {
                                 {brand.fullName}
                             </p>
                         )}
+
+                        {columnFields('footer.brand')}
                     </div>
 
                     {/* ------------------------------------------- address */}
@@ -350,6 +374,8 @@ export function FooterSection() {
                                     ))}
                                 </address>
                             </div>
+
+                            {columnFields('footer.address')}
                         </div>
                     ) : <div />}
                 </div>
@@ -385,6 +411,9 @@ export function FooterSection() {
                     </nav>
                 )}
 
+                {/* The navigation card's own rows, under the row it is about. */}
+                {columnFields('footer.linkColumns')}
+
                 {/*
                   * ------------------------------------------------------------
                   * THE REGIONS, AS A SECOND ROW
@@ -407,7 +436,7 @@ export function FooterSection() {
                   */}
                 {regionLinks.length > 0 && (
                     <nav
-                        aria-label="Regions"
+                        aria-label="Zones"
                         className={navLinks.length > 0
                             ? 'mt-1'
                             : 'mt-12 border-t border-white/15 pt-6'}
@@ -428,9 +457,22 @@ export function FooterSection() {
                     </nav>
                 )}
 
-                {/* The editor's own rows — see `ownRows`. */}
+                {/* The bottom bar's own rows, with the bottom bar. */}
+                {columnFields('footer.bottomBar')}
+
+                {/*
+                  * THE SITE'S OWN ROWS — and only the site's.
+                  *
+                  * Every column's rows were pooled into this one strip, so a
+                  * field added to Contact and one added to Brand landed in the
+                  * same place and neither sat with the thing it was about. Each
+                  * column draws its own now; what is left here is the list
+                  * attached to the SITE, which is not a column and belongs
+                  * across the foot of all of them.
+                  */}
                 {ownRows.length > 0 && (
-                    <div className="mt-8 border-t border-white/10 pt-6">
+                    <div className="mt-8 border-t border-white/10 pt-6
+                                    text-[1.125rem] font-medium leading-relaxed">
                         <CmsExtraFields fields={ownRows} tone="dark" />
                     </div>
                 )}

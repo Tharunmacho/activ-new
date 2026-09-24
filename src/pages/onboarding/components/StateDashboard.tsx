@@ -1,3 +1,4 @@
+import { BAND_MEASURE } from '@/components/layout/typography';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -335,7 +336,7 @@ export function StateHeroBand({
                         </Link>
                     )}
 
-                    <h1 className="mt-3 text-3xl sm:text-4xl font-black tracking-tight text-white
+                    <h1 className="mt-3 text-[2.1875rem] sm:text-4xl font-black tracking-tight text-white
                                    leading-[1.05]">
                         {headline}
                     </h1>
@@ -356,8 +357,8 @@ export function StateHeroBand({
                       * not this component’s to lose.
                       */}
                     {lede && (
-                        <p className="mt-3 max-w-2xl text-[1.0625rem] sm:text-[1.1875rem] font-semibold
-                                      leading-relaxed text-white/80 line-clamp-3">
+                        <p className={`mt-3 ${BAND_MEASURE} text-[1.0625rem] sm:text-[1.1875rem] font-semibold
+                                      leading-relaxed text-white/80 line-clamp-3`}>
                             {lede}
                         </p>
                     )}

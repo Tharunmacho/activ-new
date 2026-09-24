@@ -260,8 +260,37 @@ const EMPTY_EVENTS = { events: [] as MemberEvent[], total: 0 };
 export const listMemberEvents = async (params: Record<string, any> = {}) =>
     unwrap<typeof EMPTY_EVENTS>(await api.get(ENDPOINTS.EVENTS.LIST, { params }), EMPTY_EVENTS);
 
+/**
+ * Sessions written with the DAY editor live on `days[].agenda`, and the member
+ * screen only draws the flat `agenda`. With the flat list empty they were
+ * saved and never shown. Flattened here, each labelled with its day when the
+ * event runs over more than one.
+ */
+const withDayAgenda = (event: MemberEvent | null): MemberEvent | null => {
+    if (!event) return event;
+    const flat = (event.agenda || []).filter((r) => r && (r.title || r.startTime));
+    const days = ((event as any).days || []) as Array<{ date?: string; agenda?: AgendaItem[] }>;
+    if (flat.length || !days.length) return event;
+
+    const multi = days.filter((d) => d && d.date).length > 1;
+    const merged: AgendaItem[] = [];
+    days.forEach((day, index) => {
+        (day?.agenda || []).filter((r) => r && (r.title || r.startTime)).forEach((row) => {
+            let label = '';
+            if (multi && day?.date) {
+                const d = new Date(`${String(day.date).slice(0, 10)}T00:00:00`);
+                label = Number.isNaN(d.getTime())
+                    ? `Day ${index + 1}`
+                    : `Day ${index + 1} · ${d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}`;
+            }
+            merged.push({ ...row, title: label ? `${label} — ${row.title || 'Session'}` : row.title });
+        });
+    });
+    return merged.length ? { ...event, agenda: merged } : event;
+};
+
 export const getMemberEvent = async (id: string) =>
-    unwrap<MemberEvent | null>(await api.get(ENDPOINTS.EVENTS.BY_ID(id)), null);
+    withDayAgenda(unwrap<MemberEvent | null>(await api.get(ENDPOINTS.EVENTS.BY_ID(id)), null));
 
 export const registerForEvent = async (id: string, details: Record<string, any> = {}) =>
     unwrap<EventRegistration & { alreadyRegistered?: boolean }>(

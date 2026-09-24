@@ -245,7 +245,7 @@ Thank you for joining ACTIV!
       {/* Header */}
       <div className="bg-white border-b border-slate-300 shadow-md">
         <div className="max-w-6xl mx-auto px-6 py-5">
-          <h1 className="text-2xl font-bold text-slate-900">Payment Confirmation</h1>
+          <h1 className="text-[1.5625rem] font-bold text-slate-900">Payment Confirmation</h1>
         </div>
       </div>
 
@@ -257,10 +257,10 @@ Thank you for joining ACTIV!
               <CheckCircle className="w-16 h-16 text-white" strokeWidth={3} />
             </div>
           </div>
-          <h1 className="text-5xl font-bold text-slate-900 mb-4">
+          <h1 className="text-[3.125rem] font-bold text-slate-900 mb-4">
             Payment Successful!
           </h1>
-          <p className="text-xl text-slate-600">
+          <p className="text-[1.25rem] text-slate-600">
             Welcome to ACTIV – Your membership is now active
           </p>
         </div>
@@ -272,40 +272,40 @@ Thank you for joining ACTIV!
             {/* Membership Details Card */}
             <Card className="border-2 border-slate-300 shadow-xl">
               <div className="bg-slate-100 p-6 border-b-2 border-slate-300 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-900">Membership Details</h2>
-                <span className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-bold shadow-md">
+                <h2 className="text-[1.25rem] font-bold text-slate-900">Membership Details</h2>
+                <span className="px-4 py-2 bg-green-500 text-white rounded-full text-[1.0625rem] font-bold shadow-md">
                   ✓ Active
                 </span>
               </div>
               <CardContent className="p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wide">Membership ID</p>
-                    <p className="text-lg font-bold text-slate-900">{paymentDetails.membershipId}</p>
+                    <p className="text-[1.0625rem] text-slate-500 mb-1 font-semibold uppercase tracking-wide">Membership ID</p>
+                    <p className="text-[1.1875rem] font-bold text-slate-900">{paymentDetails.membershipId}</p>
                   </div>
 
                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wide">Member Name</p>
-                    <p className="text-lg font-bold text-slate-900">{paymentDetails.fullName}</p>
+                    <p className="text-[1.0625rem] text-slate-500 mb-1 font-semibold uppercase tracking-wide">Member Name</p>
+                    <p className="text-[1.1875rem] font-bold text-slate-900">{paymentDetails.fullName}</p>
                   </div>
 
                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wide">Plan</p>
-                    <p className="text-lg font-bold text-slate-900">{paymentDetails.planType}</p>
+                    <p className="text-[1.0625rem] text-slate-500 mb-1 font-semibold uppercase tracking-wide">Plan</p>
+                    <p className="text-[1.1875rem] font-bold text-slate-900">{paymentDetails.planType}</p>
                   </div>
 
                   <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
-                    <p className="text-xs text-blue-700 mb-1 font-semibold uppercase tracking-wide">Amount Paid</p>
-                    <p className="text-2xl font-bold text-blue-600">{money(paymentDetails.totalAmount)}</p>
+                    <p className="text-[1.0625rem] text-blue-700 mb-1 font-semibold uppercase tracking-wide">Amount Paid</p>
+                    <p className="text-[1.5625rem] font-bold text-blue-600">{money(paymentDetails.totalAmount)}</p>
                   </div>
 
                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wide">Valid For</p>
-                    <p className="text-lg font-bold text-slate-900">{paymentDetails.validFor}</p>
+                    <p className="text-[1.0625rem] text-slate-500 mb-1 font-semibold uppercase tracking-wide">Valid For</p>
+                    <p className="text-[1.1875rem] font-bold text-slate-900">{paymentDetails.validFor}</p>
                   </div>
 
                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1 font-semibold uppercase tracking-wide">Payment Reference</p>
+                    <p className="text-[1.0625rem] text-slate-500 mb-1 font-semibold uppercase tracking-wide">Payment Reference</p>
                     <p className="break-all text-[1.0625rem] font-semibold tracking-wide tabular-nums text-slate-900">
                         {paymentDetails.transactionId}
                     </p>
@@ -317,7 +317,7 @@ Thank you for joining ACTIV!
             {/* Download Documents Card */}
             <Card className="border-2 border-slate-300 shadow-xl">
               <div className="bg-slate-100 p-6 border-b-2 border-slate-300">
-                <h2 className="text-xl font-bold text-slate-900">Download Documents</h2>
+                <h2 className="text-[1.25rem] font-bold text-slate-900">Download Documents</h2>
               </div>
               <CardContent className="p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -328,7 +328,7 @@ Thank you for joining ACTIV!
                     onClick={handleDownloadReceipt}
                   >
                     <Download className="w-8 h-8 text-green-600" />
-                    <span className="font-bold text-sm">Download Receipt</span>
+                    <span className="font-bold text-[1.0625rem]">Download Receipt</span>
                   </Button>
                 </div>
               </CardContent>
@@ -342,7 +342,7 @@ Thank you for joining ACTIV!
                 </div>
                 <div>
                   <p className="font-bold text-blue-900 mb-1">Confirmation Sent</p>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-[1.0625rem] text-blue-800">
                     Confirmation has been sent to your registered email and WhatsApp number. Keep these for your records.
                   </p>
                 </div>
@@ -354,7 +354,7 @@ Thank you for joining ACTIV!
           <div className="lg:col-span-1">
             <Card className="border-2 border-slate-300 shadow-xl sticky top-24">
               <div className="bg-slate-100 p-6 border-b-2 border-slate-300">
-                <h2 className="text-xl font-bold text-slate-900">What's Next?</h2>
+                <h2 className="text-[1.25rem] font-bold text-slate-900">What's Next?</h2>
               </div>
               <CardContent className="p-8">
                 <div className="space-y-6">
@@ -369,14 +369,14 @@ Thank you for joining ACTIV!
                         <div className={`w-12 h-12 bg-${item.color}-100 rounded-xl flex items-center justify-center flex-shrink-0`}>
                           <Icon className={`w-6 h-6 text-${item.color}-600`} />
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed pt-2">{item.text}</p>
+                        <p className="text-[1.0625rem] text-slate-700 leading-relaxed pt-2">{item.text}</p>
                       </div>
                     );
                   })}
                 </div>
 
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 text-lg font-bold shadow-lg mt-8"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 text-[1.1875rem] font-bold shadow-lg mt-8"
                   onClick={() => navigate('/payment/member-dashboard')}
                 >
                   <Home className="w-5 h-5 mr-2" />

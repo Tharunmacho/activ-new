@@ -8,7 +8,7 @@ import AdminSidebar from './AdminSidebar';
 import { toast } from 'sonner';
 import { apiFetch, getSuperOverview, approveApplication, rejectApplication, errorMessage } from '@/services/activApi';
 import ApplicantDecisionRow from '@/features/admin/components/ApplicantDecisionRow';
-import { ADMIN_PAGE, AdminStat } from '@/features/admin/components/AdminUI';
+import { ADMIN_COLUMN, ADMIN_PAGE, AdminStat } from '@/features/admin/components/AdminUI';
 import useApplicantDetail from '@/features/admin/components/useApplicantDetail';
 import ProfileViewModal from '@/components/ui/profile-view-modal';
 
@@ -276,7 +276,11 @@ export default function Hub() {
                   * a line of its own above the heading — 40px of bar spent on
                   * one 20px glyph.
                   */}
-                <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex items-start gap-2 sm:gap-3">
+                <header className="bg-white border-b border-slate-200 px-4 sm:px-5 lg:px-8 py-4 sm:py-5">
+                  {/* Centred on the cards' column (`ADMIN_COLUMN`) with the
+                      page's own padding, so the title lines up with the first
+                      card instead of hanging to the left of it. */}
+                  <div className={`${ADMIN_COLUMN} flex items-start gap-2 sm:gap-3`}>
                     <button className="lg:hidden shrink-0 mt-1 text-slate-500 hover:text-slate-900"
                             onClick={() => setSidebarOpen(true)} aria-label="Open menu">
                         <Menu className="w-5 h-5" />
@@ -301,6 +305,7 @@ export default function Hub() {
                                 .filter(Boolean).join(', ')}
                         </p>
                     </div>
+                  </div>
                 </header>
 
                 <main className={ADMIN_PAGE}>

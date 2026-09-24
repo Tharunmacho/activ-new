@@ -488,7 +488,7 @@ export default function RegionTargetPicker({
                             {/* ------------------------------------- chosen -- */}
                             {list.length > 0 ? (
                                 <div className="mt-5">
-                                    <p className="text-[1.0625rem] sm:text-[1rem] font-semibold uppercase
+                                    <p className="text-[1.0625rem] font-semibold uppercase
                                                   tracking-wider text-slate-400 mb-2">
                                         Chosen regions
                                     </p>

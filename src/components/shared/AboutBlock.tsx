@@ -85,7 +85,6 @@ export function AboutBlock({
     const showImage = !sectionHidden(sections, 'about.image');
     const showStats = !sectionHidden(sections, 'about.statsBar');
     const hasMedia = showImage && !!media?.url;
-    const hasCopy = !!((showBadge && badgeText) || (showHeading && (heading || headingHighlight || body)));
 
     const hasQuote = showQuote && !!(quote && String(quote.text || '').trim());
 
@@ -95,6 +94,21 @@ export function AboutBlock({
     const statsFields = showStats ? sectionFields(sections, 'about.statsBar') : [];
     const badgeFields = showBadge ? sectionFields(sections, 'about.badge') : [];
     const quoteFields = hasQuote ? sectionFields(sections, 'about.quote') : [];
+
+    /*
+     * A CARD WITH NOTHING BUT THE EDITOR'S OWN ROWS IS STILL A CARD.
+     *
+     * This asked only about the fields the LAYOUT declares — the badge, the
+     * heading, the body — so a block whose heading had never been filled in
+     * drew nothing, and the rows an editor added to that very card went down
+     * with it. They were saved, they were served, and they were on no page.
+     *
+     * The same reasoning as `hasIntro` on the contact section, which already
+     * counts its own rows. A row is content; content is a reason to draw.
+     */
+    const hasCopy = !!((showBadge && badgeText)
+        || (showHeading && (heading || headingHighlight || body))
+        || badgeFields.length || headingFields.length);
 
     const showBullets = showPoints && bullets.length > 0;
     const showStatsBar = showStats && statsBar.length > 0;
@@ -150,11 +164,23 @@ export function AboutBlock({
                                 />
                             )}
 
-                            {/* The editor's own rows on the badge and heading cards. */}
-                            <CmsExtraFields
-                                fields={[...badgeFields, ...headingFields]}
-                                className="mt-10"
-                            />
+                            {/*
+                              * The editor's own rows on the badge and heading
+                              * cards, IN THIS COLUMN'S TYPE.
+                              *
+                              * `CmsExtraFields` sets no size or weight — it
+                              * inherits — but the type here lives on the lede
+                              * `div` above, which is a SIBLING, so nothing was
+                              * inherited and the rows came out at the browser's
+                              * 16px beside 20px copy. The wrapper carries the
+                              * same class the lede carries.
+                              */}
+                            <div className={`${SECTION_LEDE} text-gray-600`}>
+                                <CmsExtraFields
+                                    fields={[...badgeFields, ...headingFields]}
+                                    className="mt-10"
+                                />
+                            </div>
                         </Reveal>
                     )}
 
@@ -219,7 +245,9 @@ export function AboutBlock({
                                 </div>
                             </Tilt3D>
 
-                            <CmsExtraFields fields={imageFields} className="mt-8" />
+                            <div className={`${SECTION_LEDE} text-gray-600`}>
+                                <CmsExtraFields fields={imageFields} className="mt-8" />
+                            </div>
                         </Reveal>
                     )}
                 </div>
@@ -317,8 +345,11 @@ export function AboutBlock({
                             )}
                         </figure>
 
-                        {/* The editor's own rows on the quote card. */}
-                        <CmsExtraFields fields={quoteFields} className="mt-8" />
+                        {/* The editor's own rows on the quote card, in this
+                            column's type — see the note on the heading card. */}
+                        <div className={`${SECTION_LEDE} text-gray-600`}>
+                            <CmsExtraFields fields={quoteFields} className="mt-8" />
+                        </div>
                     </Reveal>
                 )}
             </div>
@@ -328,7 +359,9 @@ export function AboutBlock({
                 <div className="w-full">
                     <MissionCarousel bullets={bullets} />
                     <div className={`${SCREEN_CONTAINER} relative z-10`}>
-                        <CmsExtraFields fields={pointsFields} className="mt-8" />
+                        <div className={`${SECTION_LEDE} text-gray-600`}>
+                            <CmsExtraFields fields={pointsFields} className="mt-8" />
+                        </div>
                     </div>
                 </div>
             )}
@@ -370,9 +403,12 @@ export function AboutBlock({
             {/* Whatever the editor added that this block does not know about.
                 Renders nothing at all when the list is empty. */}
             <div className={`${SCREEN_CONTAINER} relative z-10`}>
-                {/* The figures bar's own rows, then the page's. */}
-                <CmsExtraFields fields={statsFields} className="mt-12" />
-                <CmsExtraFields fields={extraFields} className="mt-12" />
+                {/* The figures bar's own rows, then the page's — both in the
+                    block's type, as every other row on it now is. */}
+                <div className={`${SECTION_LEDE} text-gray-600`}>
+                    <CmsExtraFields fields={statsFields} className="mt-12" />
+                    <CmsExtraFields fields={extraFields} className="mt-12" />
+                </div>
             </div>
         </section>
     );

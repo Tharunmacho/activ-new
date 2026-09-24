@@ -185,7 +185,7 @@ function Section({
         </span>
         <div className="min-w-0">
           <h3 className={`${CARD_TITLE} text-[#0F172A]`}>{title}</h3>
-          {subtitle ? <p className="text-[1rem] text-[#64748B] mt-1 leading-snug">{subtitle}</p> : null}
+          {subtitle ? <p className="text-[1.0625rem] text-[#64748B] mt-1 leading-snug">{subtitle}</p> : null}
         </div>
       </div>
       {children}
@@ -1251,13 +1251,13 @@ export default function Profile() {
     return (
       <MemberPageShell title="Profile Completion" subtitle="Your details could not be loaded" width="wide">
         <div className="mx-auto max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
-          <p className="text-[1.625rem] font-extrabold tracking-tight text-amber-900">
+          <p className="text-[1.5625rem] font-extrabold tracking-tight text-amber-900">
             We could not load your profile
           </p>
           {/* The form is deliberately NOT rendered behind this. Empty boxes a
               member fills in and saves would overwrite the record that failed
               to load — the one outcome worse than showing nothing. */}
-          <p className="mt-2 text-[1.125rem] font-semibold text-amber-800">
+          <p className="mt-2 text-[1.1875rem] font-semibold text-amber-800">
             Nothing is shown here rather than an empty form, which you could
             save over the details you already have.
           </p>
@@ -1265,7 +1265,7 @@ export default function Profile() {
             type="button"
             onClick={() => setLoadAttempt((n) => n + 1)}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-6 py-3.5
-                       text-[1.125rem] font-bold text-white transition-colors hover:bg-amber-700"
+                       text-[1.1875rem] font-bold text-white transition-colors hover:bg-amber-700"
           >
             Try again
           </button>
@@ -1375,7 +1375,7 @@ export default function Profile() {
               {/* Brand and progress, in one block, so "how far am I" is answered
                   before the eye reaches the steps. */}
               <div className="shrink-0 bg-blue-600 text-white p-5 lg:p-6">
-                <p className="text-[0.75rem] font-bold uppercase tracking-[0.14em] text-white/70">
+                <p className="text-[1.0625rem] font-bold uppercase tracking-[0.14em] text-white/70">
                   Membership application
                 </p>
                 <h2 className={`${CARD_TITLE} mt-1.5`}>
@@ -1390,7 +1390,7 @@ export default function Profile() {
                   `RAIL.length` means the sentence cannot disagree with the
                   list underneath it again.
                 */}
-                <p className="text-[1rem] text-white/80 mt-1 leading-snug">
+                <p className="text-[1.0625rem] text-white/80 mt-1 leading-snug">
                   {alreadyApplied
                     ? 'Your membership record. Everything saves as you go.'
                     : `${STEP_WORDS[RAIL.length] || RAIL.length} steps. Everything saves as you go.`}
@@ -1403,7 +1403,7 @@ export default function Profile() {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <span className="font-display text-[1rem] font-extrabold tabular shrink-0">
+                  <span className="font-display text-[1.0625rem] font-extrabold tabular shrink-0">
                     {progress}%
                   </span>
                 </div>
@@ -1484,14 +1484,14 @@ export default function Profile() {
               </nav>
 
               <div className="shrink-0 px-5 py-4 border-t border-[#F1F5F9] bg-slate-50/70">
-                <p className="text-[0.75rem] font-bold uppercase tracking-[0.08em] text-[#64748B]">
+                <p className="text-[1.0625rem] font-bold uppercase tracking-[0.08em] text-[#64748B]">
                   Need help?
                 </p>
                 <a
                   href="https://activ.org.in"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[1rem] font-semibold text-[#1E50E6] hover:underline"
+                  className="text-[1.0625rem] font-semibold text-[#1E50E6] hover:underline"
                 >
                   activ.org.in
                 </a>
@@ -1529,7 +1529,7 @@ export default function Profile() {
                 <h3 className={`${CARD_TITLE} text-[#92400E] mb-1`}>
                   This account has no member profile
                 </h3>
-                <p className="text-[1rem] text-[#B45309] leading-relaxed">
+                <p className="text-[1.0625rem] text-[#B45309] leading-relaxed">
                   You are signed in with an administrator account, which is stored
                   separately from member records — so there are no personal details to
                   load here, and saving this form would not work. Use an admin dashboard
@@ -1883,7 +1883,7 @@ export default function Profile() {
                 */}
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-5 py-4 flex items-center gap-3">
-                  <p className="text-[1rem] text-[#64748B] hidden sm:block">Step 1 of 3</p>
+                  <p className="text-[1.0625rem] text-[#64748B] hidden sm:block">Step 1 of 3</p>
                   <Button
                     type="button"
                     onClick={handleNext}
@@ -2019,7 +2019,7 @@ export default function Profile() {
 
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-5 py-4 flex items-center gap-3">
-                  <p className="text-[1rem] text-[#64748B] hidden sm:block">Step 2 of 3</p>
+                  <p className="text-[1.0625rem] text-[#64748B] hidden sm:block">Step 2 of 3</p>
                   <div className="ml-auto flex items-center gap-3">
                     <Button
                       type="button"
@@ -2178,7 +2178,7 @@ export default function Profile() {
 
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-5 py-4 flex items-center gap-3">
-                  <p className="text-[1rem] text-[#64748B] hidden sm:block">
+                  <p className="text-[1.0625rem] text-[#64748B] hidden sm:block">
                     {alreadyApplied ? 'Save your changes' : 'Last step'}
                   </p>
                   <div className="ml-auto flex items-center gap-3">

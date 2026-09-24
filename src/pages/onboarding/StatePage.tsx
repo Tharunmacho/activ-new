@@ -6,7 +6,8 @@ import { FooterSection } from '@/components/layout/FooterSection';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { SECTION_HEADING } from '@/components/layout/typography';
 import {
-    getStatePage, type StatePage as StatePageData, type RegionLeader,
+    getStatePage, dashboardLabels, STATE_LABELS,
+    type StatePage as StatePageData, type RegionLeader,
 } from '@/services/cmsRegionsApi';
 import { LeaderProfileDialog } from './components/RegionUI';
 import type { LeaderContext } from '@/services/cmsLeaderMessagesApi';
@@ -213,6 +214,10 @@ export default function StatePage() {
      * from the pill at the top of the band; this tier is the state's own, and
      * is edited on this state's CMS page.
      */
+    /* The page's own headings, from the CMS, with the shipped wording under
+       anything left blank — see `dashboardLabels`. */
+    const labels = dashboardLabels(page.labels, STATE_LABELS);
+
     const stateRegions = (page.stateRegions || []).filter((r) => r && (r.leaders || []).length);
     const districts = (page.districts || []).filter((d) => d && (d.leaders || []).length);
 
@@ -291,7 +296,7 @@ export default function StatePage() {
                         hero={page.hero}
                         title={page.stateName}
                         blurb={page.hero.blurb || page.shortDescription}
-                        backLabel={page.region ? `${page.region.label} Region` : 'Regions'}
+                        backLabel={page.region ? `${page.region.label} Zone` : 'Zones'}
                         backHref={page.region ? `/regions/${page.region.slug}` : undefined}
                         showGlance={false}
                     />
@@ -301,7 +306,11 @@ export default function StatePage() {
                     {(page.leaders || []).length > 0 && (
                         <section>
                             <SectionHead
-                                eyebrow="State"
+                                /* The heading keeps the state's NAME, which is
+                                   why only the eyebrow is authored: a stored
+                                   title would freeze one state's name onto
+                                   every other state's page. */
+                                eyebrow={labels.ownTierEyebrow}
                                 title={`${page.stateName} Leaders`}
                             />
                             <LeaderGrid
@@ -316,8 +325,8 @@ export default function StatePage() {
                     {stateRegions.length > 0 && (
                         <section>
                             <SectionHead
-                                eyebrow={`Regions of ${page.stateName}`}
-                                title="Region-wise Leadership"
+                                eyebrow={`${labels.tierBelowEyebrow} of ${page.stateName}`}
+                                title={labels.tierBelowHeading}
                             />
                             <div className="space-y-10 sm:space-y-12">
                                 {stateRegions.map((region) => (
@@ -346,8 +355,8 @@ export default function StatePage() {
                     {districts.length > 0 && (
                         <section>
                             <SectionHead
-                                eyebrow="Districts"
-                                title="District-wise Leadership"
+                                eyebrow={labels.districtsEyebrow}
+                                title={labels.districtsHeading}
                             />
                             {/* `space-y-10`: with the panels gone there is no
                                 box edge between one group and the next, so the
@@ -376,9 +385,12 @@ export default function StatePage() {
                         </section>
                     )}
 
-                    {/* ---- contact ---- */}
-                    <section>
-                        <SectionHead eyebrow="Contact" title="Get in Touch" />
+                    {/* ---- contact ----
+                        `id="contact"` is where the Contact page's region tiles
+                        land (`/states/<slug>#contact`); `scroll-mt` keeps the
+                        heading clear of the sticky header. */}
+                    <section id="contact" className="scroll-mt-32">
+                        <SectionHead eyebrow={labels.contactEyebrow} title={labels.contactHeading} />
 
                         {/*
                           * THE MAP ON THE LEFT, THE PEOPLE ON THE RIGHT.

@@ -271,11 +271,11 @@ export default function LeaderMessagesInbox() {
                                     </div>
 
                                     <div className="flex shrink-0 items-center gap-2">
-                                        <span className={`rounded-full px-3 py-1 text-[1rem] font-bold
+                                        <span className={`rounded-full px-3 py-1 text-[1.0625rem] font-bold
                                                           ${STATUS_STYLE[m.status]}`}>
                                             {m.status}
                                         </span>
-                                        <span className="text-[1rem] font-medium text-slate-400">
+                                        <span className="text-[1.0625rem] font-medium text-slate-400">
                                             {whenOf(m.createdAt)}
                                         </span>
                                     </div>
@@ -382,7 +382,7 @@ export default function LeaderMessagesInbox() {
                                   */}
                                 <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100
                                                 pt-3 dark:border-[#1a1a1a]">
-                                    <span className="text-[1rem] font-semibold text-slate-400">
+                                    <span className="text-[1.0625rem] font-semibold text-slate-400">
                                         Take them something:
                                     </span>
                                     <a
@@ -448,7 +448,7 @@ export default function LeaderMessagesInbox() {
                                 {/* ---- the admin's own note ---- */}
                                 <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
                                     <label className="min-w-0 flex-1">
-                                        <span className="mb-1 block text-[1rem] font-semibold text-slate-500">
+                                        <span className="mb-1 block text-[1.0625rem] font-semibold text-slate-500">
                                             Your note — what was said, what was promised
                                         </span>
                                         <textarea
@@ -470,7 +470,7 @@ export default function LeaderMessagesInbox() {
                                 </div>
 
                                 {m.handledBy?.email && (
-                                    <p className="mt-2 text-[1rem] font-medium text-slate-400">
+                                    <p className="mt-2 text-[1.0625rem] font-medium text-slate-400">
                                         Last touched by {m.handledBy.email}
                                     </p>
                                 )}

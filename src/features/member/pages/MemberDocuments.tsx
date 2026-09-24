@@ -154,7 +154,7 @@ export default function MemberDocuments() {
                                                 {detail}
                                             </span>
                                             <span className="mt-2 inline-flex items-center gap-1.5 rounded-full
-                                                             bg-emerald-50 px-2.5 py-1 text-[0.8125rem]
+                                                             bg-emerald-50 px-2.5 py-1 text-[1.0625rem]
                                                              font-bold text-emerald-700">
                                                 <BadgeCheck className="h-4 w-4" /> Issued
                                             </span>
@@ -238,7 +238,7 @@ export default function MemberDocuments() {
                                     {done ? (
                                         <Link
                                             to="/member/profile-view"
-                                            className="shrink-0 text-[1rem] font-semibold text-blue-600
+                                            className="shrink-0 text-[1.0625rem] font-semibold text-blue-600
                                                        hover:underline"
                                         >
                                             View
@@ -246,7 +246,7 @@ export default function MemberDocuments() {
                                     ) : (
                                         <Link
                                             to={to}
-                                            className="shrink-0 inline-flex items-center gap-0.5 text-[1rem]
+                                            className="shrink-0 inline-flex items-center gap-0.5 text-[1.0625rem]
                                                        font-semibold text-blue-600 hover:underline"
                                         >
                                             Complete <ChevronRight className="w-3.5 h-3.5" />

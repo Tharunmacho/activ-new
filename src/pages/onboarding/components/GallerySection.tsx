@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Grid3x3, ArrowRight } from 'lucide-react';
+import { Images, Calendar, MapPin, Grid3x3, ArrowRight } from 'lucide-react';
 import {
     getGallery, getGallerySettings,
     type GalleryItem, type GallerySettings,
@@ -8,10 +8,14 @@ import {
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
-import { SECTION_HEADING, SECTION_LEDE, EYEBROW } from '@/components/layout/typography';
+import { SECTION_HEADING, SECTION_LEDE, EYEBROW, BAND_MEASURE } from '@/components/layout/typography';
 import { Reveal } from '@/components/shared/Reveal';
 import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
+import { SectionFields } from '@/components/shared/SectionFields';
+
+/** The gallery band's own type, for the rows added to its cards. */
+const GRID_PROSE = 'text-[1.125rem] font-medium leading-relaxed text-gray-500';
 import { Tilt3D } from '@/components/shared/Tilt3D';
 
 /**
@@ -85,32 +89,40 @@ export function GallerySection() {
         ? []
         : (settings?.categories || []);
 
-    /*
-     * THE BAND SAYING WHAT THIS PAGE IS.
-     *
-     * `/events` is upcoming events only, and it points here for the rest.
-     * A visitor who follows that link arrives at a grid of photographs with
-     * nothing confirming they are in the right place — so the page says so,
-     * in the editor's words, and the card can be removed like any other.
-     */
-    const past = settings?.pastEvents;
-    const showPast = !sectionHidden(settings?.sections, 'gallery.pastEvents')
-        && !!(past?.enabled && (past.title || past.subtitle));
 
     /* A card's rows go with the card: removing it takes them off the page
        too, which is what the collapsed strip in the CMS says it will do. */
     const rowsOf = (key: string) =>
         (sectionHidden(settings?.sections, key) ? [] : sectionFields(settings?.sections, key));
 
-    const ownRows = [
-        ...rowsOf('gallery.categories'),
-        ...rowsOf('gallery.paging'),
-        ...rowsOf('gallery.detail'),
-        ...rowsOf('gallery.pastEvents'),
-        ...(settings?.extraFields || []),
-    ];
+    /*
+     * Each card's rows are drawn WITH that card now — see `SectionFields`.
+     * They were pooled here and printed once under the grid, so a field added
+     * to "Categories" appeared beneath everything instead of with the chips.
+     * What is left is the list attached to the PAGE.
+     */
+    const ownRows = settings?.extraFields || [];
     const noteLines = settings?.noteLines || [];
-    const hasIntro = !!(settings?.badgeText || settings?.heading || settings?.description);
+    /*
+     * THE THREE INTRO CARDS DRAW THEIR OWN ROWS, and did not.
+     *
+     * `gallery.badge`, `gallery.heading` and `gallery.note` each offered
+     * "Your own fields in this section" in the CMS and nothing on this page
+     * read them. An editor typed a field into the heading card, saved it, was
+     * told it had saved — and it had, the server has it — and then found
+     * nothing on the gallery. Offered, stored, served, and on no page.
+     *
+     * They are counted into `hasIntro` as well, for the same reason the
+     * contact section counts its rows: a card whose heading was never filled
+     * in still has content once an editor has added a row to it, and dropping
+     * the column would take the rows down with it.
+     */
+    const badgeRows = rowsOf('gallery.badge');
+    const headingRows = rowsOf('gallery.heading');
+    const noteRows = rowsOf('gallery.note');
+
+    const hasIntro = !!(settings?.badgeText || settings?.heading || settings?.description)
+        || badgeRows.length > 0 || headingRows.length > 0 || noteRows.length > 0;
 
     return (
         <section className="w-full py-16 md:py-24 dot-band relative overflow-hidden font-sans">
@@ -155,10 +167,25 @@ export function GallerySection() {
                                 )}
 
                                 {settings?.description && (
-                                    <p className={`${SECTION_LEDE} text-gray-500 max-w-xl`}>
+                                    <p className={`${SECTION_LEDE} text-gray-500 ${BAND_MEASURE}`}>
                                         {settings.description}
                                     </p>
                                 )}
+
+                                {/* Each card's rows, with that card — the badge's
+                                    under the badge, the heading's under the lede.
+                                    `proseClass` because the type on this column
+                                    lives on the siblings above, not on an
+                                    ancestor, so there is nothing to inherit. */}
+                                {(['gallery.badge', 'gallery.heading', 'gallery.note'] as const).map(key => (
+                                    <SectionFields
+                                        key={key}
+                                        sections={settings?.sections}
+                                        sectionKey={key}
+                                        proseClass={`${SECTION_LEDE} text-gray-500`}
+                                        className={`${BAND_MEASURE} mt-6`}
+                                    />
+                                ))}
 
                                 {noteLines.length > 0 && (
                                     /*
@@ -178,10 +205,16 @@ export function GallerySection() {
                                     <div className="hidden xl:block absolute left-full ml-2 top-[13.5rem]
                                                     w-56 h-56 z-20 text-brand-600 pointer-events-none">
                                         <div className="relative w-full h-full">
-                                            <p
-                                                className="absolute top-0 left-0 text-2xl rotate-[-10deg] font-bold text-brand-600"
-                                                style={{ fontFamily: "'Caveat', cursive, serif" }}
-                                            >
+                                            {/*
+                                              * No `fontFamily`. It named Caveat, which this
+                                              * site never loads — `index.html` requests Poppins
+                                              * and Inter and nothing else — so the declaration
+                                              * fell straight through to `cursive` and painted
+                                              * this note in Comic Sans on Windows. One family,
+                                              * Poppins, so the rotation and the weight carry
+                                              * the handwritten feel instead.
+                                              */}
+                                            <p className="absolute top-0 left-0 text-[1.5625rem] rotate-[-10deg] font-bold text-brand-600">
                                                 {noteLines.map((line, i) => (
                                                     <span key={i} className="block">{line}</span>
                                                 ))}
@@ -265,33 +298,6 @@ export function GallerySection() {
                     </div>
                 )}
 
-                {/* ---- the past-events band ---- */}
-                {showPast && (
-                    <Reveal>
-                        <div className="mb-10 flex flex-col gap-4 rounded-2xl border border-brand-100
-                                        bg-white/80 px-6 py-5 shadow-[0_18px_46px_-30px_rgb(28_46_104/0.45)]
-                                        sm:flex-row sm:items-center sm:gap-5">
-                            <span className="flex h-12 w-12 shrink-0 items-center justify-center
-                                             rounded-full bg-brand-50 text-brand-600">
-                                <CmsIcon name={past?.icon} size={22} fallback="calendar-days" />
-                            </span>
-
-                            <div className="min-w-0">
-                                {past?.title && (
-                                    <p className="text-[1.375rem] font-extrabold text-brand-800">
-                                        {past.title}
-                                    </p>
-                                )}
-                                {past?.subtitle && (
-                                    <p className="mt-1 text-[1.125rem] font-medium leading-relaxed text-gray-600">
-                                        {past.subtitle}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </Reveal>
-                )}
-
                 {/* ---- filter chips ---- */}
                 {categories.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
@@ -319,6 +325,21 @@ export function GallerySection() {
                         ))}
                     </div>
                 )}
+
+                {/* The chips' own rows, with the chips — see `SectionFields`.
+
+                    `align="center"` because the rail above them is centred, and
+                    a row inherits its section's type but not its alignment:
+                    that is set on an ancestor and these rows are their own
+                    block. Left as it was, a field added to this card printed
+                    hard against the left margin under eight centred pills. */}
+                <SectionFields
+                    proseClass={GRID_PROSE}
+                    sections={settings?.sections}
+                    sectionKey="gallery.categories"
+                    className="mb-12"
+                    align="center"
+                />
 
                 {/* ---- grid ---- */}
                 {loading ? (
@@ -359,13 +380,51 @@ export function GallerySection() {
                                                    focus-visible:ring-offset-2
                                                    flex flex-col group"
                                     >
-                                <div className="w-full h-48 relative overflow-hidden bg-gray-50 p-1">
+                                {/*
+                                  * ONE SHAPE FOR EVERY COVER.
+                                  *
+                                  * `h-48` is a fixed 192px whatever the column is
+                                  * worth, so the same card was a different shape on
+                                  * a phone, a laptop and a wide display — and at
+                                  * four across it cropped a landscape photograph to
+                                  * a letterbox. `aspect-[4/3]` is the shape the
+                                  * pictures are, and it scales with the column, so
+                                  * a row of four covers reads as a row rather than
+                                  * as four unrelated crops.
+                                  */}
+                                <div className="w-full aspect-[4/3] relative overflow-hidden bg-gray-50 p-1">
                                     <div className="w-full h-full rounded-t-2xl overflow-hidden relative">
                                         <CmsMediaFrame
                                             media={card.media}
                                             width={340}
                                             className="group-hover:scale-105 transition-transform duration-500 transform-gpu"
                                         />
+
+                                        {/* How many photographs are inside the album —
+                                            the cover plus its photos. Only when there
+                                            is more than the cover to open. */}
+                                        {/*
+                                          * THE COUNT IS THE REASON TO PRESS THE CARD.
+                                          *
+                                          * The cover is the one picture chosen to
+                                          * draw somebody in; what is behind it is a
+                                          * whole afternoon. Without this the card
+                                          * offers no reason to believe there is
+                                          * anything more than the picture already on
+                                          * screen, and the album nobody opens may as
+                                          * well not have been posted.
+                                          *
+                                          * Only when there IS more than the cover —
+                                          * "1 photo" on a single-picture post is a
+                                          * promise of nothing.
+                                          */}
+                                        {(card.photos || []).filter((ph) => ph && ph.url).length > 0 && (
+                                            <span className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full
+                                                             bg-black/65 px-3 py-1 text-[0.9375rem] font-bold text-white
+                                                             shadow-sm backdrop-blur-sm">
+                                                <Images size={14} /> {(card.photos || []).filter((ph) => ph && ph.url).length + 1} photos
+                                            </span>
+                                        )}
 
                                         {/* NO CATEGORY CHIP.
 
@@ -378,42 +437,72 @@ export function GallerySection() {
                                 </div>
 
                                 <div className="p-5 flex flex-col flex-grow">
-                                    {card.title && (
-                                        <h3 className="text-[1.3125rem] font-extrabold text-[#111827] mb-4 leading-snug
-                                                       line-clamp-2 group-hover:text-brand-600 transition-colors">
-                                            {card.title}
-                                        </h3>
-                                    )}
+                                    {/*
+                                      * A HEADING ON EVERY CARD, even an untitled one.
+                                      *
+                                      * The heading used to be dropped entirely when
+                                      * the title was blank, so that card's date row
+                                      * rode up to meet the picture and sat at a
+                                      * different height from the three beside it.
+                                      * "Untitled" is the same answer the scheme page
+                                      * and the events list already give, for the same
+                                      * reason: a missing name is information, and a
+                                      * hole where a name goes reads as a broken card.
+                                      */}
+                                    <h3 className="text-[1.3125rem] font-extrabold text-[#111827] leading-snug
+                                                   line-clamp-2 group-hover:text-brand-600 transition-colors">
+                                        {card.title || 'Untitled album'}
+                                    </h3>
 
-                                    {(card.eventDate || card.location) && (
-                                        <div className="mt-auto flex items-center justify-between text-gray-500 text-[1.0625rem]
-                                                        font-medium border-t border-gray-50 pt-4">
+                                    {/*
+                                      * ==================================================
+                                      * ONE FOOT, ALWAYS DRAWN
+                                      * ==================================================
+                                      *
+                                      * This was two blocks, each conditional, and
+                                      * between them they left the bottom half of a card
+                                      * empty whenever an item had no date and no place
+                                      * — which is most of them. "State council meeting,
+                                      * Chennai" was a picture, a line of text and four
+                                      * centimetres of nothing, beside three cards that
+                                      * were full.
+                                      *
+                                      * And "View details" was `opacity-0` until the
+                                      * pointer was over the card, so in any screenshot
+                                      * — and to anybody on a touch screen, which has
+                                      * no hover — exactly one card in the grid had a
+                                      * call to action and the rest looked inert.
+                                      *
+                                      * One row now, pinned to the foot by `mt-auto`,
+                                      * always present: what is known about the event on
+                                      * the left, the way in on the right. A card with
+                                      * nothing known still has a foot, so the grid lines
+                                      * up whatever the editor filled in.
+                                      */}
+                                    <div className="mt-auto flex items-end justify-between gap-3 border-t border-gray-100 pt-4">
+                                        <div className="min-w-0 flex flex-col gap-1.5 text-gray-500 text-[1.0625rem] font-medium">
                                             {card.eventDate && (
-                                                <div className="flex items-center space-x-1.5">
-                                                    <Calendar size={16} className="text-gray-400" />
-                                                    <span>{card.eventDate}</span>
-                                                </div>
+                                                <span className="flex items-center gap-1.5">
+                                                    <Calendar size={15} className="shrink-0 text-gray-400" />
+                                                    <span className="truncate">{card.eventDate}</span>
+                                                </span>
                                             )}
                                             {card.location && (
-                                                <div className="flex items-center space-x-1.5">
-                                                    <MapPin size={16} className="text-gray-400" />
-                                                    <span className="truncate max-w-[5.625rem]">{card.location}</span>
-                                                </div>
+                                                <span className="flex items-center gap-1.5">
+                                                    <MapPin size={15} className="shrink-0 text-gray-400" />
+                                                    <span className="truncate">{card.location}</span>
+                                                </span>
                                             )}
                                         </div>
-                                    )}
 
-                                    {/* `mt-auto` on this rather than on the row above
-                                        when there are no details, so a card with
-                                        neither date nor location still puts the cue
-                                        at its foot and the grid stays even. */}
-                                    <span className={`${!card.eventDate && !card.location ? 'mt-auto pt-4' : 'mt-3'}
-                                                     inline-flex items-center gap-1.5 text-brand-600
-                                                     text-[1rem] font-extrabold uppercase tracking-widest
-                                                     opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100
-                                                     transition-opacity duration-300`}>
-                                        View details <ArrowRight size={15} />
-                                    </span>
+                                        <span className="shrink-0 inline-flex items-center gap-1.5 text-brand-600
+                                                         text-[1rem] font-extrabold uppercase tracking-widest
+                                                         opacity-70 transition-all duration-300
+                                                         group-hover:opacity-100 group-hover:gap-2.5
+                                                         group-focus-visible:opacity-100">
+                                            View <ArrowRight size={15} />
+                                        </span>
+                                    </div>
                                         </div>
                                     </Link>
                                 </Tilt3D>
@@ -436,10 +525,31 @@ export function GallerySection() {
                     </div>
                 )}
 
-                {/* Fields the editor added to this page. Nothing is drawn
-                    when the list is empty. */}
-                {/* The editor's own rows, per card, then the page's own list. */}
-                <CmsExtraFields fields={ownRows} className="mt-16" />
+                {/* The paging card's own rows, then the PAGE's. Each card's
+                    rows used to be pooled into one list printed here, so a field
+                    added to the categories landed under the grid.
+
+                    `gallery.detail` is NOT drawn here: that card is the
+                    furniture of the photograph's own page, and its rows belong
+                    on that page rather than on the grid that links to it. */}
+                {/* Both of these sit under the grid, where the paging control
+                    and the past-events band are centred, so their rows are too. */}
+                <SectionFields
+                    proseClass={GRID_PROSE}
+                    sections={settings?.sections}
+                    sectionKey="gallery.paging"
+                    align="center"
+                />
+                {/* Same as the paging card: offered, never drawn. */}
+                <SectionFields
+                    proseClass={GRID_PROSE}
+                    sections={settings?.sections}
+                    sectionKey="gallery.pastEvents"
+                    align="center"
+                />
+                <div className={GRID_PROSE}>
+                    <CmsExtraFields fields={ownRows} className="mt-16" />
+                </div>
             </div>
         </section>
     );

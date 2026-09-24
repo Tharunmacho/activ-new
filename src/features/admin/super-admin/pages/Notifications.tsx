@@ -211,10 +211,10 @@ export default function Notifications() {
                                 <p className="mt-1">
                                     Messages on {emailOff && waOff ? 'those channels' : 'that channel'} are recorded
                                     below as <strong>not sent</strong> and nothing leaves the server. Add the
-                                    credentials to <code className="font-mono text-[1.125rem]">backend/.env</code> and
-                                    restart — {emailOff ? <><code className="font-mono text-[1.125rem]">EMAIL_USER</code> and <code className="font-mono text-[1.125rem]">EMAIL_PASS</code></> : null}
+                                    credentials to <code className="font-mono text-[1.1875rem]">backend/.env</code> and
+                                    restart — {emailOff ? <><code className="font-mono text-[1.1875rem]">EMAIL_USER</code> and <code className="font-mono text-[1.1875rem]">EMAIL_PASS</code></> : null}
                                     {emailOff && waOff ? ', ' : null}
-                                    {waOff ? <><code className="font-mono text-[1.125rem]">BOTBEE_API_TOKEN</code> and <code className="font-mono text-[1.125rem]">BOTBEE_PHONE_NUMBER_ID</code></> : null}.
+                                    {waOff ? <><code className="font-mono text-[1.1875rem]">BOTBEE_API_TOKEN</code> and <code className="font-mono text-[1.1875rem]">BOTBEE_PHONE_NUMBER_ID</code></> : null}.
                                 </p>
                             </div>
                         </div>

@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -167,6 +168,9 @@ export function PhoneInput({
     const [highlight, setHighlight] = useState(0);
 
     const rootRef = useRef<HTMLDivElement>(null);
+    /* The panel lives in a portal (see below), so it is not inside `rootRef`. */
+    const panelRef = useRef<HTMLDivElement>(null);
+    const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number; up: boolean } | null>(null);
     const searchRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
     const listId = useId();
@@ -229,9 +233,10 @@ export function PhoneInput({
         if (!open) return undefined;
         const onDocPointerDown = (event: MouseEvent | TouchEvent) => {
             const node = rootRef.current;
-            if (node && event.target instanceof Node && !node.contains(event.target)) {
-                setOpen(false);
-            }
+            const target = event.target instanceof Node ? event.target : null;
+            if (!target) return;
+            if (node?.contains(target) || panelRef.current?.contains(target)) return;
+            setOpen(false);
         };
         document.addEventListener('mousedown', onDocPointerDown);
         document.addEventListener('touchstart', onDocPointerDown);
@@ -249,6 +254,45 @@ export function PhoneInput({
         const timer = window.setTimeout(() => searchRef.current?.focus(), 0);
         // eslint-disable-next-line consistent-return
         return () => window.clearTimeout(timer);
+    }, [open]);
+
+    /*
+     * ============================================================================
+     * THE PANEL IS DRAWN IN A PORTAL, positioned under the field
+     * ============================================================================
+     *
+     * It used to be an absolutely positioned child of the field, which works
+     * until the field sits inside a card with `overflow: hidden` — the
+     * registration card has one, for its rounded corners and progress bar. The
+     * panel was then clipped to a sliver: the search box and a few pixels of
+     * "India", with the WhatsApp field painted over the rest, so it looked as
+     * if no other country existed. In a portal on <body> nothing can clip it.
+     *
+     * `fixed`, re-measured on scroll and resize, and flipped ABOVE the field
+     * when there is not room for it below.
+     */
+    const PANEL_HEIGHT = 320;
+    useLayoutEffect(() => {
+        if (!open) { setPanelPos(null); return undefined; }
+        const place = () => {
+            const box = rootRef.current?.getBoundingClientRect();
+            if (!box) return;
+            const below = window.innerHeight - box.bottom;
+            const up = below < PANEL_HEIGHT + 12 && box.top > below;
+            setPanelPos({
+                top: up ? box.top - 4 : box.bottom + 4,
+                left: box.left,
+                width: box.width,
+                up,
+            });
+        };
+        place();
+        window.addEventListener('resize', place);
+        window.addEventListener('scroll', place, true);
+        return () => {
+            window.removeEventListener('resize', place);
+            window.removeEventListener('scroll', place, true);
+        };
     }, [open]);
 
     /** Keep the highlighted row in view while the arrows walk the list. */
@@ -365,10 +409,18 @@ export function PhoneInput({
                 />
             </div>
 
-            {open && (
+            {open && panelPos && typeof document !== 'undefined' && createPortal(
                 <div
+                    ref={panelRef}
+                    style={{
+                        position: 'fixed',
+                        left: panelPos.left,
+                        width: panelPos.width,
+                        top: panelPos.up ? undefined : panelPos.top,
+                        bottom: panelPos.up ? window.innerHeight - panelPos.top : undefined,
+                    }}
                     className={cn(
-                        'absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-md border border-slate-200',
+                        'z-[1000] overflow-hidden rounded-md border border-slate-200',
                         'bg-white shadow-lg',
                     )}
                 >
@@ -430,7 +482,8 @@ export function PhoneInput({
                             </div>
                         ))}
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

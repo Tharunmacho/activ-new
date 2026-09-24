@@ -102,6 +102,22 @@ export const syncLegacyTokenKeys = (): void => {
     }
 };
 
+/**
+ * WHERE A SIGNED-OUT PERSON IS SENT: admins to `/admin/login`, members to
+ * `/login`. The two sign-in screens are separate — see `EnhancedLoginPage`'s
+ * `audience` — so an admin whose session expires lands back on theirs.
+ *
+ * Read from the stored role BEFORE the session is cleared; afterwards there
+ * is nothing left to ask.
+ */
+export const loginPathFor = (role?: string | null): string => {
+    let value = role;
+    if (value === undefined) {
+        try { value = localStorage.getItem(STORAGE_KEYS.USER_ROLE); } catch { value = null; }
+    }
+    return value && value !== 'member' ? '/admin/login' : '/login';
+};
+
 export const clearSession = (): void => {
     try {
         Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
@@ -288,9 +304,10 @@ api.interceptors.response.use(
             url.includes('/auth/reset-password');
 
         if (status === 401 && !isAuthAttempt) {
+            const signIn = loginPathFor();
             clearSession();
             if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-                window.location.assign('/login');
+                window.location.assign(signIn);
             }
         }
 

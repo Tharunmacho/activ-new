@@ -22,6 +22,7 @@ import type { EventBooking } from '@/services/eventBookingApi';
 import { errorMessage } from '@/services/api';
 
 import { CARD_TITLE } from '@/components/layout/appTypography';
+import { adminBasePath } from '@/features/admin/components/tierConfig';
 /**
  * Who is coming to an event, and who has paid.
  *
@@ -230,7 +231,7 @@ export default function SuperAdminBookings() {
      */
     useEffect(() => {
         if (!routeEventId && events.length) {
-            navigate(`/super-admin/bookings/${events[0].id}`, { replace: true });
+            navigate(`${adminBasePath()}/bookings/${events[0].id}`, { replace: true });
         }
     }, [events, routeEventId, navigate]);
 
@@ -336,10 +337,10 @@ export default function SuperAdminBookings() {
 
     /* ------------------------------------------------------------ actions */
 
-    const markPaid = async (booking: EventBooking) => {
+    const markPaid = async (booking: EventBooking, mode = 'offline') => {
         setActing(booking.bookingRef);
         try {
-            const updated = await recordBookingPayment(eventId, booking.bookingRef, 'offline');
+            const updated = await recordBookingPayment(eventId, booking.bookingRef, mode);
             setOpen(updated);
             load();
             invalidateAttendees();
@@ -350,10 +351,10 @@ export default function SuperAdminBookings() {
         }
     };
 
-    const cancel = async (booking: EventBooking) => {
+    const cancel = async (booking: EventBooking, reason = '') => {
         setActing(booking.bookingRef);
         try {
-            await cancelEventBooking(eventId, booking.bookingRef, 'Cancelled by administrator');
+            await cancelEventBooking(eventId, booking.bookingRef, reason);
             setOpen(null);
             load();
             // A cancelled booking frees its seats, so the door list is now one
@@ -377,12 +378,12 @@ export default function SuperAdminBookings() {
                     title="Event Bookings"
                     subtitle="Seats booked through the public Book Now page, and what has been paid"
                     onMenu={() => setSidebarOpen(true)}
-                    backTo="/super-admin/bookings"
+                    backTo={`${adminBasePath()}/bookings`}
                     actions={
                         <>
                             <button
                                 type="button"
-                                onClick={() => navigate('/super-admin/bookings')}
+                                onClick={() => navigate(`${adminBasePath()}/bookings`)}
                                 className={ADMIN_SECONDARY_BTN}
                             >
                                 <ArrowLeft className="w-4 h-4" /> All events
@@ -421,7 +422,7 @@ export default function SuperAdminBookings() {
 
                     {/* ---------------------------------------------- picker */}
                     <div className={`${ADMIN_CARD} p-4 sm:p-5`}>
-                        <label className="block text-[1.0625rem] sm:text-[1rem] font-semibold uppercase
+                        <label className="block text-[1.0625rem] font-semibold uppercase
                                           tracking-wider text-slate-500 mb-2.5">
                             Event
                         </label>
@@ -435,7 +436,7 @@ export default function SuperAdminBookings() {
                              * the URL, the Back button and a reload disagree
                              * with.
                              */
-                            onChange={(e) => navigate(`/super-admin/bookings/${e.target.value}`)}
+                            onChange={(e) => navigate(`${adminBasePath()}/bookings/${e.target.value}`)}
                             disabled={eventsLoading || !events.length}
                             className={ADMIN_INPUT}
                         >
@@ -602,7 +603,7 @@ export default function SuperAdminBookings() {
                                                    capitals on a 16px table. This screen and the
                                                    overview above it are one section and must not
                                                    set the same heading two different ways. */
-                                                className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold
+                                                className="px-5 py-4 text-[1.0625rem] font-semibold
                                                            uppercase tracking-wider text-slate-500
                                                            border-b border-slate-200 whitespace-nowrap"
                                             >
@@ -793,8 +794,8 @@ export default function SuperAdminBookings() {
                     event={selected}
                     acting={acting === open.bookingRef}
                     onClose={() => setOpen(null)}
-                    onMarkPaid={() => markPaid(open)}
-                    onCancel={() => cancel(open)}
+                    onMarkPaid={(mode) => markPaid(open, mode)}
+                    onCancel={(reason) => cancel(open, reason)}
                 />
             )}
         </div>
@@ -918,7 +919,7 @@ function AttendeePanel({ rows, loading, seatsBooked = 0 }: {
                                 : row.paymentStatus === 'failed' ? 'Failed' : 'Unpaid'}
                     </AdminChip>
                     {row.isMemberRate && (
-                        <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-emerald-600">
+                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-600">
                             <BadgePercent className="w-3 h-3" /> Member rate
                         </span>
                     )}
@@ -1004,10 +1005,39 @@ function BookingDetail(props: {
     event: EventOption | null;
     acting: boolean;
     onClose: () => void;
-    onMarkPaid: () => void;
-    onCancel: () => void;
+    onMarkPaid: (mode: string) => void;
+    onCancel: (reason: string) => void;
 }) {
     const { booking, event, acting, onClose, onMarkPaid, onCancel } = props;
+
+    /*
+     * The two actions open INLINE in the footer rather than as a second
+     * dialog: confirming asks how the money was collected, cancelling asks
+     * why — and both answers go into the email / WhatsApp the booker gets.
+     */
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [payMode, setPayMode] = useState('cash');
+    const [cancelOpen, setCancelOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+
+    /*
+     * Any booking that has NOT been paid can be confirmed by hand — including
+     * one whose 30-minute online hold lapsed ("expired"), which is what every
+     * booker who filled the form in and never paid becomes. That is exactly
+     * the person the organiser collects money from directly.
+     */
+    const payStatus = booking?.payment?.status || 'pending';
+    const canConfirm = booking?.status !== 'cancelled'
+        && (payStatus === 'pending' || payStatus === 'failed');
+    const canCancel = booking?.status === 'active' || booking?.status === 'waitlist';
+
+    /* Once the booking changes underneath (confirmed, or a different row
+       opened), the inline forms close — the question they asked is answered. */
+    useEffect(() => {
+        setConfirmOpen(false);
+        setCancelOpen(false);
+        setCancelReason('');
+    }, [booking?.bookingRef, booking?.status, payStatus]);
 
     /* Escape closes it. A panel that can only be dismissed by finding a small
        × is one an admin leaves open and scrolls the page behind. */
@@ -1039,7 +1069,7 @@ function BookingDetail(props: {
         if (empty) return null;
         return (
             <div className="py-3 border-b border-slate-100 last:border-0">
-                <dt className="text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider
+                <dt className="text-[1.0625rem] font-semibold uppercase tracking-wider
                                text-slate-400 mb-1">
                     {label}
                 </dt>
@@ -1202,7 +1232,7 @@ function BookingDetail(props: {
                                         {['S.No', 'Name', 'Email', 'Mobile'].map((head) => (
                                             <th
                                                 key={head}
-                                                className="px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold
+                                                className="px-5 py-4 text-[1.0625rem] font-semibold
                                                            uppercase tracking-wider text-slate-500 whitespace-nowrap"
                                             >
                                                 {head}
@@ -1270,33 +1300,98 @@ function BookingDetail(props: {
                   */}
                 <footer className="shrink-0 border-t border-slate-200 bg-white px-5 sm:px-6 py-4
                                    flex flex-col sm:flex-row gap-3">
-                    {booking.status === 'active'
-                        && booking.payment.status !== 'paid'
-                        && booking.payment.status !== 'not_required' && (
-                        <button
-                            type="button"
-                            onClick={onMarkPaid}
-                            disabled={acting}
-                            className={ADMIN_PRIMARY_BTN}
-                        >
-                            {acting
-                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                : <CheckCircle2 className="w-4 h-4" />}
-                            {/* Cash at the door. The server stamps who
-                                recorded it, from the token. */}
-                            Record payment received
-                        </button>
-                    )}
+                    {confirmOpen ? (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                            <label className="text-sm font-semibold text-slate-600 whitespace-nowrap">
+                                Payment collected by
+                            </label>
+                            <select
+                                value={payMode}
+                                onChange={(e) => setPayMode(e.target.value)}
+                                disabled={acting}
+                                className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm"
+                            >
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI</option>
+                                <option value="bank_transfer">Bank transfer</option>
+                                <option value="offline">Other (offline)</option>
+                            </select>
+                            <button
+                                type="button"
+                                onClick={() => onMarkPaid(payMode)}
+                                disabled={acting}
+                                className={ADMIN_PRIMARY_BTN}
+                            >
+                                {acting
+                                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                                    : <CheckCircle2 className="w-4 h-4" />}
+                                Confirm &amp; notify
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setConfirmOpen(false)}
+                                disabled={acting}
+                                className={ADMIN_SECONDARY_BTN}
+                            >
+                                Back
+                            </button>
+                        </div>
+                    ) : cancelOpen ? (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:flex-1 min-w-0">
+                            <input
+                                type="text"
+                                value={cancelReason}
+                                onChange={(e) => setCancelReason(e.target.value)}
+                                placeholder="Reason (sent to the booker, optional)"
+                                maxLength={300}
+                                disabled={acting}
+                                className="h-10 flex-1 min-w-0 rounded-lg border border-slate-300 px-3 text-sm"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => onCancel(cancelReason.trim())}
+                                disabled={acting}
+                                className={`${ADMIN_SECONDARY_BTN} !text-rose-600 hover:!bg-rose-50`}
+                            >
+                                {acting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
+                                Cancel &amp; notify
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCancelOpen(false)}
+                                disabled={acting}
+                                className={ADMIN_SECONDARY_BTN}
+                            >
+                                Keep booking
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            {canConfirm && (
+                                /* The booker paid the organiser directly instead of
+                                   online. Takes the seats, and emails / WhatsApps
+                                   the confirmation. */
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmOpen(true)}
+                                    disabled={acting}
+                                    className={ADMIN_PRIMARY_BTN}
+                                >
+                                    <CheckCircle2 className="w-4 h-4" /> Confirm booking
+                                </button>
+                            )}
 
-                    {booking.status === 'active' && (
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            disabled={acting}
-                            className={`${ADMIN_SECONDARY_BTN} !text-rose-600 hover:!bg-rose-50`}
-                        >
-                            <Ban className="w-4 h-4" /> Cancel booking
-                        </button>
+                            {canCancel && (
+                                <button
+                                    type="button"
+                                    onClick={() => setCancelOpen(true)}
+                                    disabled={acting}
+                                    className={`${ADMIN_SECONDARY_BTN} !text-rose-600 hover:!bg-rose-50`}
+                                >
+                                    <Ban className="w-4 h-4" /> Cancel booking
+                                </button>
+                            )}
+                        </>
                     )}
 
                     <button

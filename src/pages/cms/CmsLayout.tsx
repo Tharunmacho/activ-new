@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-    Home, LayoutGrid, FileText, PartyPopper, Images, Newspaper, BadgeCheck, PanelTop,
+    Home, LayoutGrid, FileText, PartyPopper, Images, Newspaper, Landmark, BadgeCheck, PanelTop,
     Phone, Inbox, LogOut, ChevronsUpDown, Sun, Moon, Menu, X, Shield, MessageSquare,
     Search, Bell, ExternalLink, CornerDownLeft, Scale, MapPin,
 } from 'lucide-react';
@@ -65,10 +65,11 @@ const CONTENT_NAV: NavItem[] = [
     { to: '/cms/events', label: 'Events', icon: PartyPopper, keywords: 'agenda speakers venue audience' },
     { to: '/cms/gallery', label: 'Gallery', icon: Images, keywords: 'photos images album' },
     /* After Gallery, because it is posted the same way and read on the same
-       kind of page — and because the schemes under it are the one thing here
-       a member acts on rather than reads. */
-    { to: '/cms/news', label: 'News & Schemes', icon: Newspaper, keywords: 'news article press headline scheme benefit subsidy national state district link youtube' },
-    { to: '/cms/regions', label: 'Regions & States', icon: MapPin, keywords: 'region state leadership chairman focus states south north east west gallery' },
+       kind of page. Schemes follow News: they used to be a tab inside it, and
+       have their own page at /schemes now. */
+    { to: '/cms/news', label: 'News', icon: Newspaper, keywords: 'news article press headline newspaper hindu source link youtube' },
+    { to: '/cms/schemes', label: 'Schemes', icon: Landmark, keywords: 'scheme schemes benefit subsidy central national state district apply government' },
+    { to: '/cms/regions', label: 'Zones & States', icon: MapPin, keywords: 'zone region state leadership chairman focus states south north east west gallery' },
     { to: '/cms/contact', label: 'Contact Details', icon: Phone, keywords: 'address phone email map' },
     // Last in the content group because it is opened rarely and deliberately —
     // and because it is the only screen here that keeps a version history.
@@ -104,7 +105,8 @@ const TITLES: Record<string, string> = {
     '/cms/membership': 'Membership',
     '/cms/events': 'Events',
     '/cms/gallery': 'Gallery',
-    '/cms/news': 'News & Schemes',
+    '/cms/news': 'News',
+    '/cms/schemes': 'Schemes',
     '/cms/contact': 'Contact Details',
     '/cms/legal': 'Legal Notices',
     '/cms/messages': 'Inbox',
@@ -157,7 +159,7 @@ export default function CmsLayout() {
     const initial = displayName.charAt(0).toUpperCase();
 
     useEffect(() => {
-        if (!canEdit) navigate('/login', { replace: true });
+        if (!canEdit) navigate('/admin/login', { replace: true });
     }, [canEdit, navigate]);
 
     /**
@@ -261,7 +263,7 @@ export default function CmsLayout() {
 
     const handleLogout = async () => {
         await logout();
-        navigate('/login', { replace: true });
+        navigate('/admin/login', { replace: true });
     };
 
     /*
@@ -320,7 +322,7 @@ export default function CmsLayout() {
 
     const NavGroup = ({ label, items }: { label: string; items: NavItem[] }) => (
         <div className="mb-6 last:mb-0">
-            <p className={`px-4 pb-2.5 text-[0.9375rem] font-semibold uppercase tracking-[0.14em] ${t.faint}`}>
+            <p className={`px-4 pb-2.5 text-[1.0625rem] font-semibold uppercase tracking-[0.14em] ${t.faint}`}>
                 {label}
             </p>
             <div className="space-y-0.5">
@@ -329,13 +331,13 @@ export default function CmsLayout() {
                         <Icon className="w-[1.25rem] h-[1.25rem] shrink-0" />
                         <span className="truncate flex-1">{text}</span>
                         {badge === 'unread' && unread > 0 && (
-                            <span className="text-[0.8125rem] font-bold bg-[#DC2626] text-white
+                            <span className="text-[1.0625rem] font-bold bg-[#DC2626] text-white
                                              rounded-full min-w-[1.25rem] text-center px-1.5 py-0.5 shrink-0">
                                 {unread}
                             </span>
                         )}
                         {badge === 'leaderUnread' && leaderUnread > 0 && (
-                            <span className="text-[0.8125rem] font-bold bg-[#DC2626] text-white
+                            <span className="text-[1.0625rem] font-bold bg-[#DC2626] text-white
                                              rounded-full min-w-[1.25rem] text-center px-1.5 py-0.5 shrink-0">
                                 {leaderUnread}
                             </span>
@@ -426,10 +428,10 @@ export default function CmsLayout() {
                                 {initial}
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className={`block text-[1.125rem] font-semibold truncate ${t.title}`}>
+                                <span className={`block text-[1.1875rem] font-semibold truncate ${t.title}`}>
                                     {displayName}
                                 </span>
-                                <span className={`block text-[1rem] truncate ${t.muted}`}>
+                                <span className={`block text-[1.0625rem] truncate ${t.muted}`}>
                                     {email || 'Administrator'}
                                 </span>
                             </span>
@@ -492,10 +494,10 @@ export default function CmsLayout() {
                             }}
                             placeholder="Search sections…"
                             aria-label="Search CMS sections"
-                            className={`w-full h-12 pl-11 pr-16 rounded-xl border text-[1.125rem]
+                            className={`w-full h-12 pl-11 pr-16 rounded-xl border text-[1.1875rem]
                                         outline-none focus:border-[#2563EB] transition-colors ${t.field}`}
                         />
-                        <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 text-[0.8125rem]
+                        <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 text-[1.0625rem]
                                          font-medium px-1.5 py-0.5 rounded border ${t.divide} ${t.faint}`}>
                             ⌘K
                         </kbd>
@@ -528,7 +530,7 @@ export default function CmsLayout() {
                         {/* The public site is live and this panel edits it — worth
                             saying on every screen, because that is the whole risk. */}
                         <span className={`hidden md:inline-flex items-center gap-2 h-9 px-3 rounded-full
-                                          border text-[0.9375rem] font-semibold ${t.card} ${t.muted}`}>
+                                          border text-[1.0625rem] font-semibold ${t.card} ${t.muted}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
                             Live
                         </span>
@@ -541,7 +543,7 @@ export default function CmsLayout() {
                         >
                             <Bell className="w-4 h-4" />
                             {unread > 0 && (
-                                <span className="absolute -top-1 -right-1 min-w-[1.125rem] text-[0.75rem]
+                                <span className="absolute -top-1 -right-1 min-w-[1.125rem] text-[1.0625rem]
                                                  font-bold bg-[#DC2626] text-white rounded-full px-1 py-0.5">
                                     {unread}
                                 </span>
@@ -553,7 +555,7 @@ export default function CmsLayout() {
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[#2563EB]
-                                       hover:bg-[#1D4ED8] text-white text-[1.125rem] font-semibold
+                                       hover:bg-[#1D4ED8] text-white text-[1.1875rem] font-semibold
                                        transition-colors"
                         >
                             <ExternalLink className="w-4 h-4" />

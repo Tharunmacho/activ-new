@@ -74,7 +74,7 @@ const Settings = () => {
         } catch (err) {
             console.warn('Logout safely caught:', err);
         }
-        navigate('/login');
+        navigate('/admin/login');
     };
 
     // Fetch real stats from backend

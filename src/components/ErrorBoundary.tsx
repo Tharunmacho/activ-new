@@ -54,7 +54,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white px-6">
                 <div className="max-w-lg w-full text-center">
-                    <h1 className="text-2xl font-bold text-[#1c2e68] mb-3">
+                    <h1 className="text-[1.5625rem] font-bold text-[#1c2e68] mb-3">
                         Something went wrong on this page
                     </h1>
                     <p className="text-gray-500 mb-8 leading-relaxed">
@@ -69,7 +69,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                      * blank page.
                      */}
                     {import.meta.env.DEV && (
-                        <pre className="text-left text-xs bg-gray-50 border border-gray-200 rounded-lg
+                        <pre className="text-left text-[1.0625rem] bg-gray-50 border border-gray-200 rounded-lg
                                         p-4 mb-8 overflow-auto max-h-48 text-red-700 whitespace-pre-wrap">
                             {error.message}
                         </pre>

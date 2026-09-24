@@ -212,8 +212,8 @@ export default function MembershipPlans() {
           >
             <Loader2 className="w-8 h-8 animate-spin text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">Loading Plans</h2>
-          <p className="text-slate-500 text-sm">Please wait...</p>
+          <h2 className="text-[1.1875rem] font-semibold text-slate-900 mb-1">Loading Plans</h2>
+          <p className="text-slate-500 text-[1.0625rem]">Please wait...</p>
         </div>
       </div>
     );
@@ -237,10 +237,10 @@ export default function MembershipPlans() {
           <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
             <FileText className="w-6 h-6 text-amber-600" />
           </div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">
+          <h2 className="text-[1.1875rem] font-semibold text-slate-900 mb-1">
             {loadFailed ? 'Could not load the plans' : 'No membership plans are available'}
           </h2>
-          <p className="text-slate-500 text-sm mb-6">
+          <p className="text-slate-500 text-[1.0625rem] mb-6">
             {loadFailed
               ? 'The membership prices could not be read just now. Nothing has been charged.'
               : 'The association has not published a plan for your membership yet. '
@@ -263,7 +263,7 @@ export default function MembershipPlans() {
       width="standard"
       sidebar={false}
       actions={
-        <div className="flex items-center gap-2 text-xs text-slate-500 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+        <div className="flex items-center gap-2 text-[1.0625rem] text-slate-500 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
           <Lock className="w-3.5 h-3.5 text-emerald-500" />
           <span className="hidden sm:inline font-medium text-emerald-700">Secure Checkout</span>
         </div>
@@ -277,7 +277,7 @@ export default function MembershipPlans() {
             style={{ background: 'rgba(139, 92, 246, 0.1)' }}
           >
             <Star className="w-3.5 h-3.5 text-violet-500" />
-            <span className="text-xs font-medium text-violet-600">Membership Plans</span>
+            <span className="text-[1.0625rem] font-medium text-violet-600">Membership Plans</span>
           </div>
           {/*
             THE HEADING FOLLOWS THE ANSWER, because there are now two different
@@ -289,10 +289,10 @@ export default function MembershipPlans() {
             is broken. When every plan is offered, the original wording is
             right. Neither is a different screen; they differ by a sentence.
           */}
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-[1.5625rem] md:text-[2.1875rem] font-bold text-slate-900 mb-2">
             {planLocked ? 'Your Membership' : 'Simple, Transparent Pricing'}
           </h1>
-          <p className="text-slate-500 text-sm max-w-md mx-auto">
+          <p className="text-slate-500 text-[1.0625rem] max-w-md mx-auto">
             {planLocked
               ? userData?.memberType === 'Aspirant'
                 ? 'This is the plan for an applicant without a registered business.'
@@ -334,7 +334,7 @@ export default function MembershipPlans() {
                     className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10"
                   >
                     <span
-                      className="px-3 py-1 rounded-full text-xs font-bold text-white"
+                      className="px-3 py-1 rounded-full text-[1.0625rem] font-bold text-white"
                       style={{ background: plan.bgGradient }}
                     >
                       POPULAR
@@ -363,7 +363,7 @@ export default function MembershipPlans() {
                       </div>
                       <div>
                         <h3 className="font-bold text-slate-900">{plan.name}</h3>
-                        <p className="text-xs text-slate-500">{plan.description}</p>
+                        <p className="text-[1.0625rem] text-slate-500">{plan.description}</p>
                       </div>
                     </div>
 
@@ -373,15 +373,15 @@ export default function MembershipPlans() {
                       style={{ background: '#f8fafc' }}
                     >
                       <div className="flex items-baseline justify-center gap-0.5">
-                        <span className="text-lg text-slate-500">₹</span>
+                        <span className="text-[1.1875rem] text-slate-500">₹</span>
                         <span
-                          className="text-3xl font-bold"
+                          className="text-[2.1875rem] font-bold"
                           style={{ color: plan.accentColor }}
                         >
                           {plan.price.toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">per year</p>
+                      <p className="text-[1.0625rem] text-slate-500 mt-1">per year</p>
                     </div>
 
                     {/* Features */}
@@ -394,14 +394,14 @@ export default function MembershipPlans() {
                           >
                             <CheckCircle className="w-2.5 h-2.5 text-white" />
                           </div>
-                          <span className="text-xs text-slate-600 leading-relaxed">{feature}</span>
+                          <span className="text-[1.0625rem] text-slate-600 leading-relaxed">{feature}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Select Button */}
                     <Button
-                      className="w-full py-4 text-sm font-semibold rounded-xl transition-all duration-200"
+                      className="w-full py-4 text-[1.0625rem] font-semibold rounded-xl transition-all duration-200"
                       style={{
                         background: isSelected ? plan.bgGradient : '#f1f5f9',
                         color: isSelected ? '#ffffff' : '#475569',
@@ -443,19 +443,19 @@ export default function MembershipPlans() {
                   <Lock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white mb-1">Secure Payment</h3>
-                  <p className="text-teal-100 text-xs leading-relaxed mb-3">
+                  <h3 className="text-[1.0625rem] font-bold text-white mb-1">Secure Payment</h3>
+                  <p className="text-teal-100 text-[1.0625rem] leading-relaxed mb-3">
                     Powered by Instamojo with SSL encryption and PCI compliance.
                   </p>
                   <div className="flex items-center gap-2">
                     <span
-                      className="px-2 py-1 rounded-full text-xs"
+                      className="px-2 py-1 rounded-full text-[1.0625rem]"
                       style={{ background: 'rgba(255, 255, 255, 0.15)', color: '#fff' }}
                     >
                       SSL
                     </span>
                     <span
-                      className="px-2 py-1 rounded-full text-xs"
+                      className="px-2 py-1 rounded-full text-[1.0625rem]"
                       style={{ background: 'rgba(255, 255, 255, 0.15)', color: '#fff' }}
                     >
                       PCI Compliant
@@ -471,7 +471,7 @@ export default function MembershipPlans() {
               style={{ borderRadius: '20px', boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.08)' }}
             >
               <CardContent className="p-5">
-                <h3 className="text-base font-bold text-slate-900 mb-4">What's Next?</h3>
+                <h3 className="text-[1.0625rem] font-bold text-slate-900 mb-4">What's Next?</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { icon: Zap, text: 'Instant activation', color: '#f59e0b' },
@@ -490,7 +490,7 @@ export default function MembershipPlans() {
                       >
                         <item.icon className="w-4 h-4" style={{ color: item.color }} />
                       </div>
-                      <span className="text-xs font-medium text-slate-700">{item.text}</span>
+                      <span className="text-[1.0625rem] font-medium text-slate-700">{item.text}</span>
                     </div>
                   ))}
                 </div>
@@ -514,7 +514,7 @@ export default function MembershipPlans() {
               >
                 <div className="flex items-center gap-2.5">
                   <CreditCard className="w-5 h-5 text-white" />
-                  <h2 className="text-base font-bold text-white">Summary</h2>
+                  <h2 className="text-[1.0625rem] font-bold text-white">Summary</h2>
                 </div>
               </div>
 
@@ -525,15 +525,15 @@ export default function MembershipPlans() {
                     className="flex justify-between items-center p-3 rounded-xl"
                     style={{ background: '#f8fafc' }}
                   >
-                    <span className="text-xs text-slate-500">Type</span>
-                    <span className="text-sm font-semibold text-slate-900">{userData.memberType}</span>
+                    <span className="text-[1.0625rem] text-slate-500">Type</span>
+                    <span className="text-[1.0625rem] font-semibold text-slate-900">{userData.memberType}</span>
                   </div>
                   <div
                     className="flex justify-between items-center p-3 rounded-xl"
                     style={{ background: '#f8fafc' }}
                   >
-                    <span className="text-xs text-slate-500">Experience</span>
-                    <span className="text-sm font-semibold text-slate-900">{selectedPlan.experience}</span>
+                    <span className="text-[1.0625rem] text-slate-500">Experience</span>
+                    <span className="text-[1.0625rem] font-semibold text-slate-900">{selectedPlan.experience}</span>
                   </div>
                   <div
                     className="flex justify-between items-center p-3 rounded-xl"
@@ -542,8 +542,8 @@ export default function MembershipPlans() {
                       border: `1px solid ${selectedPlan.accentColor}30`
                     }}
                   >
-                    <span className="text-xs" style={{ color: selectedPlan.accentColor }}>Plan</span>
-                    <span className="text-sm font-bold" style={{ color: selectedPlan.accentColor }}>{selectedPlan.name}</span>
+                    <span className="text-[1.0625rem]" style={{ color: selectedPlan.accentColor }}>Plan</span>
+                    <span className="text-[1.0625rem] font-bold" style={{ color: selectedPlan.accentColor }}>{selectedPlan.name}</span>
                   </div>
                 </div>
 
@@ -553,17 +553,17 @@ export default function MembershipPlans() {
                   style={{ background: '#f8fafc' }}
                 >
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs text-slate-500">Subtotal</span>
-                    <span className="text-sm text-slate-900">₹{selectedPlan.price.toLocaleString()}</span>
+                    <span className="text-[1.0625rem] text-slate-500">Subtotal</span>
+                    <span className="text-[1.0625rem] text-slate-900">₹{selectedPlan.price.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs text-slate-500">Tax</span>
-                    <span className="text-sm text-emerald-600">₹0</span>
+                    <span className="text-[1.0625rem] text-slate-500">Tax</span>
+                    <span className="text-[1.0625rem] text-emerald-600">₹0</span>
                   </div>
                   <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                    <span className="text-sm font-bold text-slate-900">Total</span>
+                    <span className="text-[1.0625rem] font-bold text-slate-900">Total</span>
                     <span
-                      className="text-2xl font-bold"
+                      className="text-[1.5625rem] font-bold"
                       style={{ color: selectedPlan.accentColor }}
                     >
                       ₹{selectedPlan.price.toLocaleString()}
@@ -573,7 +573,7 @@ export default function MembershipPlans() {
 
                 {/* Pay Button */}
                 <Button
-                  className="w-full py-5 text-sm font-semibold rounded-xl transition-all duration-200"
+                  className="w-full py-5 text-[1.0625rem] font-semibold rounded-xl transition-all duration-200"
                   style={{
                     background: processing ? '#d1d5db' : selectedPlan.bgGradient,
                     boxShadow: processing ? 'none' : `0 8px 24px -4px ${selectedPlan.accentColor}40`
@@ -598,11 +598,11 @@ export default function MembershipPlans() {
                   <div className="flex items-center justify-center gap-4 text-slate-400">
                     <div className="flex items-center gap-1">
                       <Shield className="w-3 h-3" />
-                      <span className="text-xs">Secure</span>
+                      <span className="text-[1.0625rem]">Secure</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Lock className="w-3 h-3" />
-                      <span className="text-xs">Encrypted</span>
+                      <span className="text-[1.0625rem]">Encrypted</span>
                     </div>
                   </div>
                 </div>

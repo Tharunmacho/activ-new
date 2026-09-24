@@ -82,7 +82,13 @@ export type UserRole =
      * by different people. One account doing both means whoever writes the
      * marketing copy can also unstaff a region.
      */
-    | 'cms_admin';
+    | 'cms_admin'
+    /**
+     * Events only — the programme, its categories and its bookings. A separate
+     * account for the person who runs events, with the super admin's own event
+     * screens and nothing else of the platform.
+     */
+    | 'events_admin';
 
 /**
  * Where each role lands after signing in.
@@ -104,6 +110,7 @@ export const HOME_FOR_ROLE: Record<UserRole, string> = {
      */
     super_admin: '/super-admin/dashboard',
     cms_admin: '/cms',
+    events_admin: '/events-admin/dashboard',
 };
 
 /** The admin dashboard endpoint that belongs to each admin role. */
@@ -131,10 +138,46 @@ export const resolveMediaUrl = (value?: string | null): string => {
     // Local picker results and inline data are already displayable.
     if (raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
 
-    // Anything the backend stores lands under /uploads — profile photos, event
-    // banners, CMS media. Those and only those belong to the API origin.
+    /*
+     * ======================================================================
+     * RE-ANCHOR A STALE HOST, NOT A WORKING ONE
+     * ======================================================================
+     *
+     * This re-anchored EVERY value carrying `/uploads/`, absolute ones
+     * included. That repairs the rows it was written for — a URL built on
+     * `http://localhost:5000` or `http://10.0.2.2:5000` by whichever machine
+     * did the uploading is useless to every other client.
+     *
+     * But it also rewrote URLs that were perfectly good. An event banner
+     * stored as `https://<the real backend>/uploads/…` was re-pointed at
+     * whatever API this build talks to — so running the site locally against
+     * the SHARED database asked `localhost:5000` for a file that only exists
+     * on the deployed server, got a 404, and drew an empty frame. Reported as
+     * "why are the images not showing".
+     *
+     * So the repair is narrowed to the hosts that actually need repairing:
+     * loopback, the Android emulator's alias, and private LAN addresses. A
+     * public hostname is left exactly as it was stored, because it works.
+     */
     const uploadIndex = raw.indexOf('/uploads/');
-    if (uploadIndex !== -1) return `${API_ORIGIN}${raw.slice(uploadIndex)}`;
+    if (uploadIndex !== -1) {
+        const isAbsolute = /^https?:\/\//i.test(raw);
+        if (!isAbsolute) return `${API_ORIGIN}${raw.slice(uploadIndex)}`;
+
+        let host = '';
+        try { host = new URL(raw).hostname; } catch { host = ''; }
+
+        const unreachableElsewhere = !host
+            || host === 'localhost'
+            || host === '127.0.0.1'
+            || host === '0.0.0.0'
+            || host === '10.0.2.2'
+            || /^10\./.test(host)
+            || /^192\.168\./.test(host)
+            || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+
+        return unreachableElsewhere ? `${API_ORIGIN}${raw.slice(uploadIndex)}` : raw;
+    }
 
     // A genuine remote asset (S3, Cloudinary, an avatar service) is left alone.
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
@@ -475,8 +518,13 @@ export const ENDPOINTS = {
     },
 
     PAYMENT: {
+        /** Which checkout is live — mock, or a hosted gateway. */
+        CONFIG: '/payment/config',
+        /** Start a hosted (Instamojo) payment. Returns the URL to send them to. */
         CREATE_REQUEST: '/payment/create-request',
         STATUS: (id: string) => `/payment/status/${id}`,
+        /** Public: where Instamojo sends the buyer back to. Confirms a paid booking. */
+        RETURN: (orderId: string) => `/payment/return/${encodeURIComponent(orderId)}`,
         RENEW: '/payment/renew',
         /** The plans and prices, as the server holds them. */
         PLANS: '/payment/plans',

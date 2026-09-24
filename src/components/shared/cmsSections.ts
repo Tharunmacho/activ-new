@@ -76,10 +76,15 @@ export const SECTION_KEYS = {
         'events.banner', 'events.grid', 'events.pastLink',
     ],
     gallery: [
+        /* The three intro cards were missing from this list, and were missing
+           from the page as well — offered in the CMS, saved, served, drawn by
+           nothing. That is exactly the pairing this list exists to make
+           auditable. `GallerySection` draws all three now. */
+        'gallery.badge', 'gallery.heading', 'gallery.note',
         'gallery.categories', 'gallery.paging', 'gallery.detail',
         'gallery.pastEvents',
     ],
-    news: ['news.header', 'news.schemes'],
+    news: ['news.header'],
     membership: [
         'membership.opening', 'membership.why', 'membership.advantages',
         'membership.journey', 'membership.who', 'membership.matters',

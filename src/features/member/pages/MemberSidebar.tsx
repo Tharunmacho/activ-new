@@ -562,7 +562,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                             */}
                             <div className={`mb-2 flex items-center gap-2 ${collapsed ? 'px-0 justify-center' : 'px-3.5'}`}>
                                 {!collapsed && (
-                                    <p className="flex-1 min-w-0 text-[1rem] font-bold uppercase
+                                    <p className="flex-1 min-w-0 text-[1.0625rem] font-bold uppercase
                                                   tracking-[0.06em] text-slate-900 truncate">
                                         {group.label}
                                     </p>
@@ -706,7 +706,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                     )}
                     {!collapsed && (
                     <span className="min-w-0 flex-1">
-                        <span className="block text-[1.125rem] font-semibold text-slate-900 truncate">
+                        <span className="block text-[1.1875rem] font-semibold text-slate-900 truncate">
                             {userName || 'Member'}
                         </span>
                         {/*
@@ -720,7 +720,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                           Falls back to the role when no address is stored, so the
                           second line is never empty.
                         */}
-                        <span className="block text-[1rem] text-slate-500 truncate">
+                        <span className="block text-[1.0625rem] text-slate-500 truncate">
                             {userEmail || (paymentStatus === 'completed' ? 'Member' : 'Applicant')}
                         </span>
                     </span>

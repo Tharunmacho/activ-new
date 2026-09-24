@@ -580,7 +580,7 @@ export function AchievementBand({ items, title = 'Achievements' }: {
                                    shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-20px_rgba(28,46,104,0.35)]"
                     >
                         {/* The figure leads. It is the reason the card exists. */}
-                        <p className="text-3xl sm:text-4xl font-black tracking-tight text-brand-800
+                        <p className="text-[2.1875rem] sm:text-4xl font-black tracking-tight text-brand-800
                                       leading-none">
                             {row.title}
                         </p>

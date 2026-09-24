@@ -820,10 +820,10 @@ export default function SuperAdminMembership() {
                                 <table className="w-full text-[1.25rem]">
                                     <thead>
                                         <tr className="text-left text-slate-500 border-b border-slate-200">
-                                            <th className="pb-3 pr-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Started in</th>
-                                            <th className="pb-3 pr-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Years trading</th>
-                                            <th className="pb-3 pr-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Plan</th>
-                                            <th className="pb-3 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-right">Price</th>
+                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Started in</th>
+                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Years trading</th>
+                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Plan</th>
+                                            <th className="pb-3 text-[1.0625rem] font-semibold uppercase tracking-wider text-right">Price</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1065,7 +1065,7 @@ function PlanGroup({ title, hint, icon, plans, thisYear, onEdit, onDelete }: {
                                     </span>
 
                                     {plan.popular && (
-                                        <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold
+                                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-bold
                                                          uppercase tracking-wide px-1.5 py-0.5 rounded-full
                                                          bg-blue-100 text-blue-700">
                                             <Users className="w-2.5 h-2.5" /> Popular
@@ -1076,7 +1076,7 @@ function PlanGroup({ title, hint, icon, plans, thisYear, onEdit, onDelete }: {
                                         other row is offered, so a badge saying so
                                         would be on every line. */}
                                     {!plan.active && (
-                                        <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold
+                                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-bold
                                                          uppercase tracking-wide px-1.5 py-0.5 rounded-full
                                                          bg-slate-200 text-slate-500">
                                             <EyeOff className="w-2.5 h-2.5" /> Retired

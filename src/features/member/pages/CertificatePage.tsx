@@ -73,10 +73,23 @@ export default function CertificatePage() {
         );
     }
 
+    /*
+     * The chrome has to be as wide as the sheet under it, and the two sheets
+     * are not the same width any more: the membership certificate is A4
+     * landscape (297mm) and the tax certificate is A5 portrait (148mm). At a
+     * fixed 210mm the Back and Print buttons sat inside the edges of one and
+     * outside the edges of the other.
+     */
+    const sheetWidth = cert.kind === 'tax-exemption' ? '148mm' : '297mm';
+
     return (
-        <div className="min-h-screen bg-[#eef1f8] px-4 py-10 print:bg-white print:p-0">
+        <div className="min-h-screen overflow-x-auto bg-[#eef1f8] px-4 py-10 print:overflow-visible
+                        print:bg-white print:p-0">
             {/* Chrome — on screen only. */}
-            <div className="mx-auto mb-6 flex max-w-[210mm] items-center justify-between print:hidden">
+            <div
+                className="mx-auto mb-6 flex items-center justify-between print:hidden"
+                style={{ maxWidth: sheetWidth }}
+            >
                 <button
                     onClick={() => navigate(-1)}
                     className="flex items-center gap-2 text-[1.25rem] font-semibold text-gray-500

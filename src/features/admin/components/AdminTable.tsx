@@ -157,7 +157,7 @@ function HeadCell({ children, sortable, direction, onSort, width, align = 'left'
      * capitals is the smallest size that still reads as a heading beside the
      * business area's 16px labels, which is the scale this table now sits in.
      */
-    const base = `px-5 py-4 text-[1.0625rem] sm:text-[1rem] font-semibold uppercase tracking-wider
+    const base = `px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider
                   text-slate-500 whitespace-nowrap ${ALIGN[align]} ${width || ''}
                   ${hideOnMobile ? 'hidden sm:table-cell' : ''}
                   ${sticky === 'right' ? STICKY_RIGHT + ' bg-slate-50' : ''}`;

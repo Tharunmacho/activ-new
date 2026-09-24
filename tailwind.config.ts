@@ -92,6 +92,29 @@ export default {
          * old face when the display font changed. Use `font-display`.
          */
         serif: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        /*
+         * NO MONOSPACE EITHER — `font-mono` is Poppins, for the same reason
+         * `serif` is. It was left at Tailwind's default, so booking refs,
+         * pasted media URLs, env-var names and chart values rendered in the
+         * system's Consolas/Courier on screens that are otherwise all Poppins.
+         * Preflight also reads this key for `<code>`, `<pre>`, `<kbd>` and
+         * `<samp>`, so those follow. Where digits need to line up, use
+         * `tabular-nums` — Poppins has tabular figures.
+         */
+        mono: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        /*
+         * THE CERTIFICATE NAME, AND NOTHING ELSE ON THE PRODUCT.
+         *
+         * `font-certificate` exists so that the one place a second family is
+         * wanted can have it without `font-serif` becoming a live serif again
+         * — which is what this config spent three faces stamping out. The
+         * membership certificate's holder name is the only call site; a grep
+         * for `font-certificate` is the whole audit.
+         *
+         * Poppins sits behind it, not Georgia, so a failed font load degrades
+         * to the product's own face rather than to a system serif.
+         */
+        certificate: ['Playfair Display', 'Poppins', 'Georgia', 'serif'],
       },
       colors: {
         /**

@@ -211,6 +211,8 @@ const UnpaidDashboard = () => {
 
     const [loading, setLoading] = useState(true);
     const [application, setApplication] = useState<any>(null);
+    /* A member outside India — the server's answer, from their phone number. */
+    const [abroad, setAbroad] = useState<{ on: boolean; place: string; country: string }>({ on: false, place: '', country: '' });
     const [activity, setActivity] = useState<MemberActivity[]>([]);
     const [contact, setContact] = useState<any>(null);
     // Seeded from storage so a returning member sees their name before the
@@ -252,6 +254,11 @@ const UnpaidDashboard = () => {
          * still read that key, so one fetch serves all of them.
          */
         const profile: any = profileRes.status === 'fulfilled' ? profileRes.value : null;
+        setAbroad({
+            on: profile?.isInternational === true,
+            place: String(profile?.place || profile?.city || ''),
+            country: String(profile?.country || ''),
+        });
         const name = profile?.fullName || '';
         if (name) {
             setMemberName(name);
@@ -342,13 +349,27 @@ const UnpaidDashboard = () => {
      * even though it grants nothing — which is the honest picture of progress,
      * and the reason the applicant is shown three rows rather than one.
      */
+    /*
+     * WHO REVIEWS THIS APPLICATION.
+     *
+     * Three tiers in India. Outside India there is no block, district or state
+     * admin for the file to reach — it goes to the head office alone, and the
+     * Super Admin's decision is recorded in the State's seat (it is the one
+     * that grants the membership). So the timeline has one review node, read
+     * from that seat, instead of two that would stay grey forever.
+     */
+    const isAbroad = abroad.on || application?.isInternational === true;
+    const tiers = useMemo(() => (isAbroad
+        ? [{ key: 'state' as const, label: 'ACTIV Head Office', grants: true }]
+        : TIERS), [isAbroad]);
+
     const stagesDone = useMemo(() => {
         if (!application) return 0;
-        const reviewed = TIERS.filter(t => timelineStageStatus(t.key, application) === 'approved').length;
+        const reviewed = tiers.filter(t => timelineStageStatus(t.key, application) === 'approved').length;
         return reviewed + (access.membershipActive ? 1 : 0);
-    }, [application, access.membershipActive]);
+    }, [application, access.membershipActive, tiers]);
 
-    const TOTAL_STAGES = TIERS.length + 1;
+    const TOTAL_STAGES = tiers.length + 1;
     const overallPercent = useMemo(
         () => Math.round((stagesDone / TOTAL_STAGES) * 100),
         [stagesDone, TOTAL_STAGES],
@@ -372,14 +393,14 @@ const UnpaidDashboard = () => {
         if (flags.isRejected) return 'Your application was returned. See the reviewer note below.';
         if (flags.isApproved) return 'Approved by your State Admin. You can now complete the membership payment.';
 
-        const waiting = TIERS
+        const waiting = tiers
             .filter(t => timelineStageStatus(t.key, application) !== 'approved')
             .map(t => t.label);
 
         if (!waiting.length) return 'All three admins have reviewed your application.';
         return `With your ${waiting.join(', ').replace(/, ([^,]*)$/, ' and $1')}. `
             + 'Your State Admin\u2019s approval is what grants the membership.';
-    }, [application, flags, access.membershipActive]);
+    }, [application, flags, access.membershipActive, tiers]);
 
     const milestone = nextMilestone(access);
 
@@ -424,7 +445,7 @@ const UnpaidDashboard = () => {
          * "approved" without implying the process is over, because the row
          * beneath them is still open.
          */
-        TIERS.forEach((tier) => {
+        tiers.forEach((tier) => {
             const state = timelineStageStatus(tier.key, application);
             rows.push({
                 title: state === 'approved'
@@ -448,7 +469,7 @@ const UnpaidDashboard = () => {
         });
 
         return rows;
-    }, [application, flags, memberName, access.membershipActive]);
+    }, [application, flags, memberName, access.membershipActive, tiers]);
 
     /**
      * What happens next, in the member's own terms.
@@ -949,7 +970,7 @@ const UnpaidDashboard = () => {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="shrink-0 gap-1.5 text-[1.125rem] font-semibold rounded-xl"
+                                    className="shrink-0 gap-1.5 text-[1.1875rem] font-semibold rounded-xl"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         navigate('/member/application-status');
@@ -974,7 +995,7 @@ const UnpaidDashboard = () => {
                                                 {stagesDone} of {TOTAL_STAGES} stages completed
                                             </p>
                                         </div>
-                                        <span className="font-display text-[1.625rem] font-bold text-white bg-blue-600
+                                        <span className="font-display text-[1.5625rem] font-bold text-white bg-blue-600
                                                          rounded-lg px-4 py-2 shrink-0 tabular">
                                             {overallPercent}%
                                         </span>
@@ -990,10 +1011,10 @@ const UnpaidDashboard = () => {
                                     <div className="relative">
                                         {/* The joining line spans an eighth in from each end, which is
                                             where the outer node centres land in a four-column grid. */}
-                                        <div className="hidden sm:block absolute left-[12.5%] right-[12.5%] top-5 h-px
-                                                        border-t border-dashed border-slate-300" />
-                                        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-2">
-                                            {TIERS.map(tier => (
+                                        <div className={`hidden sm:block absolute top-5 h-px border-t border-dashed border-slate-300 ${
+                                            isAbroad ? 'left-[25%] right-[25%]' : 'left-[12.5%] right-[12.5%]'}`} />
+                                        <div className={`relative grid grid-cols-2 gap-y-6 gap-x-2 ${isAbroad ? '' : 'sm:grid-cols-4'}`}>
+                                            {tiers.map(tier => (
                                                 <StageNode
                                                     key={tier.key}
                                                     label={tier.label}
@@ -1045,7 +1066,7 @@ const UnpaidDashboard = () => {
                                                             )}
                                                         </span>
                                                         <span className="flex-1 min-w-0">
-                                                            <span className={`block text-[1.3125rem] leading-tight ${
+                                                            <span className={`block text-[1.25rem] leading-tight ${
                                                                 row.state === 'pending'
                                                                     ? 'font-normal text-slate-400'
                                                                     : 'font-semibold text-slate-800'
@@ -1104,7 +1125,9 @@ const UnpaidDashboard = () => {
                                                 <DetailRow
                                                     icon={<MapPin className="h-3.5 w-3.5" />}
                                                     label="Location"
-                                                    value={[application?.block, application?.district, application?.state]
+                                                    value={(isAbroad
+                                                        ? [application?.place || abroad.place, application?.country || abroad.country]
+                                                        : [application?.block, application?.district, application?.state])
                                                         .filter(Boolean).join(', ') || '—'}
                                                 />
                                                 <DetailRow
@@ -1455,7 +1478,7 @@ const HeaderFact = ({ icon, tone, label, value, valueTone, fullValue }: {
                 </p>
                 <div className="flex items-center gap-1.5 mt-1.5 min-w-0">
                     <p title={fullValue || value}
-                       className={`font-display font-semibold text-[1.3125rem] leading-none truncate ${valueTone}`}>
+                       className={`font-display font-semibold text-[1.25rem] leading-none truncate ${valueTone}`}>
                         {value}
                     </p>
                     {fullValue ? (

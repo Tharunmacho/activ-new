@@ -137,7 +137,7 @@ export default function MemberEventDetail() {
                         <button
                             type="button"
                             onClick={() => navigate('/member/events')}
-                            className="text-[1rem] font-semibold text-blue-600 hover:underline"
+                            className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
                         >
                             Back to events
                         </button>
@@ -162,7 +162,7 @@ export default function MemberEventDetail() {
                 <button
                     type="button"
                     onClick={() => navigate('/member/events')}
-                    className="text-[1rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="text-[1.0625rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                     All events
                 </button>
@@ -189,14 +189,14 @@ export default function MemberEventDetail() {
                         >
                             <div className="flex flex-wrap gap-2 mb-4">
                                 {event.audience === 'paid' ? (
-                                    <span className="inline-flex items-center gap-1 text-[0.8125rem] font-bold
+                                    <span className="inline-flex items-center gap-1 text-[1.0625rem] font-bold
                                                      uppercase tracking-wide text-blue-700 bg-blue-50
                                                      px-2.5 py-1 rounded-full">
                                         <Lock className="w-3 h-3" /> Members only
                                     </span>
                                 ) : null}
                                 {past ? (
-                                    <span className="text-[0.8125rem] font-bold uppercase tracking-wide
+                                    <span className="text-[1.0625rem] font-bold uppercase tracking-wide
                                                      text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                                         Past event
                                     </span>
@@ -204,11 +204,11 @@ export default function MemberEventDetail() {
                             </div>
 
                             {event.description ? (
-                                <p className="text-[1.125rem] text-slate-700 leading-relaxed whitespace-pre-line">
+                                <p className="text-[1.1875rem] text-slate-700 leading-relaxed whitespace-pre-line">
                                     {event.description}
                                 </p>
                             ) : (
-                                <p className="text-[1rem] text-slate-400">
+                                <p className="text-[1.0625rem] text-slate-400">
                                     No description was published for this event.
                                 </p>
                             )}
@@ -229,11 +229,11 @@ export default function MemberEventDetail() {
                                                 as a column rather than a ragged
                                                 edge. */}
                                             <div className="w-[4.25rem] shrink-0 text-right">
-                                                <p className="text-[1rem] font-bold text-slate-900 tabular-nums">
+                                                <p className="text-[1.0625rem] font-bold text-slate-900 tabular-nums">
                                                     {item.startTime || '—'}
                                                 </p>
                                                 {item.endTime ? (
-                                                    <p className="text-[0.8125rem] text-slate-400 tabular-nums">
+                                                    <p className="text-[1.0625rem] text-slate-400 tabular-nums">
                                                         {item.endTime}
                                                     </p>
                                                 ) : null}
@@ -249,7 +249,7 @@ export default function MemberEventDetail() {
                                                 </p>
 
                                                 {item.speaker ? (
-                                                    <p className="text-[1rem] text-blue-700 mt-0.5 font-medium">
+                                                    <p className="text-[1.0625rem] text-blue-700 mt-0.5 font-medium">
                                                         {item.speaker}
                                                     </p>
                                                 ) : null}
@@ -262,7 +262,7 @@ export default function MemberEventDetail() {
                                                 ) : null}
 
                                                 {item.description ? (
-                                                    <p className="text-[1rem] text-slate-600 mt-1 leading-relaxed">
+                                                    <p className="text-[1.0625rem] text-slate-600 mt-1 leading-relaxed">
                                                         {item.description}
                                                     </p>
                                                 ) : null}
@@ -308,7 +308,7 @@ export default function MemberEventDetail() {
                                                         {speaker.name}
                                                     </p>
                                                     {speaker.role ? (
-                                                        <p className="text-[1rem] text-slate-600 truncate">
+                                                        <p className="text-[1.0625rem] text-slate-600 truncate">
                                                             {speaker.role}
                                                         </p>
                                                     ) : null}
@@ -336,7 +336,7 @@ export default function MemberEventDetail() {
                         <SectionCard title="When and where" icon={<MapPin className="w-5 h-5" />}>
                             <dl className="space-y-3.5">
                                 <div>
-                                    <dt className="text-[0.8125rem] font-semibold uppercase tracking-wide text-slate-400">
+                                    <dt className="text-[1.0625rem] font-semibold uppercase tracking-wide text-slate-400">
                                         Date and time
                                     </dt>
                                     <dd className="text-[1.1875rem] text-slate-900 font-medium mt-0.5">
@@ -346,13 +346,13 @@ export default function MemberEventDetail() {
 
                                 {event.venue || event.venueAddress ? (
                                     <div>
-                                        <dt className="text-[0.8125rem] font-semibold uppercase tracking-wide text-slate-400">
+                                        <dt className="text-[1.0625rem] font-semibold uppercase tracking-wide text-slate-400">
                                             Venue
                                         </dt>
                                         <dd className="text-[1.1875rem] text-slate-900 font-medium mt-0.5">
                                             {event.venue}
                                             {event.venueAddress ? (
-                                                <span className="block text-[1rem] text-slate-600 font-normal mt-0.5">
+                                                <span className="block text-[1.0625rem] text-slate-600 font-normal mt-0.5">
                                                     {event.venueAddress}
                                                 </span>
                                             ) : null}
@@ -363,7 +363,7 @@ export default function MemberEventDetail() {
                                                 href={event.venueMapUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="mt-1.5 inline-flex items-center gap-1 text-[1rem]
+                                                className="mt-1.5 inline-flex items-center gap-1 text-[1.0625rem]
                                                            font-semibold text-blue-600 hover:underline"
                                             >
                                                 Open in maps <ExternalLink className="w-3.5 h-3.5" />
@@ -374,7 +374,7 @@ export default function MemberEventDetail() {
 
                                 {[event.block, event.district, event.state].filter(Boolean).length > 0 ? (
                                     <div>
-                                        <dt className="text-[0.8125rem] font-semibold uppercase tracking-wide text-slate-400">
+                                        <dt className="text-[1.0625rem] font-semibold uppercase tracking-wide text-slate-400">
                                             Region
                                         </dt>
                                         <dd className="text-[1.1875rem] text-slate-700 mt-0.5">
@@ -385,7 +385,7 @@ export default function MemberEventDetail() {
 
                                 {event.contactName || event.contactPhone || event.contactEmail ? (
                                     <div>
-                                        <dt className="text-[0.8125rem] font-semibold uppercase tracking-wide text-slate-400">
+                                        <dt className="text-[1.0625rem] font-semibold uppercase tracking-wide text-slate-400">
                                             Contact
                                         </dt>
                                         <dd className="text-[1.1875rem] text-slate-700 mt-0.5 space-y-1">
@@ -429,7 +429,7 @@ export default function MemberEventDetail() {
                                 <div className="space-y-4">
                                     <div className="rounded-2xl bg-blue-600
                                                     text-white p-5 shadow-lg">
-                                        <p className="text-[0.8125rem] font-bold uppercase tracking-wider
+                                        <p className="text-[1.0625rem] font-bold uppercase tracking-wider
                                                       text-blue-200">
                                             Amount due
                                         </p>
@@ -441,7 +441,7 @@ export default function MemberEventDetail() {
                                         </p>
 
                                         {registration.payment.reference ? (
-                                            <p className="mt-4 pt-3 border-t border-white/20 text-[0.8125rem]
+                                            <p className="mt-4 pt-3 border-t border-white/20 text-[1.0625rem]
                                                           text-blue-200">
                                                 Reference{' '}
                                                 <span className="font-semibold tracking-wider text-white">
@@ -478,7 +478,7 @@ export default function MemberEventDetail() {
                                             type="button"
                                             onClick={cancel}
                                             disabled={working}
-                                            className="w-full h-10 rounded-xl text-[1rem] font-semibold
+                                            className="w-full h-10 rounded-xl text-[1.0625rem] font-semibold
                                                        text-slate-500 hover:text-slate-700 disabled:opacity-60"
                                         >
                                             Give up this seat instead
@@ -501,7 +501,7 @@ export default function MemberEventDetail() {
                                                 ? 'You are on the waiting list'
                                                 : 'You are registered'}
                                         </p>
-                                        <p className="text-[1rem] text-slate-600 mt-1">
+                                        <p className="text-[1.0625rem] text-slate-600 mt-1">
                                             {registration.status === 'waitlist'
                                                 ? 'You will move into a seat automatically if one is given up.'
                                                 : `Registered on ${formatDate(registration.registeredAt)}.`}
@@ -517,7 +517,7 @@ export default function MemberEventDetail() {
                                     */}
                                     {registration.payment?.status === 'paid' ? (
                                         <div className="rounded-xl border border-slate-200 p-4">
-                                            <p className="text-[0.8125rem] font-bold uppercase tracking-wide
+                                            <p className="text-[1.0625rem] font-bold uppercase tracking-wide
                                                           text-slate-500 flex items-center gap-1.5">
                                                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                                                 Payment received
@@ -584,13 +584,13 @@ export default function MemberEventDetail() {
                                     <p className="text-[1.1875rem] font-semibold text-slate-700">
                                         Registration is not open
                                     </p>
-                                    <p className="text-[1rem] text-slate-500 mt-1 max-w-xs mx-auto
+                                    <p className="text-[1.0625rem] text-slate-500 mt-1 max-w-xs mx-auto
                                                   leading-relaxed">
                                         {gate.reason || 'The organiser has not opened registration for this event.'}
                                     </p>
 
                                     {event.contactPhone || event.contactEmail ? (
-                                        <p className="text-[1rem] text-slate-500 mt-3">
+                                        <p className="text-[1.0625rem] text-slate-500 mt-3">
                                             Contact{' '}
                                             {event.contactName ? (
                                                 <span className="font-semibold text-slate-700">
@@ -627,7 +627,7 @@ export default function MemberEventDetail() {
                             ) : (
                                 <div className="space-y-3">
                                     {event.registrationNote ? (
-                                        <p className="text-[1rem] text-slate-600 leading-relaxed">
+                                        <p className="text-[1.0625rem] text-slate-600 leading-relaxed">
                                             {event.registrationNote}
                                         </p>
                                     ) : null}
@@ -697,14 +697,14 @@ export default function MemberEventDetail() {
                                             </span>
                                         </div>
                                     ) : (
-                                        <p className="text-[1rem] font-semibold text-emerald-700
+                                        <p className="text-[1.0625rem] font-semibold text-emerald-700
                                                       inline-flex items-center gap-1.5">
                                             <Ticket className="w-3.5 h-3.5" /> Free to attend
                                         </p>
                                     )}
 
                                     {left !== null ? (
-                                        <p className={`text-[1rem] font-semibold ${
+                                        <p className={`text-[1.0625rem] font-semibold ${
                                             left === 0 ? 'text-amber-600' : 'text-slate-600'
                                         }`}>
                                             {left === 0
@@ -714,7 +714,7 @@ export default function MemberEventDetail() {
                                     ) : null}
 
                                     {event.registrationDeadline ? (
-                                        <p className="text-[1rem] text-slate-500">
+                                        <p className="text-[1.0625rem] text-slate-500">
                                             Registration closes {formatDate(event.registrationClosesAt)}.
                                         </p>
                                     ) : null}
@@ -788,7 +788,7 @@ function ReceiptRow({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-baseline justify-between gap-3">
             <span className="text-[1.0625rem] text-slate-500 shrink-0">{label}</span>
-            <span className="text-[1rem] font-semibold text-slate-900 text-right break-all tabular-nums">
+            <span className="text-[1.0625rem] font-semibold text-slate-900 text-right break-all tabular-nums">
                 {value}
             </span>
         </div>

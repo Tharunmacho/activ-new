@@ -15,7 +15,7 @@
  * in the CMS removes it from the site. Copy baked into the markup as a fallback
  * would make deletion appear to do nothing.
  */
-import api, { unwrap, errorMessage } from './api';
+import api, { unwrap, errorMessage, registerCacheClearer } from './api';
 import { resolveMediaUrl } from '@/config/api.config';
 
 // ============================================================ types
@@ -37,6 +37,35 @@ export interface CmsMedia {
 }
 
 /**
+ * A photograph inside a gallery album.
+ *
+ * It has a page of its own at `/gallery/:id/photo/:n`, so it carries what a
+ * page carries: a name, a description, and whatever else the association
+ * wants recorded about THAT picture. `customFields` is the same pair list
+ * the album itself uses — the editor names the field, and the page prints
+ * the name they typed.
+ */
+export interface GalleryPhotoMedia extends CmsMedia {
+    /** The heading on its page. Falls back to `caption`, then to "Untitled". */
+    title?: string;
+    /** The one line under the heading. Predates `title`; see the schema. */
+    caption?: string;
+    /** The write-up, printed as "About this photograph". */
+    description?: string;
+    /** "Photographer", "Chief Guest" — whatever the editor named. */
+    customFields?: GalleryField[];
+}
+
+/**
+ * A field the editor named, on a gallery album or on one of its photographs.
+ *
+ * The same shape as every other named field on the site now — the icon and
+ * the placement moved onto `CmsExtraField` when they were rolled out. Kept as
+ * a name because a dozen call sites read well with it.
+ */
+export type GalleryField = CmsExtraField;
+
+/**
  * A field the editor named themselves.
  *
  * Every page carries a list of these. The fields a page declares are the ones
@@ -46,6 +75,29 @@ export interface CmsMedia {
 export interface CmsExtraField {
     label: string;
     value: string;
+    /**
+     * The mark drawn beside it where the surface draws one.
+     *
+     * A name from the CMS icon set, chosen by the editor. It is asked for
+     * rather than guessed: a glyph cannot be inferred from a label somebody
+     * typed a moment ago, and a card that rings every row left an empty
+     * circle next to any field that had none.
+     */
+    icon?: string;
+    /**
+     * WHERE it appears, and this is the one that was missing everywhere.
+     *
+     *   `card`    a labelled fact in the page's details card.
+     *   `content` a section of its own in the body, the label as the heading
+     *             and the value as the prose under it.
+     *
+     * Every named field on every screen used to be a card field, so an editor
+     * with a paragraph to write had only a box built for one-line facts to
+     * put it in. Defaulted to `card` because that is where every existing row
+     * already appears, and a default that moved them would rearrange live
+     * pages nobody had edited.
+     */
+    placement?: 'card' | 'content';
 }
 
 /**
@@ -69,6 +121,14 @@ export interface CmsExtraField {
 export interface CmsSectionOverride {
     key: string;
     hidden: boolean;
+    /**
+     * The editor's own heading for this card, where they set one.
+     *
+     * Optional because every row written before this existed has none, and
+     * blank means "use the heading the code ships" — which is what the CMS
+     * and the public page both fall back to. It never affects `key`.
+     */
+    title?: string;
     fields: CmsExtraField[];
 }
 
@@ -139,9 +199,21 @@ export interface SiteSettings {
 
 // ---------------------------------------------------------------- home
 
+/** Which side of the banner a slide's words sit on. */
+export type BannerAlign = 'left' | 'right';
+
 export interface HeroSlide {
     media: CmsMedia;
     caption: string;
+    /**
+     * This slide's OWN heading, highlighted words and subheading. Blank falls
+     * back to the banner's shared headline, so older slides look as they did.
+     */
+    headline: string;
+    headlineHighlight: string;
+    subheadline: string;
+    /** Left or right — moved off whichever side the photograph's subject is on. */
+    align: BannerAlign;
 }
 
 export interface HomeCarousel {
@@ -375,13 +447,14 @@ export interface GalleryItem {
     /** Bullet points beside the write-up. */
     highlights?: string[];
     /** Further photographs from the same event, under the poster. */
-    photos?: CmsMedia[];
+    /** The album's photographs, each with its own description. */
+    photos?: GalleryPhotoMedia[];
     /**
      * Fields the editor named themselves — chief guest, host chapter, sponsor,
      * anything this schema does not know about. Rendered as a labelled list on
      * the item's own page, in the order they were entered.
      */
-    customFields?: { label: string; value: string }[];
+    customFields?: GalleryField[];
     featured: boolean;
     /**
      * Leads both the banner and the gallery grid.
@@ -392,6 +465,14 @@ export interface GalleryItem {
     pinned?: boolean;
     /** Rides in the landing page banner. Undefined on rows predating the field. */
     showOnHome?: boolean;
+    /**
+     * What the home banner says over THIS image, and on which side. Blank
+     * falls back to the banner's shared headline.
+     */
+    bannerHeadline?: string;
+    bannerHighlight?: string;
+    bannerSubheadline?: string;
+    bannerAlign?: BannerAlign;
     sortOrder: number;
     visible: boolean;
 }
@@ -425,6 +506,12 @@ export interface ContactInfo {
     mapEmbedUrl: string;
     social: { facebook: string; instagram: string; linkedin: string; youtube: string };
     banner: { enabled: boolean; icon: string; title: string; subtitle: string; ctaLabel: string; ctaHref: string };
+    /**
+     * The regions band as the Contact page draws it: its own wording, and
+     * tiles that open each region's or state's contact section. Blank fields
+     * fall back to the shipped wording in `AcrossIndia`.
+     */
+    regionsBand: { enabled: boolean; eyebrow: string; heading: string; subtitle: string };
     /** Fields the editor named themselves — extra rows in the details card. */
     extraFields: CmsExtraField[];
     /** Cards the editor removed, and the rows they added to each. */
@@ -467,15 +554,6 @@ export interface CmsEvent {
      * somebody turned it off, so a new event needs no second step.
      */
     showOnHome?: boolean;
-    /**
-     * Has this event already been copied into the gallery?
-     *
-     * Sent on the ADMIN listing only, so `undefined` means "nobody asked" and
-     * is not the same answer as `false`. The events table reads it to say
-     * which rows have been archived already — without it, "To gallery" is a
-     * button whose effect is invisible from the row that carries it.
-     */
-    inGallery?: boolean;
     /**
      * Which site the event was authored for — `public` is the CMS's onboarding
      * programme, `members` the association's own. Optional for the same reason.
@@ -541,6 +619,8 @@ export interface CmsEvent {
     /** `paid` restricts the event to members with an active membership. */
     audience?: 'all' | 'paid';
     agenda?: CmsAgendaItem[];
+    /** The per-day programme — see `CmsEventDay`. Empty for a one-day event. */
+    days?: CmsEventDay[];
     speakers?: CmsSpeaker[];
     /**
      * HOW the event is attended: in a room, or on a link.
@@ -581,6 +661,28 @@ export interface CmsAgendaItem {
     location: string;
 }
 
+/**
+ * ONE DAY OF A MULTI-DAY EVENT — its own hours and its own sessions.
+ *
+ * A three-day conclave does not run the same hours three times: day one opens
+ * late after registration, day three closes at lunch. The event carried one
+ * start/end pair and one flat agenda, so the page could print a single span
+ * for all three days and a list of sessions with nothing saying which day
+ * each fell on.
+ *
+ * Empty on a single-day event and on everything written before this existed —
+ * readers fall back to the event's own `startAt`/`endAt` and flat `agenda`.
+ */
+export interface CmsEventDay {
+    id?: string;
+    /** ISO date, the day itself. */
+    date: string;
+    /** "HH:MM" on a 24-hour clock, as the whole site stores times. */
+    startTime: string;
+    endTime: string;
+    agenda: CmsAgendaItem[];
+}
+
 export interface CmsSpeaker {
     id?: string;
     name: string;
@@ -608,13 +710,26 @@ export interface ContactMessage {
  * — the server rejects anything else, and the renderer falls back on anything
  * it does not recognise, so a mismatch degrades rather than breaks.
  */
+/**
+ * EVERY MARK THE SITE CAN DRAW, grouped for the picker.
+ *
+ * This list and `ICONS` in `CmsIcon` and `ICON_NAMES` on the server are three
+ * copies of one set, and they had drifted: ten names the renderer draws and
+ * the server accepts — `factory`, `leaf`, `graduation-cap`, `ship`, `info`,
+ * `camera`, `tag`, `users-2`, `quote` — were simply not in the picker, so the
+ * only way to use one was to already know it existed. (`landmark` was worse:
+ * drawable here and REJECTED by the server, which swapped it for `star`
+ * without a word.) All three lists carry the same names now.
+ */
 export const ICON_GROUPS: { label: string; icons: string[] }[] = [
-    { label: 'People', icons: ['users', 'user', 'handshake', 'heart-handshake', 'building', 'briefcase'] },
+    { label: 'People', icons: ['users', 'users-2', 'user', 'handshake', 'heart-handshake', 'building', 'briefcase'] },
     { label: 'Growth', icons: ['trending-up', 'award', 'target', 'lightbulb', 'star', 'heart', 'rocket'] },
-    { label: 'Trust', icons: ['shield', 'shield-check', 'scale'] },
+    { label: 'Industry & learning', icons: ['factory', 'leaf', 'graduation-cap', 'ship', 'hard-hat'] },
+    { label: 'Trust', icons: ['shield', 'shield-check', 'scale', 'landmark'] },
     { label: 'Place & time', icons: ['globe', 'map-pin', 'calendar', 'calendar-days', 'clock'] },
-    { label: 'Events & media', icons: ['image', 'images', 'monitor-play', 'play', 'tent', 'book-open', 'hard-hat', 'grid', 'party-popper', 'mic'] },
-    { label: 'Contact', icons: ['phone', 'mail', 'message-square', 'send', 'file-text'] },
+    { label: 'Events & media', icons: ['image', 'images', 'camera', 'monitor-play', 'play', 'tent', 'book-open', 'grid', 'party-popper', 'mic'] },
+    { label: 'Notes & labels', icons: ['info', 'tag', 'quote', 'file-text'] },
+    { label: 'Contact', icons: ['phone', 'mail', 'message-square', 'send'] },
     { label: 'Navigation', icons: ['arrow-right', 'external-link', 'home'] },
     { label: 'Social', icons: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube'] },
 ];
@@ -733,6 +848,7 @@ export const EMPTY_CONTACT: ContactInfo = {
     addressLines: [], phone: '', alternatePhone: '', email: '', workingHours: [], mapEmbedUrl: '',
     social: { facebook: '', instagram: '', linkedin: '', youtube: '' },
     banner: { enabled: true, icon: 'users', title: '', subtitle: '', ctaLabel: '', ctaHref: '' },
+    regionsBand: { enabled: true, eyebrow: '', heading: '', subtitle: '' },
     extraFields: [],
     sections: [],
 };
@@ -839,6 +955,19 @@ export const invalidateCmsCache = (key?: string) => {
     else cache.clear();
 };
 
+/*
+ * DROPPED ON EVERY SESSION CHANGE, like the request cache it sits beside.
+ *
+ * Left out, a list fetched before signing in was still served after it: the
+ * super admin logged out and back in and their Events screen showed the
+ * public copy from before, missing every event the public cannot see — which
+ * read as the event they had just created having been deleted.
+ */
+registerCacheClearer(() => {
+    cache.clear();
+    inFlight.clear();
+});
+
 // ============================================================ public reads
 
 const getSiteSettingsUncached = async (): Promise<SiteSettings> => {
@@ -881,6 +1010,10 @@ const getHomeUncached = async (): Promise<HomeContent> => {
                 slides: (carousel.slides || []).map((slide: any) => ({
                     media: withResolvedUrl(slide.media),
                     caption: slide.caption || '',
+                    headline: slide.headline || '',
+                    headlineHighlight: slide.headlineHighlight || '',
+                    subheadline: slide.subheadline || '',
+                    align: slide.align === 'right' ? 'right' : 'left',
                 })),
                 galleryPosters: {
                     ...EMPTY_HOME.carousel.galleryPosters,
@@ -1001,8 +1134,29 @@ export const getGallery = (includeHidden = false) =>
 
 const getHomeGalleryUncached = async (): Promise<GalleryItem[]> => {
     try {
+        /*
+         * NO `limit`. The switch on the image is the whole control.
+         *
+         * This asked for twelve. `CarouselSection` had its OWN cap of six and
+         * that one was removed — "the per-image switch says which images
+         * belong in the banner, and a number on another card quietly
+         * overruling it meant an editor who turned nine on got six" — but the
+         * cap in the REQUEST survived the same argument, one layer down, where
+         * nothing on any screen mentions it.
+         *
+         * So the Home Page card counted the rows it had switched on and told
+         * the editor "18 of 75 images are switched on. All 18 ride the
+         * banner", and thirteen through eighteen never left the server. The
+         * card was not lying about its own field; it could not see that
+         * something else had trimmed the answer.
+         *
+         * The payload is still defended, by the SERVER, and better: `homeOnly`
+         * projects away the write-up, the bullets and the extra photographs,
+         * so a banner row is a title, a date and one image URL. Weight was the
+         * reason for the cap and the projection is the answer to it.
+         */
         const data = unwrap<GalleryItem[]>(
-            await api.get('/cms/gallery', { params: { home: 'true', limit: 12 } }),
+            await api.get('/cms/gallery', { params: { home: 'true' } }),
             [],
         );
         return (data || []).map(resolveItemMedia);
@@ -1016,10 +1170,10 @@ const getHomeGalleryUncached = async (): Promise<GalleryItem[]> => {
  * first, and nothing else.
  *
  * Its own request rather than a slice of `getGallery()`. The landing page is
- * the one page on the site whose payload is worth defending, and this answer is
- * a dozen rows without the write-ups or the extra photographs. The server caps
- * it at twelve; the section renders as many of those as the CMS limit allows,
- * so changing that number needs no new request.
+ * the one page on the site whose payload is worth defending, and this answer
+ * is the switched-on rows WITHOUT their write-ups or extra photographs — see
+ * `listGallery`'s projection, which is what defends the weight now that the
+ * count is the editor's to decide.
  */
 export const getHomeGallery = () => cached('gallery:home', getHomeGalleryUncached);
 
@@ -1047,6 +1201,7 @@ const getContactInfoUncached = async (): Promise<ContactInfo> => {
             infoCard: { ...EMPTY_CONTACT.infoCard, ...(data.infoCard || {}) },
             social: { ...EMPTY_CONTACT.social, ...(data.social || {}) },
             banner: { ...EMPTY_CONTACT.banner, ...(data.banner || {}) },
+            regionsBand: { ...EMPTY_CONTACT.regionsBand, ...(data.regionsBand || {}) },
         };
     } catch {
         return EMPTY_CONTACT;
@@ -1056,21 +1211,43 @@ const getContactInfoUncached = async (): Promise<ContactInfo> => {
 /** Cached; see `cached()` above. */
 export const getContactInfo = () => cached('contact-info', getContactInfoUncached);
 
+const resolveEvents = (data: CmsEvent[] | null): CmsEvent[] =>
+    (data || []).map((e) => ({
+        ...e,
+        imageUrl: resolveMediaUrl(e.imageUrl),
+        media: withResolvedUrl(e.media),
+    }));
+
+/*
+ * `scope=public` — WHAT A VISITOR SEES, even when an admin is signed in.
+ *
+ * Without it the server answered a signed-in super admin with the editor's
+ * list, so the home page showed them drafts and members-only events, and the
+ * one cached copy was then whichever list happened to be fetched first.
+ */
 const getCmsEventsUncached = async (): Promise<CmsEvent[]> => {
     try {
-        const data = unwrap<CmsEvent[]>(await api.get('/cms/events'), []);
-        return (data || []).map((e) => ({
-            ...e,
-            imageUrl: resolveMediaUrl(e.imageUrl),
-            media: withResolvedUrl(e.media),
-        }));
+        return resolveEvents(unwrap<CmsEvent[]>(
+            await api.get('/cms/events', { params: { scope: 'public' } }), [],
+        ));
     } catch {
         return [];
     }
 };
 
-/** Cached; see `cached()` above. */
+/** The public list. Cached; see `cached()` above. */
 export const getCmsEvents = () => cached('events', getCmsEventsUncached);
+
+/**
+ * EVERY event, for the editor screens: drafts, members-only, targeted.
+ *
+ * NOT cached, and it THROWS. The editor has just written something and must
+ * see the server's answer, and a failed load has to say so — the public
+ * reader's swallow-to-`[]` here would present a network blip as "you have no
+ * events", which is exactly how a real event reads as deleted.
+ */
+export const getCmsEventsForEditor = async (): Promise<CmsEvent[]> =>
+    resolveEvents(unwrap<CmsEvent[]>(await api.get('/cms/events'), []));
 
 /**
  * One event, for its own page.
@@ -1228,22 +1405,6 @@ export const updateCmsEvent = async (id: string, fields: Record<string, any>, im
     return result;
 };
 
-/**
- * Copy a finished event into the gallery.
- *
- * A COPY: the event keeps its page and its URL, and is only switched off the
- * home strip. Pressed twice it updates the item it made the first time rather
- * than adding a second — the server matches on the event's id.
- */
-export const sendEventToGallery = async (id: string) => {
-    const result = unwrap<{ galleryId: string; updated: boolean; title: string }>(
-        await api.post(`/cms/events/${id}/to-gallery`), 
-        { galleryId: '', updated: false, title: '' },
-    );
-    // Both lists now answer differently.
-    invalidateCmsCache();
-    return result;
-};
 export const deleteCmsEvent = async (id: string) => {
     const result = unwrap<any>(await api.delete(`/cms/events/${id}`), null);
     // Both gallery scopes, or the events list, now answer differently.
@@ -1334,7 +1495,7 @@ export interface LegalDocument {
      * it, and every reader has to cope with that rather than assume an
      * array is there.
      */
-    extraFields?: { label: string; value: string }[];
+    extraFields?: CmsExtraField[];
     status: 'published' | 'draft';
     order: number;
     /**

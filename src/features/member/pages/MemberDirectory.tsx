@@ -294,7 +294,7 @@ export default function MemberDirectory() {
                         <button
                             type="button"
                             onClick={() => setShowFilters((open) => !open)}
-                            className={`shrink-0 h-11 px-3.5 rounded-xl border text-[1rem] font-semibold
+                            className={`shrink-0 h-11 px-3.5 rounded-xl border text-[1.0625rem] font-semibold
                                         inline-flex items-center gap-1.5 transition-colors ${
                                 activeCount > 0
                                     ? 'border-blue-400 bg-blue-50 text-blue-700'
@@ -304,7 +304,7 @@ export default function MemberDirectory() {
                             <SlidersHorizontal className="w-4 h-4" />
                             <span className="hidden sm:inline">Filters</span>
                             {activeCount > 0 ? (
-                                <span className="bg-blue-600 text-white text-[0.8125rem] font-bold w-4 h-4
+                                <span className="bg-blue-600 text-white text-[1.0625rem] font-bold w-4 h-4
                                                  rounded-full flex items-center justify-center">
                                     {activeCount}
                                 </span>
@@ -355,7 +355,7 @@ export default function MemberDirectory() {
                                 <button
                                     type="button"
                                     onClick={clearAll}
-                                    className="inline-flex items-center gap-1 text-[1rem] font-semibold
+                                    className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold
                                                text-slate-500 hover:text-slate-700"
                                 >
                                     <X className="w-3.5 h-3.5" /> Clear all filters
@@ -396,7 +396,7 @@ export default function MemberDirectory() {
                           * than three clicks into the filter panel.
                           */}
                         <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-                            <p className="text-[1rem] text-slate-500">
+                            <p className="text-[1.0625rem] text-slate-500">
                                 {total} {total === 1 ? 'member' : 'members'}
                                 {activeCount > 0 || term ? ' matching' : ''}
                                 {onHomeRegion && homeLabel ? (
@@ -408,7 +408,7 @@ export default function MemberDirectory() {
                                 <button
                                     type="button"
                                     onClick={() => set({ state: '', district: '', block: '' })}
-                                    className="text-[1rem] font-semibold text-blue-600 hover:underline"
+                                    className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
                                 >
                                     Search the whole association
                                 </button>
@@ -416,7 +416,7 @@ export default function MemberDirectory() {
                                 <button
                                     type="button"
                                     onClick={() => set(homeRegion)}
-                                    className="text-[1rem] font-semibold text-blue-600 hover:underline"
+                                    className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
                                 >
                                     Back to {homeLabel}
                                 </button>
@@ -440,14 +440,14 @@ export default function MemberDirectory() {
                                     type="button"
                                     disabled={page <= 1}
                                     onClick={() => setPage((current) => Math.max(1, current - 1))}
-                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[1rem]
+                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[1.0625rem]
                                                font-semibold text-slate-600 hover:bg-slate-50
                                                disabled:opacity-40 disabled:hover:bg-transparent"
                                 >
                                     Previous
                                 </button>
 
-                                <span className="text-[1rem] text-slate-500 tabular-nums">
+                                <span className="text-[1.0625rem] text-slate-500 tabular-nums">
                                     Page {page} of {pages}
                                 </span>
 
@@ -455,7 +455,7 @@ export default function MemberDirectory() {
                                     type="button"
                                     disabled={page >= pages}
                                     onClick={() => setPage((current) => current + 1)}
-                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[1rem]
+                                    className="h-10 px-4 rounded-xl border border-slate-200 text-[1.0625rem]
                                                font-semibold text-slate-600 hover:bg-slate-50
                                                disabled:opacity-40 disabled:hover:bg-transparent"
                                 >
@@ -505,7 +505,7 @@ function Fact({
     muted?: boolean;
 }) {
     return (
-        <span className={`flex min-w-0 items-center gap-2.5 text-[1.125rem] ${
+        <span className={`flex min-w-0 items-center gap-2.5 text-[1.1875rem] ${
             muted ? 'text-slate-400' : 'text-slate-600'
         }`}>
             <Icon className={`h-4 w-4 shrink-0 ${muted ? 'text-slate-300' : 'text-blue-600'}`} />
@@ -662,7 +662,7 @@ function ProductTile({ name, imageUrl }: { name: string; imageUrl: string }) {
                     <ImageOff className="w-4 h-4 text-slate-300" />
                 )}
             </div>
-            <p className="text-[0.75rem] text-slate-600 mt-1 leading-tight line-clamp-2" title={name}>
+            <p className="text-[1.0625rem] text-slate-600 mt-1 leading-tight line-clamp-2" title={name}>
                 {name}
             </p>
         </div>
@@ -688,7 +688,7 @@ function Select({
 }) {
     return (
         <label className="block min-w-0">
-            <span className="block text-[0.8125rem] font-semibold uppercase tracking-wide text-slate-500 mb-1">
+            <span className="block text-[1.0625rem] font-semibold uppercase tracking-wide text-slate-500 mb-1">
                 {label}
             </span>
             <select

@@ -174,14 +174,14 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                         it when the same picture is wanted elsewhere. */}
                     {media.url && (
                         <div className="w-full">
-                            <span className="block text-[0.9375rem] font-bold uppercase tracking-wide
+                            <span className="block text-[1.0625rem] font-bold uppercase tracking-wide
                                              text-slate-400 dark:text-neutral-500">
                                 Picture address, saved with the page
                             </span>
                             <code
                                 title={media.url}
                                 className="mt-1 block max-w-lg truncate rounded bg-slate-100 dark:bg-[#141414]
-                                           px-2 py-1 text-[0.9375rem] font-mono text-slate-500
+                                           px-2 py-1 text-[1.0625rem] font-mono text-slate-500
                                            dark:text-neutral-400 select-all"
                             >
                                 {media.url}

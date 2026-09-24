@@ -8,6 +8,8 @@ import {
     type HomeCarousel, type CmsMedia, type GalleryItem, type CmsSectionOverride,
 } from '@/services/cmsApi';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
+import { SectionFields } from '@/components/shared/SectionFields';
+
 import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
@@ -17,6 +19,23 @@ import { Tilt3D } from '@/components/shared/Tilt3D';
 import {
     HERO_HEADING, HERO_LEDE, EYEBROW, STAT_FIGURE, STAT_LABEL, MICRO_LABEL,
 } from '@/components/layout/typography';
+
+/**
+ * What the banner's own added fields are set in — the SUB-HEADLINE's type.
+ *
+ * `HERO_LEDE` itself, not an approximation of it. A field added to the
+ * Headline card is a continuation of the words over the picture, so it reads
+ * at the size those words read at. Written out at 20px it was half the size
+ * of the paragraph directly above it and read as a footnote somebody had
+ * pasted in.
+ *
+ * It is the constant rather than a copy of its values so the two cannot drift:
+ * if the hero's lede is ever re-scaled, the fields re-scale with it.
+ */
+const BANNER_PROSE = 'text-[1em] leading-relaxed font-semibold text-gray-200';
+
+/** The highlight card's type, for the rows added to that card. */
+const CARD_PROSE = 'text-[1.0625rem] font-semibold leading-snug';
 
 /**
  * The landing banner.
@@ -54,6 +73,15 @@ import {
 interface BannerSlide {
     media: CmsMedia;
     caption: string;
+    /*
+     * The words shown while THIS picture is on screen, and their side. Blank
+     * headline and subheadline fall back to the banner's shared ones — the
+     * whole banner used to print one sentence over every image.
+     */
+    headline: string;
+    highlight: string;
+    subheadline: string;
+    align: 'left' | 'right';
     /** Set only on a gallery poster: where clicking it goes. */
     href?: string;
     title?: string;
@@ -71,8 +99,22 @@ export function CarouselSection() {
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { loop: true, duration: 40 },
-        [Autoplay({ delay: 3000, stopOnInteraction: false })],
+        /* 6s, not 3s: every slide now carries its own heading and
+           subheading, and three seconds is not long enough to read two
+           lines before they change. */
+        [Autoplay({ delay: 6000, stopOnInteraction: false })],
     );
+
+    /* Which slide is on screen — the words over the banner follow it. */
+    const [selected, setSelected] = useState(0);
+    useEffect(() => {
+        if (!emblaApi) return;
+        const onSelect = () => setSelected(emblaApi.selectedScrollSnap());
+        onSelect();
+        emblaApi.on('select', onSelect);
+        emblaApi.on('reInit', onSelect);
+        return () => { emblaApi.off('select', onSelect); emblaApi.off('reInit', onSelect); };
+    }, [emblaApi]);
 
     const scrollPrev = useCallback(() => { if (emblaApi) emblaApi.scrollPrev(); }, [emblaApi]);
     const scrollNext = useCallback(() => { if (emblaApi) emblaApi.scrollNext(); }, [emblaApi]);
@@ -108,7 +150,14 @@ export function CarouselSection() {
         // nothing but recent events is a reasonable thing to ask for.
         const authored: BannerSlide[] = sectionHidden(sections, 'carousel.slides')
             ? []
-            : (carousel?.slides || []).map(s => ({ media: s.media, caption: s.caption || '' }));
+            : (carousel?.slides || []).map(s => ({
+                media: s.media,
+                caption: s.caption || '',
+                headline: s.headline || '',
+                highlight: s.headlineHighlight || '',
+                subheadline: s.subheadline || '',
+                align: s.align === 'right' ? 'right' as const : 'left' as const,
+            }));
 
         const config = carousel?.galleryPosters;
         if (!config || config.enabled === false) return authored;
@@ -128,6 +177,29 @@ export function CarouselSection() {
             .map(item => ({
                 media: item.media,
                 caption: item.caption || '',
+                /*
+                 * A GALLERY PHOTO HAS CONTENT OF ITS OWN — its album title and
+                 * caption — so that is what it says, LARGE, when no banner words
+                 * were written for it. It used to print the banner's default
+                 * sentence over itself and leave its real title in the small
+                 * corner card. The default heading is only for a photo with
+                 * nothing at all to say.
+                 *
+                 * Banner words and album words are not mixed: written banner
+                 * words replace the album's as a set.
+                 */
+                ...(item.bannerHeadline || item.bannerHighlight || item.bannerSubheadline
+                    ? {
+                        headline: item.bannerHeadline || '',
+                        highlight: item.bannerHighlight || '',
+                        subheadline: item.bannerSubheadline || '',
+                    }
+                    : {
+                        headline: item.title || '',
+                        highlight: '',
+                        subheadline: item.caption || '',
+                    }),
+                align: item.bannerAlign === 'right' ? 'right' as const : 'left' as const,
                 href: `/gallery/${item._id}`,
                 title: item.title || '',
                 eventDate: item.eventDate || '',
@@ -154,7 +226,7 @@ export function CarouselSection() {
     if (isLoading) {
         return (
             <div className="w-full mb-12">
-                <div className="relative w-full h-[85vh] min-h-[37.5rem] bg-slate-200 animate-pulse" />
+                <div className="relative w-full min-h-[85vh] bg-slate-200 animate-pulse" />
             </div>
         );
     }
@@ -176,8 +248,71 @@ export function CarouselSection() {
         ? sectionFields(sections, 'carousel.headline')
         : [];
 
+    /*
+     * ==========================================================================
+     * THE WORDS COMPRESS AS THE CONTENT GROWS
+     * ==========================================================================
+     *
+     * The band is 85vh because that is the shape the page wants, and the first
+     * two answers to "more content" were to widen the measure and to make the
+     * headline fluid. Past a point neither is enough: a headline, a lede and
+     * three added fields will not fit at full size however wide the column is.
+     *
+     * So the type steps DOWN as the content grows, which is what an editor
+     * means by the page adapting — not the page getting taller.
+     *
+     * Counted in characters rather than in fields, because that is what
+     * actually costs lines: one field holding a paragraph fills more of the
+     * band than three holding a word each, and a headline nobody shortened
+     * costs the same whether or not any field exists.
+     *
+     * Three steps and no more. A continuous scale sounds better and reads
+     * worse — the type would shift by a pixel every time somebody edited a
+     * word, so two pages of similar length would never quite match. The
+     * thresholds are where the copy stops fitting at the step above, measured
+     * against the 1024px measure at the widths this site is used at.
+     */
+    /*
+     * THE WORDS FOR THE SLIDE ON SCREEN.
+     *
+     * A slide with a heading or subheading of its own shows its own — all
+     * three lines together, never mixed with the shared ones, so a slide never
+     * pairs its heading with another picture's subheading. A slide with
+     * neither shows the banner's shared headline, as every slide did before.
+     */
+    const current = slides[selected] || slides[0];
+    /* ANY of the three counts as the image's own content — highlighted words
+       alone are still something written for this picture. */
+    const own = !!(current && (current.headline || current.highlight || current.subheadline));
+    const words = own && current
+        ? { headline: current.headline, highlight: current.highlight, subheadline: current.subheadline }
+        : { headline: carousel.headline, highlight: carousel.headlineHighlight, subheadline: carousel.subheadline };
+    const align: 'left' | 'right' = current?.align === 'right' ? 'right' : 'left';
+
+    /* Sized for the LONGEST slide's words, so the type does not jump in size
+       every time the banner turns. */
+    const longestWords = Math.max(
+        (carousel.headline || '').length + (carousel.headlineHighlight || '').length + (carousel.subheadline || '').length,
+        ...slides.map(sl => (sl.headline || '').length + (sl.highlight || '').length + (sl.subheadline || '').length),
+    );
+
+    const overlayWeight =
+        longestWords
+        + overlayFields.reduce((n, f) => n + (f.label || '').length + (f.value || '').length, 0)
+        /* The other three banner cards' rows print here too — see the
+           overlay below — so they count towards the room needed. */
+        + ['carousel.buttons', 'carousel.slides', 'carousel.galleryPosters']
+            .reduce((n, key) => n + sectionFields(sections, key)
+                .reduce((m, f) => m + (f.label || '').length + (f.value || '').length, 0), 0);
+
+    /* 1 is the designed size; below it the same layout, set smaller. */
+    const density = overlayWeight > 520 ? 0.74
+        : overlayWeight > 330 ? 0.86
+            : 1;
+
     const hasOverlay = overlayFields.length > 0
         || (showHeadline && !!(carousel.headline || carousel.subheadline))
+        || (showHeadline && slides.some(sl => sl.headline || sl.highlight || sl.subheadline))
         || !!carousel.ctaLabel;
 
     /**
@@ -214,7 +349,34 @@ export function CarouselSection() {
 
     return (
         <div className={`w-full ${showCard ? 'mb-32' : 'mb-12'}`}>
-            <div className="relative w-full h-[85vh] min-h-[37.5rem] bg-slate-900 overflow-visible">
+            {/*
+              * ==================================================================
+              * THE BANNER IS AS TALL AS ITS CONTENT, AND AT LEAST 85vh
+              * ==================================================================
+              *
+              * It was `h-[85vh]` — a FIXED height — with the words absolutely
+              * positioned inside it. Absolute children contribute no height, so
+              * the band could not grow: an editor who added a paragraph to the
+              * banner got text running off the bottom edge and under the
+              * statistics card, and nothing about the band moved to make room.
+              * Reported as "it is not dynamically customising as content
+              * arrives".
+              *
+              * `min-h` instead, with the words back in the normal flow. The
+              * picture stays absolute BEHIND them, because the picture is
+              * decoration that fills whatever the words ask for — which is the
+              * right way round.
+              *
+              * It is a FLOOR and should almost never be exceeded. The band is
+              * 85vh because that is the shape the page wants; growing it is the
+              * last resort, for content no width could fit. The first answer is
+              * the measure above — give the words the room the band already
+              * has — and the second is the fluid headline. This is what stops
+              * a banner running off the screen without letting one field push
+              * the whole page down.
+              */}
+            <div className="relative w-full min-h-[85vh] sm:min-h-[85vh] bg-slate-900 overflow-visible
+                            flex items-center">
 
                 {slides.length > 0 && (
                     <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
@@ -240,8 +402,12 @@ export function CarouselSection() {
                                             />
                                         </div>
 
-                                        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50
-                                                        to-transparent z-10 pointer-events-none" />
+                                        {/* The shade sits under the words, so it
+                                            follows the side they are on — the
+                                            other side of the picture stays lit. */}
+                                        <div className={`absolute inset-0 ${slide.align === 'right'
+                                            ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-black/80 via-black/50
+                                                        to-transparent z-10 pointer-events-none`} />
 
                                     </>
                                 );
@@ -300,17 +466,18 @@ export function CarouselSection() {
                                           link underneath it.
                                         */}
                                         {slide.href && (slide.title || slide.eventDate || slide.location) && (
-                                            <div className="absolute right-3 sm:right-4 lg:right-8
+                                            <div className={`absolute ${slide.align === 'right'
+                                                ? 'left-3 sm:left-4 lg:left-8 text-left'
+                                                : 'right-3 sm:right-4 lg:right-8 text-right'}
                                                             top-6 sm:top-8 lg:top-auto lg:bottom-24 z-20
-                                                            max-w-[min(20rem,72%)] text-right pointer-events-none
-                                                            /* No `backdrop-blur`: this sits over a
-                                                               full-bleed photograph, so the compositor
-                                                               re-blurs the whole image on every frame of
-                                                               a scroll. Measured at 167ms frames on the
-                                                               home page. A solid translucent fill looks
-                                                               the same at this opacity. */
+                                                            max-w-[min(20rem,72%)] pointer-events-none
                                                             bg-black/55 border border-white/15
-                                                            rounded-2xl px-4 py-3 sm:px-5 sm:py-4">
+                                                            rounded-2xl px-4 py-3 sm:px-5 sm:py-4`}>
+                                                {/* No `backdrop-blur` on this panel: it sits over a
+                                                    full-bleed photograph, so the compositor re-blurs
+                                                    the whole image on every frame of a scroll
+                                                    (measured at 167ms frames on the home page). A
+                                                    solid translucent fill looks the same here. */}
                                                 {slide.category && (
                                                     <span className="inline-block bg-white/95 text-brand-700 text-[0.75rem] font-bold
                                                                      px-3 py-1 rounded-full uppercase tracking-wider mb-2">
@@ -318,7 +485,10 @@ export function CarouselSection() {
                                                     </span>
                                                 )}
 
-                                                {slide.title && (
+                                                {/* The title only when the big heading is NOT
+                                                    already saying it — printing it twice made
+                                                    the corner card read as the real heading. */}
+                                                {slide.title && slide.title !== slide.headline && (
                                                     <p className="text-white text-[1.25rem] sm:text-[1.375rem] lg:text-2xl font-extrabold
                                                                   leading-snug line-clamp-2">
                                                         {slide.title}
@@ -326,8 +496,8 @@ export function CarouselSection() {
                                                 )}
 
                                                 {(slide.eventDate || slide.location) && (
-                                                    <div className="mt-2 flex flex-wrap items-center justify-end gap-x-3 gap-y-1
-                                                                    text-white/90">
+                                                    <div className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1
+                                                                    text-white/90 ${slide.align === 'right' ? 'justify-start' : 'justify-end'}`}>
                                                         {slide.eventDate && (
                                                             <span className={`${MICRO_LABEL} flex items-center gap-1.5`}>
                                                                 <Calendar size={12} /> {slide.eventDate}
@@ -409,43 +579,130 @@ export function CarouselSection() {
                   by the height of the overlap.
                 */}
                 {hasOverlay && (
-                    <div className={`absolute inset-0 z-20 flex items-center pointer-events-none
-                                     ${hasButtons ? 'pb-28 sm:pb-32 lg:pb-0' : 'pb-20 sm:pb-24 lg:pb-0'}`}>
+                    /*
+                     * `relative`, not `absolute inset-0`: this is what gives the
+                     * band its height. The padding is what keeps the words clear
+                     * of the statistics card, which overhangs the bottom edge by
+                     * 64px and is about 150px tall — so roughly 90px of it sits
+                     * inside the band and the words must stop above that.
+                     *
+                     * MORE ROOM ON A PHONE, NOT LESS. The card's four figures
+                     * sit in a row on a desktop and stack on a phone, so it is
+                     * ~200px tall there and ~480px here — which means the
+                     * amount of it reaching up into the band is LARGEST at the
+                     * smallest width. Measured: at 430px the words ran 56px
+                     * into it. A single `pb-40` was sized against the desktop
+                     * card and was the wrong end of the scale to size against.
+                     */
+                    <div className={`relative z-20 w-full py-20 sm:py-24 pointer-events-none
+                                     ${showCard ? 'pb-[19rem] sm:pb-56 lg:pb-44' : ''}`}>
                         <div className={SCREEN_CONTAINER}>
-                            <div className="max-w-3xl text-white pointer-events-auto">
-                                {showHeadline && (carousel.headline || carousel.headlineHighlight) && (
-                                    <h1 className={`${HERO_HEADING} mb-6`}>
-                                        {carousel.headline}
-                                        {carousel.headlineHighlight && (
-                                            <> <span className="text-brand-300">{carousel.headlineHighlight}</span></>
+                            {/*
+                              * ==========================================
+                              * FIT THE CONTENT TO THE BAND, NOT THE BAND
+                              * TO THE CONTENT
+                              * ==========================================
+                              *
+                              * This was `max-w-3xl` — 768px — on a column that
+                              * is 1676px wide at 1900px. So two thirds of the
+                              * room was empty and every paragraph wrapped
+                              * early; adding one field pushed the band 200px
+                              * taller and ran the words under the statistics
+                              * card, when there was space for them all along.
+                              *
+                              * The measure now OPENS with the display, up to
+                              * 1024px: the words take the room that is there
+                              * and the band stays the height it was meant to
+                              * be. Capped rather than full-width because the
+                              * gradient behind them fades out around 60%, and
+                              * white type on the bright half of a photograph
+                              * is unreadable whatever its size.
+                              */}
+                            {/*
+                              * ONE FONT SIZE, AND EVERYTHING INSIDE IS `em`.
+                              *
+                              * The headline, the lede and the added fields are
+                              * all sized against this, so compressing the band
+                              * is one number rather than three that have to be
+                              * kept in step. `clamp` is still what meets the
+                              * viewport; `density` is what meets the content.
+                              */}
+                            <div
+                                className={`max-w-3xl lg:max-w-4xl xl:max-w-5xl text-white pointer-events-auto
+                                            ${align === 'right' ? 'ml-auto text-right' : ''}`}
+                                style={{ fontSize: `calc(clamp(1.25rem, 0.82rem + 1.3vw, 2.0625rem) * ${density})` }}
+                            >
+                                {/* `em` of the wrapper, so one number compresses
+                                    the whole overlay. The designed ratio is kept
+                                    exactly: 33px lede to 72px headline is 2.18. */}
+                                {/* Keyed on the slide, so the words fade in
+                                    with each new picture instead of snapping. */}
+                                <div key={`${selected}-${align}`} className="animate-in fade-in slide-in-from-bottom-2 duration-700">
+                                {showHeadline && (words.headline || words.highlight) && (
+                                    <h1 className="text-[2.18em] font-black leading-[1.06] tracking-tight mb-6">
+                                        {words.headline}
+                                        {words.highlight && (
+                                            <> <span className="text-brand-300">{words.highlight}</span></>
                                         )}
                                     </h1>
                                 )}
 
-                                {showHeadline && carousel.subheadline && (
-                                    <p className={`${HERO_LEDE} text-gray-200 max-w-2xl
+                                {showHeadline && words.subheadline && (
+                                    <p className={`text-[1em] leading-relaxed font-semibold text-gray-200 max-w-2xl lg:max-w-3xl xl:max-w-4xl
+                                                   ${align === 'right' ? 'ml-auto' : ''}
                                                    ${hasButtons ? 'mb-10' : 'mb-0'}`}>
-                                        {carousel.subheadline}
+                                        {words.subheadline}
                                     </p>
                                 )}
+                                </div>
 
                                 {/* Not rendered at all when both labels are blank —
                                     an empty flex row still occupies the gap above
                                     it, which reads as a button that failed to
                                     paint rather than as one that is not there. */}
                                 {hasButtons && (
-                                    <div className="flex flex-wrap items-center gap-4">
+                                    <div className={`flex flex-wrap items-center gap-4 ${align === 'right' ? 'justify-end' : ''}`}>
                                         {button(carousel.ctaLabel, carousel.ctaHref, carousel.ctaIcon, true)}
                                         {button(carousel.secondaryCtaLabel, carousel.secondaryCtaHref, carousel.secondaryCtaIcon, false)}
                                     </div>
                                 )}
 
-                                {/* The editor's own rows on this banner — see `overlayFields`. */}
-                                <CmsExtraFields
-                                    fields={overlayFields}
-                                    tone="dark"
-                                    className={hasButtons ? 'mt-10' : 'mt-8'}
-                                />
+                                {/*
+                                  * The editor's own rows on this banner.
+                                  *
+                                  * `overlayFields` is the headline card's.
+                                  * The Buttons, Slides and Gallery-posters
+                                  * cards each offered the control too and had
+                                  * NOWHERE drawing the answer — a field added
+                                  * to any of them was saved and never seen. All
+                                  * three are parts of this band, so they print
+                                  * here with it.
+                                  */}
+<div className={BANNER_PROSE}>
+                                    {/*
+                                      * `list`, not the default `grid`.
+                                      *
+                                      * The grid is two columns from `sm` up,
+                                      * which is right under a wide band of copy
+                                      * and wrong here: this column is 768px, so
+                                      * each cell came out 368px and a field set
+                                      * at the lede's 33px wrapped every three
+                                      * words. One column uses the measure the
+                                      * paragraph above it uses.
+                                      */}
+                                    <CmsExtraFields
+                                        fields={overlayFields}
+                                        variant="list"
+                                        tone="dark"
+                                        /* No details card on a banner — see
+                                           `force` on the component. */
+                                        force="content"
+                                        className={hasButtons ? 'mt-10' : 'mt-8'}
+                                    />
+                                    <SectionFields proseClass={BANNER_PROSE} sections={sections} sectionKey="carousel.buttons" tone="dark" force="content" />
+                                    <SectionFields proseClass={BANNER_PROSE} sections={sections} sectionKey="carousel.slides" tone="dark" force="content" />
+                                    <SectionFields proseClass={BANNER_PROSE} sections={sections} sectionKey="carousel.galleryPosters" tone="dark" force="content" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -540,11 +797,17 @@ export function CarouselSection() {
                         )}
                     </div>
 
-                    {/* The editor's own rows on this card, under the figures. */}
-                    <CmsExtraFields
-                        fields={cardFields}
-                        className="mt-8 border-t border-brand-100 pt-6"
-                    />
+                    {/* The editor's own rows on this card, under the figures,
+                        in the card's own type. */}
+                    <div className={CARD_PROSE}>
+                        <CmsExtraFields
+                            fields={cardFields}
+                            /* This plate of figures is a card and nothing else
+                               — see `fieldMode` on its CMS step. */
+                            force="card"
+                            className="mt-8 border-t border-brand-100 pt-6"
+                        />
+                    </div>
                     </div>
                     </Tilt3D>
                 )}

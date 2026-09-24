@@ -6,7 +6,7 @@ import { CmsIcon } from '@/components/shared/CmsIcon';
 import { CountUp } from '@/components/shared/CountUp';
 import { Reveal } from '@/components/shared/Reveal';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
-import { HERO_HEADING, HERO_LEDE, EYEBROW } from '@/components/layout/typography';
+import { HERO_HEADING, HERO_LEDE, EYEBROW, BAND_MEASURE } from '@/components/layout/typography';
 
 /**
  * The Events page's opening band.
@@ -74,7 +74,7 @@ export function EventsHero({ settings }: Props) {
             </div>
 
             <div className={`${SCREEN_CONTAINER} relative z-10 pt-16 pb-20 md:pt-20 md:pb-24`}>
-                <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+                <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
 
                     {/* ------------------------------------------------ copy */}
                     <Reveal variant="left" className="min-w-0">
@@ -94,11 +94,15 @@ export function EventsHero({ settings }: Props) {
                         )}
 
                         {lede && (
-                            <p className={`${HERO_LEDE} mt-6 max-w-xl text-white/70`}>{lede}</p>
+                            <p className={`${HERO_LEDE} mt-6 ${BAND_MEASURE} text-white/70`}>{lede}</p>
                         )}
 
-                        {/* The editor's own rows on these two cards. */}
-                        <CmsExtraFields fields={ownRows} tone="dark" className="mt-8" />
+                        {/* The editor's own rows on these two cards, in the
+                            hero's own lede type — the rows are a continuation of
+                            the words over the picture, not a footnote under it. */}
+                        <div className="text-[1.125rem] sm:text-[1.25rem] font-medium leading-relaxed">
+                            <CmsExtraFields fields={ownRows} tone="dark" force="content" className="mt-8" />
+                        </div>
 
                         {stats.length > 0 && (
                             <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
@@ -115,7 +119,7 @@ export function EventsHero({ settings }: Props) {
                                             className="text-brand-300 mb-2.5"
                                             fallback="calendar-days"
                                         />
-                                        <p className="text-2xl font-black tracking-tight tabular-nums">
+                                        <p className="text-[1.5625rem] font-black tracking-tight tabular-nums">
                                             <CountUp value={stat.value} />
                                         </p>
                                         <p className="mt-0.5 text-[1.0625rem] sm:text-[0.8125rem] font-bold uppercase

@@ -79,7 +79,7 @@ function Stat({ label, value, caption, icon: Icon, to, dark, tone = 'plain' }: {
                 <span className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${chip}`}>
                     <Icon className="w-[1.125rem] h-[1.125rem]" />
                 </span>
-                <p className={`text-[0.9375rem] font-bold uppercase tracking-[0.1em]
+                <p className={`text-[1.0625rem] font-bold uppercase tracking-[0.1em]
                                ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
                     {label}
                 </p>
@@ -122,7 +122,7 @@ function SectionRow({ label, to, ready, detail, icon: Icon, dark }: {
                 </span>
             </span>
 
-            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[0.9375rem]
+            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[1.0625rem]
                               font-bold shrink-0 ${ready
                     ? 'bg-[#16A34A]/12 text-[#4ADE80]'
                     : 'bg-[#F59E0B]/12 text-[#FBBF24]'}`}>
@@ -196,12 +196,17 @@ export default function CmsDashboard() {
                 + (d.gallery?.hidden ? ` · ${d.gallery.hidden} hidden` : ''),
         },
         {
-            label: 'News & Schemes', to: '/cms/news', icon: Newspaper,
+            label: 'News', to: '/cms/news', icon: Newspaper,
             ready: !!d.newsPage?.configured,
-            detail: `${d.newsPage?.articles || 0} articles · ${d.newsPage?.schemes || 0} schemes`,
+            detail: `${d.newsPage?.articles || 0} articles`,
         },
         {
-            label: 'Regions & States', to: '/cms/regions', icon: MapPin,
+            label: 'Schemes', to: '/cms/schemes', icon: Newspaper,
+            ready: (d.newsPage?.schemes || 0) > 0,
+            detail: `${d.newsPage?.schemes || 0} schemes`,
+        },
+        {
+            label: 'Zones & States', to: '/cms/regions', icon: MapPin,
             ready: !!d.regions?.configured,
             detail: `${d.regions?.regionPages || 0} region pages · ${d.regions?.statePages || 0} state pages`,
         },
@@ -226,7 +231,7 @@ export default function CmsDashboard() {
             {/* An eyebrow above the title, as the reference lays it out — it says
                 which part of the console you are in before the title says what. */}
             <header>
-                <p className={`text-[0.9375rem] font-bold uppercase tracking-[0.14em] mb-2
+                <p className={`text-[1.0625rem] font-bold uppercase tracking-[0.14em] mb-2
                                ${dark ? 'text-[#52525B]' : 'text-slate-400'}`}>
                     Workspace
                 </p>
@@ -277,7 +282,7 @@ export default function CmsDashboard() {
                                     ${dark ? 'text-white' : 'text-slate-900'}`}>
                         Site content
                     </h2>
-                    <p className={`text-[1.125rem] mt-1.5 ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
+                    <p className={`text-[1.1875rem] mt-1.5 ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
                         What each public page is reading, and whether it has anything to read.
                     </p>
                 </header>

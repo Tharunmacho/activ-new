@@ -125,7 +125,7 @@ export function RegionGallery() {
 
                 {/* ------------------------------------------------ filters */}
                 <div className={`${CARD} p-5 sm:p-6 mb-8`}>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.4fr]">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
                         <div>
                             <label htmlFor="g-category" className={`${ROW_LABEL} block mb-1.5`}>
                                 Category

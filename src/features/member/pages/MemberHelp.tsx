@@ -10,6 +10,9 @@ import { SectionCard } from '@/features/member/components/MemberUI';
 import { getContactInfo, sendContactMessage } from '@/services/cmsApi';
 import { getMyProfile, getMyApplication, errorMessage } from '@/services/activApi';
 import { formatApplicationRef } from '@/features/member/memberAccess';
+import {
+    ACTION_TEXT, CARD_BODY, ITEM_TITLE, ITEM_BODY, EYEBROW,
+} from '@/components/layout/appTypography';
 
 /**
  * Help & Support, inside the member area.
@@ -214,9 +217,9 @@ export default function MemberHelp() {
                             <button
                                 type="submit"
                                 disabled={sending}
-                                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700
-                                           disabled:opacity-60 text-white text-[1.1875rem] font-bold px-5 py-2.5
-                                           rounded-xl shadow-sm transition-colors"
+                                className={`inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700
+                                           disabled:opacity-60 text-white px-5 py-2.5
+                                           rounded-xl shadow-sm transition-colors ${ACTION_TEXT}`}
                             >
                                 {sending ? 'Sending…' : 'Send message'}
                                 <Send className="w-4 h-4" />
@@ -246,8 +249,7 @@ export default function MemberHelp() {
                                                              flex items-center justify-center shrink-0">
                                                 <Icon className="w-4 h-4" />
                                             </span>
-                                            <span className="min-w-0 flex-1 text-[1.1875rem] font-semibold
-                                                             text-slate-900 pt-1.5">
+                                            <span className={`min-w-0 flex-1 text-slate-900 pt-1.5 ${ITEM_TITLE}`}>
                                                 {question}
                                             </span>
                                             <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 mt-2
@@ -257,8 +259,7 @@ export default function MemberHelp() {
                                         </button>
 
                                         {expanded ? (
-                                            <p className="text-[1rem] text-slate-600 leading-relaxed
-                                                          pl-12 pr-2 pb-4">
+                                            <p className={`text-slate-600 pl-12 pr-2 pb-4 ${CARD_BODY}`}>
                                                 {answer}
                                             </p>
                                         ) : null}
@@ -311,7 +312,7 @@ export default function MemberHelp() {
                             ) : null}
 
                             {hours.length === 0 && !email && !phone && address.length === 0 ? (
-                                <li className="text-[1rem] text-slate-500">
+                                <li className={`text-slate-500 ${CARD_BODY}`}>
                                     Send a message using the form and the team will get back to you.
                                 </li>
                             ) : null}
@@ -329,9 +330,9 @@ export default function MemberHelp() {
                                 <li key={to}>
                                     <Link
                                         to={to}
-                                        className="flex items-center justify-between gap-3 p-3 rounded-xl
+                                        className={`flex items-center justify-between gap-3 p-3 rounded-xl
                                                    border border-slate-200 hover:border-blue-400 hover:bg-blue-50
-                                                   transition-colors text-[1rem] font-semibold text-slate-800"
+                                                   transition-colors text-slate-800 ${ACTION_TEXT}`}
                                     >
                                         {label}
                                         <ChevronRight className="w-4 h-4 text-blue-500 shrink-0" />
@@ -347,7 +348,7 @@ export default function MemberHelp() {
 }
 
 const INPUT =
-    'w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-[1.1875rem] text-slate-900 '
+    `w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-slate-900 ${CARD_BODY} `
     + 'placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
 
 function Field({
@@ -361,7 +362,7 @@ function Field({
 }) {
     return (
         <label className="block">
-            <span className="block text-[0.8125rem] font-bold uppercase tracking-wide text-slate-500 mb-1.5">
+            <span className={`block text-slate-500 mb-1.5 ${EYEBROW}`}>
                 {label}{required ? <span className="text-red-500"> *</span> : null}
             </span>
             {children}
@@ -385,10 +386,10 @@ function Detail({
                 {icon}
             </span>
             <span className="min-w-0">
-                <span className="block text-[0.8125rem] font-bold uppercase tracking-wide text-slate-500">
+                <span className={`block text-slate-500 ${EYEBROW}`}>
                     {label}
                 </span>
-                <span className="block text-[1rem] text-slate-700 mt-0.5 leading-snug">{children}</span>
+                <span className={`block text-slate-700 mt-0.5 ${ITEM_BODY}`}>{children}</span>
             </span>
         </li>
     );

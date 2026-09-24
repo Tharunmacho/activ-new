@@ -78,20 +78,36 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
 
     if (!map) return null;
 
+    /*
+     * "STATES OF THE NATIONAL" is what this printed on the country's page.
+     *
+     * The caption was built as `States of the {regionLabel}`, which reads
+     * correctly at every level except the one above them all: on a zone page
+     * `regionLabel` is "South Zone" and the line is right, and on the
+     * national page it is "National" — a word that is not a place and does
+     * not take "the".
+     *
+     * The map itself is unchanged and needs no change: even on the national
+     * page it is drawn STATE BY STATE, because that is what a map of India
+     * is and because a reader picks a state off it. Only the sentence over
+     * it was wrong.
+     */
+    const caption = regionKey === 'national' ? 'States of India' : `States of the ${regionLabel}`;
+
     const shape = selected ? map.states.find((s) => s.slug === selected) || null : null;
     const council = selected ? byShape.get(selected) || null : null;
 
     return (
         <Reveal as="div" className="min-w-0">
             <p className="mb-3 text-[1.25rem] font-bold uppercase tracking-[0.16em] text-brand-500">
-                States of the {regionLabel}
+                {caption}
             </p>
 
             <div className="rounded-[1.25rem] border border-gray-200/70 bg-white/70 p-5">
                 <svg
                     viewBox={map.viewBox}
                     role="img"
-                    aria-label={`States of the ${regionLabel}`}
+                    aria-label={caption}
                     className="mx-auto block h-auto w-full max-h-[26rem]"
                 >
                     {map.states.map((row, i) => {

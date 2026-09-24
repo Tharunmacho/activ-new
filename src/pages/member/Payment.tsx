@@ -131,7 +131,7 @@ export default function Payment() {
                 {/* ---------------- title header ---------------- */}
                 <div className="text-center">
                     <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5
-                                     text-[0.8125rem] font-extrabold tracking-wide mb-3"
+                                     text-[1.0625rem] font-extrabold tracking-wide mb-3"
                           style={{ backgroundColor: '#E0E7FF', color: PALETTE.primary }}>
                         <Star className="w-3.5 h-3.5" />
                         MEMBERSHIP PLAN
@@ -242,7 +242,7 @@ export default function Payment() {
                                             <li key={f} className="flex items-start gap-1.5">
                                                 <Check className="w-4 h-4 shrink-0 mt-0.5"
                                                        style={{ color: PALETTE.success }} />
-                                                <span className="text-[0.8125rem] leading-snug"
+                                                <span className="text-[1.0625rem] leading-snug"
                                                       style={{ color: PALETTE.muted }}>{f}</span>
                                             </li>
                                         ))}
@@ -263,7 +263,7 @@ export default function Payment() {
                             <Lock className="w-5 h-5" />
                         </span>
                         <div className="min-w-0">
-                            <p className="font-display text-[1.125rem] font-bold">Secure Payment</p>
+                            <p className="font-display text-[1.1875rem] font-bold">Secure Payment</p>
                             <p className="text-[1.0625rem] text-white/80 mt-0.5 leading-relaxed">
                                 Your payment is processed over an encrypted connection.
                             </p>
@@ -281,7 +281,7 @@ export default function Payment() {
 
                 {/* ---------------- what's next ---------------- */}
                 <KitCard>
-                    <p className="font-display text-[1.125rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
+                    <p className="font-display text-[1.1875rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
                         What&apos;s Next After Payment?
                     </p>
                     <div className="grid grid-cols-2 gap-4">
@@ -304,7 +304,7 @@ export default function Payment() {
                 <div className="space-y-5 lg:sticky lg:top-6">
                 {activePlan ? (
                     <KitCard>
-                        <p className="font-display text-[1.125rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
+                        <p className="font-display text-[1.1875rem] font-bold mb-4" style={{ color: PALETTE.ink }}>
                             Payment Summary
                         </p>
                         <div className="space-y-2.5">
@@ -335,7 +335,7 @@ export default function Payment() {
 
                 <div className="flex items-center justify-center gap-5">
                     {['100% Safe & Secure', 'Instant Activation'].map(t => (
-                        <span key={t} className="flex items-center gap-1.5 text-[0.8125rem]"
+                        <span key={t} className="flex items-center gap-1.5 text-[1.0625rem]"
                               style={{ color: PALETTE.muted }}>
                             <ShieldCheck className="w-3.5 h-3.5" />
                             {t}

@@ -35,10 +35,17 @@ import StateDetailPage from "./pages/onboarding/StateDetailPage";
    the gallery, never as a first paint, so it does not belong in the entry
    bundle the landing page waits on. */
 const GalleryDetailPage = lazy(() => import("./pages/onboarding/GalleryDetailPage"));
+/* One photograph out of an album, on a page of its own — see the note at the
+   head of the file. Lazy for the same reason the album page is: most visits to
+   the site never reach it. */
+const GalleryPhotoPage = lazy(() => import("./pages/onboarding/GalleryPhotoPage"));
 /* The newsroom and one article. Lazy, like the gallery detail: most visits to
    the site never open either, and the schemes band brings its own icons. */
 const NewsPage = lazy(() => import("./pages/onboarding/NewsPage"));
 const NewsDetailPage = lazy(() => import("./pages/onboarding/NewsDetailPage"));
+/* Government schemes — their own section now, out of the newsroom. */
+const SchemesPage = lazy(() => import("./pages/onboarding/SchemesPage"));
+const SchemeDetailPage = lazy(() => import("./pages/onboarding/SchemeDetailPage"));
 /* One event's own page. Lazy for the same reason: reached by a click, never
    as a first paint. */
 const EventDetailPage = lazy(() => import("./pages/onboarding/EventDetailPage"));
@@ -111,6 +118,9 @@ const PaymentRegistration = lazy(() => import("./pages/payment/PaymentRegistrati
 const PaymentConfirmation = lazy(() => import("./pages/payment/PaymentConfirmation"));
 const MockPayment = lazy(() => import("./pages/payment/MockPayment"));
 const PaymentGateway = lazy(() => import("./pages/payment/PaymentGateway"));
+/* Where Instamojo returns the member to — `redirect_url` on every payment
+   request the server creates is `${FRONTEND_URL}/payment-success`. */
+const PaymentReturn = lazy(() => import("./pages/payment/PaymentReturn"));
 import PaymentMemberDashboard from "./features/member/pages/PaidDashboard";
 const MembershipPlans = lazy(() => import("./pages/payment/MembershipPlans"));
 
@@ -170,6 +180,10 @@ const SuperBookingEvents = lazy(() => import("./features/admin/super-admin/pages
 const SuperEventCategories = lazy(() => import("./features/admin/super-admin/pages/EventCategories"));
 const SuperUpdates = lazy(() => import("./features/admin/super-admin/pages/Updates"));
 const SuperNotifications = lazy(() => import("./features/admin/super-admin/pages/Notifications"));
+/* The Events Admin portal: its own dashboard, and the super admin's own event
+   screens (All events, Categories, Bookings) mounted under /events-admin. */
+const EventsAdminDashboard = lazy(() => import("./features/admin/events-admin/pages/Dashboard"));
+const EventsAdminSettings = lazy(() => import("./features/admin/events-admin/pages/Settings"));
 
 // CMS (public-site content management, super admin only)
 const CmsLayout = lazy(() => import("./pages/cms/CmsLayout"));
@@ -180,6 +194,7 @@ const AboutManager = lazy(() => import("./pages/cms/AboutManager"));
 const EventsManager = lazy(() => import("./pages/cms/EventsManager"));
 const GalleryManager = lazy(() => import("./pages/cms/GalleryManager"));
 const NewsManager = lazy(() => import("./pages/cms/NewsManager"));
+const SchemesManager = lazy(() => import("./pages/cms/SchemesManager"));
 const MembershipManager = lazy(() => import("./pages/cms/MembershipManager"));
 const ContactManager = lazy(() => import("./pages/cms/ContactManager"));
 const MessagesInbox = lazy(() => import("./pages/cms/MessagesInbox"));
@@ -266,11 +281,32 @@ const App = () => (
               <Route path="/news" element={<NewsPage />} />
               <Route path="/news/:slug" element={<NewsDetailPage />} />
 
+              {/* Schemes, chosen from the header's Schemes dropdown: Central,
+                  or a state. `/schemes` opens the central list; the old
+                  states-grid address goes there too, for any saved link.
+                  `/schemes/view/:slug` has its own literal segment so a
+                  scheme's slug can never collide with `central` or `state`. */}
+              <Route path="/schemes" element={<SchemesPage view="central" />} />
+              <Route path="/schemes/central" element={<SchemesPage view="central" />} />
+              <Route path="/schemes/state" element={<Navigate to="/schemes/central" replace />} />
+              <Route path="/schemes/state/:slug" element={<SchemesPage view="state" />} />
+              <Route path="/schemes/view/:slug" element={<SchemeDetailPage />} />
+
               <Route path="/gallery" element={<GalleryPage />} />
               {/* Where a poster goes when it is clicked, on the landing page or
                   in the gallery grid. Below /gallery, so the list keeps the
                   bare path. */}
               <Route path="/gallery/:id" element={<GalleryDetailPage />} />
+              {/*
+                ONE PHOTOGRAPH OUT OF THAT ALBUM.
+
+                Below `/gallery/:id` and nested under it, so the address says
+                what it is — this photograph, of this album — and the album
+                stays the parent a reader goes back to. `:n` indexes the album
+                with the COVER AS 0, which is the same numbering the album page
+                links with; see the note in `GalleryPhotoPage`.
+              */}
+              <Route path="/gallery/:id/photo/:n" element={<GalleryPhotoPage />} />
               <Route path="/contact" element={<ContactPage />} />
 
               {/*
@@ -288,6 +324,9 @@ const App = () => (
               <Route path="/legal/:slug" element={<LegalPage />} />
 
               <Route path="/login" element={<EnhancedLoginPage />} />
+              {/* Admins sign in on their own screen: no social sign-in, no
+                  "Create an account", and members are sent back to /login. */}
+              <Route path="/admin/login" element={<EnhancedLoginPage audience="admin" />} />
               {/* The login page has linked to /forgot-password all along;
                   neither route existed, so it fell through to the 404 page. */}
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -372,6 +411,14 @@ const App = () => (
               {/* PaymentGateway existed but was never routed, so nothing could
                   reach it — and it is the step that records the payment. */}
               <Route path="/payment/gateway" element={<PaymentGateway />} />
+              {/*
+                * TOP LEVEL, not under /member, and not negotiable: this exact
+                * path is what the server sends to Instamojo as `redirect_url`,
+                * and Instamojo sends the member back to it after paying. A
+                * route that does not exist here is a paying member landing on
+                * a 404 with money gone.
+                */}
+              <Route path="/payment-success" element={<PaymentReturn />} />
               <Route path="/payment/member-dashboard" element={<PaymentMemberDashboard />} />
               <Route path="/payment/membership-plans" element={<MembershipPlans />} />
 
@@ -459,6 +506,19 @@ const App = () => (
               {/* Delivery oversight for the email and WhatsApp channels. */}
               <Route path="/super-admin/notifications" element={<SuperNotifications />} />
 
+              {/* Events Admin — a separate account whose whole portal is the
+                  programme. Same components as the super admin's Events
+                  section, so the editor, the categories and the bookings are
+                  one implementation; `adminBasePath` keeps every link inside
+                  /events-admin. The server refuses this role everywhere else. */}
+              <Route path="/events-admin" element={<Navigate to="/events-admin/dashboard" replace />} />
+              <Route path="/events-admin/dashboard" element={<EventsAdminDashboard />} />
+              <Route path="/events-admin/events" element={<SuperEvents />} />
+              <Route path="/events-admin/events/categories" element={<SuperEventCategories />} />
+              <Route path="/events-admin/bookings" element={<SuperBookingEvents />} />
+              <Route path="/events-admin/bookings/:eventId" element={<SuperBookings />} />
+              <Route path="/events-admin/settings" element={<EventsAdminSettings />} />
+
               {/* Legacy Admin Routes - Redirect to Block Admin */}
               <Route path="/admin/dashboard" element={<BlockDashboard />} />
               <Route path="/admin/block/dashboard" element={<BlockDashboard />} />
@@ -480,6 +540,7 @@ const App = () => (
                 <Route path="events" element={<EventsManager />} />
                 <Route path="gallery" element={<GalleryManager />} />
                 <Route path="news" element={<NewsManager />} />
+                <Route path="schemes" element={<SchemesManager />} />
                 <Route path="membership" element={<MembershipManager />} />
                 <Route path="contact" element={<ContactManager />} />
                 <Route path="regions" element={<RegionsManager />} />

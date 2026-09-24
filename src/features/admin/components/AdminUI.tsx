@@ -428,13 +428,13 @@ export function AdminStat({
                     </span>
                 )}
                 <div className="min-w-0">
-                    <p className={`text-[1.25rem] sm:text-[1.25rem] font-extrabold tracking-tight leading-snug ${
+                    <p className={`text-[1.25rem] font-extrabold tracking-tight leading-snug ${
                         primary ? 'text-white' : 'text-slate-900'
                     }`}>
                         {label}
                     </p>
                     {hint && (
-                        <p className={`text-[1.125rem] mt-1 leading-snug ${
+                        <p className={`text-[1.1875rem] mt-1 leading-snug ${
                             primary ? 'text-blue-100' : 'text-slate-500'
                         }`}>
                             {hint}

@@ -95,38 +95,28 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
 
     /*
      * ======================================================================
-     * WHICH EVENTS, NOT JUST HOW MANY
+     * THE SAME EVENTS AS /events — NO SWITCH, NO SEPARATE LIST
      * ======================================================================
      *
-     * The strip shows three out of however many are published, and which
-     * three used to be decided entirely by the sort — soonest first. That
-     * is the wrong default for the most-read band on the site: the next
-     * event by date is often a small district meeting, and the one worth a
-     * first-time visitor's attention is the conclave in six weeks.
+     * Every event on the events page is on the home page, and nothing else is.
+     * There used to be a per-event "home page" switch, set from two CMS
+     * screens, which let the two pages disagree about what is happening. It is
+     * gone: posting an event in the CMS puts it on both, and the rule here is
+     * the events page's own — upcoming only, with an undated event kept,
+     * because an unset date is missing information rather than a statement
+     * that it already happened (see `EventsExplorer`).
      *
-     * `showOnHome` is the editor's answer, set per event from either the
-     * Home screen or the Events screen. `!== false` rather than `=== true`:
-     * the field postdates every event in the collection, and an event saved
-     * before it existed belongs on the home page exactly as it did before.
+     * The list is already the public one: `getCmsEvents` returns only
+     * published events the onboarding site may show.
      */
-    /*
-     * ======================================================================
-     * THE SWITCH DECIDES. NOTHING ELSE DOES.
-     * ======================================================================
-     *
-     * Not a cap, and not the date either. This briefly dropped past events
-     * as well, which meant an editor could switch one on, watch the CMS
-     * report it as off, and have no way to tell that a rule they could not
-     * see was overruling them. Two events in the database were in exactly
-     * that state.
-     *
-     * Whether something already held belongs under this band's heading is
-     * the association's call — the heading is theirs to edit — so the CMS
-     * says which events have been held and lets them choose. `/events` is
-     * a different surface and still shows upcoming only; that page has no
-     * per-event switch to contradict.
-     */
-    const forHome = events.filter((e) => e?.showOnHome !== false);
+    const now = Date.now();
+    const forHome = events.filter((e) => {
+        /* The END, where one was given: a multi-day event belongs on the home
+           page until its last day is over, not until its first is. */
+        const finish = e?.endAt || e?.startAt;
+        const start = finish ? new Date(finish).getTime() : NaN;
+        return Number.isNaN(start) || start >= now;
+    });
 
     /*
      * EVERY ONE THAT IS SWITCHED ON, however many that is.
@@ -205,13 +195,26 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                list reads as having failed to load. */
                             <Reveal key={event.id} delay={Math.min(i, 4) * 90} className="h-full">
                                 <Tilt3D className="h-full" intensity={7} lift={1.02} glare={false}>
-                                    <div
-                                        className="bg-white rounded-[2rem] flex flex-col h-full overflow-hidden
+                                    {/* THE WHOLE CARD opens the event. Only the small
+                                        arrow in its corner used to, so a visitor
+                                        clicking the banner or the title — which is
+                                        what people click — got nothing. A stretched
+                                        overlay link, as on the /events cards (see
+                                        `EventsExplorer`), so the link's accessible
+                                        name stays short. */}
+                                    <article
+                                        className="group/card relative bg-white rounded-[2rem] flex flex-col h-full overflow-hidden
+                                                   focus-within:ring-4 focus-within:ring-brand-300
                                                    border border-brand-100/70
                                                    shadow-[0_10px_40px_-14px_rgb(28_46_104/0.18)]
                                                    transition-shadow duration-500
                                                    hover:shadow-[0_30px_64px_-20px_rgb(28_46_104/0.38)]"
                                     >
+                                <Link
+                                    to={`/events/${event.id}`}
+                                    aria-label={`More about ${event.title || 'this event'}`}
+                                    className="absolute inset-0 z-10 focus:outline-none"
+                                />
                                 {/* No image is a valid event; a broken frame is not. */}
                                 {event.media?.url && (
                                     <div className="w-full h-56 overflow-hidden">
@@ -248,7 +251,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                                     text-brand-800 ${
                                         event.description ? 'mb-3' : 'mb-8 flex-grow'
                                     }`}>
-                                        {event.title}
+                                        {event.title || 'Untitled event'}
                                     </h3>
 
                                     {/* Was captured in the CMS and rendered nowhere, which made it
@@ -274,18 +277,17 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                             </div>
                                         </div>
 
-                                        {/* Its own page, not the list it is already on. */}
-                                        <Link
-                                            to={`/events/${event.id}`}
-                                            aria-label={`More about ${event.title}`}
-                                            className="w-11 h-11 rounded-full bg-gray-50 hover:bg-brand-800 hover:text-white
-                                                       flex items-center justify-center transition-colors shrink-0 group"
+                                        {/* A cue, not a second link — the card is the link. */}
+                                        <span
+                                            aria-hidden="true"
+                                            className="w-11 h-11 rounded-full bg-gray-50 group-hover/card:bg-brand-800
+                                                       flex items-center justify-center transition-colors shrink-0"
                                         >
-                                            <ArrowRight size={18} className="text-gray-400 group-hover:text-white transition-colors" />
-                                        </Link>
+                                            <ArrowRight size={18} className="text-gray-400 group-hover/card:text-white transition-colors" />
+                                        </span>
                                     </div>
                                     </div>
-                                </div>
+                                </article>
                                 </Tilt3D>
                             </Reveal>
                         ))}

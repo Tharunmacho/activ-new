@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import {
     getContactInfo, updateContactInfo, errorMessage,
-    EMPTY_MEDIA, type ContactInfo, type CmsMedia, type CmsSectionOverride,
+    EMPTY_MEDIA, EMPTY_CONTACT, type ContactInfo, type CmsMedia, type CmsSectionOverride,
 } from '@/services/cmsApi';
 import {
     CmsField,
@@ -88,6 +88,9 @@ export default function ContactManager() {
     const setForm = (patch: Partial<ContactInfo['formCard']>) => set({ formCard: { ...info.formCard, ...patch } });
     const setInfoCard = (patch: Partial<ContactInfo['infoCard']>) => set({ infoCard: { ...info.infoCard, ...patch } });
     const setBanner = (patch: Partial<ContactInfo['banner']>) => set({ banner: { ...info.banner, ...patch } });
+    const setBand = (patch: Partial<ContactInfo['regionsBand']>) => set({
+        regionsBand: { ...EMPTY_CONTACT.regionsBand, ...(info.regionsBand || {}), ...patch },
+    });
 
     const setHeroMedia = (index: number, media: CmsMedia) =>
         set({ heroMedia: info.heroMedia.map((m, i) => (i === index ? media : m)) });
@@ -479,11 +482,63 @@ export default function ContactManager() {
                 )}
             </CmsStep>
 
+            {/* ============================================== regions band */}
+            {/*
+              * The six region tiles above the footer, as THIS page draws them.
+              * Every other page's tiles open the region's leadership page; here
+              * each opens that region's or state's Get in Touch section, because
+              * a reader on the Contact page is looking for somebody to call.
+              */}
+            <CmsStep
+                ownFields={false}
+                step="Section 5"
+                title="Contacts across India"
+                hint="The zone and state tiles near the foot of /contact. Clicking one opens that zone's or state's contact details. Blank fields use the wording shown in grey."
+            >
+                <label className="flex items-center gap-2 text-[1.1875rem] text-slate-700 dark:text-neutral-300 mb-5">
+                    <input
+                        type="checkbox"
+                        checked={info.regionsBand?.enabled !== false}
+                        onChange={e => setBand({ enabled: e.target.checked })}
+                        className="rounded border-slate-400"
+                    />
+                    Show the zone tiles on the contact page
+                </label>
+
+                {info.regionsBand?.enabled !== false && (
+                    <div className="space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <CmsField label="Small label">
+                                <CmsInput
+                                    value={info.regionsBand?.eyebrow || ''}
+                                    onChange={e => setBand({ eyebrow: e.target.value })}
+                                    placeholder="Contacts across India"
+                                />
+                            </CmsField>
+                            <CmsField label="Heading">
+                                <CmsInput
+                                    value={info.regionsBand?.heading || ''}
+                                    onChange={e => setBand({ heading: e.target.value })}
+                                    placeholder="Reach ACTIV in your zone"
+                                />
+                            </CmsField>
+                        </div>
+                        <CmsField label="Subtitle">
+                            <CmsInput
+                                value={info.regionsBand?.subtitle || ''}
+                                onChange={e => setBand({ subtitle: e.target.value })}
+                                placeholder="Choose your zone or state to see who to contact there."
+                            />
+                        </CmsField>
+                    </div>
+                )}
+            </CmsStep>
+
             {/* ============================================== socials */}
             <CmsStep
                 sectionKey="contact.social"
                 ownFields={false}
-                step="Section 5"
+                step="Section 6"
                 title="Social links"
                 hint="Used elsewhere on the site. The footer's own social buttons are under Header & Footer."
             >
@@ -500,7 +555,7 @@ export default function ContactManager() {
                 </div>
             </CmsStep>
 
-            <CmsStep ownFields={false} step="Section 6" title="Your own fields" hint="Extra rows on the page, under the details card.">
+            <CmsStep ownFields={false} step="Section 7" title="Your own fields" hint="Extra rows on the page, under the details card.">
                 {/* `bare`: the card is already called “Your own fields”. */}
                 <ExtraFieldsEditor
                     bare

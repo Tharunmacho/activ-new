@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import {
+import { ArrowLeft,
     Plus, Pencil, Trash2, X, Save, Check, Loader2,
     Lock, Globe, Building2, MapPin, Shield, Video, Home, Eye, EyeOff, Images, Search,
 } from 'lucide-react';
 import {
-    getCmsEvents, createCmsEvent, updateCmsEvent, deleteCmsEvent, invalidateCmsCache,
-    sendEventToGallery,
+    getCmsEventsForEditor, createCmsEvent, updateCmsEvent, deleteCmsEvent, invalidateCmsCache,
     getEventsSettings, updateEventsSettings,
     errorMessage, EMPTY_MEDIA,
-    type CmsEvent, type EventsSettings, type CmsMedia,
+    type CmsEvent, type EventsSettings, type CmsMedia, type CmsEventDay,
 } from '@/services/cmsApi';
 import {
     CmsCard,
@@ -27,11 +26,14 @@ import {
     CmsSection,
     CmsStep,
     CmsSteps,
+    SaveNowProvider,
     SectionToolsProvider,
     CmsChoice,
     CmsCheck,
 } from './components/CmsUI';
 import MediaPicker from './components/MediaPicker';
+import TimeField from './components/TimeField';
+import EventDaysEditor, { addDays, dayDelta, shiftDays, daysInRange } from './components/EventDaysEditor';
 import RegionTargetPicker from './components/RegionTargetPicker';
 import { StatList, IconPicker, RepeatableList , ExtraFieldsEditor } from './components/CmsEditors';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
@@ -78,7 +80,24 @@ const BLANK = {
     description: '',
     date: '',
     time: '',
+    /*
+     * A CONFERENCE RUNS FOR THREE DAYS, and the form could only say one.
+     *
+     * There was an end TIME and no end DATE, so a three-day conclave was
+     * stored as finishing at 5pm on its first evening. Two things read that:
+     * the public events page, which drops an event once it is over and was
+     * therefore dropping day-one-of-three at teatime, and the card, which
+     * could only print one date for something the visitor has to book three
+     * days off for.
+     *
+     * Blank means a single-day event, which is most of them — the end date
+     * is not required and an absent one still reads as `date`.
+     */
+    endDate: '',
     endTime: '',
+    /* The per-day programme. Empty for a one-day event — the editor for it is
+       not even drawn until the Last day makes the event longer than a day. */
+    days: [] as CmsEventDay[],
     location: '',
     category: '',
     /*
@@ -107,16 +126,6 @@ const BLANK = {
      * and a CMS event is onboarding content by definition.
      */
     showOnOnboarding: false,
-    /*
-     * On the home page's upcoming strip.
-     *
-     * TRUE on a blank form, unlike the flag above. A new event goes on the
-     * home page with no second step, which is the behaviour that exists
-     * today; the switch is how an editor takes one OFF. The opposite
-     * default would make every event a two-step publish and empty the
-     * strip until somebody noticed.
-     */
-    showOnHome: true,
     /*
      * "Everyone in the association" — the first of the two audience cards.
      *
@@ -205,6 +214,25 @@ const toTimeInput = (iso: string | null) => {
  * 8pm. Building the instant here — where the editor's timezone IS the intended
  * one — removes the guess.
  */
+/**
+ * "10 Oct 2026, 09:00 AM" — the WHEN column of the events table.
+ *
+ * 12-hour with the meridiem, like every time on the public site, and no
+ * seconds: an event is scheduled to the minute and the ":00" on the end was
+ * being read as something broken.
+ */
+const listWhen = (iso: string): string => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '—';
+    /* Only the meridiem is upper-cased. Upper-casing the whole string gave
+       "10 OCT 2026", which shouts in a table cell whose neighbours are
+       sentence case. */
+    return d.toLocaleString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true,
+    }).replace(/\b(am|pm)\b/i, (m) => m.toUpperCase());
+};
+
 const toInstant = (date: string, time: string): string => {
     if (!date) return '';
     const [h, m] = (time || '00:00').split(':').map(Number);
@@ -225,8 +253,11 @@ const toInstant = (date: string, time: string): string => {
  * that has not happened.
  */
 const hasBeenHeld = (e: CmsEvent) => {
-    if (!e?.startAt) return false;
-    const t = new Date(e.startAt).getTime();
+    /* The END, falling back to the start. A three-day conclave is not a past
+       event on its second morning, and reading `startAt` alone said it was. */
+    const when = e?.endAt || e?.startAt;
+    if (!when) return false;
+    const t = new Date(when).getTime();
     return !Number.isNaN(t) && t < Date.now();
 };
 
@@ -263,7 +294,33 @@ export default function EventsManager({
     channel?: 'public' | 'members';
 } = {}) {
     const [events, setEvents] = useState<CmsEvent[]>([]);
-    const [settings, setSettings] = useState<EventsSettings | null>(null);
+    /*
+     * ==================================================================
+     * A SAVE IN EVERY SECTION'S FOOTER, like the rest of the CMS
+     * ==================================================================
+     *
+     * There was ONE save, in a band under the last card, so an editor who
+     * changed the heading in Section 1 scrolled past five cards to find a
+     * button, and nothing in Sections 1 to 4 said their work was unsaved.
+     * Home, About, Membership, Contact and Regions have carried a Save in
+     * each card's footer for a while; this screen had not been brought
+     * across, and neither had the gallery, the news, the schemes or the
+     * legal pages. They all have one now.
+     *
+     * The WRITE is unchanged — the endpoint takes the whole document, so
+     * every one of those buttons saves the page. That is what it says.
+     *
+     * `setSettings` is a wrapper rather than the raw setter so that the
+     * ~thirty call sites below all mark the page dirty without each one
+     * having to remember to. The two places that must NOT — the load and
+     * the server's copy back after a save — use `setSettingsClean`.
+     */
+    const [settings, setSettingsClean] = useState<EventsSettings | null>(null);
+    const [copyDirty, setCopyDirty] = useState(false);
+    const setSettings = (next: EventsSettings | null) => {
+        setSettingsClean(next);
+        setCopyDirty(true);
+    };
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -304,7 +361,13 @@ export default function EventsManager({
      * with — the public page shows what is upcoming, so an editor comparing
      * the two needs to see the same slice here.
      */
-    const [when, setWhen] = useState<'all' | 'upcoming' | 'past'>('all');
+    /*
+     * THE TABS, like Regions & States: Upcoming, Past, and the page's wording.
+     * `when` is what the list filters on; the wording tab shows the section
+     * copy in place of the list.
+     */
+    const [when, setWhen] = useState<'all' | 'upcoming' | 'past'>('upcoming');
+    const [wordingTab, setWordingTab] = useState(false);
     const [query, setQuery] = useState('');
     const originOf = (e: CmsEvent) => ((e.channel || 'public') === 'public' ? 'cms' : 'admin');
     const adminPosted = events.filter((e) => originOf(e) === 'admin').length;
@@ -338,9 +401,9 @@ export default function EventsManager({
         try {
             // Together: the list and the copy around it are independent, and
             // waiting for one before asking for the other doubles the delay.
-            const [list, config] = await Promise.all([getCmsEvents(), getEventsSettings()]);
+            const [list, config] = await Promise.all([getCmsEventsForEditor(), getEventsSettings()]);
             setEvents(list);
-            setSettings(config);
+            setSettingsClean(config);
             return list;
         } catch (err) {
             setError(errorMessage(err, 'Could not load events'));
@@ -403,7 +466,8 @@ export default function EventsManager({
         setSavedCopy(false);
         setError('');
         try {
-            setSettings(await updateEventsSettings(settings));
+            setSettingsClean(await updateEventsSettings(settings));
+            setCopyDirty(false);
             setSavedCopy(true);
             cmsSaved('Section copy');
             setTimeout(() => setSavedCopy(false), 2500);
@@ -443,7 +507,21 @@ export default function EventsManager({
             description: e.description || '',
             date: toDateInput(e.startAt),
             time: toTimeInput(e.startAt),
+            /* Only a DIFFERENT day is an end date. An event that starts and
+               finishes on one day has an `endAt` carrying the end time and the
+               same date, and echoing that back into the field would show every
+               single-day event as a two-day one. */
+            endDate: toDateInput(e.endAt) === toDateInput(e.startAt) ? '' : toDateInput(e.endAt),
             endTime: toTimeInput(e.endAt),
+            /* Loaded as well as saved: a draft that omits a field shows an
+               empty editor for data that is on the record, and the next save
+               writes the blank back over it. */
+            days: (e.days || []).map((d) => ({
+                date: String(d.date || '').slice(0, 10),
+                startTime: d.startTime || '',
+                endTime: d.endTime || '',
+                agenda: d.agenda || [],
+            })),
             location: e.location || '',
             category: e.category || '',
             /*
@@ -480,7 +558,6 @@ export default function EventsManager({
             showOnOnboarding: isOnPublicSite(e),
             // `!== false`: the field postdates every event in the
             // collection, and those belong on the home page as before.
-            showOnHome: e?.showOnHome !== false,
             /*
              * Restored from the event, with a fallback for every row written
              * before the field existed: those express "everyone" as an empty
@@ -554,19 +631,10 @@ export default function EventsManager({
      * screen that locks scrolling for its own reasons is not unlocked by
      * closing this.
      */
+    /* The form opens as its own screen (see the render), so it starts at the
+       top of the page rather than wherever the table was scrolled to. */
     useEffect(() => {
-        if (!showForm) return;
-
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowForm(false); };
-        window.addEventListener('keydown', onKey);
-
-        const previous = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-
-        return () => {
-            window.removeEventListener('keydown', onKey);
-            document.body.style.overflow = previous;
-        };
+        if (showForm) window.scrollTo({ top: 0 });
     }, [showForm]);
 
     const handleSubmit = async (ev: React.FormEvent) => {
@@ -578,8 +646,28 @@ export default function EventsManager({
                 title: form.title,
                 description: form.description,
                 startAt: toInstant(form.date, form.time),
-                // An end time is optional, and only means anything with a start.
-                endAt: form.endTime ? toInstant(form.date, form.endTime) : '',
+                /*
+                 * THE END, from whichever of the two fields was given.
+                 *
+                 * A date with no time finishes at the end of that day — not
+                 * at midnight its morning, which would make a three-day event
+                 * read as finishing before its second day began. A time with
+                 * no date finishes that same evening, which is the
+                 * single-day case and the only one this form used to have.
+                 * Neither given, and there is no end: optional, like
+                 * everything else on this form.
+                 */
+                endAt: (form.endDate || form.endTime)
+                    ? toInstant(form.endDate || form.date, form.endTime || '23:59')
+                    : '',
+                /*
+                 * JSON-encoded for the reason the agenda and the targets are:
+                 * this payload becomes `FormData` whenever there is a banner,
+                 * and `FormData.append` stringifies an array of objects to
+                 * "[object Object]" — losing every day with no error anywhere.
+                 * The server's `parseArray` reads it back on both transports.
+                 */
+                days: JSON.stringify(daysInRange(form.days || [], form.date, form.endDate)),
                 location: form.location,
                 category: form.category,
                 /*
@@ -617,7 +705,6 @@ export default function EventsManager({
                  * could account for. Sending what was loaded keeps one answer.
                  */
                 showOnOnboarding: form.showOnOnboarding,
-                showOnHome: form.showOnHome,
                 // Sent alongside `targets`, never instead of it — the pair is
                 // what lets a reopened event show back both cards.
                 reachEveryone: form.reachEveryone,
@@ -682,118 +769,13 @@ export default function EventsManager({
         }
     };
 
-    /**
-     * ======================================================================
-     * PUT AN EVENT ON THE HOME PAGE, OR TAKE IT OFF, FROM THE LIST
-     * ======================================================================
-     *
-     * The picker above this table shows the UPCOMING events, because those
-     * are the only ones the strip can carry. This is the whole list, and an
-     * editor reading it wants the answer on the row in front of them rather
-     * than in a different card further up the page.
-     *
-     * It writes the event and nothing else — one field, straight away, the
-     * same `showOnHome` the picker and the event form both set. Three
-     * controls, one answer.
-     *
-     * The row is replaced from the server's reply rather than assumed: a
-     * switch that paints the new state and then silently fails to store it
-     * is worse than one that does not move.
-     */
-    const [homeBusy, setHomeBusy] = useState<string | null>(null);
-
     /*
      * Already held.
      *
      * An event with NO date is not past: an unset date is missing
-     * information, and the home strip carries it — see `EventsExplorer`.
+     * information, not a statement that it already happened.
      */
     const isPastEvent = hasBeenHeld;
-
-    const toggleHome = async (e: CmsEvent) => {
-        const next = e.showOnHome === false;
-        setHomeBusy(e.id);
-        setError('');
-        try {
-            await updateCmsEvent(e.id, { showOnHome: next });
-            setEvents((list) => list.map((row) => (
-                row.id === e.id ? { ...row, showOnHome: next } : row
-            )));
-            invalidateCmsCache('events');
-            cmsSaved(next ? 'Added to the home page' : 'Taken off the home page');
-        } catch (err) {
-            const message = errorMessage(err, 'Could not change that event');
-            setError(message);
-            cmsFailed('the event', message);
-        } finally {
-            setHomeBusy(null);
-        }
-    };
-
-    /**
-     * ======================================================================
-     * A FINISHED EVENT BELONGS IN THE GALLERY
-     * ======================================================================
-     *
-     * `/events` carries upcoming events and tells a visitor that everything
-     * already held is in the gallery. Until now getting it there meant
-     * retyping the title, the date, the venue and the write-up into a new
-     * gallery item and re-uploading the picture.
-     *
-     * A COPY, and the confirmation says so: the event keeps its own page and
-     * its URL, which people hold links to and bookings point at. It is only
-     * switched off the home strip. Deleting it afterwards is the editor's
-     * call, from the Delete beside this button.
-     */
-    const [toGallery, setToGallery] = useState<string | null>(null);
-
-    const archiveToGallery = async (e: CmsEvent) => {
-        const name = e.title || 'this event';
-
-        /*
-         * THE DATE IS A WARNING HERE, not a locked button.
-         *
-         * Which events belong in the gallery is the editor's call — a
-         * postponed event, one held early, one whose date was never right
-         * in the first place. A button that simply is not there cannot be
-         * argued with; a sentence can be read and overruled.
-         */
-        const ok = window.confirm(
-            (e.inGallery
-                ? `Update the gallery copy of “${name}”?`
-                : `Add “${name}” to the gallery?`)
-            + '\n\nIts picture, title, date, venue and write-up are copied across.'
-            + (e.inGallery
-                ? ' The existing gallery item is refreshed — no second copy is made.'
-                : '')
-            + (isPastEvent(e)
-                ? ''
-                : '\n\nNOTE: this event has not been held yet. The gallery is where'
-                  + ' past events live, so a visitor will read it as one that has.')
-            + '\n\nThe event itself is kept — its own page and link still work.'
-            + ' It is taken off the home page strip.',
-        );
-        if (!ok) return;
-
-        setToGallery(e.id);
-        setError('');
-        try {
-            const result = await sendEventToGallery(e.id);
-            cmsDone(
-                result.updated
-                    ? `“${result.title}” was already in the gallery — updated`
-                    : `“${result.title}” added to the gallery`,
-                'The event itself is kept. It has been taken off the home page strip.',
-            );
-            await load({ quiet: true });
-        } catch (err) {
-            const message = errorMessage(err, 'Could not add it to the gallery');
-            setError(message);
-            cmsFailed('the gallery item', message);
-        } finally {
-            setToGallery(null);
-        }
-    };
 
     const handleDelete = async (e: CmsEvent) => {
         if (!window.confirm(`Delete "${e.title || 'Untitled event'}"? This removes it from the public site and from the member app.`)) return;
@@ -817,7 +799,37 @@ export default function EventsManager({
             {/* The wording around the onboarding page's grid -- CMS only. The
                 grid itself is the list below, the same events the member app
                 shows, so publishing once is enough for both. */}
-            {showSectionCopy && settings && (
+            {/* The tabs — hidden while an event is open, which is its own screen. */}
+            {!showForm && (
+                <div className="mb-6 flex flex-wrap gap-2 border-b border-slate-200 dark:border-[#1f1f1f]">
+                    {([
+                        ['upcoming', 'Upcoming', upcomingCount],
+                        ['past', 'Past', events.length - upcomingCount],
+                        ...(showSectionCopy ? [['wording', 'Page wording', null]] : []),
+                    ] as [string, string, number | null][]).map(([key, label, count]) => {
+                        const on = key === 'wording' ? wordingTab : (!wordingTab && when === key);
+                        return (
+                            <button
+                                key={key}
+                                type="button"
+                                onClick={() => {
+                                    if (key === 'wording') { setWordingTab(true); return; }
+                                    setWordingTab(false);
+                                    setWhen(key as 'upcoming' | 'past');
+                                }}
+                                className={`-mb-px border-b-2 px-5 py-3 text-[1.25rem] font-semibold transition-colors ${on
+                                    ? 'border-blue-600 text-blue-700 dark:text-blue-400'
+                                    : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-neutral-200'}`}
+                            >
+                                {label}
+                                {count !== null && <span className="ml-2 text-[1.1875rem] text-slate-400">{count}</span>}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+
+            {!showForm && wordingTab && showSectionCopy && settings && (
                 <CmsCard
                     title="Section copy"
                     description="The heading above the events grid, on the home page and on /events."
@@ -831,8 +843,9 @@ export default function EventsManager({
                     {/* 32px between the cards, like Home and the gallery.
                         At zero, one card's last field and the next card's
                         heading read as one continuous column. */}
+                    <SaveNowProvider value={{ save: saveCopy, saving: savingCopy, dirty: copyDirty }}>
                     <CmsSteps>
-                        <CmsStep sectionKey="events.header" step="Section 1" title="Heading">
+                        <CmsStep sectionKey="events.header" fieldMode="content" step="Section 1" title="Heading">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <CmsField label="Eyebrow">
                                 <CmsInput
@@ -906,6 +919,8 @@ export default function EventsManager({
                         {/* ----------------------------------------- hero band */}
                         <CmsStep
                             sectionKey="events.hero"
+                            /* Words over a photograph; no details card. */
+                            fieldMode="content"
                             step="Section 2"
                             title="Hero band"
                         >
@@ -964,6 +979,15 @@ export default function EventsManager({
                         {/* ------------------------------------ search and chips */}
                         <CmsStep
                             sectionKey="events.filters"
+                            /*
+                             * THIS CARD'S LOGIC IS CHIPS, so its extra rows
+                             * are shaped like a chip: a mark and a name, with
+                             * what it says beside them. No "show it as" pair
+                             * — a rail of pills has no write-up to put a
+                             * paragraph in, so the question has one answer.
+                             */
+                            fieldMode="card"
+                            fieldNoun="label"
                             step="Section 3"
                             title="Search and filter chips"
                             hint={CHIP_HINT}
@@ -982,6 +1006,18 @@ export default function EventsManager({
                                     onChange={(categories) => setSettings({ ...settings, categories })}
                                     noun="chip"
                                     blank={() => ({ label: '', icon: 'calendar-days' })}
+                                    /*
+                                     * A CHIP IS NAMED BY `label`, NOT `title`.
+                                     *
+                                     * Without this the collapsed row fell back
+                                     * to "Untitled chip" on every row, so a
+                                     * list of six filters read as six blanks
+                                     * and the only way to tell them apart was
+                                     * to open each one. The row HAD a name the
+                                     * whole time — the list was reading a
+                                     * field this shape does not have.
+                                     */
+                                    summary={(chip) => ({ title: chip.label, subtitle: chip.icon })}
                                     row={(chip, update) => (
                                         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-3">
                                             <IconPicker value={chip.icon} onChange={(icon) => update({ icon })} />
@@ -1091,128 +1127,44 @@ export default function EventsManager({
                         />
                         </CmsStep>
 
-                        {/*
-                          * WHERE THE PAST EVENTS WENT
-                          *
-                          * `/events` shows upcoming events only. This strip is
-                          * the only thing on that page telling a visitor who
-                          * came looking for last year's conclave where to find
-                          * it — so it is on by default, and blanking a field
-                          * falls back to the shipped wording rather than
-                          * leaving the question unanswered.
-                          */}
-                        <CmsStep
-                            sectionKey="events.pastLink"
-                            step="Section 6"
-                            title="Where past events are"
-                            hint="A strip under the grid pointing at the gallery, which holds every event already held."
-                            actions={
-                                <label className="flex items-center gap-2 text-[1.1875rem] text-slate-600 dark:text-neutral-300 shrink-0">
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.pastLink.enabled}
-                                        onChange={(e) => setSettings({
-                                            ...settings,
-                                            pastLink: { ...settings.pastLink, enabled: e.target.checked },
-                                        })}
-                                        className="rounded border-slate-400"
-                                    />
-                                    Shown
-                                </label>
-                            }
-                        >
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <CmsField label="Heading">
-                                    <CmsInput
-                                        value={settings.pastLink.title}
-                                        onChange={(e) => setSettings({
-                                            ...settings,
-                                            pastLink: { ...settings.pastLink, title: e.target.value },
-                                        })}
-                                        placeholder="Looking for an event that has already happened?"
-                                    />
-                                </CmsField>
-                                <CmsField label="Icon">
-                                    <IconPicker
-                                        value={settings.pastLink.icon}
-                                        onChange={(icon) => setSettings({
-                                            ...settings,
-                                            pastLink: { ...settings.pastLink, icon },
-                                        })}
-                                    />
-                                </CmsField>
-                            </div>
-
-                            <div className="mt-4">
-                                <CmsField label="Explanation">
-                                    <CmsTextarea
-                                        rows={2}
-                                        value={settings.pastLink.subtitle}
-                                        onChange={(e) => setSettings({
-                                            ...settings,
-                                            pastLink: { ...settings.pastLink, subtitle: e.target.value },
-                                        })}
-                                        placeholder="Every conclave, seminar and meeting we have held is in the gallery, with its photographs."
-                                    />
-                                </CmsField>
-                            </div>
-
-                            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                                <CmsField label="Button label">
-                                    <CmsInput
-                                        value={settings.pastLink.label}
-                                        onChange={(e) => setSettings({
-                                            ...settings,
-                                            pastLink: { ...settings.pastLink, label: e.target.value },
-                                        })}
-                                        placeholder="Open the gallery"
-                                    />
-                                </CmsField>
-                                <CmsField label="Button link">
-                                    <CmsInput
-                                        value={settings.pastLink.href}
-                                        onChange={(e) => setSettings({
-                                            ...settings,
-                                            pastLink: { ...settings.pastLink, href: e.target.value },
-                                        })}
-                                        placeholder="/gallery"
-                                    />
-                                </CmsField>
-                            </div>
-                        </CmsStep>
                     </CmsSteps>
+                    </SaveNowProvider>
                     </SectionToolsProvider>
 
-                    <div className="mt-6">
-                        <button
-                            type="button"
-                            disabled={savingCopy}
-                            onClick={saveCopy}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-500
-                                       text-white rounded-lg text-[1.25rem] font-medium transition-colors disabled:opacity-50"
-                        >
-                            {savingCopy ? <Loader2 size={16} className="animate-spin" />
-                                : savedCopy ? <Check size={16} /> : <Save size={16} />}
-                            {savingCopy ? 'Saving...' : savedCopy ? 'Saved -- live page updated' : 'Save section copy'}
-                        </button>
-                    </div>
+                    {/*
+                      * NO SAVE BAND UNDER THE LAST CARD.
+                      *
+                      * There was one here, and the moment every card grew a
+                      * Save in its footer it became a SECOND full-width blue
+                      * button stacked directly under the first — same colour,
+                      * same width, same action, four pixels apart. Two buttons
+                      * that do one thing is a question the editor has to stop
+                      * and answer, and it was reported as exactly that.
+                      *
+                      * The card footers are the save now, on every card, which
+                      * is what the rest of the CMS does. Nothing is lost: each
+                      * of them calls `saveCopy`, and this button called the
+                      * same function.
+                      */}
                 </CmsCard>
             )}
 
             {showForm && (
-                <div
-                    className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-0 sm:p-6"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={editing ? 'Edit event' : 'New event'}
-                >
-                    {/* The backdrop closes it, like the × and Escape do. */}
+                /*
+                 * AN EVENT OPENS ON A SCREEN OF ITS OWN, the way a state page
+                 * does in Regions & States. It was a dialog over the table — a
+                 * scroll inside a scroll, with the page locked behind it.
+                 */
+                <div aria-label={editing ? 'Edit event' : 'New event'}>
                     <button
                         type="button"
-                        aria-label="Close"
                         onClick={() => setShowForm(false)}
-                        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
-                    />
+                        className="mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2
+                                   text-[1.0625rem] font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
+                                   hover:text-[#2563EB] dark:border-[#2a2a2a] dark:text-neutral-300"
+                    >
+                        <ArrowLeft className="h-4 w-4" /> Back to the events
+                    </button>
 
                     {/*
                       * `max-h` and a THREE-PART COLUMN: header, scrolling body,
@@ -1236,10 +1188,8 @@ export default function EventsManager({
                       * border is there for the same reason: on a light
                       * background a shadow alone does not draw an edge.
                       */}
-                    <div className="relative w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[88vh]
-                                    bg-white dark:bg-[#0b0b0b] sm:rounded-2xl shadow-2xl
-                                    border border-slate-200 dark:border-[#1f1f1f]
-                                    flex flex-col overflow-hidden">
+                    <div className="relative w-full bg-white dark:bg-[#0b0b0b] rounded-2xl
+                                    border border-slate-200 dark:border-[#1f1f1f] flex flex-col">
 
                         <header className="shrink-0 flex items-start gap-4 px-5 sm:px-7 py-5
                                            border-b border-slate-200 dark:border-[#1f1f1f]">
@@ -1264,7 +1214,7 @@ export default function EventsManager({
                         </header>
 
                     <form id="event-form" onSubmit={handleSubmit}
-                          className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-7 py-6
+                          className="px-5 sm:px-7 py-6
                                      grid gap-4 sm:grid-cols-2 content-start">
                         <div className="sm:col-span-2">
                             {/*
@@ -1294,31 +1244,85 @@ export default function EventsManager({
                         </div>
 
                         <CmsField label="Date">
+                            {/* MOVING THE START MOVES THE EVENT: the last day
+                                and every day's hours and sessions go with it
+                                (see `shiftDays`), the way a calendar moves a
+                                multi-day booking. Moving only the first day
+                                left the programme filed under dates the event
+                                no longer ran on. */}
                             <CmsInput type="date" value={form.date}
-                                onChange={(e) => setForm({ ...form, date: e.target.value })} />
+                                onChange={(e) => {
+                                    const next = e.target.value;
+                                    const delta = dayDelta(form.date, next);
+                                    if (!next || !Number.isFinite(delta) || delta === 0) {
+                                        setForm({ ...form, date: next });
+                                        return;
+                                    }
+                                    setForm({
+                                        ...form,
+                                        date: next,
+                                        endDate: form.endDate
+                                            ? addDays(form.endDate, delta) || form.endDate
+                                            : form.endDate,
+                                        days: shiftDays(form.days || [], delta),
+                                    });
+                                }} />
                         </CmsField>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3">
                             {/*
-                              * `lang="en-US"` — AM/PM, not a 24-hour clock.
+                              * `TimeField`, NOT a native time input.
                               *
-                              * A native time input renders in the BROWSER's
-                              * locale, and on an en-GB browser that is 24-hour:
-                              * "10:00" gives no way to tell a morning session
-                              * from an evening one, which is the one thing the
-                              * field exists to say. The attribute pins the
-                              * control's display to a 12-hour clock; the VALUE
-                              * is unaffected — it is always "HH:MM" on the wire,
-                              * so nothing downstream has to know.
+                              * `<input type="time">` renders in the BROWSER's
+                              * locale and nothing in the page overrides that —
+                              * `lang="en-US"` was tried here and an en-GB
+                              * browser still showed a 24-hour clock, so
+                              * "10:00" gave no way to tell a morning session
+                              * from an evening one. The replacement always
+                              * shows AM/PM and stores the same "HH:MM" string,
+                              * so nothing downstream changes.
                               */}
                             <CmsField label="Starts">
-                                <CmsInput type="time" lang="en-US" value={form.time}
-                                    onChange={(e) => setForm({ ...form, time: e.target.value })} />
+                                <TimeField
+                                    label="Start time"
+                                    value={form.time}
+                                    onChange={(time) => setForm({ ...form, time })}
+                                />
                             </CmsField>
                             <CmsField label="Ends">
-                                <CmsInput type="time" lang="en-US" value={form.endTime}
-                                    onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
+                                <TimeField
+                                    label="End time"
+                                    value={form.endTime}
+                                    onChange={(endTime) => setForm({ ...form, endTime })}
+                                />
                             </CmsField>
+                        </div>
+
+                        <CmsField
+                            label="Last day"
+                            hint="Only for an event that runs over more than one day. Leave it blank and the event is on the date above."
+                        >
+                            <CmsInput
+                                type="date"
+                                value={form.endDate}
+                                min={form.date || undefined}
+                                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                            />
+                        </CmsField>
+
+                        {/*
+                          * THE PER-DAY PROGRAMME, and it draws itself only when
+                          * the event actually runs over more than one day — see
+                          * `EventDaysEditor`. A one-day event keeps the single
+                          * Starts/Ends pair above and gains no furniture.
+                          */}
+                        <div className="sm:col-span-2">
+                            <EventDaysEditor
+                                startDate={form.date}
+                                endDate={form.endDate}
+                                days={form.days}
+                                onChange={(days) => setForm({ ...form, days })}
+                            />
                         </div>
 
 
@@ -1567,13 +1571,27 @@ export default function EventsManager({
                         </div>
 
                         <div className="sm:col-span-2">
-                            {/* 16/9 — the shape of the banner on an event card. */}
+                            {/*
+                              * 16/9 — the shape of the banner on an event card.
+                              *
+                              * THE SIZE IS PRINTED, because an editor cannot
+                              * guess it and a poster that is the wrong shape is
+                              * either cropped or padded on the live page. The
+                              * numbers are the real ones: the event page draws
+                              * this frame at up to 1600px wide, so 1600 x 900
+                              * is one pixel per pixel on a laptop and still
+                              * sharp on a retina screen at the width the card
+                              * uses.
+                              */}
                             <MediaPicker
                                 label="Banner"
                                 aspect="16 / 9"
+                                hint={'Best at 1600 × 900 pixels (16:9, landscape) — that is the shape '
+                                    + 'and size the event page and the event cards draw. Up to about 2MB. '
+                                    + 'A picture of a different shape is not rejected: it is shown whole, '
+                                    + 'with the frame padded either side, unless you set Fit to "Fill frame".'}
                                 value={form.media}
                                 onChange={(media) => setForm({ ...form, media })}
-
                             />
                         </div>
 
@@ -1671,27 +1689,6 @@ export default function EventsManager({
                                     />
 
                                     {/*
-                                      A THIRD question, and a checkbox for the
-                                      same reason the one above it is: it is not
-                                      an alternative to anything. The event is on
-                                      /events either way — this decides whether it
-                                      is one of the FEW on the landing page.
-
-                                      The same answer the Home screen's picker
-                                      sets, because it is the same field on the
-                                      same event. Two screens, one answer.
-                                    */}
-                                    <div className="mt-3">
-                                        <CmsCheck
-                                            checked={form.showOnHome}
-                                            onChange={(showOnHome) => setForm({ ...form, showOnHome })}
-                                            icon={<Home className="w-4 h-4" />}
-                                            title="Allow it on the home page"
-                                            detail="The landing page carries the soonest few of these. Untick to keep it on /events only."
-                                        />
-                                    </div>
-
-                                    {/*
                                       Shown only when both are true, because that
                                       is the combination whose consequence is not
                                       obvious from either control on its own: the
@@ -1726,6 +1723,16 @@ export default function EventsManager({
                             value={form.detail}
                             onChange={(detail) => setForm({ ...form, detail })}
                             eventId={editing}
+                            /*
+                             * Decided from the DATES, which live on this form
+                             * rather than inside that component. A multi-day
+                             * event hides the flat agenda there, because its
+                             * programme is written day by day above — two
+                             * programme editors on one screen is how half the
+                             * sessions end up in the list the page never
+                             * prints.
+                             */
+                            multiDay={!!form.endDate && form.endDate !== form.date}
                         />
 
                         <CmsField label="Visibility">
@@ -1750,9 +1757,9 @@ export default function EventsManager({
                           * here — a submit button outside its form needs the id,
                           * or the button does nothing and nothing says why.
                           */}
-                        <footer className="shrink-0 flex flex-wrap justify-end gap-3 px-5 sm:px-7 py-4
+                        <footer className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-3 rounded-b-2xl px-5 sm:px-7 py-4
                                            border-t border-slate-200 dark:border-[#1f1f1f]
-                                           bg-slate-50/80 dark:bg-[#0d0d0d]">
+                                           bg-slate-50/95 backdrop-blur dark:bg-[#0d0d0d]/95">
                             <CmsButton type="button" variant="ghost" onClick={() => setShowForm(false)}>
                                 Cancel
                             </CmsButton>
@@ -1764,6 +1771,7 @@ export default function EventsManager({
                 </div>
             )}
 
+            {!showForm && !wordingTab && (
             <CmsCard
                 /* “3 of 8” whenever ANY filter is narrowing. The old count
                    watched the target filter alone, so a search or a date
@@ -1792,25 +1800,23 @@ export default function EventsManager({
                     {/*
                       WHY THE PUBLIC PAGE SHOWS FEWER THAN THIS LIST.
 
-                      `/events` carries what is still to come; everything
-                      already held is in the gallery, which is what the strip
-                      under that page says. Eight here and three there is the
-                      rule working — but no screen said so, so it read as a
-                      fault. It is stated where the question gets asked.
+                      `/events` and the home page carry what is still to come.
+                      Eight here and three there is the rule working — but no
+                      screen said so, so it read as a fault. It is stated where
+                      the question gets asked.
                     */}
                     {events.length > upcomingCount && (
                         <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg
                                       border border-slate-200 bg-slate-50 px-3 py-2.5
-                                      text-[1.125rem] text-slate-600 dark:border-[#2a2a2a]
+                                      text-[1.1875rem] text-slate-600 dark:border-[#2a2a2a]
                                       dark:bg-[#0f0f0f] dark:text-neutral-300">
                             <span>
                                 <strong className="font-semibold text-slate-900 dark:text-white">
                                     {upcomingCount} of these {upcomingCount === 1 ? 'is' : 'are'} on the
-                                    public events page.
+                                    events page and the home page.
                                 </strong>{' '}
                                 The other {events.length - upcomingCount} have already been held —
-                                that page carries what is still to come, and points readers at the
-                                gallery for the rest.
+                                the events page and the home page show what is still to come.
                             </span>
                             <button
                                 type="button"
@@ -1848,18 +1854,6 @@ export default function EventsManager({
                             </select>
                         )}
 
-                        {/* Upcoming, or already held — the same question the
-                            public page answers for itself. */}
-                        <select
-                            value={when}
-                            onChange={(e) => setWhen(e.target.value as 'all' | 'upcoming' | 'past')}
-                            aria-label="Filter events by date"
-                            className={FILTER_SELECT}
-                        >
-                            <option value="all">Every date ({events.length})</option>
-                            <option value="upcoming">Still to come ({upcomingCount})</option>
-                            <option value="past">Already held ({events.length - upcomingCount})</option>
-                        </select>
 
                         {/* Only targets actually in use. Offering the whole
                             region tree here would be 6,966 blocks, nearly all
@@ -1905,14 +1899,12 @@ export default function EventsManager({
                         <table className="w-full text-[1.25rem]">
                             <thead>
                                 <tr className="text-left text-neutral-500 dark:text-neutral-400 border-b border-slate-200 dark:border-[#1f1f1f]">
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider w-16">Banner</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Title</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider">When</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Where</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Status</th>
-                                    {/* Which events the landing page carries — see `toggleHome`. */}
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider">Home page</th>
-                                    <th className="pb-4 text-[1.1875rem] sm:text-[1rem] font-semibold uppercase tracking-wider text-right">Actions</th>
+                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider w-16">Banner</th>
+                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">Title</th>
+                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">When</th>
+                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">Where</th>
+                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">Status</th>
+                                    <th className="pb-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1993,7 +1985,7 @@ export default function EventsManager({
                                                 members-only event and a published open one
                                                 both read "published". */}
                                             {e.audience === 'paid' ? (
-                                                <span className="inline-flex items-center gap-1 text-[0.75rem]
+                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-blue-100 dark:bg-blue-950
                                                                  text-blue-700 dark:text-blue-400">
@@ -2019,11 +2011,24 @@ export default function EventsManager({
                                               reason.
                                             */}
                                             {channel === 'members' && isOnPublicSite(e) ? (
-                                                <span className="inline-flex items-center gap-1 text-[0.75rem]
+                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-emerald-100 dark:bg-emerald-950
                                                                  text-emerald-700 dark:text-emerald-400">
                                                     <Globe className="w-2.5 h-2.5" /> Onboarding
+                                                </span>
+                                            ) : null}
+                                            {/* The other answer, said out loud. Without
+                                                it a members-only row looked like every
+                                                other row, and the first sign it was not
+                                                public was a visitor's "Not found". */}
+                                            {channel === 'members' && !isOnPublicSite(e) ? (
+                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                                 font-bold uppercase tracking-wide px-1.5 py-0.5
+                                                                 rounded-full bg-slate-100 dark:bg-[#1a1a1a]
+                                                                 text-slate-600 dark:text-neutral-400"
+                                                    title="Members only — not on the public site. Tick “Also post it in the onboarding events section” to publish it there.">
+                                                    <Lock className="w-2.5 h-2.5" /> Members only
                                                 </span>
                                             ) : null}
                                             {/* WHOSE EVENT THIS IS. On the CMS
@@ -2035,7 +2040,7 @@ export default function EventsManager({
                                                 write and may not expect to
                                                 find. */}
                                             {channel === 'public' && (e.channel || 'public') !== 'public' ? (
-                                                <span className="inline-flex items-center gap-1 text-[0.75rem]
+                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-violet-100 dark:bg-violet-950
                                                                  text-violet-700 dark:text-violet-400 align-middle"
@@ -2044,7 +2049,7 @@ export default function EventsManager({
                                                 </span>
                                             ) : null}
                                             {channel === 'public' && !isOnPublicSite(e) ? (
-                                                <span className="inline-flex items-center gap-1 text-[0.75rem]
+                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-amber-100 dark:bg-amber-950/60
                                                                  text-amber-700 dark:text-amber-400 align-middle"
@@ -2073,13 +2078,13 @@ export default function EventsManager({
                                               label you can see.
                                             */}
                                             {e.registrationEnabled ? (
-                                                <span className="text-[0.75rem] font-medium
+                                                <span className="text-[1.0625rem] font-medium
                                                                  text-emerald-600">
                                                     registration open
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1
-                                                                 text-[0.75rem] font-semibold uppercase
+                                                                 text-[1.0625rem] font-semibold uppercase
                                                                  tracking-wide px-1.5 py-0.5 rounded-full
                                                                  bg-amber-100 dark:bg-amber-950
                                                                  text-amber-700 dark:text-amber-400">
@@ -2089,7 +2094,19 @@ export default function EventsManager({
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4 text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
-                                            {e.startAt ? new Date(e.startAt).toLocaleString() : '—'}
+                                            {/*
+                                              * NO SECONDS.
+                                              *
+                                              * `toLocaleString()` with no options prints
+                                              * them — "10/10/2026, 9:00:00 AM" — and an
+                                              * event does not start at a second. The
+                                              * trailing ":00" read as a fault in the
+                                              * table. Spelt out instead: "10 Oct 2026,
+                                              * 09:00 AM", which is the wording the public
+                                              * page uses, so the same event does not look
+                                              * like two different things in two places.
+                                              */}
+                                            {e.startAt ? listWhen(e.startAt) : '—'}
                                         </td>
                                         <td className="py-4 pr-4 text-neutral-500 dark:text-neutral-400">
                                             {/*
@@ -2131,109 +2148,12 @@ export default function EventsManager({
                                             </span>
                                         </td>
 
-                                        {/*
-                                          ON THE HOME PAGE, OR NOT.
-
-                                          Whatever its date. An event already held is
-                                          labelled under the switch, because putting
-                                          one on the landing page is worth doing
-                                          deliberately — but the switch is the answer,
-                                          and a control that silently refuses is worse
-                                          than one that lets you choose badly.
-                                        */}
-                                        {/* A column, not a run of inline spans: the
-                                            switch and the two things true of this row
-                                            read as "Off" then "already held" then "in
-                                            the gallery", one under the other. */}
-                                        <td className="py-4 pr-4 align-top">
-                                          <div className="flex flex-col items-start gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => toggleHome(e)}
-                                                disabled={homeBusy === e.id}
-                                                title={e.showOnHome === false
-                                                    ? 'Put this event on the home page'
-                                                    : 'Take it off the home page'}
-                                                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5
-                                                            text-[1.1875rem] font-semibold transition-colors
-                                                            disabled:opacity-50 ${e.showOnHome === false
-                                                        ? 'border-slate-300 dark:border-[#2a2a2a] text-neutral-500'
-                                                            + ' dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-[#161616]'
-                                                        : 'border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30'
-                                                            + ' text-blue-700 dark:text-blue-300 hover:bg-blue-100'}`}
-                                            >
-                                                {homeBusy === e.id
-                                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                    : e.showOnHome === false
-                                                        ? <EyeOff className="w-3.5 h-3.5" />
-                                                        : <Eye className="w-3.5 h-3.5" />}
-                                                {e.showOnHome === false ? 'Off' : 'On'}
-                                            </button>
-
-                                            {isPastEvent(e) && e.showOnHome !== false && (
-                                                <span className="text-[0.75rem] font-medium text-neutral-400">
-                                                    already held
-                                                </span>
-                                            )}
-
-                                            {/* What the button already did to this row.
-                                                Without it the control's only effect is
-                                                in another screen, and an editor working
-                                                down a season cannot see where they got
-                                                to. */}
-                                            {e.inGallery && (
-                                                <span className="inline-flex items-center gap-1 rounded-full
-                                                                   bg-emerald-50 px-2 py-0.5 text-[0.75rem]
-                                                                   font-semibold text-emerald-700
-                                                                   dark:bg-emerald-950/40 dark:text-emerald-400">
-                                                    <Images className="h-3 w-3" /> in the gallery
-                                                </span>
-                                            )}
-                                          </div>
-                                        </td>
-
                                         {/* A flex row with a real gap. The three
                                             controls were `mr-1`/`ml-1` siblings, so
                                             "Update copy" and "Delete" met with two
                                             pixels between them. */}
                                         <td className="py-4 text-right">
                                             <div className="flex flex-wrap items-center justify-end gap-2">
-                                            {/*
-                                              ON EVERY ROW. Which events belong in the
-                                              gallery is the editor's decision, and a
-                                              button that appears only once a date has
-                                              passed makes it the calendar's. An event
-                                              not yet held is warned about in the
-                                              confirmation instead.
-
-                                              `inGallery` changes the label rather than
-                                              hiding the button: pressing it again is a
-                                              refresh, which is worth doing after the
-                                              write-up has been corrected.
-                                            */}
-                                            <button
-                                                type="button"
-                                                onClick={() => archiveToGallery(e)}
-                                                disabled={toGallery === e.id}
-                                                title={e.inGallery
-                                                    ? 'Refresh this event\u2019s gallery item'
-                                                    : 'Copy this event into the gallery'}
-                                                className={`inline-flex items-center gap-1.5 rounded-lg
-                                                            border px-2.5 py-1.5 text-[1.1875rem] font-medium
-                                                            transition-colors disabled:opacity-50 ${e.inGallery
-                                                    ? 'border-slate-300 text-neutral-500 hover:bg-slate-100'
-                                                        + ' dark:border-[#2a2a2a] dark:text-neutral-400'
-                                                        + ' dark:hover:bg-[#161616]'
-                                                    : 'border-blue-200 text-blue-700 hover:bg-blue-50'
-                                                        + ' dark:border-blue-900 dark:text-blue-400'
-                                                        + ' dark:hover:bg-blue-950/40'}`}
-                                            >
-                                                {toGallery === e.id
-                                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                    : <Images className="w-3.5 h-3.5" />}
-                                                {e.inGallery ? 'Update copy' : 'To gallery'}
-                                            </button>
-
                                             {/* The same 36px box as the delete beside
                                                 it, so the two icons line up. */}
                                             <button
@@ -2283,6 +2203,7 @@ export default function EventsManager({
                   </>
                 )}
             </CmsCard>
+            )}
         </CmsPage>
     );
 }

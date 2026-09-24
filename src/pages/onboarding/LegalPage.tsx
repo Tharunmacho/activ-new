@@ -7,8 +7,7 @@ import { FooterSection } from '../../components/layout/FooterSection';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import {
     SECTION_HEADING, SECTION_LEDE, EYEBROW, MICRO_LABEL,
-    PROSE_BODY, PROSE_HEADING,
-} from '@/components/layout/typography';
+    PROSE_BODY, PROSE_HEADING, BAND_MEASURE } from '@/components/layout/typography';
 import { Reveal } from '@/components/shared/Reveal';
 import {
     getLegalDocument, getLegalLinks, type LegalDocument,
@@ -208,7 +207,7 @@ export default function LegalPage() {
                         </span>
                         <h1 className={`${SECTION_HEADING} mb-4`}>{doc.title || 'Policy'}</h1>
                         {doc.lede && (
-                            <p className={`${SECTION_LEDE} text-white/70 max-w-2xl`}>{doc.lede}</p>
+                            <p className={`${SECTION_LEDE} text-white/70 ${BAND_MEASURE}`}>{doc.lede}</p>
                         )}
                         {/*
                           Printed ONLY when the editor set one. A date invented
@@ -317,11 +316,15 @@ export default function LegalPage() {
                            not a clause — a governing law, a grievance officer,
                            a registered address. Printed after the sections and
                            before the “Questions” card. */}
-                        <CmsExtraFields
-                            fields={doc.extraFields}
-                            variant="list"
-                            className="mt-10 border-t border-slate-200 pt-8"
-                        />
+                        {/* In the document's own reading type — these sit
+                            among its clauses and must read as part of them. */}
+                        <div className="text-[1.125rem] leading-[1.8] text-slate-700">
+                            <CmsExtraFields
+                                fields={doc.extraFields}
+                                variant="list"
+                                className="mt-10 border-t border-slate-200 pt-8"
+                            />
+                        </div>
 
                         <div className="mt-12 rounded-2xl border border-brand-100 bg-brand-50/40 p-6">
                             <p className={`${MICRO_LABEL} text-gray-400 mb-1.5`}>Questions</p>

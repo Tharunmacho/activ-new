@@ -5,7 +5,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { login, getMyApplication, errorMessage, getPaymentStatus } from "@/services/activApi";
-import { Mail, Lock } from "lucide-react";
+import { clearSession } from "@/services/api";
+import { Mail, Lock, ShieldCheck } from "lucide-react";
 import { FaGoogle, FaLinkedinIn, FaFacebookF } from "react-icons/fa";
 import AuthSplitLayout from "./AuthSplitLayout";
 
@@ -63,7 +64,24 @@ const FIELD_LABEL = 'mb-3 block text-[1.25rem] font-semibold text-slate-800';
 const FIELD_ICON =
   'pointer-events-none absolute left-0 top-1/2 z-10 -translate-y-1/2 text-blue-600';
 
-export default function EnhancedLoginPage() {
+/**
+ * ============================================================================
+ * TWO SIGN-IN SCREENS, ONE COMPONENT
+ * ============================================================================
+ *
+ *   /login         audience="member"  members only — social sign-in and
+ *                                      "Create an account" are offered
+ *   /admin/login   audience="admin"   block, district, state, super and CMS
+ *                                      admins — neither is offered
+ *
+ * The backend has one sign-in endpoint for every role, so what separates the
+ * two screens is what each one ACCEPTS: a member signing in on the admin
+ * screen, or an admin on the member screen, is signed straight back out and
+ * told where they belong. That is a courtesy of the screen, not a security
+ * boundary — every admin endpoint still checks the role on the server.
+ */
+export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 'member' | 'admin' } = {}) {
+  const forAdmins = audience === 'admin';
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -126,7 +144,24 @@ export default function EnhancedLoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await login(id, password);
+      /* The server refuses the wrong screen outright — see `assertPortal`. */
+      const result = await login(id, password, audience);
+
+      /* A backstop: the server has already refused the wrong screen, so this
+         only catches an older server that does not know `portal`. */
+      const isAdminRole = !!result.role && result.role !== 'member';
+      if (forAdmins && !isAdminRole) {
+        clearSession();
+        toast.error('This sign-in is for ACTIV administrators. Members sign in on the member login page.');
+        navigate('/login', { replace: true });
+        return;
+      }
+      if (!forAdmins && isAdminRole) {
+        clearSession();
+        toast.error('Admins sign in on the admin login page.');
+        navigate('/admin/login', { replace: true });
+        return;
+      }
 
       toast.success(`Welcome ${result.user?.fullName || 'back'}!`);
 
@@ -163,15 +198,17 @@ export default function EnhancedLoginPage() {
 
   return (
     <AuthSplitLayout
-      eyebrow="ACTIV member portal"
+      eyebrow={forAdmins ? "ACTIV admin portal" : "ACTIV member portal"}
       /* The association's own welcome, as this screen has always carried it —
          the reference's "Hello, welcome back!" was a stand-in for it. */
-      headline={<>Welcome to<br />ACTIVian Platform! 👋</>}
-      quote={'"Empowering Communities, Simplifying Lives"'}
-      lede="Our digital platform connects communities with essential services and resources. Whether you are managing applications, accessing member benefits or exploring business opportunities, we are here to make your journey seamless and transparent."
-      formEyebrow="Sign in"
-      title="Log in to your account"
-      subtitle="Members and admins sign in here."
+      headline={forAdmins ? <>ACTIV<br />Administration</> : <>Welcome to<br />ACTIVian Platform! 👋</>}
+      quote={forAdmins ? '"Serving every member, in every region"' : '"Empowering Communities, Simplifying Lives"'}
+      lede={forAdmins
+        ? "For block, district, state and super admins, and the website's CMS editors. Review applications, manage members and keep the association's content up to date."
+        : "Our digital platform connects communities with essential services and resources. Whether you are managing applications, accessing member benefits or exploring business opportunities, we are here to make your journey seamless and transparent."}
+      formEyebrow={forAdmins ? "Admin sign in" : "Sign in"}
+      title={forAdmins ? "Sign in to the admin panel" : "Log in to your account"}
+      subtitle={forAdmins ? "For ACTIV administrators only." : "Members sign in here."}
       assurance=""
     >
       <form onSubmit={handleUnifiedSubmit} className="space-y-6">
@@ -194,7 +231,7 @@ export default function EnhancedLoginPage() {
               id="login-email"
               name="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder={forAdmins ? "admin@activ.org.in" : "you@example.com"}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className={FIELD}
@@ -256,6 +293,8 @@ export default function EnhancedLoginPage() {
 
       </form>
 
+      {!forAdmins && (
+      <>
       {/* ------------------------------------------- the other ways in
         GOOGLE, LINKEDIN AND FACEBOOK — the three the association uses.
         LinkedIn replaces Apple: this is a chamber of commerce, and the
@@ -291,6 +330,9 @@ export default function EnhancedLoginPage() {
         ))}
       </div>
 
+      </>
+      )}
+
       {/*
         WHAT WAS REMOVED, AND WHY — the social row is not part of it.
 
@@ -310,12 +352,36 @@ export default function EnhancedLoginPage() {
         needs: another way to sign in, and the fact that they may not have an
         account yet.
       */}
-      <p className="mt-7 text-center text-[1.25rem] font-normal text-slate-500">
-        New to ACTIV?{' '}
-        <Link to="/register" className="font-semibold text-blue-700 transition-colors hover:text-blue-900">
-          Create an account
-        </Link>
-      </p>
+      {forAdmins ? (
+        <p className="mt-7 text-center text-[1.25rem] font-normal text-slate-500">
+          Not an administrator?{' '}
+          <Link to="/login" className="font-semibold text-blue-700 transition-colors hover:text-blue-900">
+            Member sign in
+          </Link>
+        </p>
+      ) : (
+        <p className="mt-7 text-center text-[1.25rem] font-normal text-slate-500">
+          New to ACTIV?{' '}
+          <Link to="/register" className="font-semibold text-blue-700 transition-colors hover:text-blue-900">
+            Create an account
+          </Link>
+        </p>
+      )}
+
+      {/* The way to the admin sign-in: small, below everything a member
+          needs, so it is findable without competing with the member form. */}
+      {!forAdmins && (
+        <div className="mt-5 flex justify-center">
+          <Link
+            to="/admin/login"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3.5 py-1.5
+                       text-[1rem] font-semibold text-slate-500 transition-colors
+                       hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+          >
+            <ShieldCheck size={15} aria-hidden="true" /> Admin login
+          </Link>
+        </div>
+      )}
     </AuthSplitLayout>
   );
 }

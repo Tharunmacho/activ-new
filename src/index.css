@@ -594,3 +594,43 @@ All colors MUST be HSL.
  * The association preferred the navy: one palette, both surfaces, and nothing
  * for a reader to reconcile when they move between them.
  */
+
+@layer base {
+  /**
+   * ==========================================================================
+   * CONTENT NEVER WIDENS THE LAYOUT
+   * ==========================================================================
+   *
+   * An editor can type anything into a title, a venue or a speaker's name,
+   * including a word with no spaces in it. By default a grid or flex item
+   * refuses to shrink below its longest unbreakable word, so one long title
+   * on an event page pushed its column wider and crushed the sidebar beside
+   * it into a strip — "10000 of 10000 left" stacked one word per line.
+   *
+   * Two rules, and together they mean a page keeps its designed shape
+   * whatever is typed into it; only the text reflows:
+   *
+   * 1. A long word breaks rather than overflowing. `break-word` on the body
+   *    is inherited everywhere and only acts when a word would otherwise
+   *    spill out of its box. Headings get `anywhere`, which also lets them
+   *    shrink their column — a heading is where a pasted string lands.
+   * 2. Grid and flex items may shrink below their content (`min-width: 0`),
+   *    so a column's width comes from the layout, not from its text.
+   *    Anything that genuinely must not shrink says so with `shrink-0` or a
+   *    fixed width, both of which still win.
+   */
+  body {
+    overflow-wrap: break-word;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: anywhere;
+  }
+
+  /* Icons, pictures and controls keep their own size: an icon squeezed to
+     half width in a tight row is a worse fault than the one this fixes. */
+  .grid > *,
+  .flex > :not(svg, img, video, picture, button, input, select, a[role="button"]) {
+    min-width: 0;
+  }
+}

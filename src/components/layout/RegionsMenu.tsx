@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Globe2 } from 'lucide-react';
-import { getRegionMap, type RegionMapEntry } from '@/services/cmsRegionsApi';
+import { getRegionMap, zoneName, type RegionMapEntry } from '@/services/cmsRegionsApi';
 
 /**
  * The Regions menu in the header.
@@ -132,7 +132,11 @@ export function RegionsMenu({ accent }: { accent: string }) {
                 }`}
                 style={{ color: accent }}
             >
-                Regions
+                {/* ZONES, not "Regions". The five above the states are zones;
+                    "region" is the word for the tier INSIDE a state, which is
+                    drawn on that state's own page. Two tiers under one word
+                    is what this menu and the state pages used to share. */}
+                Zones
                 <ChevronDown size={14} className={open ? 'rotate-180 transition-transform' : 'transition-transform'} />
             </button>
 
@@ -181,7 +185,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                                 {region.national && (
                                                     <Globe2 size={15} className="shrink-0 text-brand-500" />
                                                 )}
-                                                {region.label}
+                                                {zoneName(region.label, region.national)}
                                             </span>
                                             <ChevronRight size={14} className="text-gray-400" />
                                         </Link>
@@ -195,7 +199,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                                 on ? 'bg-brand-50 text-gray-500' : 'text-gray-500 hover:bg-brand-50/60'
                                             }`}
                                         >
-                                            {region.label}
+                                            {zoneName(region.label, region.national)}
                                             <ChevronRight size={14} className="text-gray-300" />
                                         </button>
                                     )}
@@ -207,7 +211,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                     {/* ---- what is inside it ---- */}
                     <div className="w-56 py-2">
                         <p className="px-4 pb-2 text-[1rem] font-bold uppercase tracking-wider text-gray-400">
-                            {current?.national ? 'The five regions' : `${current?.label} states`}
+                            {current?.national ? 'The five zones' : `${zoneName(current?.label)} states`}
                         </p>
 
                         {current?.national ? (
@@ -220,7 +224,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                             className="block px-4 py-2.5 text-[1.0625rem] font-semibold
                                                        text-brand-700 transition-colors hover:bg-brand-50/60"
                                         >
-                                            {region.label}
+                                            {zoneName(region.label, region.national)}
                                         </Link>
                                     </li>
                                 ))}
@@ -272,7 +276,8 @@ export function RegionsAccordion({ accent, onNavigate }: {
     return (
         <div className="px-3 py-2">
             <p className="text-[1rem] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-                Regions
+                {/* See the note on the desktop trigger. */}
+                Zones
             </p>
             {regions.map((region) => {
                 const on = openKey === region.key;
@@ -302,7 +307,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
                             style={{ color: accent }}
                         >
                             <Globe2 size={15} className="shrink-0 opacity-60" />
-                            {region.label}
+                            {zoneName(region.label, region.national)}
                         </Link>
                     );
                 }
@@ -317,7 +322,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
                             style={{ color: accent }}
                             aria-expanded={on}
                         >
-                            {region.label}
+                            {zoneName(region.label, region.national)}
                             <ChevronDown
                                 size={14}
                                 className={on ? 'rotate-180 transition-transform' : 'transition-transform'}
@@ -332,7 +337,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
                                         onClick={onNavigate}
                                         className="block py-2 text-[1.0625rem] font-bold text-brand-700"
                                     >
-                                        {region.label} Region overview
+                                        {zoneName(region.label)} overview
                                     </Link>
                                 )}
                                 {states.map((state) => (

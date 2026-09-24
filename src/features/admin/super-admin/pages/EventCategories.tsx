@@ -17,6 +17,7 @@ import {
     type EventCategoryMode,
 } from '@/services/eventCategoryApi';
 import { errorMessage } from '@/services/api';
+import { adminBasePath } from '@/features/admin/components/tierConfig';
 
 /**
  * Event categories — Medical, Awareness, Export, Coffee Meet.
@@ -466,7 +467,7 @@ export default function SuperAdminEventCategories() {
                         public events page. They are the same rows.
                     </>}
                     onMenu={() => setSidebarOpen(true)}
-                    backTo="/super-admin/events"
+                    backTo={`${adminBasePath()}/events`}
                     actions={
                         <>
                             <button

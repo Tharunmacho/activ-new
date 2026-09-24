@@ -99,7 +99,7 @@ export default function ResetPassword() {
                     <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-5">
                         <AlertCircle className="w-8 h-8 text-amber-500" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">This link has expired</h1>
+                    <h1 className="text-[1.5625rem] font-bold text-gray-900 mb-2">This link has expired</h1>
                     <p className="text-gray-600 mb-8">
                         Reset links last one hour and can be used once. Request a new one and it will
                         work straight away.
@@ -123,7 +123,7 @@ export default function ResetPassword() {
                     <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
                         <CheckCircle2 className="w-8 h-8 text-green-600" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Password changed</h1>
+                    <h1 className="text-[1.5625rem] font-bold text-gray-900 mb-2">Password changed</h1>
                     <p className="text-gray-600 mb-8">You can now sign in with your new password.</p>
                     <button
                         onClick={() => navigate('/login')}
@@ -141,7 +141,7 @@ export default function ResetPassword() {
         id: string, label: string, value: string, set: (v: string) => void, autoComplete: string,
     ) => (
         <div>
-            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+            <label htmlFor={id} className="block text-[1.0625rem] font-medium text-gray-700 mb-1.5">{label}</label>
             <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -151,7 +151,7 @@ export default function ResetPassword() {
                     onChange={(e) => { set(e.target.value); setError(''); }}
                     autoComplete={autoComplete}
                     disabled={saving}
-                    className="w-full pl-10 pr-11 py-3 border border-gray-200 rounded-xl text-sm
+                    className="w-full pl-10 pr-11 py-3 border border-gray-200 rounded-xl text-[1.0625rem]
                                focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 />
                 <button
@@ -168,14 +168,14 @@ export default function ResetPassword() {
 
     return (
         <Shell>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Set a new password</h1>
+            <h1 className="text-[1.5625rem] font-bold text-gray-900 mb-2">Set a new password</h1>
             <p className="text-gray-600 mb-8">Choose a password you have not used here before.</p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {field('password', 'New password', password, setPassword, 'new-password')}
                 {field('confirm', 'Confirm new password', confirm, setConfirm, 'new-password')}
 
-                {error && <p className="text-sm text-red-600">{error}</p>}
+                {error && <p className="text-[1.0625rem] text-red-600">{error}</p>}
 
                 <button
                     type="submit"
@@ -191,7 +191,7 @@ export default function ResetPassword() {
 
             <Link
                 to="/login"
-                className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+                className="mt-6 flex items-center justify-center gap-2 text-[1.0625rem] text-gray-600 hover:text-gray-900"
             >
                 <ArrowLeft className="w-4 h-4" /> Back to sign in
             </Link>

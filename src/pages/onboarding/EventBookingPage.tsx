@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, ArrowRight, Calendar, CheckCircle2, IndianRupee, Loader2, Lock, MapPin, Users, UserPlus, AlertCircle, ExternalLink, Eye, EyeOff, Check, Menu, Info, Ticket, User, Mail, Phone, Video,
 } from 'lucide-react';
@@ -44,7 +44,7 @@ import { errorMessage } from '@/services/api';
 import { login } from '@/services/activApi';
 import { STORAGE_KEYS } from '@/config/api.config';
 import {
-    getBookableEvent, bookAndPay,
+    getBookableEvent, bookAndPay, getEventBooking,
     type BookableEvent, type BookingParticipant, type EventBooking,
 } from '@/services/eventBookingApi';
 import EventPriceTiers from '@/components/shared/EventPriceTiers';
@@ -342,10 +342,61 @@ export default function EventBookingPage({ chrome = 'public' }: {
     const [showPassword, setShowPassword] = useState(false);
     const [signInError, setSignInError] = useState('');
 
+    /*
+     * EVERY STEP OPENS AT ITS TOP.
+     *
+     * "Continue as guest" and "Sign in & checkout" swapped the step in place
+     * and left the page scrolled to where the button was — so the form opened
+     * with its first fields above the fold and the visitor had to scroll up to
+     * find them. In the member chrome the scroller is `<main>`, not the
+     * window, which is why a `window.scrollTo` alone never reached it.
+     */
+    const firstStep = useRef(true);
+    useEffect(() => {
+        if (firstStep.current) { firstStep.current = false; return; }
+        try {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.querySelectorAll('main').forEach((el) => {
+                if (typeof el.scrollTo === 'function') el.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        } catch { /* scrolling is a nicety */ }
+    }, [step]);
+
     // ---- submitting
     const [paying, setPaying] = useState(false);
     const [payError, setPayError] = useState('');
     const [booking, setBooking] = useState<EventBooking | null>(null);
+
+    /*
+     * `?ref=` OPENS STRAIGHT ON THE CONFIRMATION.
+     *
+     * Where the buyer lands after paying on Instamojo (`/payment-success`
+     * hands over here once the server has confirmed the booking), and the
+     * "View your booking" link in the confirmation email. The page is a fresh
+     * load in both cases, so the booking is read back by its reference.
+     */
+    const [searchParams] = useSearchParams();
+    const refFromUrl = (searchParams.get('ref') || '').trim();
+    const [loadingRef, setLoadingRef] = useState(!!refFromUrl);
+
+    useEffect(() => {
+        if (!refFromUrl) { setLoadingRef(false); return; }
+        let cancelled = false;
+        setLoadingRef(true);
+
+        getEventBooking(refFromUrl)
+            .then((found) => {
+                if (cancelled) return;
+                if (found?.bookingRef && (!found.eventId || String(found.eventId) === String(id))) {
+                    setBooking(found);
+                    setStep('done');
+                }
+            })
+            .catch(() => { /* an unknown reference just opens the normal booking form */ })
+            .finally(() => { if (!cancelled) setLoadingRef(false); });
+
+        return () => { cancelled = true; };
+    }, [refFromUrl, id]);
 
     /* -------------------------------------------------------------- loading */
 
@@ -585,6 +636,21 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 })),
             });
 
+            /*
+             * `null` MEANS WE ARE LEAVING THIS PAGE.
+             *
+             * With a hosted gateway `bookAndPay` redirects the browser to
+             * Instamojo and there is no booking to show — the seats are
+             * confirmed by the webhook, and the visitor comes back to
+             * `/payment-success`. Falling through to the confirmation step
+             * here would flash "booking confirmed" for the instant before the
+             * redirect lands, which is a promise nobody has kept yet.
+             *
+             * `paying` is deliberately left ON in that case (see `finally`),
+             * so the button cannot be pressed twice while the page unloads.
+             */
+            if (!result) return;
+
             setBooking(result);
             setStep('done');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -596,7 +662,6 @@ export default function EventBookingPage({ chrome = 'public' }: {
              * re-types eight participants.
              */
             setPayError(errorMessage(error, 'The booking could not be completed'));
-        } finally {
             setPaying(false);
         }
     };
@@ -657,7 +722,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         </div>
     ));
 
-    if (loading) {
+    if (loading || loadingRef) {
         return shell(
             <div className={`${SCREEN_CONTAINER} py-20 animate-pulse`}>
                 <div className="h-4 w-32 bg-slate-200 rounded mb-10" />
@@ -1423,7 +1488,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                         and the rate is already on the line
                                         below. */}
                                     {(isFree || countText) && (
-                                        <p className="text-2xl font-black tracking-tight text-brand-800">
+                                        <p className="text-[1.5625rem] font-black tracking-tight text-brand-800">
                                             {isFree ? 'Free' : rupees(estimatedTotal)}
                                         </p>
                                     )}
@@ -1711,6 +1776,17 @@ export default function EventBookingPage({ chrome = 'public' }: {
     /* ==================================================== step: done */
 
     const confirmed = booking;
+    /*
+     * A reference opened from a link may belong to a booking that is not
+     * (or no longer) confirmed — an unfinished checkout, or one the organiser
+     * cancelled. The heading must say so rather than print "confirmed".
+     */
+    const settled = !!confirmed && confirmed.status === 'active'
+        && (confirmed.payment?.status === 'paid' || confirmed.payment?.status === 'not_required');
+    const headline = !confirmed || settled ? 'Booking confirmed'
+        : confirmed.status === 'cancelled' ? 'Booking cancelled'
+            : confirmed.status === 'waitlist' ? 'You are on the waitlist'
+                : 'Payment not completed';
 
     return shell(
         <div className={`${SCREEN_CONTAINER} py-12 md:py-16 max-w-4xl`}>
@@ -1735,17 +1811,26 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                  items-center justify-center mb-5">
                     <CheckCircle2 size={28} />
                 </span>
-                <h1 className={`${SECTION_HEADING} text-brand-800 mb-3`}>Booking confirmed</h1>
+                <h1 className={`${SECTION_HEADING} text-brand-800 mb-3`}>{headline}</h1>
                 <p className="text-[1.25rem] sm:text-[1.0625rem] text-gray-600 font-semibold">
-                    We have emailed the details to {confirmed?.bookedBy.email || booker.email}
-                    {confirmed?.bookedBy.phone ? ' and sent a WhatsApp confirmation.' : '.'}
+                    {!confirmed || settled ? (
+                        <>
+                            We have emailed the details to {confirmed?.bookedBy?.email || booker.email}
+                            {confirmed?.bookedBy?.phone ? ' and sent a WhatsApp confirmation.' : '.'}
+                        </>
+                    ) : confirmed.status === 'cancelled'
+                        ? 'This booking was cancelled by the organiser. Contact them if you have a question.'
+                        : confirmed.status === 'waitlist'
+                            ? 'The event is full. No seat is held and nothing has been charged.'
+                            : 'We have not received the payment for this booking, so no seat is held. '
+                                + 'You can book again, or pay the organiser directly.'}
                 </p>
 
                 <div className="mt-7 rounded-xl border border-brand-200 bg-brand-50/70 px-5 py-5">
                     <p className="text-[1.0625rem] font-bold uppercase tracking-wider text-gray-600 mb-2">
                         Your booking reference
                     </p>
-                    <p className="text-2xl sm:text-3xl font-black tracking-tight text-brand-800 break-all">
+                    <p className="text-[1.5625rem] sm:text-3xl font-black tracking-tight text-brand-800 break-all">
                         {confirmed?.bookingRef}
                     </p>
                     <p className="text-[1.0625rem] text-gray-600 font-semibold mt-2">

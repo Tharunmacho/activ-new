@@ -6,7 +6,8 @@ import { FooterSection } from '@/components/layout/FooterSection';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { SECTION_HEADING } from '@/components/layout/typography';
 import {
-    getRegionPage, type RegionPage as RegionPageData, type RegionLeader,
+    getRegionPage, dashboardLabels, ZONE_LABELS, NATIONAL_LABELS,
+    type RegionPage as RegionPageData, type RegionLeader,
 } from '@/services/cmsRegionsApi';
 import { LeaderProfileDialog } from './components/RegionUI';
 import type { LeaderContext } from '@/services/cmsLeaderMessagesApi';
@@ -90,7 +91,7 @@ export default function RegionPage() {
             .then((data) => { if (!cancelled) { setPage(data); setLoading(false); } })
             .catch(() => {
                 if (cancelled) return;
-                setMissing('This region page has not been published yet.');
+                setMissing('This zone page has not been published yet.');
                 setLoading(false);
             });
 
@@ -122,7 +123,7 @@ export default function RegionPage() {
                 <div className={`${SCREEN_CONTAINER} py-24 flex-grow text-center`}>
                     <h1 className={`${SECTION_HEADING} text-brand-800 mb-4`}>Not published yet</h1>
                     <p className="text-[1.25rem] sm:text-[1.0625rem] font-semibold text-gray-500 mb-8">
-                        {missing || 'This region page could not be loaded.'}
+                        {missing || 'This zone page could not be loaded.'}
                     </p>
                     <Link
                         to="/"
@@ -156,34 +157,114 @@ export default function RegionPage() {
     const national = (page.regionKey || page.slug) === 'national';
 
     const regionTitle = (value: string) => (
-        /\bregion\b/i.test(value || '') ? (value || '') : `${value || ''} Region`.trim()
+        /\b(region|zone)\b/i.test(value || '') ? (value || '') : `${value || ''} Zone`.trim()
     );
     /* "National", not "National Region". The country is not one of them. */
     const label = national ? (page.regionName || 'National') : regionTitle(page.regionName);
 
     /*
+     * THE PAGE'S OWN HEADINGS, from the CMS, with the shipped wording under
+     * anything the editor left blank.
+     *
+     * The national page and a zone page disagree about what their bands are
+     * called — "National / Zones" against "Zone / States" — so the default
+     * table is chosen on the same `national` flag everything else here uses.
+     * A blank stored field falls back to that table, which is what every page
+     * written before these fields existed carries.
+     */
+    const labels = dashboardLabels(page.labels, national ? NATIONAL_LABELS : ZONE_LABELS);
+
+    /*
      * ======================================================================
-     * THE TIER BELOW: THIS PAGE’S OWN BOARDS FIRST
+     * THE TIER BELOW: THIS PAGE’S OWN BOARDS, THEN THE REAL PAGES
      * ======================================================================
      *
      * `stateRegions` is what an editor typed into THIS page — the states of
-     * a region, the regions of the country — and it is what the page draws
-     * when it has any. Editing the South on the national page and editing
-     * the South’s own page are two different acts on two different records,
-     * which is what the association asked for.
+     * a region, the regions of the country. Editing the South on the national
+     * page and editing the South’s own page are two different acts on two
+     * different records, which is what the association asked for.
      *
-     * `statePanels` is the DERIVED list, read off the pages underneath. It
-     * is the fallback and nothing more: without it, adding the owned field
-     * would have blanked every region page in the site until somebody
-     * retyped eight states into each of them.
+     * `statePanels` is the DERIVED list, read off the pages underneath — a
+     * board per state that has published a bench of its own.
      *
-     * Never both. Two boards for one state, one of them stale, is worse
-     * than either alone.
+     * THEY ARE ADDED, NOT CHOSEN BETWEEN. This was written as
+     * `ownBoards.length ? ownBoards : derived`, and the word "fallback" hid
+     * what that does: typing ONE board onto a zone page silently took every
+     * real state page out of the zone. Eight states became one, with nothing
+     * on the CMS screen to say the seven had been dropped — and they came
+     * back only if that single row was deleted again. An editor adding a
+     * state cannot have meant "and remove the other seven".
+     *
+     * ---------------------------------------------------------------------
+     * ON A CLASH OF NAMES, THE STATE’S OWN PAGE WINS
+     * ---------------------------------------------------------------------
+     *
+     * A state page is a record with its own editor, its own Published badge
+     * and a public URL. A board typed onto the zone above it is a copy of
+     * the same tier with none of those. When both name the same state, the
+     * page is the one a reader should meet, and the copy is the one that
+     * goes stale — which is the rule this file already states in the other
+     * direction for contacts.
+     *
+     * It reached the site as a board headed "TAMILNADU" carrying one
+     * placeholder leader, printed above nothing, while Tamil Nadu’s own
+     * published page sat underneath it unused.
+     *
+     * `norm` throws away EVERYTHING that is not a letter or a digit, so
+     * "TAMILNADU", "Tamil Nadu" and "tamil  nadu" are one state. Case and
+     * runs of whitespace alone were not enough: the clash that reached a
+     * reader differed by a single space. This is deliberately looser than
+     * `regionMatch` on the server — that one decides who may SEE a file and
+     * must not over-match; this one decides which of two boards for the same
+     * place to draw, where over-matching costs a duplicate and under-matching
+     * costs the reader the real page.
      */
+    const norm = (value: string) => (value || '').replace(/[^a-z0-9]+/gi, '').toLowerCase();
+
+    /*
+     * ON THE NATIONAL PAGE THE TIER BELOW IS THE ZONES, AND IT HAS TO SAY SO.
+     *
+     * `regionPanelsOf` returns each zone under its stored `regionName` —
+     * "South", "North East" — because that is the name on the record. Every
+     * other surface prints it with the tier: the header menu, the footer, the
+     * CMS, the zone page's own bench ("South Zone Leaders"). Only these
+     * boards and their contact headings read "SOUTH", which on a page whose
+     * tier below is the five zones and whose OTHER tier is thirty-six states
+     * is the one place a reader cannot tell which of the two they are looking
+     * at.
+     *
+     * `regionTitle` is the same function the bench heading already uses, so a
+     * zone an editor has named "North Eastern Region" is not re-suffixed. On
+     * a zone page the tier below is the STATES and nothing is appended —
+     * "Tamil Nadu Zone" would be a lie about the tier.
+     */
+    const tierName = (value: string) => (national ? regionTitle(value) : (value || ''));
+
+    const derived = (page.statePanels || [])
+        .filter((s) => s && s.name)
+        .map((s) => ({ ...s, name: tierName(s.name) }));
+    const havePage = new Set(derived.map((s) => norm(s?.name || '')));
     const ownBoards = (page.stateRegions || [])
-        .filter((r) => r && (r.leaders || []).length);
-    const derived = (page.statePanels || []).filter((s) => s && (s.leaders || []).length);
-    const statePanels = ownBoards.length ? ownBoards : derived;
+        .filter((r) => r && r.name)
+        .map((r) => ({ ...r, name: tierName(r.name) }))
+        .filter((r) => !havePage.has(norm(r?.name || '')));
+
+    /*
+     * EVERY tier below this page, drawn or not — a bench, a contact, or
+     * both. `statePanelsOf` on the server keeps a state that publishes a
+     * telephone number and no portraits, for the reason its own note gives,
+     * and this page then threw that state away again on the way to the
+     * screen. A filter that contradicts the one that built the list is a
+     * state missing from Get in Touch with nothing to say it was dropped.
+     *
+     * The real pages lead, in the order the zone’s editor arranged them
+     * (`tierOrder`, applied server-side — see `getRegionPage`). The boards
+     * written by hand follow, in their own stored order.
+     */
+    const allPanels = [...derived, ...ownBoards];
+
+    /* The BOARDS: a heading over no faces is a heading over nothing. */
+    const statePanels = allPanels.filter((row) => (row.leaders || []).length);
 
     /* One entry per PERSON, not one per office — see the state page's note. */
     const regionContacts = contactEntries(page.contacts);
@@ -214,10 +295,13 @@ export default function RegionPage() {
 
     const stateContacts = [
         ...ownGroups,
-        /* The boards this page draws, whichever source they came from — so a
+        /* The tiers below this page, whichever source they came from — so a
            board with a contact on it is reachable from Get in Touch too, and
            the two halves of the page cannot disagree about which tiers exist. */
-        ...statePanels
+        /* From ALL of them, not only the ones with a bench: a state whose
+           entry here is a telephone number and nothing else is exactly the
+           state this list exists for. */
+        ...allPanels
             .map((row) => ({ name: row?.name || '', entries: contactEntries(row?.contacts) }))
             .filter((g) => g.name && g.entries.length),
     ];
@@ -232,7 +316,15 @@ export default function RegionPage() {
                     {/* No back link: a region has no parent page. */}
                     <StateHeroBand
                         hero={page.hero}
-                        title={page.regionName}
+                        /*
+                         * "South Zone", as everything else on the site calls
+                         * it — not the bare "South" on the record. The band
+                         * sat directly above a heading reading "South Zone
+                         * Leaders", which is two names for one place, a
+                         * hand's width apart. `regionTitle` is what keeps the
+                         * country "National" rather than "National Zone".
+                         */
+                        title={label}
                         blurb={page.hero.blurb || page.shortDescription}
                         /*
                          * NO "REGION AT A GLANCE", for the same reason the state
@@ -253,7 +345,7 @@ export default function RegionPage() {
                     {(page.leaders || []).length > 0 && (
                         <section>
                             <SectionHead
-                                eyebrow={national ? 'National' : 'Region'}
+                                eyebrow={labels.ownTierEyebrow}
                                 title={`${label} Leaders`}
                             />
                             <LeaderGrid
@@ -272,8 +364,8 @@ export default function RegionPage() {
                         <section>
                             {/* The tier below: a region’s states, the country’s regions. */}
                             <SectionHead
-                                eyebrow={national ? 'Regions' : 'States'}
-                                title={national ? 'Region-wise Leadership' : 'State-wise Leadership'}
+                                eyebrow={labels.tierBelowEyebrow}
+                                title={labels.tierBelowHeading}
                             />
                             {/* : with the panels gone there is no
                                 box edge between one group and the next, so the
@@ -304,9 +396,12 @@ export default function RegionPage() {
                         </section>
                     )}
 
-                    {/* ---- contact ---- */}
-                    <section>
-                        <SectionHead eyebrow="Contact" title="Get in Touch" />
+                    {/* ---- contact ----
+                        `id="contact"` is where the Contact page's region tiles
+                        land (`/states/<slug>#contact`); `scroll-mt` keeps the
+                        heading clear of the sticky header. */}
+                    <section id="contact" className="scroll-mt-32">
+                        <SectionHead eyebrow={labels.contactEyebrow} title={labels.contactHeading} />
 
                         {/*
                           * THE MAP ON THE LEFT, THE PEOPLE ON THE RIGHT — the

@@ -207,7 +207,11 @@ export default function ApprovalQueue({
         const endorsement = String((applicant as any)?.endorsementLine || '');
         const grantsMembership = (applicant as any)?.decidesOutcome !== false;
 
-        const location = [applicant?.block, applicant?.district].filter(Boolean).join(', ');
+        /* Outside India there is no block or district — say so, with the place. */
+        const abroad = (applicant as any)?.isInternational === true;
+        const location = abroad
+            ? ['Outside India', (applicant as any)?.place, (applicant as any)?.country].filter(Boolean).join(' · ')
+            : [applicant?.block, applicant?.district].filter(Boolean).join(', ');
 
         const isAspirant =
             applicant?.doingBusiness === false ||

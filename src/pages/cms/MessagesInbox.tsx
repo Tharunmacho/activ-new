@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Mail, MailOpen, Archive, Trash2, Check, Undo2 } from 'lucide-react';
+import { Mail, MailOpen, Archive, Trash2, Check, Undo2, Loader2 } from 'lucide-react';
 import {
     listContactMessages, setMessageStatus, deleteContactMessage,
     errorMessage, type ContactMessage,
@@ -118,13 +118,29 @@ export default function MessagesInbox() {
         }
     };
 
+    /**
+     * Deleting is confirmed, and the row is held while it happens.
+     *
+     * `removing` is not decoration: the list reloads afterwards, and without
+     * it a second press before the reload lands fires a second DELETE against
+     * an id that is already gone — which comes back as an error about a
+     * message the administrator has successfully deleted.
+     */
+    const [removing, setRemoving] = useState<string | null>(null);
+
     const remove = async (m: ContactMessage) => {
         if (!window.confirm(`Delete the message from ${m.name}? This cannot be undone.`)) return;
+        setRemoving(m._id);
         try {
             await deleteContactMessage(m._id);
+            /* Closed first. The panel is keyed on the id, and leaving it open
+               on a row that no longer exists renders an empty box. */
+            if (open === m._id) setOpen(null);
             await load(filter);
         } catch (err) {
             setError(errorMessage(err, 'Could not delete the message'));
+        } finally {
+            setRemoving(null);
         }
     };
 
@@ -188,8 +204,27 @@ export default function MessagesInbox() {
                                   within a button is invalid markup, and the
                                   browser's recovery is to drop one of them.
                                 */}
-                                {m.status !== 'archived' && (
-                                    <div className="ml-7 mt-1.5">
+                                {/*
+                                  * ==================================================
+                                  * DELETE IS ON THE ROW, as it is on Leader enquiries
+                                  * ==================================================
+                                  *
+                                  * It used to live only inside the expanded panel, so
+                                  * clearing an obvious piece of spam meant OPENING it
+                                  * first — which marks it read, counts it, and puts
+                                  * the thing you are about to throw away through the
+                                  * whole handling flow on the way to the bin.
+                                  *
+                                  * Same treatment as the enquiries screen: red, the
+                                  * bin icon, pushed to the far end of the strip with
+                                  * `ml-auto` so it is never the button next to the one
+                                  * you meant to press. It is offered on EVERY row,
+                                  * archived included — archiving is where things go
+                                  * to be kept, and an archive you cannot clear out is
+                                  * the reason people stop archiving.
+                                  */}
+                                <div className="ml-7 mt-1.5 flex flex-wrap items-center gap-2">
+                                    {m.status !== 'archived' && (
                                         <button
                                             type="button"
                                             disabled={marking === m._id}
@@ -205,8 +240,38 @@ export default function MessagesInbox() {
                                                 ? <><Check className="w-3.5 h-3.5" /> Mark as read</>
                                                 : <><Undo2 className="w-3.5 h-3.5" /> Mark as unread</>}
                                         </button>
-                                    </div>
-                                )}
+                                    )}
+
+                                    {m.status !== 'archived' && (
+                                        <button
+                                            type="button"
+                                            disabled={removing === m._id}
+                                            onClick={() => archive(m)}
+                                            className="inline-flex items-center gap-1.5 rounded-lg border
+                                                       border-slate-300 px-2.5 py-1 text-[1.0625rem]
+                                                       font-semibold text-slate-600 transition-colors
+                                                       hover:border-blue-600 hover:text-blue-700
+                                                       disabled:opacity-50 dark:border-[#2a2a2a]
+                                                       dark:text-neutral-300"
+                                        >
+                                            <Archive className="w-3.5 h-3.5" /> Archive
+                                        </button>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        disabled={removing === m._id}
+                                        onClick={() => remove(m)}
+                                        aria-label={`Delete the message from ${m.name}`}
+                                        className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1
+                                                   text-[1.0625rem] font-semibold text-red-600 transition-colors
+                                                   hover:bg-red-50 disabled:opacity-40 dark:hover:bg-red-950/40"
+                                    >
+                                        {removing === m._id
+                                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            : <Trash2 className="w-3.5 h-3.5" />} Delete
+                                    </button>
+                                </div>
 
                                 {open === m._id && (
                                     <div className="mt-3 ml-7 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#1f1f1f] rounded-lg p-4">
@@ -224,18 +289,15 @@ export default function MessagesInbox() {
                                             {m.message}
                                         </p>
 
+                                        {/* Reply only. Archive and Delete moved up to
+                                            the row, where they are reachable without
+                                            opening the message — two copies of a
+                                            delete a few centimetres apart is one of
+                                            them pressed by accident. */}
                                         <div className="flex flex-wrap gap-2 mt-4">
                                             <a href={`mailto:${m.email}?subject=${encodeURIComponent('Re: ' + (m.subject || 'Your message'))}`}>
                                                 <CmsButton type="button" variant="ghost">Reply by email</CmsButton>
                                             </a>
-                                            {m.status !== 'archived' && (
-                                                <CmsButton type="button" variant="ghost" onClick={() => archive(m)}>
-                                                    <Archive className="w-4 h-4" /> Archive
-                                                </CmsButton>
-                                            )}
-                                            <CmsButton type="button" variant="danger" onClick={() => remove(m)}>
-                                                <Trash2 className="w-4 h-4" /> Delete
-                                            </CmsButton>
                                         </div>
                                     </div>
                                 )}

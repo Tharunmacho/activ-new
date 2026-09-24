@@ -78,17 +78,17 @@ export default function MockPayment() {
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-white font-bold text-lg">ACTIV Platform</h2>
-                  <p className="text-teal-200 text-xs">Secure Payment</p>
+                  <h2 className="text-white font-bold text-[1.1875rem]">ACTIV Platform</h2>
+                  <p className="text-teal-200 text-[1.0625rem]">Secure Payment</p>
                 </div>
               </div>
 
               {/* Amount Display */}
               <div className="mb-10">
-                <p className="text-teal-200 text-xs uppercase tracking-widest mb-2">Amount to Pay</p>
+                <p className="text-teal-200 text-[1.0625rem] uppercase tracking-widest mb-2">Amount to Pay</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl lg:text-6xl font-bold text-white">₹{amount || '0'}</span>
-                  <span className="text-teal-300 text-xl">.00</span>
+                  <span className="text-[3.125rem] lg:text-[3.375rem] font-bold text-white">₹{amount || '0'}</span>
+                  <span className="text-teal-300 text-[1.25rem]">.00</span>
                 </div>
               </div>
 
@@ -101,7 +101,7 @@ export default function MockPayment() {
                   <div className="flex items-center gap-3">
                     <Hash className="w-4 h-4 text-teal-300" />
                     <div>
-                      <p className="text-teal-300 text-xs">Payment Request ID</p>
+                      <p className="text-teal-300 text-[1.0625rem]">Payment Request ID</p>
                       <p className="mt-0.5 text-[1.0625rem] font-semibold tracking-wide tabular-nums text-white">
                         {paymentRequestId || 'N/A'}
                       </p>
@@ -116,8 +116,8 @@ export default function MockPayment() {
                   <div className="flex items-center gap-3">
                     <Calendar className="w-4 h-4 text-teal-300" />
                     <div>
-                      <p className="text-teal-300 text-xs">Date</p>
-                      <p className="text-white text-sm mt-0.5">{new Date().toLocaleDateString('en-IN', {
+                      <p className="text-teal-300 text-[1.0625rem]">Date</p>
+                      <p className="text-white text-[1.0625rem] mt-0.5">{new Date().toLocaleDateString('en-IN', {
                         weekday: 'short',
                         year: 'numeric',
                         month: 'short',
@@ -131,7 +131,7 @@ export default function MockPayment() {
               {/* Security Badge */}
               <div className="mt-8 flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-emerald-300" />
-                <p className="text-teal-200 text-xs">256-bit SSL Encrypted</p>
+                <p className="text-teal-200 text-[1.0625rem]">256-bit SSL Encrypted</p>
               </div>
             </div>
           </div>
@@ -149,8 +149,8 @@ export default function MockPayment() {
               >
                 <CreditCard className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 mb-1">Test Payment</h1>
-              <p className="text-slate-500 text-sm">Simulate payment for testing</p>
+              <h1 className="text-[1.5625rem] font-bold text-slate-900 mb-1">Test Payment</h1>
+              <p className="text-slate-500 text-[1.0625rem]">Simulate payment for testing</p>
             </div>
 
             {/* Test Mode Badge */}
@@ -165,8 +165,8 @@ export default function MockPayment() {
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-amber-800 font-semibold text-sm">Test Environment</p>
-                <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
+                <p className="text-amber-800 font-semibold text-[1.0625rem]">Test Environment</p>
+                <p className="text-amber-700 text-[1.0625rem] mt-0.5 leading-relaxed">
                   No real transactions will occur.
                 </p>
               </div>
@@ -175,7 +175,7 @@ export default function MockPayment() {
             {/* Action Buttons */}
             <div className="space-y-3 flex-1">
               <Button
-                className="w-full py-6 text-sm font-semibold rounded-xl transition-all duration-200"
+                className="w-full py-6 text-[1.0625rem] font-semibold rounded-xl transition-all duration-200"
                 style={{
                   background: processing ? '#d1d5db' : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                   boxShadow: processing ? 'none' : '0 8px 24px -4px rgba(5, 150, 105, 0.4)'
@@ -198,7 +198,7 @@ export default function MockPayment() {
 
               <Button
                 variant="outline"
-                className="w-full py-6 text-sm font-semibold rounded-xl transition-all duration-200 border-2"
+                className="w-full py-6 text-[1.0625rem] font-semibold rounded-xl transition-all duration-200 border-2"
                 style={{
                   borderColor: '#fca5a5',
                   color: '#dc2626',
@@ -219,15 +219,15 @@ export default function MockPayment() {
               <div className="flex items-center justify-center gap-6 text-slate-400">
                 <div className="flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5" />
-                  <span className="text-xs">Secure</span>
+                  <span className="text-[1.0625rem]">Secure</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5" />
-                  <span className="text-xs">Encrypted</span>
+                  <span className="text-[1.0625rem]">Encrypted</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CreditCard className="w-3.5 h-3.5" />
-                  <span className="text-xs">PCI Compliant</span>
+                  <span className="text-[1.0625rem]">PCI Compliant</span>
                 </div>
               </div>
             </div>

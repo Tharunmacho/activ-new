@@ -181,7 +181,7 @@ export default function AdminSidebar({
         } catch (err) {
             console.warn('Logout safely caught:', err);
         }
-        navigate('/login');
+        navigate('/admin/login');
         onClose?.();
     };
 
@@ -283,7 +283,7 @@ export default function AdminSidebar({
                                                 ? 'bg-white/25 text-white backdrop-blur-sm'
                                                 : 'text-white hover:bg-white/20 backdrop-blur-sm'}`}
                                     >
-                                        <span className="w-[1.375rem] h-[1.375rem] text-[1.3125rem] text-white
+                                        <span className="w-[1.375rem] h-[1.375rem] text-[1.25rem] text-white
                                                          flex items-center justify-center">
                                             {ICONS[item.icon]}
                                         </span>
@@ -323,7 +323,7 @@ export default function AdminSidebar({
                                                         </span>
                                                         {/* One step under its parent, not two. A child at
                                                             13px beside a 16px parent read as a footnote. */}
-                                                        <span className="text-[1.125rem]">{child.label}</span>
+                                                        <span className="text-[1.1875rem]">{child.label}</span>
                                                     </Link>
                                                 );
                                             })}
@@ -346,7 +346,7 @@ export default function AdminSidebar({
                                     : 'text-white hover:bg-white/20 backdrop-blur-sm'
                                     }`}
                             >
-                                <span className={`w-[1.375rem] h-[1.375rem] text-[1.3125rem] flex items-center
+                                <span className={`w-[1.375rem] h-[1.375rem] text-[1.25rem] flex items-center
                                                   justify-center ${active ? 'text-blue-600' : 'text-white'}`}>
                                     {ICONS[item.icon]}
                                 </span>
@@ -412,7 +412,10 @@ export default function AdminSidebar({
               * This is the one rail every tier renders - block, district, state
               * and super all re-export this file - so the four move together.
               */}
-            <div className={`hidden lg:flex lg:flex-col lg:w-[17.5rem] xl:w-[20.5rem] 2xl:w-[22rem] h-screen sticky top-0 min-h-0 ${shell}`}>
+            {/* `shrink-0`: the shell is `overflow-hidden`, which makes a flex
+                item's automatic minimum width zero, so a wide page could
+                squeeze the rail down to a sliver of gradient at the edge. */}
+            <div className={`hidden lg:flex lg:flex-col shrink-0 lg:w-[17.5rem] xl:w-[20.5rem] 2xl:w-[22rem] h-screen sticky top-0 min-h-0 ${shell}`}>
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full filter blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full filter blur-3xl pointer-events-none" />
                 {content}

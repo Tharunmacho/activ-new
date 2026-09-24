@@ -71,11 +71,55 @@ const formatDay = (iso?: string | null): string => {
 };
 
 /** "10:30" — empty when the event carries no time of day. */
+/**
+ * A time a reader can act on — "09:00 AM", not "09:00".
+ *
+ * `en-GB` with no `hour12` is a 24-hour clock, so a conference running
+ * 9am to 5pm printed as "09:00 – 05:00": the end reads as earlier than the
+ * start, and the one thing the row exists to say — morning or evening — is
+ * the thing it does not say. Reported exactly that way.
+ *
+ * `hour12: true` rather than switching locale, so the date formatting either
+ * side of it is untouched.
+ */
 const formatTime = (iso?: string | null): string => {
     if (!iso) return '';
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+        .toUpperCase();
+};
+
+/**
+ * An Indian mobile as a reader dials it: "+91 82201 12188".
+ *
+ * Only a ten-digit mobile, or one already carrying 91, is reformatted. A
+ * trunk zero is dropped — "09940175051" is eleven digits beginning with a
+ * 0, which is how it is dialled inside India and is wrong with a country
+ * code in front of it. Anything else is returned untouched, because a
+ * landline or a foreign number is not this shape and guessing would mangle
+ * it.
+ */
+const formatPhone = (value?: string | null): string => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const digits = raw.replace(/\D/g, '');
+    const national = digits.length === 12 && digits.startsWith('91')
+        ? digits.slice(2)
+        : digits.length === 11 && digits.startsWith('0')
+            ? digits.slice(1)
+            : digits;
+
+    /*
+     * AN INDIAN MOBILE STARTS 6, 7, 8 OR 9, and that check is what keeps a
+     * landline out. "044 2851 1234" is eleven digits beginning with a trunk
+     * zero, so the rule above strips it to ten — and without this it would be
+     * printed as "+91 44285 11234", a mobile number that does not exist, in
+     * place of a switchboard somebody is meant to ring.
+     */
+    if (national.length !== 10 || !/^[6-9]/.test(national)) return raw;
+    return `+91 ${national.slice(0, 5)} ${national.slice(5)}`;
 };
 
 /** The facts list joins multi-line values with this. */
@@ -190,9 +234,82 @@ export default function EventDetailPage() {
      */
     const isOnline = event.mode === 'online';
 
-    const agenda = (event.agenda || []).filter(row => row && (row.title || row.startTime));
+    const flatAgenda = (event.agenda || []).filter(row => row && (row.title || row.startTime));
+
+    /*
+     * ==================================================================
+     * THE PROGRAMME, DAY BY DAY — but only when there IS more than one
+     * ==================================================================
+     *
+     * `days` is empty on a single-day event and on everything written before
+     * the field existed, and in that case nothing below changes: the flat
+     * `agenda` is drawn exactly as it always was, with no day headings. A
+     * "Day 1" over the only day of a one-day event is furniture describing
+     * nothing, and the association asked for it not to appear.
+     *
+     * A day is kept when it has hours of its own OR sessions of its own. A day
+     * with neither is a row the editor never filled in — printing an empty
+     * "Day 2" would read as a day with nothing happening on it rather than as
+     * a day nobody has written up yet.
+     */
+    const days = (event.days || []).filter(d => d && d.date
+        && (d.startTime || d.endTime || (d.agenda || []).some(r => r && (r.title || r.startTime))));
+    /*
+     * DAY HEADINGS WHENEVER THE EVENT ITSELF SPANS SEVERAL DAYS — counted on
+     * the event's days, not on the ones with content.
+     *
+     * This read `days.length > 1` AFTER the empty days were filtered out, so a
+     * two-day event whose editor had filled in only Day 1 counted as one day,
+     * fell through to the flat `agenda` (empty on every event written with the
+     * day editor) and showed NO programme at all — the sessions were saved and
+     * simply never drawn.
+     */
+    const perDay = days.length > 0 && (event.days || []).filter(d => d && d.date).length > 1;
+
+    /* A one-day event written with the day editor keeps its sessions on that
+       day, not in the flat agenda — so they are the programme when the flat
+       list is empty. */
+    const agenda = flatAgenda.length
+        ? flatAgenda
+        : (days[0]?.agenda || []).filter(row => row && (row.title || row.startTime));
+
+    /** "Sat, 10 Oct 2026" — the wording the facts list uses for a date. */
+    const dayHeading = (iso: string) => {
+        const d = new Date(`${String(iso).slice(0, 10)}T00:00:00`);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-GB', {
+            weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+        });
+    };
+
+    /** "09:30" -> "09:30 AM". The stored value is a 24-hour string. */
+    const clock = (hhmm?: string) => {
+        const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '').trim());
+        if (!m) return '';
+        const h = Number(m[1]);
+        const meridiem = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        return `${String(h12).padStart(2, '0')}:${m[2]} ${meridiem}`;
+    };
+
+    /** "09:30 AM – 05:00 PM", or just the one that was given. */
+    const span = (from?: string, to?: string) => {
+        const a = clock(from);
+        const b = clock(to);
+        if (a && b) return `${a} – ${b}`;
+        return a || b || '';
+    };
     const speakers = (event.speakers || []).filter(person => person && person.name);
     const day = formatDay(event.startAt);
+    /*
+     * The last day, and only when it is a DIFFERENT day.
+     *
+     * `endAt` carries the finishing time of a single-day event as well, so
+     * comparing the formatted days rather than the instants is what keeps a
+     * one-day conference from reading as "12 Oct - 12 Oct".
+     */
+    const lastDay = formatDay(event.endAt);
+    const runsOverDays = !!lastDay && lastDay !== day;
     const startTime = formatTime(event.startAt);
     const endTime = formatTime(event.endAt);
 
@@ -223,10 +340,37 @@ export default function EventDetailPage() {
     const facts = [
         day ? {
             icon: <Calendar size={16} />,
-            label: 'Date',
-            value: day,
+            label: runsOverDays ? 'Dates' : 'Date',
+            /* A three-day conclave says so here. Printing only the first day
+               tells somebody booking travel they need one night. */
+            value: runsOverDays ? `${day} – ${lastDay}` : day,
         } : null,
-        startTime ? {
+        /*
+         * ONE ROW PER DAY when the days differ, one row when they do not.
+         *
+         * A three-day conclave printed a single "09:00 – 05:00" here, which is
+         * the hours of nothing in particular — day one opens late and day three
+         * closes at lunch. Worse, it was a 24-hour clock, so the end read as
+         * earlier than the start. The facts list joins multi-line values on
+         * `NEWLINE`, so each day gets its own line under the one heading.
+         */
+        /* Only when at least one day HAS hours — `.filter(Boolean)` below drops
+           a null entry but keeps an object whose value is an empty string,
+           which would draw a "Times" heading with nothing under it. */
+        (perDay && days.some(d => span(d.startTime, d.endTime))) ? {
+            icon: <Clock size={16} />,
+            label: 'Times',
+            value: days
+                .map((d, i) => {
+                    const hours = span(d.startTime, d.endTime);
+                    /* "Day 1 : 10:30 AM – 05:00 PM". Two spaces read as a
+                       ragged gap once the day numbers reach double figures;
+                       a colon is what makes it a label and its value. */
+                    return hours ? `Day ${i + 1} : ${hours}` : '';
+                })
+                .filter(Boolean)
+                .join(NEWLINE),
+        } : startTime ? {
             icon: <Clock size={16} />,
             label: 'Time',
             // An end time is optional — many events are announced without one.
@@ -254,10 +398,39 @@ export default function EventDetailPage() {
                 ? `${event.venue || event.location}\n${event.venueAddress}`
                 : (event.venue || event.location),
         } : null,
-        event.contactName || event.contactPhone || event.contactEmail ? {
+        /*
+         * ======================================================================
+         * THREE ROWS, NOT ONE BLOCK — a number needs to say it is a number
+         * ======================================================================
+         *
+         * This was one "Contact" row with the name, the number and the address
+         * stacked inside it as plain lines. A reader met a bare string of
+         * digits and a bare email with nothing naming either, which is exactly
+         * what was reported: "before the number I should get the field as
+         * phone, and before the email address the field as email".
+         *
+         * Split into their own rows, each keeps the label and the icon the
+         * facts list already gives every other fact — so PHONE and EMAIL read
+         * the same way DATES and VENUE do, with no new furniture invented for
+         * them. They are also `href`ed now: a number on a phone is something to
+         * tap, and printing it as dead text makes the reader copy it by hand.
+         */
+        event.contactName ? {
             icon: <User size={16} />,
             label: 'Contact',
-            value: [event.contactName, event.contactPhone, event.contactEmail].filter(Boolean).join('\n'),
+            value: event.contactName,
+        } : null,
+        event.contactPhone ? {
+            icon: <Phone size={16} />,
+            label: 'Phone',
+            value: formatPhone(event.contactPhone),
+            href: `tel:${String(event.contactPhone).replace(/[^\d+]/g, '')}`,
+        } : null,
+        event.contactEmail ? {
+            icon: <Mail size={16} />,
+            label: 'Email',
+            value: event.contactEmail,
+            href: `mailto:${event.contactEmail}`,
         } : null,
         /*
          * The static capacity, ONLY until the live meter arrives.
@@ -280,12 +453,31 @@ export default function EventDetailPage() {
          * drawn once it has passed: the button says so by then, and a date that
          * has gone reads as an invitation.
          */
+        /*
+         * "REGISTRATION CLOSES", not "Book by".
+         *
+         * Every other row in this list is a LABEL and its value — DATES, TIMES,
+         * VENUE, PHONE. "Book by" is an instruction, so beside them it read as
+         * the start of a sentence the date finished, and a visitor scanning
+         * the column had to stop and re-read it.
+         *
+         * It also says the right thing for an event that is not charging. The
+         * label is what the date IS — the last day the list is open — rather
+         * than an order to the reader, and it matches the wording of the
+         * deadline field in the CMS.
+         */
         (deadline && !bookingClosed) ? {
             icon: <Clock size={16} />,
-            label: 'Book by',
+            label: event.registrationFee && Number(event.registrationFee) > 0
+                ? 'Book before'
+                : 'Register before',
             value: deadline,
         } : null,
-    ].filter(Boolean) as { icon: React.ReactNode; label: string; value: string }[];
+    ].filter(Boolean) as {
+        icon: React.ReactNode; label: string; value: string;
+        /** Set where the value is something to tap — a number, an address. */
+        href?: string;
+    }[];
 
     const countdown = countdownLabel(event.startAt);
     /*
@@ -341,8 +533,31 @@ export default function EventDetailPage() {
                                       * every width and matches the card the
                                       * visitor clicked to get here.
                                       */}
-                                    <div className="w-full aspect-[16/9] max-h-[30rem]">
-                                        <CmsMediaFrame media={event.media} priority width={1100} />
+                                    {/*
+                                      * TALLER, and the whole poster is visible.
+                                      *
+                                      * 30rem cropped a 16:9 banner on any screen
+                                      * wider than about 1330px — the frame kept
+                                      * the ratio, the height cap overrode it, and
+                                      * the sides were cut. 38rem lets a 1600px
+                                      * banner show at its full width on a laptop.
+                                      *
+                                      * `contain` on a tinted ground, so an image
+                                      * that is NOT 16:9 is shown whole rather
+                                      * than cropped through its middle. A poster
+                                      * with the date along the bottom loses the
+                                      * date under `cover`, and that was the
+                                      * complaint: the image has to fit the frame,
+                                      * not the frame the image. An editor who
+                                      * wants edge-to-edge still sets Fit to
+                                      * "cover" on the banner and gets it.
+                                      */}
+                                    <div className="w-full aspect-[16/9] max-h-[38rem] bg-slate-50">
+                                        <CmsMediaFrame
+                                            media={{ ...event.media, fit: event.media.fit || 'contain' }}
+                                            priority
+                                            width={1600}
+                                        />
                                     </div>
                                 </div>
                             </Reveal>
@@ -358,16 +573,16 @@ export default function EventDetailPage() {
                           * edge without any of them being outlined more heavily.
                           */}
                         <div className={`${SHEET} mt-10`}>
-                        <div className="grid gap-4 sm:gap-5 lg:gap-6 lg:grid-cols-[1.6fr_1fr] items-start">
+                        <div className="grid gap-4 sm:gap-5 lg:gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start">
 
-                            <div className={`${BIZ_CARD} p-6 sm:p-8`}>
+                            <div className={`${BIZ_CARD} p-6 sm:p-8 min-w-0`}>
                                 {event.category && (
                                     <span className={`${BIZ_BADGE} bg-brand-50 text-brand-700 border border-brand-100 mb-5`}>
                                         {event.category}
                                     </span>
                                 )}
 
-                                <h1 className={`${SECTION_HEADING} text-brand-800 mb-5`}>
+                                <h1 className={`${SECTION_HEADING} text-brand-800 mb-5 break-words [overflow-wrap:anywhere] hyphens-auto`}>
                                     {/* Never an empty heading - the same fallback
                                         the cards use, because nothing on the
                                         event form is required. */}
@@ -441,20 +656,93 @@ export default function EventDetailPage() {
                                   */}
                                 <EventActions event={event} className="mb-8" />
 
-                                {/* ---- agenda ---- */}
-                                {agenda.length > 0 && (
+                                {/* ---- programme ----
+
+                                    DAY BY DAY when the event runs over more than
+                                    one, and exactly as it always was when it does
+                                    not. See `days` above: a single-day event gets
+                                    no "Day 1" heading, because a day label over
+                                    the only day of an event says nothing.
+                                */}
+                                {perDay ? (
+                                    <div className="mt-8 pt-8 border-t border-slate-100">
+                                        <h2 className={`${BIZ_CARD_TITLE} mb-5`}>Programme</h2>
+                                        <div className="space-y-8">
+                                            {days.map((day, d) => {
+                                                const rows = (day.agenda || [])
+                                                    .filter(r => r && (r.title || r.startTime));
+                                                const hours = span(day.startTime, day.endTime);
+                                                return (
+                                                    <section key={day.id || day.date || d}>
+                                                        {/* Which day it is, the date, and its hours. */}
+                                                        <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                                            <span className="inline-flex items-center rounded-lg bg-brand-50
+                                                                             px-2.5 py-1 text-[1.0625rem] font-bold
+                                                                             uppercase tracking-wide text-brand-700">
+                                                                Day {d + 1}
+                                                            </span>
+                                                            <span className="text-[1.25rem] font-bold text-slate-900">
+                                                                {dayHeading(day.date)}
+                                                            </span>
+                                                            {hours && (
+                                                                <span className="text-[1.125rem] font-semibold text-slate-500">
+                                                                    {hours}
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {rows.length > 0 ? (
+                                                            <ol className="border-l-2 border-slate-200 pl-5 space-y-6">
+                                                                {rows.map((row, i) => (
+                                                                    <li key={row.id || i} className="relative">
+                                                                        <span className="absolute -left-[1.6875rem] top-1.5 w-3 h-3 rounded-full
+                                                                                         bg-brand-600 ring-4 ring-white" />
+                                                    {(row.startTime || row.endTime) && (
+                                                                            <p className={`${BIZ_DETAIL_LABEL} mb-1`}>
+                                                                                {span(row.startTime, row.endTime)}
+                                                                            </p>
+                                                                        )}
+                                                                        <p className="text-[1.25rem] font-bold text-slate-900">{row.title}</p>
+                                                                        {row.description && (
+                                                                            <p className="text-[1.25rem] text-slate-500 mt-1 whitespace-pre-line">
+                                                                                {row.description}
+                                                                            </p>
+                                                                        )}
+                                                                        {(row.speaker || row.location) && (
+                                                                            <p className={`${BIZ_DETAIL_LABEL} mt-1.5`}>
+                                                                                {[row.speaker, row.location].filter(Boolean).join(' · ')}
+                                                                            </p>
+                                                                        )}
+                                                                    </li>
+                                                                ))}
+                                                            </ol>
+                                                        ) : (
+                                                            /* Hours but no sessions is a real state: the day
+                                                               is settled and the programme is not written
+                                                               yet. Say so, rather than leave a heading with
+                                                               nothing under it. */
+                                                            <p className="pl-5 text-[1.1875rem] text-slate-400">
+                                                                The programme for this day is still being confirmed.
+                                                            </p>
+                                                        )}
+                                                    </section>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : agenda.length > 0 && (
                                     <div className="mt-8 pt-8 border-t border-slate-100">
                                         <h2 className={`${BIZ_CARD_TITLE} mb-5`}>Programme</h2>
                                         <ol className="border-l-2 border-slate-200 pl-5 space-y-6">
                                             {agenda.map((row, i) => (
                                                 <li key={row.id || i} className="relative">
-                                                    {/* The dot sits on the rule, so the times read as a timeline
-                                                        rather than as a table with a stray border. */}
+                                                    {/* The dot sits on the rule, so the times read as a
+                                                        timeline rather than as a table with a stray border. */}
                                                     <span className="absolute -left-[1.6875rem] top-1.5 w-3 h-3 rounded-full
                                                                      bg-brand-600 ring-4 ring-white" />
                                                     {(row.startTime || row.endTime) && (
                                                         <p className={`${BIZ_DETAIL_LABEL} mb-1`}>
-                                                            {row.startTime}{row.endTime ? ` – ${row.endTime}` : ''}
+                                                            {span(row.startTime, row.endTime)}
                                                         </p>
                                                     )}
                                                     <p className="text-[1.25rem] font-bold text-slate-900">{row.title}</p>
@@ -490,7 +778,12 @@ export default function EventDetailPage() {
                                           * content when there is one, and still
                                           * gives two or three a row.
                                           */}
-                                        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(15rem,max-content))]">
+                                        {/* 18rem, not 15rem: the portrait grew to 5.5rem and
+                                            a designation runs to three lines beside it, so the
+                                            old track squeezed "Minister for Social Justice
+                                            Department, Government of Tamilnadu" into a column
+                                            of single words. */}
+                                        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(18rem,max-content))]">
                                             {speakers.map((person, i) => (
                                                 <div
                                                     key={person.id || i}
@@ -500,11 +793,43 @@ export default function EventDetailPage() {
                                                     className="flex items-start gap-4 rounded-xl border border-slate-200
                                                                bg-slate-50 p-4"
                                                 >
-                                                    <div className="w-14 h-14 rounded-full overflow-hidden bg-white border
-                                                                    border-slate-200 shrink-0 flex items-center justify-center">
+                                                    {/*
+                                                      * A PORTRAIT BIG ENOUGH TO BE A FACE.
+                                                      *
+                                                      * 3.5rem is a thumbnail — at that size a
+                                                      * minister is a smudge, and the card read
+                                                      * as a list item rather than as somebody
+                                                      * worth turning up for. 5.5rem is the
+                                                      * smallest a head reads at across a
+                                                      * two-column row.
+                                                      *
+                                                      * `fit: 'cover'` and `position: 'top'`,
+                                                      * explicitly. A portrait is taller than it
+                                                      * is wide, so fitting the WHOLE image into
+                                                      * a circle would pad the sides and leave a
+                                                      * small head in a large ring. Cover fills
+                                                      * the circle; anchoring to the top is what
+                                                      * keeps the face in it, because a centred
+                                                      * crop of a standing photograph is a chest.
+                                                      *
+                                                      * `width` is twice the rendered size, so a
+                                                      * retina screen gets a sharp portrait.
+                                                      */}
+                                                    <div className="w-[5.5rem] h-[5.5rem] rounded-full overflow-hidden bg-white
+                                                                    border border-slate-200 shrink-0 flex items-center
+                                                                    justify-center">
                                                         {person.photoUrl
-                                                            ? <CmsMediaFrame media={{ url: person.photoUrl }} width={80} />
-                                                            : <User size={20} className="text-slate-400" />}
+                                                            ? (
+                                                                <CmsMediaFrame
+                                                                    media={{
+                                                                        url: person.photoUrl,
+                                                                        fit: 'cover',
+                                                                        position: 'top',
+                                                                    }}
+                                                                    width={176}
+                                                                />
+                                                            )
+                                                            : <User size={30} className="text-slate-400" />}
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="text-[1.25rem] font-bold text-slate-900">{person.name}</p>
@@ -525,7 +850,7 @@ export default function EventDetailPage() {
                             </div>
 
                             {/* ---- the side card ---- */}
-                            <aside className={`${BIZ_CARD} p-6 sm:p-7 lg:sticky lg:top-28`}>
+                            <aside className={`${BIZ_CARD} p-6 sm:p-7 lg:sticky lg:top-28 min-w-0`}>
                                 {/*
                                   * ONE ROW SHAPE, REPEATED.
                                   *
@@ -564,23 +889,28 @@ export default function EventDetailPage() {
                                               * other fact prints as before.
                                               */}
                                             <p className={`${BIZ_DETAIL_VALUE} mt-1 break-words whitespace-pre-line`}>
-                                                {fact.label === 'Contact'
-                                                    ? fact.value.split(NEWLINE).map((line, n) => {
-                                                        const isPhone = /^[+\d][\d\s()-]{6,}$/.test(line.trim());
-                                                        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(line.trim());
-                                                        return (
-                                                            <span key={n} className="block">
-                                                                {isPhone || isEmail ? (
-                                                                    <a
-                                                                        href={`${isPhone ? 'tel:' : 'mailto:'}${line.trim()}`}
-                                                                        className="hover:text-brand-700 transition-colors"
-                                                                    >
-                                                                        {line}
-                                                                    </a>
-                                                                ) : line}
-                                                            </span>
-                                                        );
-                                                    })
+                                                {/*
+                                                  * THE ROW SAYS WHETHER IT IS A LINK.
+                                                  *
+                                                  * This matched each line of the
+                                                  * Contact block against a regex to
+                                                  * guess "is that a phone number".
+                                                  * Phone and Email are rows of their
+                                                  * own now, each carrying its own
+                                                  * `href`, so the guess is gone —
+                                                  * along with the case it got wrong:
+                                                  * a venue name with digits in it
+                                                  * came out as a telephone link.
+                                                  */}
+                                                {fact.href
+                                                    ? (
+                                                        <a
+                                                            href={fact.href}
+                                                            className="hover:text-brand-700 transition-colors"
+                                                        >
+                                                            {fact.value}
+                                                        </a>
+                                                    )
                                                     : fact.value}
                                             </p>
                                         </div>
@@ -603,13 +933,13 @@ export default function EventDetailPage() {
                                   */}
                                 {capped && (
                                     <div className={`${BIZ_WELL} mt-5`}>
-                                        <div className="flex items-baseline justify-between gap-3">
+                                        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                                             <p className={BIZ_DETAIL_LABEL}>Availability</p>
-                                            <p className={`text-[1.1875rem] font-bold ${
+                                            <p className={`text-[1.1875rem] font-bold whitespace-nowrap ${
                                                 soldOut ? 'text-rose-600'
                                                     : fillingFast ? 'text-amber-700' : 'text-slate-900'
                                             }`}>
-                                                {soldOut ? 'Fully booked' : `${seatsLeft} of ${capacity} left`}
+                                                {soldOut ? 'Fully booked' : `${Number(seatsLeft || 0).toLocaleString('en-IN')} of ${Number(capacity || 0).toLocaleString('en-IN')} left`}
                                             </p>
                                         </div>
                                         <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
@@ -622,7 +952,7 @@ export default function EventDetailPage() {
                                             />
                                         </div>
                                         <p className="mt-2 text-[1.1875rem] font-semibold text-slate-500">
-                                            {capacity - Number(seatsLeft)} booked so far
+                                            {Math.max(0, Number(capacity || 0) - Number(seatsLeft || 0)).toLocaleString('en-IN')} booked so far
                                         </p>
                                     </div>
                                 )}

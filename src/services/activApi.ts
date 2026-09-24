@@ -286,7 +286,17 @@ const EMPTY_DASHBOARD: AdminDashboard = {
  * it found in `data.role`. Calling a second "admin login" endpoint is what the
  * website used to do, and that endpoint has never existed on this backend.
  */
-export const login = async (email: string, password: string): Promise<LoginResult> => {
+export const login = async (
+    email: string,
+    password: string,
+    /**
+     * WHICH SIGN-IN SCREEN this came from: `admin` for /admin/login, `member`
+     * for /login. The server refuses the wrong one and returns no token at all
+     * — see `assertPortal` in `auth.service.js`. Omitted, either is accepted,
+     * which is what the mobile app still does.
+     */
+    portal?: 'member' | 'admin',
+): Promise<LoginResult> => {
     /*
      * Forget the previous session before asking about the next one.
      *
@@ -305,6 +315,7 @@ export const login = async (email: string, password: string): Promise<LoginResul
     const res = await api.post(ENDPOINTS.AUTH.LOGIN, {
         email: String(email || '').toLowerCase().trim(),
         password,
+        ...(portal ? { portal } : {}),
     });
 
     const data = unwrap<any>(res, {});
@@ -364,6 +375,8 @@ export const register = async (payload: {
     district: string;
     block: string;
     city?: string;
+    /** Members outside India give a place instead of a state/district/block. */
+    place?: string;
 }): Promise<LoginResult> => {
     // `payload` is posted whole, so a new field reaches the server as soon as
     // the type admits it — unlike the wrapper in `shared/services/authService`,
@@ -728,6 +741,8 @@ export interface Certificate {
     member: {
         name: string; membershipNumber: string; email: string;
         block: string; district: string; state: string;
+        /** Members outside India: no region — the place and country instead. */
+        isInternational?: boolean; place?: string; country?: string;
     };
     /** `annual` | `lifetime` | `''`. The client words it for display. */
     membershipType: 'annual' | 'lifetime' | '';
@@ -751,6 +766,26 @@ export interface Certificate {
      * different years on the same document.
      */
     financialYear: string;
+    /**
+     * What was actually received — the TAX certificate only, `null` on the other.
+     *
+     * The exemption certificate is laid out as a Form 10BE, which names a sum
+     * and the transaction it arrived on.
+     *
+     * `amount` IS NULLABLE AND HAS TO BE TREATED SO. Both `paymentAmount` and
+     * `paymentId` were undeclared on the member schema for a long window and
+     * Mongoose strict mode dropped them on every payment in it, so a member
+     * activated then has a paid membership and no record of the sum. Filling
+     * that gap with a plausible figure would put a number on a tax document
+     * that nobody can reconcile against the books — the row is dropped instead.
+     */
+    contribution: {
+        /** Rupees. NULL when the platform has no record of the sum. */
+        amount: number | null;
+        /** The gateway's transaction id, or `''`. */
+        reference: string;
+        receivedOn: string | null;
+    } | null;
     /** A quotable reference, stable for a given membership on a given day. */
     reference: string;
     issuedAt: string;

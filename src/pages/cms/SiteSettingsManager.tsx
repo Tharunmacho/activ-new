@@ -257,7 +257,7 @@ export default function SiteSettingsManager() {
                                 style={{ backgroundColor: site.header.background || '#ffffff' }}
                             >
                                 <span
-                                    className="text-[0.75rem] font-bold uppercase tracking-wider whitespace-nowrap"
+                                    className="text-[1.0625rem] font-bold uppercase tracking-wider whitespace-nowrap"
                                     style={{ color: site.header.textColor || '#1c2e68' }}
                                 >
                                     {site.brand.fullName || 'Your organisation'}
@@ -330,24 +330,24 @@ export default function SiteSettingsManager() {
 
                                 <div className="min-w-0 flex-1">
                                     <p className="text-[1.25rem] font-bold text-slate-900 dark:text-white">
-                                        Regions
-                                        <span className="ml-2 text-[1rem] font-semibold text-slate-400">
+                                        Zones
+                                        <span className="ml-2 text-[1.0625rem] font-semibold text-slate-400">
                                             always last
                                         </span>
                                     </p>
-                                    <p className="text-[1rem] text-slate-500 dark:text-neutral-400">
-                                        A menu of the national page, the five regions and their states —
+                                    <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                                        A menu of the national page, the five zones and their states —
                                         built from the pages themselves, so publishing one adds it here.
                                     </p>
                                 </div>
 
                                 <a
                                     href="/cms/regions"
-                                    className="shrink-0 rounded-lg px-3 py-1.5 text-[1rem] font-semibold
+                                    className="shrink-0 rounded-lg px-3 py-1.5 text-[1.0625rem] font-semibold
                                                text-blue-700 transition-colors hover:bg-blue-50
                                                dark:text-blue-400 dark:hover:bg-blue-950/40"
                                 >
-                                    Edit in Regions &amp; States
+                                    Edit in Zones &amp; States
                                 </a>
                             </div>
                         </CmsStep>
@@ -389,7 +389,18 @@ export default function SiteSettingsManager() {
                     />
                     <CmsSteps>
                         <CmsStep
+                            /*
+                             * `card` only, on all six footer columns.
+                             *
+                             * A footer column is a narrow strip of labelled
+                             * lines — a telephone number, an address — on a
+                             * dark ground. A section of prose with its own
+                             * heading in a 300px column is a heading over a
+                             * word-per-line paragraph, and there are three of
+                             * those columns side by side.
+                             */
                             sectionKey="footer.brand"
+                            fieldMode="card"
                             step="Footer 1"
                             title="Logo and name"
                             hint="The same mark and name the header uses. Change them in the Header card above."
@@ -421,7 +432,8 @@ export default function SiteSettingsManager() {
                             </div>
                         </CmsStep>
 
-                        <CmsStep sectionKey="footer.address" step="Footer 2" title="Address" hint="One line per line.">
+                        <CmsStep sectionKey="footer.address"
+                            fieldMode="card" step="Footer 2" title="Address" hint="One line per line.">
                             <LineList
                                 value={site.footer.addressLines}
                                 onChange={addressLines => patch('footer', { addressLines })}
@@ -431,6 +443,7 @@ export default function SiteSettingsManager() {
 
                         <CmsStep
                             sectionKey="footer.linkColumns"
+                            fieldMode="card"
                             step="Footer 3"
                             title="Link columns"
                             hint="Each column renders side by side. Leave a heading blank for an unlabelled column."
@@ -463,7 +476,8 @@ export default function SiteSettingsManager() {
                             />
                         </CmsStep>
 
-                        <CmsStep sectionKey="footer.contact" step="Footer 4" title="Contact">
+                        <CmsStep sectionKey="footer.contact"
+                            fieldMode="card" step="Footer 4" title="Contact">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <CmsField label="Heading">
                                     <CmsInput
@@ -495,6 +509,7 @@ export default function SiteSettingsManager() {
 
                         <CmsStep
                             sectionKey="footer.socials"
+                            fieldMode="card"
                             step="Footer 5"
                             title="Social buttons"
                             hint="A button with no link at all is removed when you save. Leave # as a placeholder while an account is being set up."
@@ -522,7 +537,8 @@ export default function SiteSettingsManager() {
                             />
                         </CmsStep>
 
-                        <CmsStep sectionKey="footer.bottomBar" step="Footer 6" title="Bottom bar">
+                        <CmsStep sectionKey="footer.bottomBar"
+                            fieldMode="card" step="Footer 6" title="Bottom bar">
                             <CmsField
                                 label="Copyright line"
                                 hint="Write {year} where the current year should appear — it then never needs updating."
@@ -567,18 +583,18 @@ export default function SiteSettingsManager() {
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-[1.25rem] font-bold text-slate-900 dark:text-white">
                                                     Your published policies
-                                                    <span className="ml-2 text-[1rem] font-semibold text-slate-400">
+                                                    <span className="ml-2 text-[1.0625rem] font-semibold text-slate-400">
                                                         always shown
                                                     </span>
                                                 </p>
-                                                <p className="text-[1rem] text-slate-500 dark:text-neutral-400">
+                                                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
                                                     One row per published policy. Publishing another adds it
                                                     to the footer on its own.
                                                 </p>
                                             </div>
                                             <a
                                                 href="/cms/legal"
-                                                className="shrink-0 rounded-lg px-3 py-1.5 text-[1rem] font-semibold
+                                                className="shrink-0 rounded-lg px-3 py-1.5 text-[1.0625rem] font-semibold
                                                            text-blue-700 transition-colors hover:bg-blue-50
                                                            dark:text-blue-400 dark:hover:bg-blue-950/40"
                                             >
@@ -594,7 +610,7 @@ export default function SiteSettingsManager() {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-1.5 rounded-lg border
-                                                                   border-slate-200 bg-white px-3 py-1.5 text-[1rem]
+                                                                   border-slate-200 bg-white px-3 py-1.5 text-[1.0625rem]
                                                                    font-semibold text-slate-700 transition-colors
                                                                    hover:bg-slate-100 dark:border-[#2a2a2a]
                                                                    dark:bg-[#111] dark:text-neutral-300"
@@ -608,7 +624,7 @@ export default function SiteSettingsManager() {
                                     </div>
                                 )}
 
-                                <p className="mb-2 text-[1rem] font-medium text-slate-500 dark:text-neutral-400">
+                                <p className="mb-2 text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
                                     Anything else for that row — a regulator, a parent body. These are
                                     yours to type; the policies above look after themselves.
                                 </p>
@@ -628,7 +644,7 @@ export default function SiteSettingsManager() {
                                     (l) => !l.href || l.href.trim() === '#' || l.href.trim().startsWith('#'),
                                 ) && (
                                     <p className="mt-2.5 flex items-start gap-2 rounded-lg border border-amber-200
-                                                  bg-amber-50 px-3 py-2 text-[1rem] font-medium text-amber-900
+                                                  bg-amber-50 px-3 py-2 text-[1.0625rem] font-medium text-amber-900
                                                   dark:border-amber-900/60 dark:bg-amber-950/30
                                                   dark:text-amber-300">
                                         <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />

@@ -24,6 +24,7 @@ import {
     listRegionPagesAdmin, getRegionPageAdmin, getStatePageAdmin,
     type AdminRegionRow, type AdminStateRow,
     saveRegionPage, saveStatePage, listRegionGallery,
+    STATE_LABELS, ZONE_LABELS, NATIONAL_LABELS,
     type GalleryPhoto,
     type RegionPage, type StatePage, type RegionLeader, type RegionFeedItem, type RegionSlide,
     type RegionContactPerson, type RegionContactGroup,
@@ -109,10 +110,10 @@ export default function RegionsManager() {
 
     const closePage = () => { setParams(new URLSearchParams()); window.scrollTo({ top: 0 }); };
 
-    /* Region key -> "South Region", for the state rows' subtitle. */
+    /* Zone key -> "South Zone", for the state rows' subtitle. */
     const regionLabels = useMemo(
         () => new Map(regions.filter((r) => !r.national)
-            .map((r) => [r.key, `${r.label} Region`])),
+            .map((r) => [r.key, `${r.label} Zone`])),
         [regions],
     );
 
@@ -128,7 +129,7 @@ export default function RegionsManager() {
             setStates(data.states || []);
             setAllStates(data.allStates || []);
         } catch (err) {
-            setError(errorMessage(err, 'The region pages could not be loaded'));
+            setError(errorMessage(err, 'The zone pages could not be loaded'));
         } finally {
             setLoading(false);
         }
@@ -150,7 +151,7 @@ export default function RegionsManager() {
         regionFilter ? states.filter((row) => row.regionKey === regionFilter) : states
     ), [states, regionFilter]);
 
-    if (loading) return <CmsPage><CmsLoading label="Loading region pages…" /></CmsPage>;
+    if (loading) return <CmsPage><CmsLoading label="Loading zone pages…" /></CmsPage>;
     if (error) return <CmsPage><CmsError message={error} onRetry={load} /></CmsPage>;
 
     /*
@@ -168,7 +169,9 @@ export default function RegionsManager() {
             <CmsPage>
                 <EditorScreen
                     title={statePage.stateName}
-                    subtitle={statePage.regionKey ? `${statePage.regionKey} region` : 'State page'}
+                    subtitle={statePage.regionKey
+                        ? `${regionLabels.get(statePage.regionKey) || statePage.regionKey} Zone`
+                        : 'State page'}
                     href={`/states/${statePage.slug}`}
                     status={statePage.status}
                     onBack={closePage}
@@ -192,7 +195,7 @@ export default function RegionsManager() {
         return (
             <CmsPage>
                 <EditorScreen
-                    title={`${regionRow.label} Region`}
+                    title={`${regionRow.label} Zone`}
                     subtitle={`${regionRow.stateCount} states`}
                     href={`/regions/${regionRow.key}`}
                     status={regionRow.page?.status}
@@ -205,47 +208,59 @@ export default function RegionsManager() {
                                 label={regionRow.label}
                                 page={full}
                                 onSaved={load}
-                                below={regionRow.national ? (
-                                    <CmsStep
-                                        step="Section 4"
-                                        title="The five regions"
-                                        hint="The tier under the national page. Each is its own page with its own bench and its own contacts — edited there, listed here, never copied onto this one."
-                                    >
-                                        <TierBelow
-                                            title="Regions of India"
-                                            hint="Drawn as boards under the national leadership, in this order."
-                                            emptyText="No region pages yet."
-                                            rows={regions.filter((r) => !r.national).map((r) => ({
-                                                key: r.key,
-                                                label: `${r.label} Region`,
-                                                subtitle: `${r.stateCount} states`,
-                                                status: r.page?.status,
-                                                href: `/regions/${r.key}`,
-                                                onOpen: () => openPage({ region: r.key }),
-                                            }))}
-                                        />
-                                    </CmsStep>
-                                ) : (
-                                    <CmsStep
-                                        step="Section 4"
-                                        title="State leadership"
-                                        hint="The tier under this region. Each state is its own page with its own bench, its own districts and its own contacts — edited there, listed here, never copied onto this one."
-                                    >
-                                        <TierBelow
-                                            title={`States of the ${regionRow.label}`}
-                                            hint="Drawn as boards under the region’s own leadership. A state with neither a bench nor a contact is not drawn."
-                                            emptyText="No state pages in this region yet."
-                                            rows={states.filter((st) => st.regionKey === regionRow.key)
-                                                .map((st) => ({
-                                                    key: st.slug,
-                                                    label: st.stateName,
-                                                    subtitle: regionLabels.get(st.regionKey) || '',
-                                                    status: st.status,
-                                                    href: `/states/${st.slug}`,
-                                                    onOpen: () => openPage({ state: st.slug }),
-                                                }))}
-                                        />
-                                    </CmsStep>
+                                /*
+                                 * THE ROWS, NOT A RENDERED CARD.
+                                 *
+                                 * It used to be finished JSX. The editor could
+                                 * then only print it, and the arrangement of
+                                 * the tier below is a FIELD ON THE PAGE the
+                                 * editor saves — so the editor has to be able
+                                 * to sort these and hand an order back.
+                                 */
+                                tierRows={regionRow.national
+                                    ? regions.filter((r) => !r.national).map((r) => ({
+                                        key: r.key,
+                                        label: `${r.label} Zone`,
+                                        subtitle: `${r.stateCount} states`,
+                                        status: r.page?.status,
+                                        href: `/regions/${r.key}`,
+                                        onOpen: () => openPage({ region: r.key }),
+                                    }))
+                                    : states.filter((st) => st.regionKey === regionRow.key)
+                                        .map((st) => ({
+                                            key: st.slug,
+                                            label: st.stateName,
+                                            subtitle: regionLabels.get(st.regionKey) || '',
+                                            status: st.status,
+                                            href: `/states/${st.slug}`,
+                                            onOpen: () => openPage({ state: st.slug }),
+                                        }))}
+                                /*
+                                 * CREATING A STATE HAPPENS WHERE THE STATES
+                                 * ARE LISTED.
+                                 *
+                                 * The only way to open a state page was the
+                                 * States tab, which is a different screen from
+                                 * the one an editor is on when they notice a
+                                 * state is missing — so a state got typed into
+                                 * the hand-written boards below instead, and
+                                 * came out with no Published badge, no Edit
+                                 * button and no page behind it. Same picker,
+                                 * same `saveStatePage` call, offered here.
+                                 */
+                                addTier={regionRow.national ? null : (
+                                    <AddState
+                                        options={allStates.filter((st) => (
+                                            st.regionKey === regionRow.key
+                                            && !states.some((row) => row.slug === st.slug)
+                                        ))}
+                                        onAdded={async (slug) => {
+                                            await saveStatePage(slug, { status: 'draft' });
+                                            toast.success('State page created as a draft');
+                                            await load();
+                                            openPage({ state: slug });
+                                        }}
+                                    />
                                 )}
                             />
                         )}
@@ -258,11 +273,11 @@ export default function RegionsManager() {
     return (
         <CmsPage>
             <CmsCard
-                title="Regions & States"
-                description="The regional and state pages on the public site — their leadership, photographs, updates and contact details. Everything here is written by hand; nothing is pulled from the events or member records."
+                title="Zones & States"
+                description="The zone and state pages on the public site — their leadership, photographs, updates and contact details. Everything here is written by hand; nothing is pulled from the events or member records."
             >
                 <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-[#1f1f1f] mb-6">
-                    {([['regions', 'Regions'], ['states', 'States']] as [Tab, string][]).map(([key, label]) => (
+                    {([['regions', 'Zones'], ['states', 'States']] as [Tab, string][]).map(([key, label]) => (
                         <button
                             key={key}
                             type="button"
@@ -287,7 +302,7 @@ export default function RegionsManager() {
                             <PageRow
                                 key={row.key}
                                 /* "India Region" would be wrong twice over. */
-                                title={row.national ? row.label : `${row.label} Region`}
+                                title={row.national ? row.label : `${row.label} Zone`}
                                 subtitle={row.national
                                     ? 'The national page — office-bearers, contacts and the map of India'
                                     : `${row.stateCount} states`}
@@ -305,7 +320,7 @@ export default function RegionsManager() {
                                             setTab('states');
                                            
                                         }}
-                                        className="shrink-0 rounded-full px-3 py-1.5 text-[1rem]
+                                        className="shrink-0 rounded-full px-3 py-1.5 text-[1.0625rem]
                                                    font-semibold text-blue-700 dark:text-blue-400
                                                    transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/40"
                                     >
@@ -337,10 +352,10 @@ export default function RegionsManager() {
                               * can only ever empty the list, next to five that
                               * narrow it.
                               */}
-                            {[{ key: '', label: 'All regions', count: states.length }]
+                            {[{ key: '', label: 'All zones', count: states.length }]
                                 .concat(regions.filter((r) => !r.national).map((r) => ({
                                     key: r.key,
-                                    label: `${r.label} Region`,
+                                    label: `${r.label} Zone`,
                                     count: states.filter((st) => st.regionKey === r.key).length,
                                 })))
                                 .map((chip) => (
@@ -349,7 +364,7 @@ export default function RegionsManager() {
                                         type="button"
                                         onClick={() => { setRegionFilter(chip.key); }}
                                         className={`inline-flex items-center gap-2 rounded-full px-4 py-2
-                                                    text-[1.125rem] font-semibold transition-colors ${
+                                                    text-[1.1875rem] font-semibold transition-colors ${
                                             regionFilter === chip.key
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-slate-100 dark:bg-[#141414] text-slate-600 '
@@ -509,7 +524,7 @@ function EditorScreen({ title, subtitle, href, status, onBack, children }: {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
-                    <span className={`shrink-0 rounded-full px-3 py-1 text-[1rem] font-semibold ${
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-[1.0625rem] font-semibold ${
                         live
                             ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                             : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
@@ -591,7 +606,7 @@ function PageRow({ title, subtitle, status, href, onToggle, action }: {
                     type="button"
                     onClick={onToggle}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5
-                               text-[1rem] font-semibold text-[#2563EB] transition-colors
+                               text-[1.0625rem] font-semibold text-[#2563EB] transition-colors
                                hover:bg-blue-50 dark:hover:bg-blue-950/30"
                 >
                     <Pencil className="w-3.5 h-3.5" /> Edit
@@ -700,7 +715,7 @@ function CmsNotDrawn({ where }: { where: string }) {
     return (
         <div className="mt-12 rounded-xl border border-amber-300/70 bg-amber-50 p-4
                         dark:border-amber-500/30 dark:bg-amber-500/10">
-            <p className="text-[0.8125rem] font-bold uppercase tracking-[0.16em] text-amber-700
+            <p className="text-[1.0625rem] font-bold uppercase tracking-[0.16em] text-amber-700
                           dark:text-amber-400">
                 Stored, but not shown on the {where} page
             </p>
@@ -1253,13 +1268,72 @@ function PageLoader<T>({ load, children }: {
  * stored: it is the hierarchy, made visible, on the screen where somebody is
  * looking for it.
  */
-function TierBelow({ title, hint, rows, emptyText }: {
+/**
+ * One row of the tier below, as the list screen hands it over.
+ *
+ * `key` is what `tierOrder` stores — a state's slug, a zone's region key.
+ */
+interface TierRow {
+    key: string;
+    label: string;
+    subtitle: string;
+    status?: string;
+    onOpen: () => void;
+    href: string;
+}
+
+/**
+ * THE ORDER IS THE PAGE ABOVE'S TO CHOOSE, so the arrows live here.
+ *
+ * `order` is the editor's arrangement and `onOrder` writes it back into the
+ * draft, which means it is saved by the section's own Save like every other
+ * field on the card — not by a separate write nobody asked for.
+ *
+ * The arrows move a row within the rows THAT EXIST, and the order is then
+ * stored as the full list of their keys. Storing only the moved key would
+ * leave the rest to the alphabet, so one press would rearrange rows nobody
+ * touched.
+ */
+function TierBelow({ title, hint, rows, emptyText, order, onOrder, children }: {
     title: string;
     hint: string;
-    rows: { key: string; label: string; subtitle: string; status?: string;
-        onOpen: () => void; href: string }[];
+    rows: TierRow[];
     emptyText: string;
+    /** The keys, in the chosen order. Names a row that may no longer exist. */
+    order?: string[];
+    onOrder?: (next: string[]) => void;
+    /** The "add one" control, printed under the list. */
+    children?: React.ReactNode;
 }) {
+    /*
+     * The same rule the server applies, applied again here so the screen and
+     * the public page cannot disagree about the order: the named rows first
+     * in the order named, then everything the order has never heard of, in
+     * the order it arrived — which is alphabetical.
+     */
+    const shown = useMemo(() => {
+        const wanted = (order || []).map((k) => String(k || '').toLowerCase()).filter(Boolean);
+        if (!wanted.length) return rows;
+        const rank = new Map(wanted.map((k, i) => [k, i]));
+        const at = (row: TierRow) => {
+            const found = rank.get(String(row.key || '').toLowerCase());
+            return found === undefined ? Number.MAX_SAFE_INTEGER : found;
+        };
+        return rows
+            .map((row, index) => ({ row, index, at: at(row) }))
+            .sort((a, b) => (a.at - b.at) || (a.index - b.index))
+            .map((entry) => entry.row);
+    }, [rows, order]);
+
+    const move = (from: number, to: number) => {
+        if (!onOrder) return;
+        if (to < 0 || to >= shown.length) return;
+        const next = shown.map((row) => row.key);
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        onOrder(next);
+    };
+
     return (
         <CmsSection title={title} hint={hint}>
             {!rows.length ? (
@@ -1269,7 +1343,7 @@ function TierBelow({ title, hint, rows, emptyText }: {
                 </p>
             ) : (
                 <div className="space-y-3">
-                    {rows.map((row) => (
+                    {shown.map((row, index) => (
                         <div
                             key={row.key}
                             className="flex items-center gap-3 rounded-xl border border-slate-200
@@ -1287,20 +1361,55 @@ function TierBelow({ title, hint, rows, emptyText }: {
                                               dark:text-white">
                                     {row.label}
                                 </p>
-                                <p className="truncate text-[1rem] text-slate-500
+                                <p className="truncate text-[1.0625rem] text-slate-500
                                               dark:text-neutral-400">
                                     {row.subtitle}
                                 </p>
                             </div>
 
                             {row.status && (
-                                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[1rem]
+                                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[1.0625rem]
                                                   font-bold ${row.status === 'published'
                                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
                                     : 'bg-slate-100 text-slate-500 dark:bg-[#161616] dark:text-neutral-400'}`}
                                 >
                                     {row.status === 'published' ? 'Published' : 'Draft'}
                                 </span>
+                            )}
+
+                            {/*
+                              * UP AND DOWN, and disabled at the ends rather
+                              * than hidden: a control that disappears on the
+                              * first row reads as a row that cannot be moved
+                              * at all, and the column stops lining up.
+                              */}
+                            {onOrder && shown.length > 1 && (
+                                <div className="flex shrink-0 flex-col">
+                                    <button
+                                        type="button"
+                                        disabled={index === 0}
+                                        onClick={() => move(index, index - 1)}
+                                        aria-label={`Move ${row.label} up`}
+                                        title="Move up"
+                                        className="rounded p-1 text-slate-400 transition-colors
+                                                   hover:text-[#2563EB] disabled:cursor-not-allowed
+                                                   disabled:text-slate-200 dark:disabled:text-[#2a2a2a]"
+                                    >
+                                        <ChevronUp className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={index === shown.length - 1}
+                                        onClick={() => move(index, index + 1)}
+                                        aria-label={`Move ${row.label} down`}
+                                        title="Move down"
+                                        className="rounded p-1 text-slate-400 transition-colors
+                                                   hover:text-[#2563EB] disabled:cursor-not-allowed
+                                                   disabled:text-slate-200 dark:disabled:text-[#2a2a2a]"
+                                    >
+                                        <ChevronDown className="h-4 w-4" />
+                                    </button>
+                                </div>
                             )}
 
                             <a
@@ -1317,7 +1426,7 @@ function TierBelow({ title, hint, rows, emptyText }: {
                                 type="button"
                                 onClick={row.onOpen}
                                 className="inline-flex shrink-0 items-center gap-1.5 rounded-lg
-                                           px-3 py-1.5 text-[1rem] font-semibold text-blue-700
+                                           px-3 py-1.5 text-[1.0625rem] font-semibold text-blue-700
                                            transition-colors hover:bg-blue-50 dark:text-blue-400
                                            dark:hover:bg-blue-950/40"
                             >
@@ -1327,6 +1436,8 @@ function TierBelow({ title, hint, rows, emptyText }: {
                     ))}
                 </div>
             )}
+
+            {children}
         </CmsSection>
     );
 }
@@ -1350,6 +1461,107 @@ function TierBelow({ title, hint, rows, emptyText }: {
  *
  * One component, both editors, because it is the same three things on both.
  */
+/**
+ * ==========================================================================
+ * THE PAGE'S OWN HEADINGS — the words the page says about itself
+ * ==========================================================================
+ *
+ * "State / Tamil Nadu Leaders", "Districts / District-wise Leadership",
+ * "Contact / Get in Touch". These were string literals in `RegionPage` and
+ * `StatePage`, drawn on every zone and state page, and editable from nowhere.
+ * An editor who wanted to call their benches something the association
+ * actually uses had no way to say so.
+ *
+ * BLANK MEANS THE WORDING IN GREY, which is the wording the page has always
+ * drawn. That has to be the rule rather than "blank means blank": every page
+ * in the collection predates these fields, so an absent value must keep
+ * drawing what it drew yesterday. The placeholders here are the same strings
+ * the client falls back to, so the box and the page cannot disagree.
+ *
+ * THE TITLE UNDER "Leaders" IS NOT OFFERED, and that is deliberate. The page
+ * builds it from the region's own name — "Tamil Nadu Leaders", "South Zone
+ * Leaders" — so storing it would freeze one region's name onto a heading that
+ * is supposed to follow the page it is on. Only the eyebrow above it is
+ * authored, which is the part that is the same on every page.
+ */
+function SectionHeadingFields({ draft, set, kind }: {
+    draft: Record<string, unknown>;
+    set: (patch: Record<string, unknown>) => void;
+    /** Which page this is — it decides the defaults AND which fields exist. */
+    kind: 'state' | 'zone' | 'national';
+}) {
+    const labels = (draft.labels || {}) as Record<string, string>;
+    const setLabel = (patch: Record<string, string>) => set({ labels: { ...labels, ...patch } });
+
+    /* The same three tables the public pages fall back to. Imported rather
+       than retyped, so a change to the shipped wording cannot leave this
+       screen showing the old words as its placeholder. */
+    const shipped = kind === 'state' ? STATE_LABELS
+        : kind === 'national' ? NATIONAL_LABELS : ZONE_LABELS;
+
+    /* A zone page has no districts band, so it is not asked about one. */
+    const hasDistricts = kind === 'state';
+
+    const field = (
+        key: keyof typeof shipped,
+        label: string,
+        hint?: string,
+    ) => (
+        <CmsField label={label} hint={hint}>
+            <CmsInput
+                value={labels[key] || ''}
+                placeholder={shipped[key]}
+                onChange={(e) => setLabel({ [key]: e.target.value })}
+            />
+        </CmsField>
+    );
+
+    return (
+        <>
+            <CmsSection
+                title="Over the bench on this page"
+                hint={`The small label above "${kind === 'state' ? 'Tamil Nadu' : 'South Zone'} Leaders". The name itself follows the page, so it is not set here.`}
+            >
+                {field('ownTierEyebrow', 'Small label')}
+            </CmsSection>
+
+            <CmsSection
+                title={hasDistricts ? 'Over the regions' : 'Over the tier below'}
+                hint={hasDistricts
+                    ? 'The band listing this state’s own regions. The small label is printed as “<label> of <state>”.'
+                    : 'The band listing the pages under this one.'}
+            >
+                <div className="grid gap-4 sm:grid-cols-2">
+                    {field('tierBelowEyebrow', 'Small label')}
+                    {field('tierBelowHeading', 'Heading')}
+                </div>
+            </CmsSection>
+
+            {hasDistricts && (
+                <CmsSection
+                    title="Over the districts"
+                    hint="The band listing this state’s districts."
+                >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {field('districtsEyebrow', 'Small label')}
+                        {field('districtsHeading', 'Heading')}
+                    </div>
+                </CmsSection>
+            )}
+
+            <CmsSection
+                title="Over Get in Touch"
+                hint="The contact band at the foot of the page."
+            >
+                <div className="grid gap-4 sm:grid-cols-2">
+                    {field('contactEyebrow', 'Small label')}
+                    {field('contactHeading', 'Heading')}
+                </div>
+            </CmsSection>
+        </>
+    );
+}
+
 function PageMetaFields({ draft, set, what }: {
     draft: Record<string, unknown>;
     set: (patch: Record<string, unknown>) => void;
@@ -1371,7 +1583,7 @@ function PageMetaFields({ draft, set, what }: {
                 >
                     <CmsInput
                         value={seo.metaTitle || ''}
-                        placeholder={`ACTIV ${what === 'state' ? 'Tamil Nadu' : 'South Region'}`}
+                        placeholder={`ACTIV ${what === 'state' ? 'Tamil Nadu' : 'South Zone'}`}
                         onChange={(e) => setSeo({ metaTitle: e.target.value })}
                     />
                 </CmsField>
@@ -1423,22 +1635,57 @@ function PageMetaFields({ draft, set, what }: {
     );
 }
 
-function RegionEditor({ slug, label, page, onSaved, below }: {
+function RegionEditor({ slug, label, page, onSaved, tierRows, addTier }: {
     slug: string;
     label: string;
     page: RegionPage | null;
     onSaved: () => Promise<void> | void;
-    /** The tier under this page. Listed, never stored here — see `TierBelow`. */
-    below: React.ReactNode;
+    /**
+     * The tier under this page — the real pages beneath it. Listed, never
+     * stored here; see `TierBelow`.
+     *
+     * It is rendered INSIDE the tier-below step rather than being a step of
+     * its own — see the note at that step.
+     */
+    tierRows: TierRow[];
+    /** The picker that creates one. `null` on the national page: nobody
+        creates a zone, the five are the map. */
+    addTier: React.ReactNode;
 }) {
     const [draft, setDraft] = useState<Record<string, unknown>>(() => ({
         regionName: page?.regionName || label,
+        /* THE PAGE'S OWN HEADINGS. Loaded as well as saved — a draft that
+           omits a field shows an empty editor for data that is on the record,
+           and `EditorShell` sends the draft, so the next save would write the
+           blank back over it. That is the `stateRegions` bug noted above,
+           and it is why this line exists rather than being assumed. */
+        labels: page?.labels || {},
+
         hero: page?.hero || {},
         vision: page?.vision || {},
         shortDescription: page?.shortDescription || '',
         fullDescription: page?.fullDescription || '',
         heroCarousel: page?.heroCarousel || [],
         leaders: page?.leaders || [],
+        /*
+         * THE BOARDS THIS PAGE OWNS — LOADED, and they were not.
+         *
+         * Every other field on this draft is read off `page`; this one was
+         * simply missing, so Section 3 opened empty on a zone whose record
+         * held boards, said “No states yet”, and the public page drew them
+         * anyway. It was reported exactly that way: the state shows on the
+         * site and not in the CMS. Same class of bug as the note further
+         * down about `contacts`, which says so in as many words.
+         *
+         * Worse than a blank card, too. `EditorShell` sends the draft, so
+         * saving any part of this section wrote the empty list back over the
+         * boards — the data survived only because nobody pressed Save while
+         * looking at the blank.
+         */
+        stateRegions: page?.stateRegions || [],
+        /* Which order the tier below is drawn in — saved with this card,
+           like every other field on it. */
+        tierOrder: page?.tierOrder || [],
         achievements: page?.achievements || [],
         keyAchievements: page?.keyAchievements || [],
         explore: page?.explore || {},
@@ -1483,9 +1730,13 @@ function RegionEditor({ slug, label, page, onSaved, below }: {
      *
      * The same editor writes both, because the national page IS a region page
      * under a reserved key — see `cms.regionMap.js`. All this decides is the
-     * wording: "National leadership" rather than "Region leadership", and
-     * "Region-wise contacts" rather than "State-wise", because the tier below
-     * the country is the regions and the tier below a region is the states.
+     * wording: "National leadership" rather than "Zone leadership", and
+     * "Zone-wise contacts" rather than "State-wise", because the tier below
+     * the country is the ZONES and the tier below a zone is the states.
+     *
+     * "Region" is the word for the tier inside a STATE — a state’s own
+     * regions, each covering a handful of its districts — and for nothing
+     * else on these screens. The five above the states are ZONES.
      */
     const national = slug === 'national';
 
@@ -1514,7 +1765,7 @@ function RegionEditor({ slug, label, page, onSaved, below }: {
 
             <CmsStep
                 step="Section 2"
-                title={national ? "National leadership" : "Region leadership"}
+                title={national ? "National leadership" : "Zone leadership"}
                 hint="The row of portraits under the band, with their photographs and contact details."
             >
                 <LeadersSection draft={draft} set={set} />
@@ -1534,30 +1785,66 @@ function RegionEditor({ slug, label, page, onSaved, below }: {
               *
               * Same order here, at every tier. Nothing else moved.
               */}
+            {/*
+              * ==================================================================
+              * ONE CARD FOR THE TIER BELOW, NOT TWO
+              * ==================================================================
+              *
+              * This was two steps carrying the SAME heading — “State
+              * leadership” listing the boards typed onto this page, and “State
+              * leadership” again listing the real state pages underneath it.
+              * Two cards with one name is a screen that cannot tell an editor
+              * which one they are looking at, and the empty one read as the
+              * tier being missing while the full one sat directly below it.
+              *
+              * They are the two halves of ONE answer — what the public page
+              * draws — so they are one card, in the order the page draws them:
+              * the pages that exist, then the boards written by hand here.
+              * `RegionPage` ADDS them together now; it used to pick one list or
+              * the other, which is how a single hand-written board hid eight
+              * real state pages.
+              */}
             <CmsStep
                 step="Section 3"
-                title={national ? "Region leadership" : "State leadership"}
+                title={national ? "Zone leadership" : "State leadership"}
                 hint={national
-                    ? "One card per region, drawn as a board under the national bench. These belong to THIS page — editing a region here does not touch that region’s own page, and it is not meant to."
-                    : "One card per state, drawn as a board under this region’s bench. These belong to THIS page — editing a state here does not touch that state’s own page, and it is not meant to."}
+                    ? "The zones as the national page draws them — the zone pages themselves, plus any board written by hand on this page."
+                    : `The states as the ${label} Zone page draws them — the state pages themselves, plus any board written by hand on this page.`}
             >
+                <TierBelow
+                    title={national ? 'Zone pages' : `State pages in the ${label} Zone`}
+                    hint={national
+                        ? "Each zone is its own page with its own bench and its own contacts — edited there, listed here, never copied onto this one. The arrows set the order the national page draws them in."
+                        : "Each state is its own page with its own bench, its own districts and its own contacts — edited there, listed here, never copied onto this one. The arrows set the order this page draws them in; a state with neither a bench nor a contact is not drawn at all."}
+                    emptyText={national
+                        ? "No zone pages yet."
+                        : "No state pages in this zone yet. Create one below and it appears here, with its own page behind it."}
+                    rows={tierRows}
+                    order={(draft.tierOrder as string[]) || []}
+                    onOrder={(tierOrder) => set({ tierOrder })}
+                >
+                    {addTier}
+                </TierBelow>
+
                 <TierSection
                     field="stateRegions"
                     draft={draft}
                     set={set}
                     pageName={String(draft.regionName || label)}
-                    title={national ? 'Regions' : 'States'}
-                    hint=""
-                    nameLabel={national ? "Region" : "State"}
-                    namePlaceholder={national ? "South Region" : "Tamil Nadu"}
-                    addLabel={national ? "Add region" : "Add state"}
-                    emptyText={national ? "No regions yet." : "No states yet."}
+                    title={national ? 'Zones written on this page' : 'States written on this page'}
+                    hint={national
+                        ? "For a zone that has no page of its own. Drawn after the zone pages above, never instead of them — and a board naming a zone that IS listed above is not drawn at all, because that zone’s own page is the one a reader should meet. A board here belongs to THIS page and never touches that zone’s."
+                        : "For a state that has no page of its own. Drawn after the state pages above, never instead of them — and a board naming a state that IS listed above is not drawn at all, because that state’s own page is the one a reader should meet. A board here belongs to THIS page and never touches that state’s."}
+                    nameLabel={national ? "Zone" : "State"}
+                    namePlaceholder={national ? "South Zone" : "Tamil Nadu"}
+                    addLabel={national ? "Add zone" : "Add state"}
+                    emptyText={national
+                        ? "Nothing written by hand — the zone pages above are what this page draws."
+                        : "Nothing written by hand — the state pages above are what this page draws."}
                     coversLabel="What it covers"
                     coversPlaceholder={national ? "Eight states and union territories" : "Its districts"}
                 />
             </CmsStep>
-
-            {below}
 
             {/*
               * ==================================================================
@@ -1579,32 +1866,32 @@ function RegionEditor({ slug, label, page, onSaved, below }: {
               * are Section 3, and neither creates the other.
               */}
             <CmsStep
-                step="Section 5"
+                step="Section 4"
                 title="Contacts"
                 hint={national
                     ? "Everything in Get in Touch on the national page. Nothing on this card is a leader."
-                    : "Everything in Get in Touch on this region page. Nothing on this card is a leader."}
+                    : "Everything in Get in Touch on this zone page. Nothing on this card is a leader."}
             >
                 <PageContacts
                     draft={draft}
                     set={set}
-                    title={national ? "National contacts" : `${label} Region contacts`}
-                    where={national ? "national office" : "regional office"}
-                    tier={national ? "ACTIV India" : `${label} Region`}
+                    title={national ? "National contacts" : `${label} Zone contacts`}
+                    where={national ? "national office" : "zone office"}
+                    tier={national ? "ACTIV India" : `${label} Zone`}
                 />
 
                 <CmsSection
-                    title={national ? "Region-wise contacts" : "State-wise contacts"}
+                    title={national ? "Zone-wise contacts" : "State-wise contacts"}
                     hint={national
                         ? "One group per heading, printed under the national contacts. A group here creates no board and no map marker."
-                        : "One group per heading, printed under this region’s contacts. A group here creates no board and no map marker. A state that publishes its own contact is listed automatically, from its own page."}
+                        : "One group per heading, printed under this zone’s contacts. A group here creates no board and no map marker. A state that publishes its own contact is listed automatically, from its own page."}
                 >
                     <ContactGroups
                         field="regionContactGroups"
                         draft={draft}
                         set={set}
-                        label={national ? "region" : "state"}
-                        placeholder={national ? "South Region" : "Tamil Nadu"}
+                        label={national ? "zone" : "state"}
+                        placeholder={national ? "South Zone" : "Tamil Nadu"}
                     />
                 </CmsSection>
             </CmsStep>
@@ -1616,11 +1903,23 @@ function RegionEditor({ slug, label, page, onSaved, below }: {
               * wants recorded that the fields above do not cover.
               */}
             <CmsStep
+                step="Section 5"
+                title="Section headings"
+                hint="What this page calls its own bands. Leave one blank and the page uses the wording in grey."
+            >
+                <SectionHeadingFields
+                    draft={draft}
+                    set={set}
+                    kind={national ? 'national' : 'zone'}
+                />
+            </CmsStep>
+
+            <CmsStep
                 step="Section 6"
                 title="Sharing and extras"
-                hint="How a link to this region appears in a search result or a chat, and any field you want to add of your own."
+                hint={`How a link to this ${national ? 'page' : 'zone'} appears in a search result or a chat, and any field you want to add of your own.`}
             >
-                <PageMetaFields draft={draft} set={set} what="region" />
+                <PageMetaFields draft={draft} set={set} what={national ? 'page' : 'zone'} />
             </CmsStep>
 
             {/*
@@ -1664,6 +1963,12 @@ function StateEditor({ slug, page, onSaved }: {
     onSaved: () => Promise<void> | void;
 }) {
     const [draft, setDraft] = useState<Record<string, unknown>>(() => ({
+        /* THE PAGE'S OWN HEADINGS. Loaded as well as saved — a draft that
+           omits a field shows an empty editor for data that is on the record,
+           and `EditorShell` sends the draft, so the next save would write the
+           blank back over it. That is the `stateRegions` bug noted above,
+           and it is why this line exists rather than being assumed. */
+        labels: page.labels || {},
         hero: page.hero,
         vision: page.vision,
         explore: page.explore,
@@ -1873,6 +2178,14 @@ function StateEditor({ slug, page, onSaved }: {
               */}
             <CmsStep
                 step="Section 6"
+                title="Section headings"
+                hint="What this page calls its own bands. Leave one blank and the page uses the wording in grey."
+            >
+                <SectionHeadingFields draft={draft} set={set} kind="state" />
+            </CmsStep>
+
+            <CmsStep
+                step="Section 7"
                 title="Sharing and extras"
                 hint="How a link to this state appears in a search result or a chat, and any field you want to add of your own."
             >
@@ -2374,7 +2687,7 @@ function DistrictNameInput({ value, shapes, placeholder, onPick, onType }: {
                                     aria-selected={!!chosen}
                                     onClick={() => { onPick(shape); setOpen(false); }}
                                     className={`flex w-full items-center justify-between gap-3 px-3 py-2
-                                                text-left text-[1.125rem] hover:bg-blue-50
+                                                text-left text-[1.1875rem] hover:bg-blue-50
                                                 dark:hover:bg-blue-950/30 ${chosen
                                         ? 'font-bold text-[#2563EB]'
                                         : 'font-medium text-slate-700 dark:text-neutral-200'}`}
@@ -2383,7 +2696,7 @@ function DistrictNameInput({ value, shapes, placeholder, onPick, onType }: {
                                     {/* The quarter of the state, so an editor can see the
                                         region is about to be set and to what. */}
                                     {shape.zone && (
-                                        <span className="shrink-0 text-[1rem] font-semibold uppercase
+                                        <span className="shrink-0 text-[1.0625rem] font-semibold uppercase
                                                          tracking-wide text-slate-400">
                                             {shape.zone}
                                         </span>
@@ -2559,7 +2872,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                 <p className="text-[1.25rem] font-bold text-slate-900 dark:text-white truncate">
                                     {row.name || `Untitled ${words.nameLabel.toLowerCase()}`}
                                 </p>
-                                <p className="text-[1rem] text-slate-500 dark:text-neutral-400 truncate">
+                                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400 truncate">
                                     {bench} office-bearer{bench === 1 ? '' : 's'}
                                     {row.activeMembers ? ` · ${row.activeMembers} members` : ''}
                                     {row.regionName ? ` · ${row.regionName}` : ''}
@@ -2573,7 +2886,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : i)}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1rem] font-semibold transition-colors ${
+                                                text-[1.0625rem] font-semibold transition-colors ${
                                         open
                                             ? 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-neutral-200'
                                             : 'text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/30'
@@ -2592,7 +2905,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                 type="button"
                                 onClick={() => insertAt(i)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[0.9375rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -2602,7 +2915,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                 type="button"
                                 onClick={() => insertAt(i + 1)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[0.9375rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -2699,7 +3012,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                                     should not then have to guess the right one. */}
                                                 {nearestShapes(row.name, shapes).length > 0 && (
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="text-[1rem] font-medium text-slate-500
+                                                        <span className="text-[1.0625rem] font-medium text-slate-500
                                                                          dark:text-neutral-400">
                                                             Did you mean
                                                         </span>
@@ -2716,7 +3029,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                                                         : { name: shape.name });
                                                                 }}
                                                                 className="rounded-lg border border-amber-300 bg-white px-2.5 py-1
-                                                                           text-[1rem] font-semibold text-amber-800
+                                                                           text-[1.0625rem] font-semibold text-amber-800
                                                                            hover:bg-amber-50 dark:border-amber-800
                                                                            dark:bg-transparent dark:text-amber-300"
                                                             >
@@ -3125,7 +3438,7 @@ function ContactRows({ rows, onChange }: {
                     details are listed already", which described the leadership list to
                     somebody looking at the contacts list. The two are separate and the
                     copy here should not imply one stands in for the other. */}
-                <p className="text-[1.125rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-[1.1875rem] text-slate-500 dark:text-neutral-400">
                     No contacts yet.
                 </p>
                 <button
@@ -3163,7 +3476,7 @@ function ContactRows({ rows, onChange }: {
                                 <p className="text-[1.1875rem] font-bold text-slate-900 dark:text-white truncate">
                                     {row.name || 'Untitled contact'}
                                 </p>
-                                <p className="text-[1rem] text-slate-500 dark:text-neutral-400 truncate">
+                                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400 truncate">
                                     {[row.designation, row.organisation, row.email || row.phone]
                                         .filter(Boolean).join(' · ')
                                         || 'Empty — anything you type here will be published'}
@@ -3176,7 +3489,7 @@ function ContactRows({ rows, onChange }: {
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : i)}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1rem] font-semibold transition-colors ${
+                                                text-[1.0625rem] font-semibold transition-colors ${
                                         open
                                             ? 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-neutral-200'
                                             : 'text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/30'
@@ -3194,7 +3507,7 @@ function ContactRows({ rows, onChange }: {
                                 type="button"
                                 onClick={() => insertAt(i)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[0.9375rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3204,7 +3517,7 @@ function ContactRows({ rows, onChange }: {
                                 type="button"
                                 onClick={() => insertAt(i + 1)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[0.9375rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3426,7 +3739,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                 </p>
                                 {row.role ? (
                                     <span className="inline-block mt-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40
-                                                     px-2 py-0.5 text-[0.9375rem] font-semibold text-blue-700
+                                                     px-2 py-0.5 text-[1.0625rem] font-semibold text-blue-700
                                                      dark:text-blue-300">
                                         {row.role}
                                     </span>
@@ -3440,7 +3753,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : i)}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1rem] font-semibold transition-colors ${
+                                                text-[1.0625rem] font-semibold transition-colors ${
                                         open
                                             ? 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-neutral-200'
                                             : 'text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/30'
@@ -3460,7 +3773,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                 type="button"
                                 onClick={() => insertAt(i)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[0.9375rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3470,7 +3783,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                 type="button"
                                 onClick={() => insertAt(i + 1)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[0.9375rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3498,7 +3811,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                         <CmsField label="Designation">
                                             <CmsInput
                                                 value={row.designation}
-                                                placeholder="Chairman, ACTIV Southern Region"
+                                                placeholder="Chairman, ACTIV South Zone"
                                                 onChange={(e) => patch(i, { designation: e.target.value })}
                                             />
                                         </CmsField>
@@ -3597,7 +3910,7 @@ function LeaderPhoto({ url, onChange }: { url: string; onChange: (url: string) =
                     className="hidden"
                     onChange={(e) => { pick(e.target.files && e.target.files[0]); e.target.value = ''; }}
                 />
-                <span className="mt-1.5 block text-center text-[1rem] font-semibold text-blue-600
+                <span className="mt-1.5 block text-center text-[1.0625rem] font-semibold text-blue-600
                                  dark:text-blue-400">
                     {url ? 'Change' : 'Photo'}
                 </span>
@@ -3608,7 +3921,7 @@ function LeaderPhoto({ url, onChange }: { url: string; onChange: (url: string) =
                 <code
                     title={url}
                     className="mt-1.5 block w-20 truncate rounded bg-slate-100 dark:bg-[#141414] px-1.5
-                               py-1 text-[0.75rem] font-mono text-slate-500 dark:text-neutral-400
+                               py-1 text-[1.0625rem] font-mono text-slate-500 dark:text-neutral-400
                                select-all"
                 >
                     {url}
@@ -3767,7 +4080,7 @@ function FeedRows({ rows, onChange, withDate = false, figures = false }: {
 
                             <div className={full ? 'sm:col-span-2' : 'hidden'}>
                                 <details className="rounded-lg bg-slate-50 dark:bg-[#141414] px-3 py-2">
-                                    <summary className="cursor-pointer text-[1.125rem] font-semibold
+                                    <summary className="cursor-pointer text-[1.1875rem] font-semibold
                                                         text-slate-700 dark:text-neutral-200">
                                         More details — long text, picture, tags
                                     </summary>
@@ -4111,7 +4424,7 @@ function CustomSections({ draft, set, basePath }: {
                                     ) : (
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between gap-3">
-                                                <p className="text-[1.125rem] font-semibold text-slate-700
+                                                <p className="text-[1.1875rem] font-semibold text-slate-700
                                                               dark:text-neutral-200">
                                                     Items
                                                 </p>
@@ -4132,7 +4445,7 @@ function CustomSections({ draft, set, basePath }: {
                                     )}
 
                                     {keyOf(row) && (
-                                        <p className="text-[1rem] font-semibold text-slate-500
+                                        <p className="text-[1.0625rem] font-semibold text-slate-500
                                                       dark:text-neutral-400">
                                             Its own screen:{' '}
                                             <code className="rounded bg-slate-100 dark:bg-[#141414] px-1.5 py-0.5">

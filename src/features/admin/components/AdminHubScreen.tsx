@@ -10,7 +10,7 @@ import ApplicantDecisionRow from './ApplicantDecisionRow';
 import {
     apiFetch, approveApplication, rejectApplication, errorMessage,
 } from '@/services/activApi';
-import { ADMIN_PAGE, AdminStat } from './AdminUI';
+import { ADMIN_COLUMN, ADMIN_PAGE, AdminStat } from './AdminUI';
 import useApplicantDetail from './useApplicantDetail';
 import ProfileViewModal from '@/components/ui/profile-view-modal';
 
@@ -166,12 +166,13 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
         try {
             const params = new URLSearchParams({ limit: '50' });
             /*
-              WHICH LEVEL is being browsed. It no longer changes how a file is
-              classified — all three tiers see the same three buckets — but the
-              server still labels the rows with it, and the region rollups
-              behind the drill-down are per level.
+              NO `level`. The server reads it as WHOSE VERDICT to show, not which
+              level of the geography is open, so sending the block level here
+              labelled every row with the Block's answer — "pending" on files
+              this admin had approved. Left out, the server uses the reader's
+              own seat, the same verdict the Dashboard and the counts report.
+              The region itself is narrowed by the fields below.
             */
-            params.set('level', regionLevel);
             // Only the fields this region actually names — sending an empty
             // block would filter to applications whose block is literally ''.
             if (r.state) params.set('state', r.state);
@@ -272,7 +273,11 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                   * a line of its own above the heading — 40px of bar spent on
                   * one 20px glyph.
                   */}
-                <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex items-start gap-2 sm:gap-3">
+                <header className="bg-white border-b border-slate-200 px-4 sm:px-5 lg:px-8 py-4 sm:py-5">
+                  {/* Centred on the cards' column (`ADMIN_COLUMN`) with the
+                      page's own padding, so the title lines up with the first
+                      card instead of hanging to the left of it. */}
+                  <div className={`${ADMIN_COLUMN} flex items-start gap-2 sm:gap-3`}>
                     <button className="lg:hidden shrink-0 mt-1 text-slate-500 hover:text-slate-900"
                             onClick={() => setSidebarOpen(true)} aria-label="Open menu">
                         <Menu className="w-5 h-5" />
@@ -297,6 +302,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                 .filter(Boolean).join(', ') || '')}
                         </p>
                     </div>
+                  </div>
                 </header>
 
                 <main className={ADMIN_PAGE}>

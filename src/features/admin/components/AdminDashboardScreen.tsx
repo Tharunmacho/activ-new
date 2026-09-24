@@ -4,14 +4,14 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Users, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Users, Clock, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import AdminSidebar from "./AdminSidebar";
 import { getAdminProfile, getAdminDashboard, errorMessage } from "@/services/activApi";
 import { TIERS, type AdminTier } from "./tierConfig";
-import { AdminBackButton } from './AdminUI';
+import { AdminPageHeader, ADMIN_PAGE } from './AdminUI';
 
-import { PAGE_SUBTITLE, PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
+import { CARD_TITLE } from '@/components/layout/appTypography';
 /**
  * The admin dashboard, shared by the three tiers.
  *
@@ -164,64 +164,26 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
             <AdminSidebar tier={tier} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 min-w-0 flex flex-col">
-                <div className="lg:hidden flex items-center gap-2 p-4 bg-white border-b shadow-sm">
-                    <button
-                        onClick={() => setSidebarOpen(true)}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                        aria-label="Open menu"
-                    >
-                        <Menu className="w-6 h-6" />
-                    </button>
-                    {/* The rail moves sideways between sections; this retraces
-                        the step that got here. On a phone it was the only thing
-                        missing, because the rail is behind the hamburger and the
-                        browser chrome was the sole way back. Renders nothing on
-                        the tier's own landing page. */}
-                    <AdminBackButton />
-                    <h1 className={`${PAGE_TITLE} text-slate-900 flex-1 min-w-0 truncate`}>Dashboard</h1>
-                </div>
-
                 {/*
-                  The white header bar every other admin screen opens with.
-                  Dashboard had none, so it was the one screen whose title
-                  scrolled away with the content — and the only one without a way
-                  back to itself from a sub-page.
-                */}
-                {/* `lg`, matching the bar above and the breakpoint the rail appears
-                    at. The two were `md:hidden` / `hidden md:flex`, which was
-                    exclusive while the rail also switched at `md`. Moving the
-                    rail to `lg` left both bars rendering between 768px and
-                    1023px — the same title and the same back arrow, twice. */}
-                <header className="hidden lg:flex bg-white border-b border-slate-200 px-6 py-4
-                                   flex-wrap items-center gap-3">
-                    <div className="min-w-0 flex-1">
-                        <h1 className={`${PAGE_TITLE} text-slate-900`}>
-                            Dashboard
-                        </h1>
-                        <p className={`${PAGE_SUBTITLE} text-slate-500 mt-0.5`}>
-                            {config.label} admin — your region at a glance.
-                        </p>
-                    </div>
-                </header>
+                  * ONE header, and it is the admin's own name.
+                  *
+                  * This screen used to open with a generic "Dashboard" bar and
+                  * then repeat the admin's name, role and region in a second,
+                  * larger heading underneath — two titles for one page. The
+                  * name is the more useful of the two, so it is the title and
+                  * the tier and region are the line beneath it. It is also
+                  * `AdminPageHeader`, like every other admin screen, so the
+                  * heading sits on the same column as the cards below it.
+                  */}
+                <AdminPageHeader
+                    title={userName}
+                    subtitle={[config.dashboardTitle, location].filter(Boolean).join(' · ')}
+                    onMenu={() => setSidebarOpen(true)}
+                    back={false}
+                />
 
-                <div className="flex-1 overflow-auto">
-                    {/* `max-w-7xl mx-auto` centred this one screen's content
-                        while every other admin page runs from the left margin. */}
-                    <div className="p-6 max-w-[90rem] space-y-6">
+                <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
                         <div>
-                            <div className="flex items-center gap-4 mb-8">
-                                <Avatar className="w-16 h-16 ring-4 ring-blue-100">
-                                    <AvatarFallback className="bg-blue-600 text-white font-bold text-[1.5625rem]">
-                                        {config.initials}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="min-w-0">
-                                    <h1 className="text-[1.75rem] md:text-[2.125rem] font-bold text-slate-900 truncate">{userName}</h1>
-                                    <p className="text-slate-500">{config.dashboardTitle}</p>
-                                    {location ? <p className="text-[1.25rem] text-slate-500 truncate">{location}</p> : null}
-                                </div>
-                            </div>
-
                             <h2 className={`${CARD_TITLE} mb-4 text-slate-900`}>Overview Statistics</h2>
                             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                                 {TILES.map((t) => (
@@ -240,11 +202,9 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                 ))}
                             </div>
                         </div>
-                    </div>
 
                     {/* Recent activity */}
-                    <div className="px-6 pb-6 max-w-[90rem]">
-                        <div className="max-w-[90rem] space-y-6">
+                        <div className="space-y-6">
                             <div className="flex items-center justify-between flex-wrap gap-3">
                                 <div>
                                     <h2 className={`${CARD_TITLE} text-slate-900`}>Recent Activity</h2>
@@ -325,7 +285,6 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>

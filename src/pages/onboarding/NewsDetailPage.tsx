@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Share2 } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Calendar, MapPin, Newspaper, Share2 } from 'lucide-react';
 import { HeaderSection } from '../../components/layout/HeaderSection';
 import { FooterSection } from '../../components/layout/FooterSection';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
@@ -97,6 +97,15 @@ export default function NewsDetailPage() {
         })
         : '');
 
+    /* A pasted link without a scheme ("thehindu.com/…") would resolve
+       relative to this site; the host is printed under the button. */
+    const sourceHref = article?.externalUrl
+        ? (/^https?:\/\//i.test(article.externalUrl) ? article.externalUrl : `https://${article.externalUrl}`)
+        : '';
+    const sourceHost = (() => {
+        try { return sourceHref ? new URL(sourceHref).hostname.replace(/^www\./, '') : ''; } catch { return ''; }
+    })();
+
     return (
         <div className="flex min-h-screen flex-col bg-white font-sans">
             <HeaderSection />
@@ -115,8 +124,8 @@ export default function NewsDetailPage() {
 
                 {state === 'loading' && (
                     <div className="mx-auto w-full max-w-[90rem] px-6 pb-20 lg:px-10">
-                        <div className="h-[22rem] animate-pulse rounded-2xl bg-gray-100" />
-                        <div className="mx-auto mt-8 max-w-3xl space-y-4">
+                        <div className="h-[22rem] animate-pulse rounded-2xl bg-gray-100 lg:w-2/3" />
+                        <div className="mt-8 space-y-4 lg:w-2/3">
                             {[1, 2, 3, 4].map((i) => (
                                 <div key={i} className="h-5 animate-pulse rounded bg-gray-100" />
                             ))}
@@ -126,7 +135,7 @@ export default function NewsDetailPage() {
 
                 {state === 'missing' && (
                     <div className="mx-auto w-full max-w-3xl px-6 pb-24 text-center lg:px-10">
-                        <h1 className="text-3xl font-black tracking-tight text-brand-900">
+                        <h1 className="text-[2.1875rem] font-black tracking-tight text-brand-900">
                             That article is not here
                         </h1>
                         <p className={`mt-3 ${CARD_BODY} text-gray-500`}>
@@ -145,119 +154,199 @@ export default function NewsDetailPage() {
                 )}
 
                 {state === 'ready' && article && (
-                    <article className="pb-20">
-                        <div className="mx-auto w-full max-w-[90rem] px-6 lg:px-10">
-                            {article.image?.url && (
-                                <Reveal>
-                                    <div className="overflow-hidden rounded-2xl bg-brand-900/5">
-                                        <img
-                                            src={sizedMediaUrl(article.image.url, 1600)}
-                                            alt={article.image.alt || article.title}
-                                            className="h-auto max-h-[34rem] w-full object-cover"
-                                        />
+                    /*
+                      * ONE GRID, ONE LEFT EDGE.
+                      *
+                      * This page drew a full-width photograph, then centred a
+                      * narrower text column under it, so the headline started
+                      * ~300px to the right of the picture above it and of the
+                      * "All news" button above that — three left edges on one
+                      * screen. Everything now hangs off the same column: the
+                      * headline and the photograph span the story's width, and
+                      * the source card sits beside the story, not under it.
+                      */
+                    <article className="mx-auto w-full max-w-[90rem] px-6 pb-20 lg:px-10">
+                        <div className="grid gap-10 lg:grid-cols-12">
+                            <div className="lg:col-span-8">
+                                <Reveal as="header">
+                                    {article.category && (
+                                        <span className="inline-flex rounded-full bg-brand-50 px-3 py-1
+                                                         text-[0.9375rem] font-bold uppercase
+                                                         tracking-[0.14em] text-brand-600">
+                                            {article.category}
+                                        </span>
+                                    )}
+
+                                    <h1 className="mt-3 text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-black
+                                                   leading-[1.12] tracking-tight text-brand-900">
+                                        {article.title || 'Untitled article'}
+                                    </h1>
+
+                                    <div className={`mt-4 flex flex-wrap items-center gap-x-5 gap-y-2
+                                                     ${META_TEXT} text-gray-500`}
+                                    >
+                                        {date && (
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <Calendar size={15} className="text-brand-500" /> {date}
+                                            </span>
+                                        )}
+                                        {article.location && (
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <MapPin size={15} className="text-brand-500" />
+                                                {article.location}
+                                            </span>
+                                        )}
+                                        {article.externalUrl && (
+                                            <span className="inline-flex items-center gap-1.5 font-semibold text-brand-600">
+                                                <Newspaper size={15} /> {article.sourceName || 'Original source'}
+                                            </span>
+                                        )}
                                     </div>
                                 </Reveal>
-                            )}
 
-                            <Reveal as="header" className="mx-auto mt-8 max-w-3xl">
-                                {article.category && (
-                                    <span className="inline-flex rounded-full bg-brand-50 px-3 py-1
-                                                     text-[0.9375rem] font-bold uppercase
-                                                     tracking-[0.14em] text-brand-600">
-                                        {article.category}
-                                    </span>
+                                {article.image?.url && (
+                                    <Reveal>
+                                        <div className="mt-8 overflow-hidden rounded-2xl bg-brand-900/5">
+                                            <img
+                                                src={sizedMediaUrl(article.image.url, 1400)}
+                                                alt={article.image.alt || article.title}
+                                                className="aspect-[16/9] w-full object-cover"
+                                            />
+                                        </div>
+                                    </Reveal>
                                 )}
 
-                                <h1 className="mt-3 text-[2rem] sm:text-[2.5rem] font-black
-                                               leading-[1.12] tracking-tight text-brand-900">
-                                    {article.title || 'Untitled article'}
-                                </h1>
-
-                                <div className={`mt-4 flex flex-wrap items-center gap-x-5 gap-y-2
-                                                 ${META_TEXT} text-gray-500`}
-                                >
-                                    {date && (
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <Calendar size={15} className="text-brand-500" /> {date}
-                                        </span>
-                                    )}
-                                    {article.location && (
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <MapPin size={15} className="text-brand-500" />
-                                            {article.location}
-                                        </span>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={share}
-                                        className="ml-auto inline-flex items-center gap-1.5 font-bold
-                                                   text-brand-700 transition-colors
-                                                   hover:text-brand-900"
-                                    >
-                                        <Share2 size={15} /> Share
-                                    </button>
-                                </div>
-
                                 {article.summary && (
-                                    <p className="mt-6 border-l-4 border-brand-200 pl-5 text-[1.25rem]
+                                    <p className="mt-8 border-l-4 border-brand-200 pl-5 text-[1.25rem]
                                                   font-semibold leading-relaxed text-gray-700">
                                         {article.summary}
                                     </p>
                                 )}
-                            </Reveal>
 
-                            <div className="mx-auto mt-8 max-w-3xl">
-                                <Body text={article.body} />
+                                <div className="mt-8">
+                                    <Body text={article.body} />
+                                </div>
 
+                                {/* The same button as the side card, at the foot of the
+                                    story — where a reader who has just finished it is. */}
                                 {article.externalUrl && (
-                                    <p className={`mt-8 rounded-xl bg-gray-50 px-5 py-4 ${CARD_BODY}
-                                                   text-gray-600`}
-                                    >
-                                        This story was published by{' '}
-                                        <span className="font-bold">
-                                            {article.sourceName || 'another site'}
-                                        </span>.{' '}
+                                    <div className="mt-10 flex flex-col items-start gap-4 rounded-2xl border border-gray-200
+                                                    bg-gray-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                                        <p className={`${CARD_BODY} text-gray-700`}>
+                                            This story was first reported by{' '}
+                                            <span className="font-bold">{article.sourceName || 'another publication'}</span>.
+                                        </p>
                                         <a
-                                            href={article.externalUrl}
+                                            href={sourceHref}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="font-bold text-brand-700 underline
-                                                       underline-offset-2"
+                                            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand-800 px-5 py-2.5
+                                                       text-[1.0625rem] font-bold text-white transition-colors hover:bg-brand-700"
                                         >
-                                            Read it there
+                                            Read the full story <ArrowUpRight size={16} />
                                         </a>
-                                    </p>
+                                    </div>
                                 )}
-                                {/* Under the story and above the photographs:
-                                    a labelled list is a footnote to what was
-                                    written, not an interruption of it. */}
-                                <CmsExtraFields
-                                    fields={article.extraFields}
-                                    variant="list"
-                                    className="mt-10 border-t border-slate-200 pt-8"
-                                />
+
+                                {/* In the article's own reading type. */}
+                                <div className="text-[1.1875rem] leading-[1.8] text-slate-700">
+                                    <CmsExtraFields
+                                        fields={article.extraFields}
+                                        variant="list"
+                                        className="mt-10 border-t border-slate-200 pt-8"
+                                    />
+                                </div>
+
+                                {article.photos?.length > 0 && (
+                                    <div className="mt-12 grid gap-5 sm:grid-cols-2">
+                                        {article.photos.map((photo, i) => (
+                                            <Reveal key={i} delay={Math.min(i, 4) * 60}>
+                                                <img
+                                                    src={sizedMediaUrl(photo.url, 900)}
+                                                    alt={photo.alt || `${article.title} — ${i + 1}`}
+                                                    loading="lazy"
+                                                    className="aspect-[4/3] w-full rounded-xl object-cover"
+                                                />
+                                            </Reveal>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {article.photos?.length > 0 && (
-                                <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2">
-                                    {article.photos.map((photo, i) => (
-                                        <Reveal key={i} delay={Math.min(i, 4) * 60}>
-                                            <img
-                                                src={sizedMediaUrl(photo.url, 900)}
-                                                alt={photo.alt || `${article.title} — ${i + 1}`}
-                                                loading="lazy"
-                                                className="h-full w-full rounded-xl object-cover"
+                            {/* ------------------------------------ side card */}
+                            <aside className="lg:col-span-4">
+                                <div className="space-y-5 lg:sticky lg:top-28">
+                                    {article.externalUrl && (
+                                        <div className="rounded-2xl bg-brand-900 p-6 text-white">
+                                            <p className="text-[0.9375rem] font-bold uppercase tracking-[0.14em] text-brand-300">
+                                                Original source
+                                            </p>
+                                            <p className="mt-2 text-[1.375rem] font-extrabold leading-snug">
+                                                {article.sourceName || 'Read it where it was published'}
+                                            </p>
+                                            <a
+                                                href={sourceHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white
+                                                           px-5 py-3 text-[1.0625rem] font-bold text-brand-900 transition-colors
+                                                           hover:bg-brand-50"
+                                            >
+                                                Read the full story <ArrowUpRight size={17} />
+                                            </a>
+                                            <p className="mt-2 text-center text-[0.9375rem] text-white/60">
+                                                Opens {sourceHost || 'the original site'} in a new tab
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                                        <dl className="space-y-4">
+                                            {date && <Fact label="Published" value={date} />}
+                                            {article.location && <Fact label="Place" value={article.location} />}
+                                            <Fact
+                                                label="Region"
+                                                value={[article.district, article.state].filter(Boolean).join(', ') || 'National'}
                                             />
-                                        </Reveal>
-                                    ))}
+                                            {article.category && <Fact label="Category" value={article.category} />}
+                                        </dl>
+                                        <div className="mt-6 flex gap-3 border-t border-gray-100 pt-5">
+                                            <button
+                                                type="button"
+                                                onClick={share}
+                                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border
+                                                           border-gray-200 px-4 py-2.5 text-[1.0625rem] font-bold text-brand-700
+                                                           transition-colors hover:border-brand-300 hover:bg-brand-50"
+                                            >
+                                                <Share2 size={16} /> Share
+                                            </button>
+                                            <Link
+                                                to="/news"
+                                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border
+                                                           border-gray-200 px-4 py-2.5 text-[1.0625rem] font-bold text-brand-700
+                                                           transition-colors hover:border-brand-300 hover:bg-brand-50"
+                                            >
+                                                More news
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+                            </aside>
                         </div>
                     </article>
                 )}
             </main>
 
             <FooterSection />
+        </div>
+    );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+    return (
+        <div>
+            <dt className="text-[0.9375rem] font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
+            <dd className="mt-0.5 text-[1.0625rem] font-semibold text-gray-800">{value}</dd>
         </div>
     );
 }

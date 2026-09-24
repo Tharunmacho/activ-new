@@ -36,7 +36,7 @@ import { CmsEmpty, CmsError } from './CmsUI';
  * would be a second, invisible save on a card that has a visible one.
  */
 export function HomeRegionsPicker({ hidden, onChange }: {
-    /** Region keys left out of the band. */
+    /** Zone keys left out of the band. */
     hidden: string[];
     onChange: (next: string[]) => void;
 }) {
@@ -49,7 +49,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
             .then((rows) => { if (!cancelled) setRegions(rows || []); })
             .catch((err) => {
                 if (cancelled) return;
-                setError(errorMessage(err, 'Could not load the regions'));
+                setError(errorMessage(err, 'Could not load the zones'));
                 setRegions([]);
             });
         return () => { cancelled = true; };
@@ -58,7 +58,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
     if (regions === null) {
         return (
             <p className="flex items-center gap-2 py-6 text-[1.0625rem] font-medium text-slate-400">
-                <Loader2 className="h-4 w-4 animate-spin" /> Loading the regions…
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading the zones…
             </p>
         );
     }
@@ -83,8 +83,8 @@ export function HomeRegionsPicker({ hidden, onChange }: {
 
             {regions.length === 0 ? (
                 <CmsEmpty
-                    title="No regions yet"
-                    hint="Publish a region page under Regions & States and its tile appears here."
+                    title="No zones yet"
+                    hint="Publish a zone page under Zones & States and its tile appears here."
                 />
             ) : (
                 <>
@@ -117,10 +117,10 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                                     </span>
 
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-[1.125rem] font-bold text-slate-900 dark:text-white">
+                                        <p className="truncate text-[1.1875rem] font-bold text-slate-900 dark:text-white">
                                             {region.label || region.key}
                                         </p>
-                                        <p className="text-[1rem] font-medium text-slate-500 dark:text-neutral-400">
+                                        <p className="text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
                                             {region.national
                                                 ? 'The whole country'
                                                 : `${states} ${states === 1 ? 'state' : 'states'}`}
@@ -138,7 +138,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                                         onClick={() => toggle(region)}
                                         title={on ? 'Leave it out of the band' : 'Draw its tile'}
                                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border
-                                                    px-3 py-1.5 text-[1rem] font-bold transition-colors ${on
+                                                    px-3 py-1.5 text-[1.0625rem] font-bold transition-colors ${on
                                                 ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                                                     + ' dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'
                                                 : 'border-slate-300 bg-white text-slate-500 hover:bg-slate-100'
@@ -152,11 +152,11 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                         })}
                     </ul>
 
-                    <p className="mt-3 text-[1rem] font-medium text-slate-400">
-                        The tiles and their state counts come from the published pages. A region
+                    <p className="mt-3 text-[1.0625rem] font-medium text-slate-400">
+                        The tiles and their state counts come from the published pages. A zone
                         published under{' '}
                         <a href="/cms/regions" className="font-semibold text-blue-700 dark:text-blue-400">
-                            Regions &amp; States <ExternalLink className="inline h-3 w-3" />
+                            Zones &amp; States <ExternalLink className="inline h-3 w-3" />
                         </a>{' '}
                         appears here on its own. Leaving one out removes its tile only — its page
                         and its menu entry stay.

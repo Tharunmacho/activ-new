@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Clock, ArrowRight, X, Landmark, Video } from 'lucide-react';
+import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video } from 'lucide-react';
 import type { CmsEvent, EventsSettings } from '@/services/cmsApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { Reveal } from '@/components/shared/Reveal';
 import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
+import { SectionFields } from '@/components/shared/SectionFields';
 import { Tilt3D } from '@/components/shared/Tilt3D';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { CARD_TITLE, CARD_BODY, MICRO_LABEL } from '@/components/layout/typography';
@@ -33,7 +34,7 @@ import { CARD_TITLE, CARD_BODY, MICRO_LABEL } from '@/components/layout/typograp
 
 /**
  * ==========================================================================
- * THIS PAGE IS UPCOMING EVENTS. PAST ONES LIVE IN THE GALLERY.
+ * THIS PAGE IS UPCOMING EVENTS.
  * ==========================================================================
  *
  * There was a date-window filter here — Upcoming / Past / All dates — and a
@@ -43,15 +44,17 @@ import { CARD_TITLE, CARD_BODY, MICRO_LABEL } from '@/components/layout/typograp
  * ever return nothing.
  *
  * The association's reasoning, and it is worth keeping: an events page is
- * something a visitor reads to decide what to attend. Everything already
- * held is a record of what was done, and the place for that is the gallery,
- * where each one carries its photographs. Two pages answering the same
- * question differently is how a visitor ends up on the wrong one.
+ * something a visitor reads to decide what to attend. The home page's events
+ * band shows exactly this same list (`EventsGrid`), so the two never disagree.
+ *
+ * EVENTS AND THE GALLERY ARE SEPARATE. There used to be a strip here sending
+ * visitors to the gallery for past events, and a CMS button copying an event
+ * into the gallery. Both are gone: the gallery holds photographs the editor
+ * posts after an event, as albums of its own, and nothing links the two.
  *
  * So `upcomingOnly` below is not a default an editor can change — it is
  * what this page IS. An event with no date at all still shows: an unset
  * date is missing information, not a statement that it already happened.
- * `pastLink` in the events settings is how a visitor is sent to the gallery.
  */
 
 /**
@@ -151,6 +154,28 @@ const splitDate = (iso: string | null) => {
         month: date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase(),
         year: String(date.getFullYear()),
     };
+};
+
+/**
+ * "– 12 OCT 2026" for an event that runs over more than one day, else ''.
+ *
+ * The date chip on the card holds ONE day and is three stacked lines, so a
+ * range cannot go in it. This is the extra line under the time. It compares
+ * the rendered days rather than the instants because `endAt` also carries the
+ * finishing TIME of a single-day event, and comparing instants would print a
+ * range on every event with a closing time.
+ */
+const lastDayLabel = (startAt: string | null, endAt: string | null) => {
+    const day = (iso: string | null) => {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            .toUpperCase();
+    };
+    const from = day(startAt);
+    const to = day(endAt);
+    return to && to !== from ? to : '';
 };
 
 /** "10:00 AM - 05:00 PM", or just the start when no end was set. */
@@ -363,10 +388,17 @@ export function EventsExplorer({ events, settings }: Props) {
                 }
             }
 
-            // Upcoming only — see the note at the top of this file. An event
-            // with no usable date is kept: an unset date is missing
-            // information, not a statement that it already happened.
-            const start = event?.startAt ? new Date(event.startAt).getTime() : NaN;
+            /*
+             * Upcoming only — see the note at the top of this file. An event
+             * with no usable date is kept: an unset date is missing
+             * information, not a statement that it already happened.
+             *
+             * THE END DATE DECIDES IT, where there is one. A three-day
+             * conclave read as past from its second morning, because this
+             * asked when it STARTED. An event is over when it is over.
+             */
+            const finish = event?.endAt || event?.startAt;
+            const start = finish ? new Date(finish).getTime() : NaN;
             if (!Number.isNaN(start) && start < now) return false;
 
             if (needle) {
@@ -422,28 +454,26 @@ export function EventsExplorer({ events, settings }: Props) {
         .replace('{query}', describeFilter());
 
     const banner = sectionHidden(settings?.sections, 'events.banner') ? undefined : settings?.banner;
+    /* The explorer's own type, handed down — see `SectionFields`. */
+    const fieldsFor = (k: string) => (
+        <SectionFields
+            proseClass={`${CARD_BODY} text-gray-600`}
+            sections={settings?.sections}
+            sectionKey={k}
+        />
+    );
     const showBanner = !!(banner?.enabled && (banner.title || banner.ctaLabel));
 
-    /*
-     * WHERE THE PAST EVENTS WENT.
-     *
-     * This page is upcoming events — see the note at the top of the file. A
-     * visitor who came for last year's conclave finds nothing here, and the
-     * difference between a page that lost its content and one that never
-     * held it is entirely this strip.
-     */
-    const pastLink = sectionHidden(settings?.sections, 'events.pastLink')
-        ? undefined
-        : settings?.pastLink;
-    const showPastLink = !!(pastLink?.enabled && (pastLink.title || pastLink.label));
 
     /* The editor's own rows, per card, then the page's own list. */
     const key = (k: string) => (sectionHidden(settings?.sections, k) ? [] : sectionFields(settings?.sections, k));
-    const ownRows = [
-        ...key('events.filters'), ...key('events.grid'),
-        ...key('events.banner'), ...key('events.pastLink'),
-        ...(settings?.extraFields || []),
-    ];
+    /*
+     * Each card's rows are drawn WITH that card now — see `SectionFields`.
+     * They were pooled here and printed once under the grid, so a field added
+     * to "Filters" appeared at the foot of the explorer instead of with the
+     * filters. What is left is the list attached to the PAGE.
+     */
+    const ownRows = settings?.extraFields || [];
 
     const selectClass =
         'h-12 min-w-0 rounded-xl border border-brand-100 bg-white px-4 text-[1.25rem] font-semibold '
@@ -607,6 +637,9 @@ export function EventsExplorer({ events, settings }: Props) {
                     </div>
                 </div>
 
+                {/* This card's own rows, with the card — see `SectionFields`. */}
+                {fieldsFor('events.filters')}
+
                 {/* ------------------------------------------------ chip rail */}
                 {chips.length > 0 && (
                     <div className="mt-8 -mx-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
@@ -672,6 +705,7 @@ export function EventsExplorer({ events, settings }: Props) {
                         {filtered.map((event, i) => {
                             const date = splitDate(event?.startAt);
                             const time = formatTimeRange(event?.startAt, event?.endAt);
+                            const lastDay = lastDayLabel(event?.startAt, event?.endAt);
 
                             /*
                               WHO THE EVENT IS FOR, on the card.
@@ -712,13 +746,46 @@ export function EventsExplorer({ events, settings }: Props) {
                                     className="h-full"
                                 >
                                     <Tilt3D className="h-full" intensity={8} lift={1.02} glare={false} perspective={850}>
+                                        {/*
+                                          * THE WHOLE CARD OPENS THE EVENT.
+                                          *
+                                          * Only the small "View Details" line was a
+                                          * link, so a visitor who clicked the
+                                          * photograph, the title or the price — which
+                                          * is most of them — got nothing. The gallery
+                                          * tiles have always opened from anywhere on
+                                          * the tile, and an events card that looks the
+                                          * same and behaves differently is the kind of
+                                          * difference nobody learns, they just decide
+                                          * the site is broken.
+                                          *
+                                          * A `relative` article with a stretched
+                                          * overlay link rather than wrapping the card
+                                          * in an `<a>`: wrapping would put the whole
+                                          * card's text into the link's accessible
+                                          * name, and a screen reader would read the
+                                          * date, price, venue and blurb as one
+                                          * enormous link label. The overlay carries
+                                          * its own short name and the card keeps its
+                                          * semantics.
+                                          */}
                                         <article
-                                            className="group flex h-full flex-col overflow-hidden rounded-2xl
+                                            className="group relative flex h-full flex-col overflow-hidden rounded-2xl
                                                        border border-brand-100/80 bg-white
                                                        shadow-[0_10px_36px_-16px_rgb(28_46_104/0.22)]
                                                        transition-shadow duration-500
-                                                       hover:shadow-[0_28px_60px_-20px_rgb(28_46_104/0.42)]"
+                                                       hover:shadow-[0_28px_60px_-20px_rgb(28_46_104/0.42)]
+                                                       focus-within:ring-2 focus-within:ring-brand-500
+                                                       focus-within:ring-offset-2"
                                         >
+                                            <Link
+                                                to={`/events/${event?.id || ''}`}
+                                                aria-label={`More about ${event?.title || 'this event'}`}
+                                                /* `z-10` sits under nothing else on the card, and
+                                                   `focus:outline-none` because the ring is drawn on
+                                                   the article via `focus-within`. */
+                                                className="absolute inset-0 z-10 focus:outline-none"
+                                            />
                                             {/* No image is a valid event; a broken frame is not. */}
                                             {event?.media?.url && (
                                                 <div className="relative h-44 w-full overflow-hidden">
@@ -847,13 +914,34 @@ export function EventsExplorer({ events, settings }: Props) {
                                                       nothing behind it.
                                                     */}
                                                     {event?.registrationEnabled && (
-                                                        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1
-                                                                      text-[1.0625rem]">
-                                                            <span className="font-extrabold text-brand-800">
+                                                        <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                                                            {/*
+                                                              * THE PRICE IS THE BIGGEST THING ON THE CARD
+                                                              * AFTER THE TITLE.
+                                                              *
+                                                              * It was set at 1.0625rem — the size of the
+                                                              * venue and the date beneath it — so the one
+                                                              * figure a visitor is deciding on read as
+                                                              * another line of small print. A price is not
+                                                              * a detail; it is most of the decision.
+                                                              *
+                                                              * "Free" is drawn in green rather than in the
+                                                              * brand navy, because it is not a number and
+                                                              * reading it as one costs a second.
+                                                              */}
+                                                            <span className={`text-[1.625rem] font-black leading-none ${
+                                                                Number(event?.registrationFee) > 0
+                                                                    ? 'text-brand-800'
+                                                                    : 'text-emerald-600'}`}>
                                                                 {Number(event?.registrationFee) > 0
                                                                     ? `₹${Number(event.registrationFee).toLocaleString('en-IN')}`
                                                                     : 'Free'}
                                                             </span>
+                                                            {Number(event?.registrationFee) > 0 && (
+                                                                <span className="text-[1.0625rem] font-semibold text-gray-400">
+                                                                    per seat
+                                                                </span>
+                                                            )}
                                                             {event?.hasMemberRate
                                                                 && Number(event?.memberPrice) < Number(event?.registrationFee) && (
                                                                 <span className="rounded-full bg-emerald-50 px-2.5 py-0.5
@@ -918,6 +1006,18 @@ export function EventsExplorer({ events, settings }: Props) {
                                                             <span>{time}</span>
                                                         </p>
                                                     )}
+                                                    {/* A multi-day event says when it
+                                                        finishes. The chip above can hold
+                                                        one day, and a conclave that runs
+                                                        to Friday reading as a Wednesday
+                                                        is somebody booking one night. */}
+                                                    {lastDay && (
+                                                        <p className="flex items-center gap-2 text-[1.125rem]
+                                                                      font-semibold text-gray-500">
+                                                            <CalendarDays size={16} className="shrink-0 text-brand-400" />
+                                                            <span>Runs to {lastDay}</span>
+                                                        </p>
+                                                    )}
                                                     {/*
                                                       An undated event says so.
                                                       
@@ -941,12 +1041,21 @@ export function EventsExplorer({ events, settings }: Props) {
                                                     {/* Its own page. This pointed back at the
                                                         list the card is already on, so "View
                                                         Details" showed no details. */}
-                                                    <Link
-                                                        to={`/events/${event?.id || ''}`}
-                                                        aria-label={`More about ${event?.title || 'this event'}`}
+                                                    {/*
+                                                      * NOT A LINK ANY MORE — the whole card is
+                                                      * one (see the overlay above). A second
+                                                      * link to the same place inside the first
+                                                      * is invalid markup and gives a keyboard
+                                                      * user two stops that do the same thing.
+                                                      * It stays as the visible affordance,
+                                                      * because a card with nothing saying it
+                                                      * can be opened does not look openable.
+                                                      */}
+                                                    <span
+                                                        aria-hidden="true"
                                                         className={`${MICRO_LABEL} mt-1 inline-flex items-center gap-1.5
                                                                     py-3.5 text-brand-600 transition-colors
-                                                                    hover:text-brand-800`}
+                                                                    group-hover:text-brand-800`}
                                                     >
                                                         View Details
                                                         <ArrowRight
@@ -954,7 +1063,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                             className="transition-transform duration-300
                                                                        group-hover:translate-x-1"
                                                         />
-                                                    </Link>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </article>
@@ -963,55 +1072,6 @@ export function EventsExplorer({ events, settings }: Props) {
                             );
                         })}
                     </div>
-                )}
-
-                {/* ------------------------------------------- past events */}
-                {showPastLink && (
-                    <Reveal>
-                        <div className="mt-14 flex flex-col gap-4 rounded-2xl border border-brand-100
-                                        bg-white px-6 py-5 shadow-[0_18px_46px_-30px_rgb(28_46_104/0.45)]
-                                        sm:flex-row sm:items-center sm:gap-5">
-                            <span className="flex h-12 w-12 shrink-0 items-center justify-center
-                                             rounded-full bg-brand-50 text-brand-600">
-                                <CmsIcon name={pastLink?.icon} size={22} fallback="image" />
-                            </span>
-
-                            <div className="min-w-0 flex-1">
-                                {pastLink?.title && (
-                                    <p className="text-[1.375rem] font-extrabold text-brand-800">
-                                        {pastLink.title}
-                                    </p>
-                                )}
-                                {pastLink?.subtitle && (
-                                    <p className="mt-1 text-[1.125rem] font-medium leading-relaxed text-gray-600">
-                                        {pastLink.subtitle}
-                                    </p>
-                                )}
-                            </div>
-
-                            {pastLink?.label && (
-                                (pastLink.href || '/gallery').startsWith('/') ? (
-                                    <Link
-                                        to={pastLink.href || '/gallery'}
-                                        className="inline-flex shrink-0 items-center gap-2 rounded-full
-                                                   bg-brand-600 px-6 py-3 text-[1.125rem] font-bold
-                                                   text-white transition-colors hover:bg-brand-700"
-                                    >
-                                        {pastLink.label} <ArrowRight size={16} />
-                                    </Link>
-                                ) : (
-                                    <a
-                                        href={pastLink.href}
-                                        className="inline-flex shrink-0 items-center gap-2 rounded-full
-                                                   bg-brand-600 px-6 py-3 text-[1.125rem] font-bold
-                                                   text-white transition-colors hover:bg-brand-700"
-                                    >
-                                        {pastLink.label} <ArrowRight size={16} />
-                                    </a>
-                                )
-                            )}
-                        </div>
-                    </Reveal>
                 )}
 
                 {/* --------------------------------------------------- banner */}
@@ -1059,8 +1119,18 @@ export function EventsExplorer({ events, settings }: Props) {
                     </Reveal>
                 )}
 
-                {/* Fields the editor added to this page. */}
-                <CmsExtraFields fields={ownRows} className="mt-16" />
+                {/* The grid's own rows, then the banner's, then the PAGE's.
+                    Each card's rows used to be pooled into one list printed
+                    here, so a field added to the filters landed under the grid. */}
+                {fieldsFor('events.grid')}
+                {fieldsFor('events.banner')}
+                {/* The "past events link" card offered the control and had
+                    nothing drawing the answer. It belongs to this page's foot,
+                    which is where that link sits. */}
+                {fieldsFor('events.pastLink')}
+                <div className={`${CARD_BODY} text-gray-600`}>
+                    <CmsExtraFields fields={ownRows} className="mt-16" />
+                </div>
             </div>
         </section>
     );

@@ -5,10 +5,14 @@ import { getContactInfo, sendContactMessage, errorMessage, type ContactInfo } fr
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
-import { SECTION_HEADING, SECTION_LEDE, EYEBROW } from '@/components/layout/typography';
+import { SECTION_HEADING, SECTION_LEDE, EYEBROW, BAND_MEASURE } from '@/components/layout/typography';
+
+/** The information column's own type, for the rows added to its cards. */
+const INFO_PROSE = 'text-[1.125rem] font-medium leading-relaxed text-gray-600';
 import { Reveal } from '@/components/shared/Reveal';
 import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
+import { SectionFields } from '@/components/shared/SectionFields';
 
 /**
  * The contact page.
@@ -156,13 +160,15 @@ export function ContactFormSection() {
                                 )}
 
                                 {info?.description && (
-                                    <p className={`${SECTION_LEDE} font-medium text-gray-600 max-w-xl`}>
+                                    <p className={`${SECTION_LEDE} font-medium text-gray-600 ${BAND_MEASURE}`}>
                                         {info.description}
                                     </p>
                                 )}
 
                                 {/* The editor's own rows on this card. */}
-                                <CmsExtraFields fields={headerFields} className="mt-8" />
+                                <div className={`${SECTION_LEDE} font-medium text-gray-600`}>
+                                    <CmsExtraFields fields={headerFields} className="mt-8" />
+                                </div>
                             </div>
                         )}
 
@@ -228,7 +234,7 @@ export function ContactFormSection() {
                                 </div>
                                 <div>
                                     {formCard.title && (
-                                        <h3 className="text-2xl font-extrabold tracking-tight text-[#111827]">
+                                        <h3 className="text-[1.5625rem] font-extrabold tracking-tight text-[#111827]">
                                             {formCard.title}
                                         </h3>
                                     )}
@@ -320,8 +326,11 @@ export function ContactFormSection() {
                                 </p>
                             )}
 
-                            {/* The editor's own rows on the form card. */}
-                            <CmsExtraFields fields={formFields} variant="list" className="pt-2" />
+                            {/* The editor's own rows on the form card, in the
+                                form's own type. */}
+                            <div className="text-[1.0625rem] font-medium leading-relaxed text-gray-600">
+                                <CmsExtraFields fields={formFields} variant="list" className="pt-2" />
+                            </div>
                         </form>
                     </Reveal>
 
@@ -343,7 +352,7 @@ export function ContactFormSection() {
                                     </div>
                                     <div>
                                         {infoCard.title && (
-                                            <h3 className="text-2xl font-extrabold tracking-tight text-[#111827]">
+                                            <h3 className="text-[1.5625rem] font-extrabold tracking-tight text-[#111827]">
                                                 {infoCard.title}
                                             </h3>
                                         )}
@@ -417,6 +426,12 @@ export function ContactFormSection() {
                                     number, a registration desk, whatever this
                                     association needs that the four above do not
                                     cover. Nothing is drawn when none are set. */}
+                                {/* The Banner and Social cards each offered the
+                                    control and had nothing drawing the answer —
+                                    a field added to either was saved and never
+                                    seen. Both are parts of this column. */}
+                                <SectionFields proseClass={INFO_PROSE} sections={info?.sections} sectionKey="contact.banner" />
+                                <SectionFields proseClass={INFO_PROSE} sections={info?.sections} sectionKey="contact.social" />
                                 <CmsExtraFields
                                     fields={[...infoFields, ...(info?.extraFields || [])]}
                                     variant="list"

@@ -263,7 +263,7 @@ export default function MembershipCard({
                             {name}
                         </h2>
                         {subtitle && (
-                            <p className="mt-1 text-[1.125rem] font-bold text-blue-600">{subtitle}</p>
+                            <p className="mt-1 text-[1.1875rem] font-bold text-blue-600">{subtitle}</p>
                         )}
                     </div>
                 </div>
