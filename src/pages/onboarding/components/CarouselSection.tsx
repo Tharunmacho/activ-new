@@ -1,11 +1,12 @@
+import { eventPath } from '@/lib/eventPath';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight, ArrowRight, Calendar, MapPin } from 'lucide-react';
 import {
-    getHome, getHomeGallery,
-    type HomeCarousel, type CmsMedia, type GalleryItem, type CmsSectionOverride,
+    getHome, getHomeGallery, getCmsEvents,
+    type HomeCarousel, type CmsMedia, type GalleryItem, type CmsSectionOverride, type CmsEvent,
 } from '@/services/cmsApi';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
 import { SectionFields } from '@/components/shared/SectionFields';
@@ -95,6 +96,8 @@ export function CarouselSection() {
     /* Which of this banner's cards the editor removed, and what they added to each — see `cmsSections`. */
     const [sections, setSections] = useState<CmsSectionOverride[]>([]);
     const [posters, setPosters] = useState<GalleryItem[]>([]);
+    /* Events switched into the banner — see `showInBanner` on the event. */
+    const [bannerEvents, setBannerEvents] = useState<CmsEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -125,12 +128,19 @@ export function CarouselSection() {
         // Both in flight together. The banner cannot paint without the home
         // document, and waiting for it before asking for the posters would put
         // two round trips in front of the first thing on the page.
-        Promise.all([getHome(), getHomeGallery()])
-            .then(([home, gallery]) => {
+        /* The PUBLIC event list: only an event a visitor may read can be in
+           the banner, and that list is already filtered to exactly those. */
+        Promise.all([getHome(), getHomeGallery(), getCmsEvents()])
+            .then(([home, gallery, events]) => {
                 if (cancelled) return;
                 setCarousel(home.carousel);
                 setSections(home.sections || []);
                 setPosters(gallery || []);
+                /* `=== true`, not `!== false`: the server ALWAYS sends the
+                   switch (On by default, see the event model). A missing value
+                   means a backend too old to know it, and an event the CMS
+                   cannot account for must not ride the banner. */
+                setBannerEvents((events || []).filter((e) => e?.showInBanner === true));
                 setIsLoading(false);
             })
             .catch(() => { if (!cancelled) { setCarousel(null); setSections([]); setIsLoading(false); } });
@@ -160,8 +170,52 @@ export function CarouselSection() {
             }));
 
         const config = carousel?.galleryPosters;
-        if (!config || config.enabled === false) return authored;
-        if (sectionHidden(sections, 'carousel.galleryPosters')) return authored;
+
+        /*
+         * EVENTS SWITCHED INTO THE BANNER — the gallery's treatment, given to
+         * events: the editor's banner words when written, the event's own
+         * title and summary when not, and a click opens the event's page.
+         *
+         * Not gated on the gallery-posters card. That card governs the
+         * gallery's images; an event has its own switch, on the event.
+         */
+        const fromEvents: BannerSlide[] = bannerEvents
+            .filter(e => e?.media?.url || e?.imageUrl)
+            .map(e => {
+                const summary = String(e.description || '').replace(/<[^>]*>/g, ' ')
+                    .replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+                const when = e.startAt ? new Date(e.startAt) : null;
+                return {
+                    media: e.media?.url ? e.media : { ...e.media, url: e.imageUrl },
+                    caption: '',
+                    ...(e.bannerHeadline || e.bannerHighlight || e.bannerSubheadline
+                        ? {
+                            headline: e.bannerHeadline || '',
+                            highlight: e.bannerHighlight || '',
+                            subheadline: e.bannerSubheadline || '',
+                        }
+                        : {
+                            headline: e.title || '',
+                            highlight: '',
+                            subheadline: summary.length > 180 ? `${summary.slice(0, 177).trimEnd()}…` : summary,
+                        }),
+                    align: e.bannerAlign === 'right' ? 'right' as const : 'left' as const,
+                    href: eventPath(e),
+                    title: e.title || '',
+                    eventDate: when && !Number.isNaN(when.getTime())
+                        ? when.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : '',
+                    location: e.venue || e.location || '',
+                    category: e.category || 'Event',
+                };
+            });
+
+        const place = (extras: BannerSlide[]) => (config?.position === 'before'
+            ? [...extras, ...authored]
+            : [...authored, ...extras]);
+
+        if (!config || config.enabled === false) return place(fromEvents);
+        if (sectionHidden(sections, 'carousel.galleryPosters')) return place(fromEvents);
 
         /*
          * EVERY poster switched on, however many that is.
@@ -207,10 +261,8 @@ export function CarouselSection() {
                 category: item.category || '',
             }));
 
-        return config.position === 'before'
-            ? [...fromGallery, ...authored]
-            : [...authored, ...fromGallery];
-    }, [carousel, posters, sections]);
+        return place([...fromEvents, ...fromGallery]);
+    }, [carousel, posters, bannerEvents, sections]);
 
     // Embla caches slide measurements; without this the arrows do nothing on a
     // list that arrived after mount.

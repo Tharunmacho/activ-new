@@ -1,3 +1,4 @@
+import { eventPath } from '@/lib/eventPath';
 /**
  * Taking an event OFF the page — into a calendar, into a chat, into maps.
  *
@@ -88,7 +89,7 @@ export const eventPlace = (event: CalendarEventLike): string =>
  */
 export const eventPageUrl = (event: CalendarEventLike): string => {
     if (typeof window === 'undefined') return '';
-    return `${window.location.origin}/events/${event.id || ''}`;
+    return `${window.location.origin}${eventPath(event)}`;
 };
 
 /**

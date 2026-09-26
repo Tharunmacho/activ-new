@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaHome, FaCheckCircle, FaUsers, FaCog, FaSignOutAlt, FaTimes, FaUserShield, FaCalendarAlt, FaBullhorn, FaBell, FaTicketAlt, FaTags, FaListUl, FaChevronDown } from 'react-icons/fa';
+import { FaHome, FaCheckCircle, FaUsers, FaCog, FaSignOutAlt, FaTimes, FaUserShield, FaCalendarAlt, FaBullhorn, FaBell, FaTicketAlt, FaTags, FaListUl, FaChevronDown, FaImages, FaNewspaper, FaLandmark } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { apiFetch, logout } from '@/services/activApi';
@@ -96,6 +96,9 @@ export default function AdminSidebar({
         tags: <FaTags />,
         list: <FaListUl />,
         cog: <FaCog />,
+        image: <FaImages />,
+        newspaper: <FaNewspaper />,
+        landmark: <FaLandmark />,
     } as const;
 
     const nav = config.nav;

@@ -71,6 +71,9 @@ export interface EventDetail {
      */
     memberFee: string;
     registrationNote: string;
+    /** What the event is about, and the language it is held in — printed in the booking messages. */
+    topic: string;
+    language: string;
     /** The questions THIS event asks, on top of the four standing ones. */
     registrationFields: RegistrationField[];
     reminderOffsetsHours: number[];
@@ -113,6 +116,8 @@ export const BLANK_DETAIL: EventDetail = {
     // Blank: a new event charges one price until somebody sets a member rate.
     memberFee: '',
     registrationNote: '',
+    topic: '',
+    language: '',
     registrationFields: [],
     reminderOffsetsHours: [],
 };
@@ -636,6 +641,31 @@ export default function EventDetailFields({
                                 </CmsField>
                             </div>
                         </div>
+                    </CmsSection>
+
+                    {/* ------------------------------------------- the attendee note
+                      *
+                      * `registrationNote` has always been on the event, and the
+                      * event page, the booking page and the member screens all
+                      * print it as "Please note" — but the form had no box for
+                      * it, so it could never be written. Its own section, not
+                      * inside Registration: a note about what to bring applies
+                      * whether or not the event takes bookings. It also goes out
+                      * in the booking confirmation and reminder emails.
+                      */}
+                    <CmsSection title="Note for everyone attending">
+                        <CmsField
+                            label="Please note"
+                            hint="Something every attendee must know or bring — a photo ID, the invitation, arriving 30 minutes early. One point per line. Shown on the event page and the booking page, and sent in the confirmation and reminder emails."
+                        >
+                            <CmsTextarea
+                                rows={4}
+                                maxLength={1000}
+                                value={value.registrationNote}
+                                onChange={(e) => set({ registrationNote: e.target.value })}
+                                placeholder={'Carry a government photo ID.\nBring your business card.\nArrive by 9:30 am for registration.'}
+                            />
+                        </CmsField>
                     </CmsSection>
 
                     {/* ---------------------------------------------- registration */}

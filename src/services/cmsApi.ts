@@ -520,6 +520,8 @@ export interface ContactInfo {
 
 export interface CmsEvent {
     id: string;
+    /** The readable public address (`/events/<slug>`); see lib/eventPath. */
+    slug?: string;
     title: string;
     description: string;
     startAt: string | null;
@@ -554,6 +556,20 @@ export interface CmsEvent {
      * somebody turned it off, so a new event needs no second step.
      */
     showOnHome?: boolean;
+    /**
+     * In the home page BANNER (the slideshow at the top), with its own words —
+     * the gallery item's banner fields, on an event. On unless switched off,
+     * like a gallery item's `showOnHome` — posting an event puts it there.
+     * A different surface from `showOnHome`, which is the events strip.
+     */
+    showInBanner?: boolean;
+    /** What the event is about, and its language — see the event model. */
+    topic?: string;
+    language?: string;
+    bannerHeadline?: string;
+    bannerHighlight?: string;
+    bannerSubheadline?: string;
+    bannerAlign?: BannerAlign;
     /**
      * Which site the event was authored for — `public` is the CMS's onboarding
      * programme, `members` the association's own. Optional for the same reason.
@@ -928,14 +944,32 @@ const refresh = <T>(key: string, load: () => Promise<T>): Promise<T> => {
  * header's region menu and the page's own document were re-fetched from nothing
  * on each navigation, including a return to a page the reader had just left.
  */
+/*
+ * ONLY THE CHROME IS SERVED STALE.
+ *
+ * Serving a stale copy while refreshing behind it is right for the header,
+ * footer and menus: they remount on every navigation, rarely change, and a
+ * re-fetch from nothing made them flash. It is WRONG for content. A section
+ * reads once, on mount, so a stale copy is the copy it keeps — the refresh
+ * lands in the cache and nothing re-reads it. That is how an event switched
+ * OFF in the CMS stayed in the home banner: the page was handed the list from
+ * before the switch and never asked again.
+ *
+ * So content waits for the network once its five seconds are up, and the
+ * header, footer and menus keep the no-flash behaviour.
+ */
+const SERVE_STALE = new Set(['site', 'legal:links', 'regions:map', 'schemes:states']);
+
 export const cached = async <T>(key: string, load: () => Promise<T>): Promise<T> => {
     const hit = cache.get(key);
 
     if (hit) {
         if (Date.now() - hit.at < CACHE_TTL_MS) return hit.value as T;
-        // Stale: hand back what we have and bring it up to date behind the render.
-        refresh(key, load).catch(() => { /* keep serving the stale copy */ });
-        return hit.value as T;
+        if (SERVE_STALE.has(key)) {
+            // Stale chrome: hand back what we have and bring it up to date behind the render.
+            refresh(key, load).catch(() => { /* keep serving the stale copy */ });
+            return hit.value as T;
+        }
     }
 
     return refresh(key, load);
@@ -953,7 +987,31 @@ export const cached = async <T>(key: string, load: () => Promise<T>): Promise<T>
 export const invalidateCmsCache = (key?: string) => {
     if (key) cache.delete(key);
     else cache.clear();
+    // Every other open tab of the site drops its copy too — see below.
+    try { cmsChannel?.postMessage({ key: key || '' }); } catch { /* channel closed */ }
 };
+
+/*
+ * ACROSS TABS. The CMS and the public site are usually open side by side, and
+ * each tab has its own memory: a save in the CMS tab cleared the CMS tab's
+ * cache and left the public tab holding the old copy. A BroadcastChannel tells
+ * every tab of this origin to drop it as well. Absent in very old browsers,
+ * where the five-second TTL is the fallback.
+ */
+const cmsChannel: BroadcastChannel | null = (() => {
+    try {
+        if (typeof BroadcastChannel === 'undefined') return null;
+        const channel = new BroadcastChannel('activ-cms-cache');
+        channel.onmessage = (e: MessageEvent) => {
+            const key = String((e?.data && e.data.key) || '');
+            if (key) cache.delete(key);
+            else cache.clear();
+        };
+        return channel;
+    } catch {
+        return null;
+    }
+})();
 
 /*
  * DROPPED ON EVERY SESSION CHANGE, like the request cache it sits beside.

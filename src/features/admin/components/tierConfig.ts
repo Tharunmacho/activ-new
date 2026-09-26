@@ -28,7 +28,7 @@ export interface NavItem {
     to: string;
     label: string;
     /** Which react-icons/fa glyph the sidebar renders. */
-    icon: 'home' | 'check' | 'users' | 'shield' | 'calendar' | 'megaphone' | 'bell' | 'cog'
+    icon: 'home' | 'check' | 'users' | 'shield' | 'calendar' | 'megaphone' | 'bell' | 'cog' | 'image' | 'newspaper' | 'landmark'
     | 'ticket' | 'tags' | 'list';
     /**
      * A SECTION rather than a single destination.
@@ -237,8 +237,9 @@ export const TIERS: Record<AdminTier, TierConfig> = {
      * ARE the super admin's (the same components, mounted under `/events-admin`
      * — see `adminBasePath`), so there is one events editor, one categories
      * screen and one bookings screen, and nothing about an event can differ by
-     * which portal saved it. The server opens the event endpoints to this role
-     * and refuses it everywhere else.
+     * which portal saved it. The Gallery, News and Schemes screens are the CMS's
+     * own, mounted the same way. The server opens exactly those endpoints to
+     * this role and refuses it everywhere else.
      */
     events: {
         base: '/events-admin',
@@ -258,9 +259,18 @@ export const TIERS: Record<AdminTier, TierConfig> = {
                 children: [
                     { to: '/events-admin/events', label: 'All events', icon: 'list' },
                     { to: '/events-admin/events/categories', label: 'Categories', icon: 'tags' },
-                    { to: '/events-admin/bookings', label: 'Bookings', icon: 'ticket' },
+                    // No Bookings: attendees and takings are the super
+                    // admin's alone (`BOOKING_VIEWERS` in event.routes.js).
                 ],
             },
+            /*
+             * The public site's photographs, newsroom and schemes — the CMS's
+             * own screens, mounted in this portal the way the event editor is.
+             * One write path per collection, whichever portal saved it.
+             */
+            { to: '/events-admin/gallery', label: 'Gallery', icon: 'image' },
+            { to: '/events-admin/news', label: 'News', icon: 'newspaper' },
+            { to: '/events-admin/schemes', label: 'Schemes', icon: 'landmark' },
             // Profile and password — the account is issued with a temporary one.
             { to: '/events-admin/settings', label: 'Settings', icon: 'cog' },
         ],

@@ -1,3 +1,4 @@
+import { eventPath } from '@/lib/eventPath';
 import { useEffect, useState } from 'react';
 import { MapPin, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -211,7 +212,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                                    hover:shadow-[0_30px_64px_-20px_rgb(28_46_104/0.38)]"
                                     >
                                 <Link
-                                    to={`/events/${event.id}`}
+                                    to={eventPath(event)}
                                     aria-label={`More about ${event.title || 'this event'}`}
                                     className="absolute inset-0 z-10 focus:outline-none"
                                 />

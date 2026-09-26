@@ -484,16 +484,16 @@ export default function EventsManager({
         setForm({
             ...BLANK,
             /*
-             * The onboarding answer this surface opens at.
+             * The onboarding answer a new event opens at: ON, on every surface.
              *
-             * `true` in the CMS: that screen exists to post the onboarding
-             * site's programme, so anything written there is public content
-             * unless the editor says otherwise. `false` in the admin area,
-             * where an event is the association's own until someone chooses to
-             * advertise it. Both defaults are the answer the editor would have
-             * given, which is the only reason a default is safe here.
+             * The association wants every event it posts — from the CMS, the
+             * Super Admin or the Events Admin — on the onboarding site and in
+             * the CMS alike. It used to be `false` in the admin area, so an
+             * event posted there stayed off the public site unless the poster
+             * remembered a checkbox. The box is still on the form for the
+             * rare event that must stay inside the association.
              */
-            showOnOnboarding: channel === 'public',
+            showOnOnboarding: true,
             reachEveryone: true,
             detail: { ...BLANK.detail, audience: defaultAudience },
         });
@@ -611,6 +611,8 @@ export default function EventsManager({
                  */
                 memberFee: e.memberFee == null ? '' : String(e.memberFee),
                 registrationNote: e.registrationNote || '',
+                topic: e.topic || '',
+                language: e.language || '',
                 registrationFields: Array.isArray(e.registrationFields) ? e.registrationFields : [],
                 reminderOffsetsHours: Array.isArray(e.reminderOffsetsHours) ? e.reminderOffsetsHours : [],
             },
@@ -721,6 +723,15 @@ export default function EventsManager({
                 speakers: JSON.stringify(form.detail.speakers),
                 reminderOffsetsHours: JSON.stringify(form.detail.reminderOffsetsHours),
 
+                /*
+                 * HOW IT IS ATTENDED. These three were loaded into the form
+                 * and never sent back, so "Online" and the joining link were
+                 * dropped on every save — the event reopened as "In person"
+                 * with the Zoom link gone. The server has always stored them.
+                 */
+                mode: form.detail.mode,
+                onlinePlatform: form.detail.onlinePlatform,
+                onlineUrl: form.detail.onlineUrl,
                 venueAddress: form.detail.venueAddress,
                 venueMapUrl: form.detail.venueMapUrl,
                 contactName: form.detail.contactName,
@@ -746,6 +757,9 @@ export default function EventsManager({
                     ? ''
                     : Number(form.detail.memberFee) || 0,
                 registrationNote: form.detail.registrationNote,
+                // Printed in the booking email and WhatsApp message.
+                topic: form.detail.topic,
+                language: form.detail.language,
                 // JSON-encoded for the same reason the agenda is: this payload
                 // becomes `FormData` whenever there is an image, and
                 // `FormData.append` would stringify the array to
@@ -1446,6 +1460,25 @@ export default function EventsManager({
                                         ))}
                                 </select>
                             </CmsField>
+
+                            {/* WHAT IT IS ABOUT, AND IN WHICH LANGUAGE — both go
+                                into the booking email and WhatsApp message. */}
+                            <CmsField label="Topic" hint="The subject in a few words, e.g. “Government procurement for MSMEs”.">
+                                <CmsInput
+                                    value={form.detail.topic}
+                                    maxLength={120}
+                                    onChange={(e) => setForm({ ...form, detail: { ...form.detail, topic: e.target.value } })}
+                                    placeholder="What the event is about"
+                                />
+                            </CmsField>
+                            <CmsField label="Language" hint="The language it is held in, e.g. Tamil, English, or Tamil & English.">
+                                <CmsInput
+                                    value={form.detail.language}
+                                    maxLength={60}
+                                    onChange={(e) => setForm({ ...form, detail: { ...form.detail, language: e.target.value } })}
+                                    placeholder="Tamil & English"
+                                />
+                            </CmsField>
                         </div>
 
                         {/* ===================== 2b · HOW IT IS ATTENDED
@@ -1531,12 +1564,12 @@ export default function EventsManager({
                                             />
                                         </CmsField>
                                         <CmsField
-                                            label="Joining link"
-                                            hint="Not shown publicly. It reaches the people who book, on their confirmation."
+                                            label="Registration link"
+                                            hint="The Zoom (or other) registration form. Not shown publicly — it is sent to the people who book, and the platform then emails each of them their joining link."
                                         >
                                             <CmsInput
                                                 value={form.detail.onlineUrl}
-                                                placeholder="https://zoom.us/j/…"
+                                                placeholder="https://zoom.us/meeting/register/…"
                                                 onChange={(e) => setForm({
                                                     ...form,
                                                     detail: { ...form.detail, onlineUrl: e.target.value },
@@ -1718,7 +1751,6 @@ export default function EventsManager({
                             </div>
                         )}
 
-
                         <EventDetailFields
                             value={form.detail}
                             onChange={(detail) => setForm({ ...form, detail })}
@@ -1780,7 +1812,7 @@ export default function EventsManager({
                 title={`Events (${visibleEvents.length}`
                     + `${visibleEvents.length === events.length ? '' : ' of ' + events.length})`}
                 description={channel === 'public'
-                    ? 'Everything on the onboarding site — the programme written here and anything the Super Admin posted there.'
+                    ? 'Everything on the onboarding site — the programme written here and every event posted from the admin portal.'
                     : 'Aim an event at a region when you create it.'}
                 actions={
                     /* ONE control in the header, and it is the one that
@@ -1850,7 +1882,7 @@ export default function EventsManager({
                             >
                                 <option value="all">Everything on the site</option>
                                 <option value="cms">Written here</option>
-                                <option value="admin">Posted by the Super Admin ({adminPosted})</option>
+                                <option value="admin">Posted from the admin portal ({adminPosted})</option>
                             </select>
                         )}
 
@@ -2044,8 +2076,8 @@ export default function EventsManager({
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-violet-100 dark:bg-violet-950
                                                                  text-violet-700 dark:text-violet-400 align-middle"
-                                                    title="Posted from the Super Admin's events screen. Editable here as well.">
-                                                    <Shield className="w-2.5 h-2.5" /> Super Admin
+                                                    title="Posted from the admin portal (Super Admin or Events Admin). Editable here as well.">
+                                                    <Shield className="w-2.5 h-2.5" /> Admin portal
                                                 </span>
                                             ) : null}
                                             {channel === 'public' && !isOnPublicSite(e) ? (

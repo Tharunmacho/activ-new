@@ -27,6 +27,7 @@ import {
 } from './components/CmsUI';
 import { RepeatableList, StatList, BulletList, IconPicker , ExtraFieldsEditor } from './components/CmsEditors';
 import { HomeGalleryPicker } from './components/HomeGalleryPicker';
+import { HomeEventBannerPicker } from './components/HomeEventBannerPicker';
 import { HomeRegionsPicker } from './components/HomeRegionsPicker';
 import MediaPicker from './components/MediaPicker';
 import BannerWordsFields from './components/BannerWordsFields';
@@ -506,6 +507,16 @@ export default function HomeManager() {
                                 Which images ride the banner
                             </p>
                             <HomeGalleryPicker />
+                        </div>
+
+                        {/* The same switch for EVENTS — whoever posted them. An
+                            event's banner switch is `showInBanner`, its own
+                            field; the events strip lower down is `showOnHome`. */}
+                        <div className="mb-6 border-b border-slate-100 pb-6 dark:border-[#1a1a1a]">
+                            <p className="mb-3 text-[1.1875rem] font-extrabold text-slate-900 dark:text-white">
+                                Which events ride the banner
+                            </p>
+                            <HomeEventBannerPicker />
                         </div>
 
                         {/* “How many posters” used to lead this row and is gone:

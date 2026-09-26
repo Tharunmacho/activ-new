@@ -22,6 +22,8 @@ import {
     BIZ_DETAIL_LABEL, BIZ_DETAIL_VALUE,
 } from '@/components/layout/surface';
 import { Reveal } from '@/components/shared/Reveal';
+import { eventPath } from '@/lib/eventPath';
+import { setShareMeta } from '@/lib/shareMeta';
 
 /**
  * One event, in full.
@@ -143,6 +145,32 @@ export default function EventDetailPage() {
     const [availability, setAvailability] = useState<BookableEvent | null>(null);
     const [loading, setLoading] = useState(true);
     const [missing, setMissing] = useState(false);
+
+    /*
+     * ONE ADDRESS PER EVENT. Opened by its old id link, the address bar is
+     * swapped for the readable one (`/events/<slug>`) without a reload, so the
+     * link a visitor copies from here is the one worth sharing.
+     */
+    useEffect(() => {
+        if (!event?.slug || id === event.slug) return;
+        try {
+            window.history.replaceState(window.history.state, '', `${eventPath(event)}${window.location.search}`);
+        } catch {
+            /* the old address still works */
+        }
+    }, [event, id]);
+
+    // The share tags for this event; see lib/shareMeta and server.mjs.
+    useEffect(() => {
+        if (!event) return undefined;
+        return setShareMeta({
+            title: event.title || 'ACTIV event',
+            description: event.description || '',
+            image: event.imageUrl || '',
+            url: `${window.location.origin}${eventPath(event)}`,
+            type: 'article',
+        });
+    }, [event]);
 
     useEffect(() => {
         let cancelled = false;
@@ -1128,7 +1156,7 @@ export default function EventDetailPage() {
                                     {moreEvents.map(other => (
                                         <Link
                                             key={other.id}
-                                            to={`/events/${other.id}`}
+                                            to={eventPath(other)}
                                             className={`${BIZ_CARD} group block overflow-hidden
                                                         transition-all duration-300 hover:-translate-y-0.5
                                                         hover:border-slate-300

@@ -184,6 +184,9 @@ const SuperNotifications = lazy(() => import("./features/admin/super-admin/pages
    screens (All events, Categories, Bookings) mounted under /events-admin. */
 const EventsAdminDashboard = lazy(() => import("./features/admin/events-admin/pages/Dashboard"));
 const EventsAdminSettings = lazy(() => import("./features/admin/events-admin/pages/Settings"));
+const EventsAdminGallery = lazy(() => import("./features/admin/events-admin/pages/Gallery"));
+const EventsAdminNews = lazy(() => import("./features/admin/events-admin/pages/News"));
+const EventsAdminSchemes = lazy(() => import("./features/admin/events-admin/pages/Schemes"));
 
 // CMS (public-site content management, super admin only)
 const CmsLayout = lazy(() => import("./pages/cms/CmsLayout"));
@@ -515,8 +518,15 @@ const App = () => (
               <Route path="/events-admin/dashboard" element={<EventsAdminDashboard />} />
               <Route path="/events-admin/events" element={<SuperEvents />} />
               <Route path="/events-admin/events/categories" element={<SuperEventCategories />} />
-              <Route path="/events-admin/bookings" element={<SuperBookingEvents />} />
-              <Route path="/events-admin/bookings/:eventId" element={<SuperBookings />} />
+              {/* No bookings in this portal — the super admin's alone. An old
+                  link lands on the dashboard rather than a 403 screen. */}
+              <Route path="/events-admin/bookings" element={<Navigate to="/events-admin/dashboard" replace />} />
+              <Route path="/events-admin/bookings/:eventId" element={<Navigate to="/events-admin/dashboard" replace />} />
+              {/* The CMS's own Gallery, News and Schemes editors, in this
+                  portal's shell — one write path per collection. */}
+              <Route path="/events-admin/gallery" element={<EventsAdminGallery />} />
+              <Route path="/events-admin/news" element={<EventsAdminNews />} />
+              <Route path="/events-admin/schemes" element={<EventsAdminSchemes />} />
               <Route path="/events-admin/settings" element={<EventsAdminSettings />} />
 
               {/* Legacy Admin Routes - Redirect to Block Admin */}

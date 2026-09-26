@@ -1870,7 +1870,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 {confirmed?.mode === 'online' && (
                     <div className="mt-7 rounded-xl border border-emerald-200 bg-emerald-50/70 px-5 py-5 text-left">
                         <p className="text-[1.0625rem] font-extrabold uppercase tracking-widest text-emerald-700">
-                            Joining this event
+                            Register for this webinar
                         </p>
                         {confirmed.onlineUrl ? (
                             <>
@@ -1887,13 +1887,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                                bg-emerald-600 px-5 text-[1.25rem] font-bold text-white
                                                transition-colors hover:bg-emerald-700"
                                 >
-                                    <Video size={16} /> Open the joining link
+                                    <Video size={16} /> Complete your registration
                                 </a>
                                 <p className="mt-3 break-all text-[1.25rem] font-semibold text-emerald-800/80">
                                     {confirmed.onlineUrl}
                                 </p>
                                 <p className="mt-2 text-[1.25rem] font-semibold text-emerald-700/80">
-                                    Keep this to yourself — it is your seat.
+                                    Once you register, your personal joining link is emailed to you.
                                 </p>
                             </>
                         ) : (
@@ -1901,7 +1901,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 {confirmed.onlinePlatform
                                     ? `This event runs on ${confirmed.onlinePlatform}. `
                                     : 'This event is online. '}
-                                The joining link will be emailed to you before it starts.
+                                The registration link will be shared with you soon.
                             </p>
                         )}
                     </div>

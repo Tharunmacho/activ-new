@@ -11,6 +11,7 @@ import { SectionFields } from '@/components/shared/SectionFields';
 import { Tilt3D } from '@/components/shared/Tilt3D';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { CARD_TITLE, CARD_BODY, MICRO_LABEL } from '@/components/layout/typography';
+import { eventPath } from '@/lib/eventPath';
 
 /**
  * The Events page's search, filters and grid.
@@ -779,7 +780,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                        focus-within:ring-offset-2"
                                         >
                                             <Link
-                                                to={`/events/${event?.id || ''}`}
+                                                to={eventPath(event)}
                                                 aria-label={`More about ${event?.title || 'this event'}`}
                                                 /* `z-10` sits under nothing else on the card, and
                                                    `focus:outline-none` because the ring is drawn on
