@@ -560,6 +560,9 @@ export interface CmsEvent {
     showOnHome?: boolean;
     /** The QR card on the event page (components/shared/EventQr). On unless turned off. */
     showQrOnPage?: boolean;
+    /** Documents for the event (agenda PDF …), and a YouTube / video link. */
+    attachments?: EventAttachment[];
+    videoUrl?: string;
     /**
      * In the home page BANNER (the slideshow at the top), with its own words —
      * the gallery item's banner fields, on an event. On unless switched off,
@@ -1402,6 +1405,22 @@ export const updateContactInfo = async (payload: Partial<ContactInfo>) => {
  * Separate from saving content so the editor can preview the real file before
  * committing — otherwise a wrong image is only discovered once it is live.
  */
+/** One event document, as stored; the url is site-relative (/uploads/...). */
+export interface EventAttachment {
+    name: string;
+    url: string;
+    type?: string;
+    size?: number;
+}
+
+/** Upload an event document (PDF, Word, Excel, slides, image, ZIP — up to 20 MB). */
+export const uploadEventAttachment = async (file: File): Promise<EventAttachment> => {
+    const form = new FormData();
+    form.append('file', file);
+    const data = unwrap<any>(await api.post('/cms/attachments', form), { url: '', name: file.name });
+    return { url: data.url || '', name: data.name || file.name, type: data.type || file.type, size: Number(data.size) || file.size };
+};
+
 export const uploadMedia = async (file: File): Promise<{ url: string; type: 'image' | 'video' }> => {
     const form = new FormData();
     form.append('file', file);

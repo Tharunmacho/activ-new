@@ -1,3 +1,4 @@
+import { EventMediaFiles } from '@/components/shared/EventMediaFiles';
 import { PosterFrame } from '@/components/shared/PosterFrame';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -941,6 +942,8 @@ export default function EventDetailPage() {
                                   * phone reads from across a room. Hidden when
                                   * the editor turned it off.
                                   */}
+                                {/* The event's video and agenda / documents, when it has any. */}
+                                <EventMediaFiles videoUrl={event.videoUrl} attachments={event.attachments} />
                                 {event.showQrOnPage !== false && <EventQrFeature event={event} />}
                             </div>
 

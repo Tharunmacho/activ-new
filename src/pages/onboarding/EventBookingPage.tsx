@@ -668,6 +668,25 @@ export default function EventBookingPage({ chrome = 'public' }: {
              * back to an empty form after a failed payment is how somebody
              * re-types eight participants.
              */
+            /*
+             * ALREADY REGISTERED: the server names the boxes (`fields`). Back to
+             * the form with each message under its own box, rather than a
+             * generic error at the foot of the review step.
+             */
+            const fields = (error as { response?: { data?: { fields?: Record<string, string> } } })
+                ?.response?.data?.fields;
+            if (fields && typeof fields === 'object' && Object.keys(fields).length) {
+                const mapped: Record<string, string> = {};
+                Object.entries(fields).forEach(([key, message]) => {
+                    const m = key.match(/^participants\.(\d+)\.(email|phone)$/);
+                    mapped[m ? `p${m[1]}.${m[2]}` : key] = String(message);
+                });
+                setErrors(mapped);
+                setPaying(false);
+                setStep('form');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
             setPayError(errorMessage(error, 'The booking could not be completed'));
             setPaying(false);
         }

@@ -174,7 +174,17 @@ export const resolveMediaUrl = (value?: string | null): string => {
             || host === '10.0.2.2'
             || /^10\./.test(host)
             || /^192\.168\./.test(host)
-            || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+            || /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+            /*
+             * RETIRED DEPLOYMENTS. The backend used to run at a temporary
+             * `*.sslip.io` address and the site at `welocalhost.com`; both are
+             * gone, and every file uploaded there is served by the current API
+             * under the same `/uploads/` name. VITE_RETIRED_MEDIA_HOSTS adds more.
+             */
+            || /\.sslip\.io$/i.test(host)
+            || /(^|\.)welocalhost\.com$/i.test(host)
+            || String(import.meta.env.VITE_RETIRED_MEDIA_HOSTS || '').split(',')
+                .map((h) => h.trim().toLowerCase()).filter(Boolean).includes(host.toLowerCase());
 
         return unreachableElsewhere ? `${API_ORIGIN}${raw.slice(uploadIndex)}` : raw;
     }

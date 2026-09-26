@@ -1,3 +1,5 @@
+import EventFilesEditor from './components/EventFilesEditor';
+import type { EventAttachment } from '@/services/cmsApi';
 import { useCardTable } from '@/lib/useCardTable';
 import { useEffect, useState } from 'react';
 import { ArrowLeft,
@@ -130,6 +132,9 @@ const BLANK = {
     showOnOnboarding: false,
     // The QR card on the event page; on for every new event (see EventQr).
     showQrOnPage: true,
+    // Documents (agenda PDF …) and a video link — see EventFilesEditor.
+    attachments: [] as EventAttachment[],
+    videoUrl: '',
     /*
      * "Everyone in the association" — the first of the two audience cards.
      *
@@ -564,6 +569,8 @@ export default function EventsManager({
              */
             showOnOnboarding: isOnPublicSite(e),
             showQrOnPage: e.showQrOnPage !== false,
+            attachments: Array.isArray(e.attachments) ? e.attachments : [],
+            videoUrl: e.videoUrl || '',
             // `!== false`: the field postdates every event in the
             // collection, and those belong on the home page as before.
             /*
@@ -716,6 +723,9 @@ export default function EventsManager({
                  */
                 showOnOnboarding: form.showOnOnboarding,
                 showQrOnPage: form.showQrOnPage,
+                // JSON for the same reason the agenda is: this payload may become FormData.
+                attachments: JSON.stringify(form.attachments || []),
+                videoUrl: form.videoUrl || '',
                 // Sent alongside `targets`, never instead of it — the pair is
                 // what lets a reopened event show back both cards.
                 reachEveryone: form.reachEveryone,
@@ -1784,6 +1794,12 @@ export default function EventsManager({
                             icon={<QrCode className="w-4 h-4" />}
                             title="Show the event's QR code on its page"
                             detail="Scanning it opens this event on a phone. The code itself is always available from the QR button."
+                        />
+
+                        <EventFilesEditor
+                            attachments={form.attachments || []}
+                            videoUrl={form.videoUrl || ''}
+                            onChange={(next) => setForm({ ...form, ...next })}
                         />
 
                         <EventDetailFields
