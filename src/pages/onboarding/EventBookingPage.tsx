@@ -536,46 +536,43 @@ export default function EventBookingPage({ chrome = 'public' }: {
 
         if (!booker.name.trim()) found.name = 'Please enter your name';
         if (!booker.email.trim()) found.email = 'Please enter your email address';
-        else if (!EMAIL_RE.test(booker.email.trim())) found.email = 'That does not look like an email address';
+        else if (!EMAIL_RE.test(booker.email.trim())) found.email = 'Enter a valid email address';
 
         const mobile = nationalMobile(booker.phone);
         if (!mobile) found.phone = 'Please enter your mobile number';
-        else if (!MOBILE_RE.test(mobile)) found.phone = 'Enter a 10-digit Indian mobile number';
+        else if (!MOBILE_RE.test(mobile)) found.phone = 'Enter a valid 10-digit mobile number';
 
         if (!Number.isFinite(count) || count < 1) found.count = 'Enter how many people are attending';
         else if (count > maxPerBooking) found.count = `At most ${maxPerBooking} per booking`;
 
         participants.forEach((person, i) => {
             if (person.email.trim() && !EMAIL_RE.test(person.email.trim())) {
-                found[`p${i}.email`] = 'Not a valid email address';
+                found[`p${i}.email`] = 'Enter a valid email address';
             }
             const digitsOnly = nationalMobile(person.phone);
             if (digitsOnly && !MOBILE_RE.test(digitsOnly)) {
-                found[`p${i}.phone`] = 'Enter 10 digits';
+                found[`p${i}.phone`] = 'Enter a valid 10-digit mobile number';
             }
         });
 
         /*
-         * ONE PERSON, ONE SEAT. Participant 1 may be you (the default); every
-         * other row needs its own email and mobile — the server refuses the
-         * same, this just says so before anything is sent.
+         * PARTICIPANTS MAY NOT REPEAT EACH OTHER. You and a participant may
+         * share details (booking for yourself); two participant rows with the
+         * same email or mobile may not. The server applies the same rule.
          */
-        const bookerEmail = booker.email.trim().toLowerCase();
-        const bookerPhone = nationalMobile(booker.phone);
-        const seenEmail = new Map<string, number>();
-        const seenPhone = new Map<string, number>();
+        const seenEmail = new Set<string>();
+        const seenPhone = new Set<string>();
         participants.forEach((person, i) => {
             const email = person.email.trim().toLowerCase();
             const phone = nationalMobile(person.phone);
-            if (i === 0 && (!email || email === bookerEmail) && (!phone || phone === bookerPhone)) return;
-            if (email && !found[`p${i}.email`] && (email === bookerEmail || seenEmail.has(email))) {
-                found[`p${i}.email`] = 'Email already used in this booking';
+            if (email && !found[`p${i}.email`] && seenEmail.has(email)) {
+                found[`p${i}.email`] = 'Email already used by another participant';
             }
-            if (phone && !found[`p${i}.phone`] && (phone === bookerPhone || seenPhone.has(phone))) {
-                found[`p${i}.phone`] = 'Mobile number already used in this booking';
+            if (phone && !found[`p${i}.phone`] && seenPhone.has(phone)) {
+                found[`p${i}.phone`] = 'Mobile number already used by another participant';
             }
-            if (email && !seenEmail.has(email)) seenEmail.set(email, i);
-            if (phone && !seenPhone.has(phone)) seenPhone.set(phone, i);
+            if (email) seenEmail.add(email);
+            if (phone) seenPhone.add(phone);
         });
 
         return found;
@@ -645,7 +642,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
             const local = validate();
             const found: Record<string, string> = {};
             Object.entries(local).forEach(([k, v]) => {
-                if (CONTACT_KEY.test(k) && /already/i.test(v)) found[k] = v;
+                // Everything about a box somebody has typed in; "please enter…" waits for Continue.
+                if (CONTACT_KEY.test(k) && !/^please enter/i.test(v)) found[k] = v;
             });
             const anyContact = EMAIL_RE.test(booker.email.trim()) || MOBILE_RE.test(nationalMobile(booker.phone))
                 || participants.some((p) => EMAIL_RE.test(p.email.trim()) || MOBILE_RE.test(nationalMobile(p.phone)));
