@@ -568,12 +568,11 @@ export default function EventBookingPage({ chrome = 'public' }: {
             const email = person.email.trim().toLowerCase();
             const phone = nationalMobile(person.phone);
             if (i === 0 && (!email || email === bookerEmail) && (!phone || phone === bookerPhone)) return;
-            const who = (n: number | undefined) => (n === undefined ? 'you' : `participant ${n + 1}`);
             if (email && !found[`p${i}.email`] && (email === bookerEmail || seenEmail.has(email))) {
-                found[`p${i}.email`] = `Each person needs their own email — already used by ${who(seenEmail.get(email))}`;
+                found[`p${i}.email`] = 'Email already used in this booking';
             }
             if (phone && !found[`p${i}.phone`] && (phone === bookerPhone || seenPhone.has(phone))) {
-                found[`p${i}.phone`] = `Each person needs their own mobile — already used by ${who(seenPhone.get(phone))}`;
+                found[`p${i}.phone`] = 'Mobile number already used in this booking';
             }
             if (email && !seenEmail.has(email)) seenEmail.set(email, i);
             if (phone && !seenPhone.has(phone)) seenPhone.set(phone, i);
@@ -627,6 +626,46 @@ export default function EventBookingPage({ chrome = 'public' }: {
         setStep('review');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
+    /*
+     * AS YOU TYPE: "Email already registered" / "Mobile number already
+     * registered" appear under the box while the form is being filled, not only
+     * after Continue. Half a second after the last keystroke, the repeats inside
+     * this booking are checked here and the event's existing bookings (and the
+     * registered-member rule) on the server. Only those messages are managed
+     * here — "please enter…" is still left for Continue, so an empty box is not
+     * scolded while somebody is typing.
+     */
+    const liveKeys = useRef<Set<string>>(new Set());
+    const CONTACT_KEY = /^(email|phone|p\d+\.(email|phone))$/;
+    useEffect(() => {
+        if (step !== 'form') return undefined;
+        let cancelled = false;
+        const timer = setTimeout(async () => {
+            const local = validate();
+            const found: Record<string, string> = {};
+            Object.entries(local).forEach(([k, v]) => {
+                if (CONTACT_KEY.test(k) && /already/i.test(v)) found[k] = v;
+            });
+            const anyContact = EMAIL_RE.test(booker.email.trim()) || MOBILE_RE.test(nationalMobile(booker.phone))
+                || participants.some((p) => EMAIL_RE.test(p.email.trim()) || MOBILE_RE.test(nationalMobile(p.phone)));
+            if (anyContact) {
+                const server = await alreadyBooked();
+                Object.entries(server).forEach(([k, v]) => { if (!found[k]) found[k] = v; });
+            }
+            if (cancelled) return;
+            setErrors((prev) => {
+                const next = { ...prev };
+                liveKeys.current.forEach((k) => { delete next[k]; });
+                Object.assign(next, found);
+                liveKeys.current = new Set(Object.keys(found));
+                return next;
+            });
+        }, 500);
+        return () => { cancelled = true; clearTimeout(timer); };
+        // `validate` and `alreadyBooked` read these same values.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, booker.email, booker.phone, participants]);
 
     /* -------------------------------------------------------------- signing in */
 
