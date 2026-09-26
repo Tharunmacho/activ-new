@@ -868,15 +868,15 @@ export default function EventDetailPage() {
                                             old track squeezed "Minister for Social Justice
                                             Department, Government of Tamilnadu" into a column
                                             of single words. */}
-                                        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(18rem,max-content))]">
+                                        <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(18rem,max-content))]">
                                             {speakers.map((person, i) => (
                                                 <div
                                                     key={person.id || i}
                                                     /* A tinted well inside the card, not a second
                                                        card: `slate-50` on white is the same step
                                                        down the sheet is from the page. */
-                                                    className="flex items-start gap-4 rounded-xl border border-slate-200
-                                                               bg-slate-50 p-4"
+                                                    className="flex items-start gap-3 sm:gap-4 rounded-xl border border-slate-200
+                                                               bg-slate-50 p-3.5 sm:p-4"
                                                 >
                                                     {/*
                                                       * A PORTRAIT BIG ENOUGH TO BE A FACE.
@@ -900,7 +900,7 @@ export default function EventDetailPage() {
                                                       * `width` is twice the rendered size, so a
                                                       * retina screen gets a sharp portrait.
                                                       */}
-                                                    <div className="w-[5.5rem] h-[5.5rem] rounded-full overflow-hidden bg-white
+                                                    <div className="w-16 h-16 sm:w-[5.5rem] sm:h-[5.5rem] rounded-full overflow-hidden bg-white
                                                                     border border-slate-200 shrink-0 flex items-center
                                                                     justify-center">
                                                         {person.photoUrl

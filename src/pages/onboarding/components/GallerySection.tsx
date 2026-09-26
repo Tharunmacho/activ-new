@@ -300,13 +300,18 @@ export function GallerySection() {
 
                 {/* ---- filter chips ---- */}
                 {categories.length > 0 && (
-                    <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+                    /* One swipeable row on a phone (the chips stacked one per line
+                       there); wrapped and centred from `sm`. */
+                    <div className="-mx-5 mb-10 flex snap-x items-center gap-2.5 overflow-x-auto px-5 pb-1
+                                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+                                    sm:mx-0 sm:mb-12 sm:flex-wrap sm:justify-center sm:gap-3 sm:overflow-visible sm:px-0">
                         {[{ label: 'All', icon: '' }, ...categories].map((filter, index) => (
                             <button
                                 key={index}
                                 onClick={() => { setActiveFilter(filter.label); setExpanded(false); }}
-                                className={`flex items-center space-x-2.5 px-7 py-3 rounded-full text-[1.25rem] font-semibold
-                                            transition-all duration-200 border ${
+                                className={`flex shrink-0 snap-start items-center space-x-2 sm:space-x-2.5 px-4 sm:px-7 py-2.5 sm:py-3
+                                            rounded-full text-[1.05rem] sm:text-[1.25rem] font-semibold whitespace-nowrap
+                                            transition-all duration-200 border active:scale-95 ${
                                     activeFilter === filter.label
                                         ? 'bg-brand-800 border-brand-800 text-white shadow-md'
                                         : 'bg-white border-gray-200 text-brand-800 hover:border-brand-800 hover:bg-brand-50'

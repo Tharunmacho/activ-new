@@ -1002,12 +1002,14 @@ export default function MembershipPage() {
                         {/* The same grid as the contents strip above, for the
                             same reason and with the same count — fifteen, which
                             divides by three and by five. */}
-                        <Reveal className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+                        {/* On a phone, compact chips that wrap several to a row —
+                            sixteen full-width pills were a very long column. */}
+                        <Reveal className="flex flex-wrap justify-center gap-2 sm:grid sm:gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
                             {copy.whoShouldJoin.bullets.map((item, i) => (
                                 <span
                                     key={i}
-                                    className={`${PILL} flex items-center justify-center gap-2.5 px-5 py-4
-                                                text-center text-[1.0625rem] font-bold leading-snug
+                                    className={`${PILL} flex items-center justify-center gap-2 sm:gap-2.5 px-3.5 py-2.5 sm:px-5 sm:py-4
+                                                text-center text-[0.95rem] sm:text-[1.0625rem] font-bold leading-snug
                                                 text-slate-800`}
                                 >
                                     <span aria-hidden="true"

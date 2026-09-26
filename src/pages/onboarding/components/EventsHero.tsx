@@ -122,7 +122,7 @@ export function EventsHero({ settings }: Props) {
                                         <p className="text-[1.5625rem] font-black tracking-tight tabular-nums">
                                             <CountUp value={stat.value} />
                                         </p>
-                                        <p className="mt-0.5 text-[1.0625rem] sm:text-[0.8125rem] font-bold uppercase
+                                        <p className="mt-0.5 text-[0.8125rem] font-bold uppercase leading-snug
                                                       tracking-[0.08em] text-white/55">
                                             {stat.label}
                                         </p>

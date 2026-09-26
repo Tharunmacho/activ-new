@@ -427,8 +427,14 @@ export function CarouselSection() {
               * a banner running off the screen without letting one field push
               * the whole page down.
               */}
-            <div className="relative w-full min-h-[85vh] sm:min-h-[85vh] bg-slate-900 overflow-visible
-                            flex items-center">
+            {/*
+              * ON A PHONE THE CARD FOLLOWS THE WORDS. Pinned across the bottom
+              * edge (the desktop layout), a stacked 480px card climbed up over
+              * the headline on a 390px screen. Below `md` the band is a column:
+              * the words, then the card, which still hangs 4rem over the edge.
+              */}
+            <div className="relative w-full min-h-[70vh] md:min-h-[85vh] bg-slate-900 overflow-visible
+                            flex flex-col justify-center md:flex-row md:items-center">
 
                 {slides.length > 0 && (
                     <div className="absolute inset-0 overflow-hidden" ref={emblaRef}>
@@ -646,8 +652,8 @@ export function CarouselSection() {
                      * into it. A single `pb-40` was sized against the desktop
                      * card and was the wrong end of the scale to size against.
                      */
-                    <div className={`relative z-20 w-full py-20 sm:py-24 pointer-events-none
-                                     ${showCard ? 'pb-[19rem] sm:pb-56 lg:pb-44' : ''}`}>
+                    <div className={`relative z-20 w-full py-16 sm:py-24 pointer-events-none
+                                     ${showCard ? 'pb-10 md:pb-56 lg:pb-44' : ''}`}>
                         <div className={SCREEN_CONTAINER}>
                             {/*
                               * ==========================================
@@ -773,7 +779,8 @@ export function CarouselSection() {
                            into the banner — and the banner has a paragraph there. Less
                            overhang leaves the same plate-lifting-off effect with the
                            text clear behind it. */
-                        className="absolute left-1/2 -translate-x-1/2 -bottom-16 w-[90%] max-w-5xl z-30"
+                        className="relative z-30 mx-auto -mb-16 w-[92%] max-w-5xl
+                                   md:absolute md:left-1/2 md:-translate-x-1/2 md:-bottom-16 md:mb-0 md:w-[90%]"
                         intensity={4}
                         lift={1.01}
                         perspective={1600}
@@ -785,7 +792,7 @@ export function CarouselSection() {
                                     justify-between gap-6 md:gap-0">
 
                         {(card!.value || card!.eyebrow) && (
-                            <div className="flex items-center space-x-6 w-full md:w-auto">
+                            <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto">
                                 <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center
                                                 text-brand-600 shrink-0">
                                     <CmsIcon name={card!.icon} size={32} fallback="users" />
@@ -799,7 +806,7 @@ export function CarouselSection() {
                                     <p className={`${STAT_FIGURE} text-brand-800`}>
                                         <CountUp value={card!.value} />
                                         {card!.caption && (
-                                            <span className="text-[1.25rem] font-medium text-gray-500 ml-2">{card!.caption}</span>
+                                            <span className="block text-[1.05rem] sm:text-[1.25rem] font-medium text-gray-500 mt-1">{card!.caption}</span>
                                         )}
                                     </p>
                                 </div>
@@ -835,7 +842,7 @@ export function CarouselSection() {
                             <div className="grid w-full md:w-auto grid-cols-2 gap-x-6 gap-y-6
                                             md:grid-flow-col md:auto-cols-fr sm:gap-x-8 lg:gap-x-16">
                                 {card!.stats.map((stat, i) => (
-                                    <div key={i} className="flex flex-col items-center text-center min-w-0">
+                                    <div key={i} className="flex flex-col items-center text-center min-w-0 odd:last:col-span-2 md:odd:last:col-span-1">
                                         <CmsIcon name={stat.icon} size={28} className="text-brand-600 mb-3" fallback="users" />
                                         <p className={`${STAT_FIGURE} text-brand-800`}>
                                             <CountUp value={stat.value} />

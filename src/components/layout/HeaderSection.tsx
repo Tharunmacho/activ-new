@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { RegionsMenu, RegionsAccordion } from './RegionsMenu';
 import { SchemesMenu, SchemesAccordion } from './SchemesMenu';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { ChevronRight, LogIn, Mail, Phone, X } from 'lucide-react';
 import { getSiteSettings, type SiteSettings } from '@/services/cmsApi';
 import { sectionHidden } from '@/components/shared/cmsSections';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
@@ -44,6 +44,22 @@ export function HeaderSection() {
     // Collapse the drawer on navigation, or it stays open over the new page.
     useEffect(() => { setMenuOpen(false); }, [pathname]);
 
+    /*
+     * While the phone menu is open the page behind it must not scroll, and
+     * Escape closes it. Restored on close, and on unmount.
+     */
+    useEffect(() => {
+        if (!menuOpen) return undefined;
+        const before = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+        window.addEventListener('keydown', onKey);
+        return () => {
+            document.body.style.overflow = before;
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [menuOpen]);
+
     const brand = site?.brand;
     /*
      * Each card on the Header & Footer screen can be removed — see
@@ -57,6 +73,9 @@ export function HeaderSection() {
     const navLinks = removed('header.navLinks') ? [] : (site?.header?.navLinks || []);
     const ctaLabel = removed('header.cta') ? '' : (site?.header?.ctaLabel || '');
     const ctaHref = site?.header?.ctaHref || '/login';
+    // One-tap contact in the phone menu, from the footer's own contact card.
+    const phone = String((site?.footer?.phones || [])[0] || '').trim();
+    const email = String(site?.footer?.email || '').trim();
 
     /**
      * The bar's colours, from the CMS.
@@ -306,70 +325,190 @@ export function HeaderSection() {
                             </nav>
                         )}
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3">
                             {ctaLabel && (
+                                /*
+                                 * THE LOGIN PILL. A gradient in the header's own
+                                 * accent with a light sweep across it on hover or
+                                 * tap (`.btn-shine` in index.css), and a pressed
+                                 * state — the one button on every page, so it is
+                                 * the one that should feel alive.
+                                 */
                                 <Link
                                     to={ctaHref}
-                                    className="inline-flex items-center justify-center h-11 px-7 rounded-full
-                                               text-white text-[1.0625rem] font-semibold whitespace-nowrap shadow-sm
-                                               transition-opacity hover:opacity-90"
-                                    style={{ backgroundColor: accent }}
+                                    className="btn-shine group relative inline-flex items-center justify-center gap-2
+                                               h-10 sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
+                                               text-white text-[0.95rem] sm:text-[1.0625rem] font-semibold whitespace-nowrap
+                                               shadow-[0_8px_20px_-8px_rgb(28_46_104/0.7)]
+                                               transition-transform duration-200 active:scale-95 hover:-translate-y-0.5"
+                                    style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
                                 >
+                                    <LogIn size={17} className="shrink-0 transition-transform duration-300 group-hover:translate-x-0.5" />
                                     {ctaLabel}
                                 </Link>
                             )}
 
-                            {/* The nav collapses below `lg`; without this it is unreachable. */}
+                            {/*
+                              * THE MENU BUTTON — three bars in a soft tile that
+                              * fold into a cross when the menu opens. Below `lg`
+                              * this is the only way to the nav.
+                              */}
                             {navLinks.length > 0 && (
                                 <button
                                     type="button"
-                                    className="lg:hidden inline-flex items-center justify-center
-                                               h-11 w-11 rounded-full transition-colors hover:bg-black/5"
-                                    style={{ color: accent }}
+                                    className="lg:hidden relative inline-flex items-center justify-center
+                                               h-10 w-10 sm:h-11 sm:w-11 rounded-2xl border
+                                               transition-all duration-200 active:scale-90"
+                                    style={{
+                                        color: accent,
+                                        borderColor: `${accent}26`,
+                                        backgroundColor: menuOpen ? `${accent}14` : `${accent}08`
+                                    }}
                                     onClick={() => setMenuOpen(v => !v)}
                                     aria-label={menuOpen ? 'Close menu' : 'Open menu'}
                                     aria-expanded={menuOpen}
                                 >
-                                    {menuOpen ? <X size={24} /> : <Menu size={24} />}
+                                    <span aria-hidden="true" className="relative block h-3.5 w-5">
+                                        <span className={`absolute left-0 h-[2px] rounded-full bg-current transition-all duration-300
+                                            ${menuOpen ? 'top-1/2 w-5 -translate-y-1/2 rotate-45' : 'top-0 w-5'}`} />
+                                        <span className={`absolute left-0 top-1/2 h-[2px] -translate-y-1/2 rounded-full bg-current transition-all duration-300
+                                            ${menuOpen ? 'w-0 opacity-0' : 'w-3.5 opacity-100'}`} />
+                                        <span className={`absolute left-0 h-[2px] rounded-full bg-current transition-all duration-300
+                                            ${menuOpen ? 'top-1/2 w-5 -translate-y-1/2 -rotate-45' : 'bottom-0 w-4'}`} />
+                                    </span>
                                 </button>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {menuOpen && navLinks.length > 0 && (
-                    <nav
-                        className="lg:hidden flex flex-col gap-1 pb-4 pt-3 border-t"
-                        style={{ borderColor: `${accent}1A` }}
-                        aria-label="Main"
-                    >
-                        {navLinks.map((item, i) => isSchemes(item.href) ? (
-                            <SchemesAccordion
-                                key={`m-${item.href}-${i}`}
-                                accent={accent}
-                                label={item.label}
-                                onNavigate={() => setMenuOpen(false)}
-                            />
-                        ) : (
-                            <Link
-                                key={`m-${item.href}-${i}`}
-                                to={item.href || '/'}
-                                aria-current={isActive(item.href) ? 'page' : undefined}
-                                className={`px-3 py-2.5 rounded-lg text-[1.0625rem] transition-colors hover:bg-black/5 ${
-                                    isActive(item.href) ? 'font-semibold bg-black/5' : 'font-medium'
-                                }`}
-                                style={{ color: accent }}
-                            >
-                                {item.label}
-                            </Link>
-                        ))}
-
-                        {/* An accordion here, not the flyout — see the note in
-                            RegionsMenu about the first tap on a touch screen. */}
-                        <RegionsAccordion accent={accent} onNavigate={() => setMenuOpen(false)} />
-                    </nav>
-                )}
             </div>
+
+            {/*
+              * THE PHONE MENU — a panel that slides in from the right over a
+              * blurred page, rather than a list pushed under the bar. Links
+              * arrive one after another; the current page is a filled row;
+              * the foot carries one-tap Call / Email and the login button, so
+              * the actions a phone visitor came for are a thumb away.
+              */}
+            {menuOpen && navLinks.length > 0 && (
+                <div className="lg:hidden fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Menu">
+                    <button
+                        type="button"
+                        aria-label="Close menu"
+                        onClick={() => setMenuOpen(false)}
+                        className="absolute inset-0 bg-slate-950/45 backdrop-blur-[3px] animate-in fade-in duration-300"
+                    />
+                    <div
+                        className="absolute right-0 top-0 flex h-full w-[88%] max-w-sm flex-col overflow-hidden
+                                   rounded-l-[2rem] bg-white shadow-2xl animate-in slide-in-from-right duration-300"
+                    >
+                        {/* Head: brand + close */}
+                        <div className="relative overflow-hidden px-6 pb-6 pt-7 text-white"
+                             style={{ backgroundImage: `linear-gradient(140deg, ${accent} 0%, #2563eb 100%)` }}>
+                            <div aria-hidden="true" className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />
+                            <div aria-hidden="true" className="absolute -bottom-16 right-16 h-32 w-32 rounded-full bg-white/10" />
+                            <div className="relative flex items-start justify-between gap-4">
+                                <div className="min-w-0">
+                                    <p className="text-[0.75rem] font-bold uppercase tracking-[0.2em] text-white/70">Menu</p>
+                                    <p className="mt-1 text-[1.05rem] font-bold leading-snug">
+                                        {brand?.fullName || 'ACTIV'}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setMenuOpen(false)}
+                                    aria-label="Close menu"
+                                    className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/15
+                                               transition active:scale-90 hover:bg-white/25"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Links */}
+                        <nav className="flex-1 overflow-y-auto px-4 py-4" aria-label="Main">
+                            {navLinks.map((item, i) => (
+                                <div
+                                    key={`m-${item.href}-${i}`}
+                                    className="animate-in fade-in slide-in-from-right-4 fill-mode-both"
+                                    style={{ animationDelay: `${60 + i * 40}ms`, animationDuration: '380ms' }}
+                                >
+                                    {isSchemes(item.href) ? (
+                                        <SchemesAccordion
+                                            accent={accent}
+                                            label={item.label}
+                                            onNavigate={() => setMenuOpen(false)}
+                                        />
+                                    ) : (
+                                        <Link
+                                            to={item.href || '/'}
+                                            aria-current={isActive(item.href) ? 'page' : undefined}
+                                            className={`group flex items-center justify-between rounded-2xl px-4 py-3.5
+                                                        text-[1.0625rem] transition-all active:scale-[0.98] ${
+                                                isActive(item.href) ? 'font-bold text-white shadow-md' : 'font-semibold hover:bg-slate-50'
+                                            }`}
+                                            style={isActive(item.href)
+                                                ? { backgroundImage: `linear-gradient(135deg, ${accent}, #2563eb)` }
+                                                : { color: accent }}
+                                        >
+                                            {item.label}
+                                            <ChevronRight
+                                                size={18}
+                                                className={`shrink-0 transition-transform duration-200 group-hover:translate-x-1 ${
+                                                    isActive(item.href) ? 'opacity-90' : 'opacity-40'
+                                                }`}
+                                            />
+                                        </Link>
+                                    )}
+                                </div>
+                            ))}
+
+                            {/* An accordion here, not the flyout — see the note in
+                                RegionsMenu about the first tap on a touch screen. */}
+                            <div className="animate-in fade-in slide-in-from-right-4 fill-mode-both"
+                                 style={{ animationDelay: `${60 + navLinks.length * 40}ms`, animationDuration: '380ms' }}>
+                                <RegionsAccordion accent={accent} onNavigate={() => setMenuOpen(false)} />
+                            </div>
+                        </nav>
+
+                        {/* Foot: one-tap contact + login */}
+                        <div className="border-t border-slate-100 px-5 pb-6 pt-4">
+                            {(phone || email) && (
+                                <div className="mb-3 grid grid-cols-2 gap-2">
+                                    {phone && (
+                                        <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}
+                                           className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200
+                                                      py-3 text-[0.95rem] font-semibold transition active:scale-95 hover:bg-slate-50"
+                                           style={{ color: accent }}>
+                                            <Phone size={16} /> Call
+                                        </a>
+                                    )}
+                                    {email && (
+                                        <a href={`mailto:${email}`}
+                                           className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200
+                                                      py-3 text-[0.95rem] font-semibold transition active:scale-95 hover:bg-slate-50"
+                                           style={{ color: accent }}>
+                                            <Mail size={16} /> Email
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+                            {ctaLabel && (
+                                <Link
+                                    to={ctaHref}
+                                    className="btn-shine relative flex items-center justify-center gap-2 overflow-hidden rounded-2xl
+                                               py-3.5 text-[1.0625rem] font-bold text-white shadow-lg transition active:scale-[0.97]"
+                                    style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
+                                >
+                                    <LogIn size={18} /> {ctaLabel}
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }

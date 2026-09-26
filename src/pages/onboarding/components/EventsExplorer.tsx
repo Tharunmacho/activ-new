@@ -515,7 +515,7 @@ export function EventsExplorer({ events, settings }: Props) {
                             />
                         </label>
 
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:flex lg:items-center">
+                        <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center">
                             {/* Offered only when the CMS has chips to offer. */}
                             {chips.length > 0 && (
                                 <select

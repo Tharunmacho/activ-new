@@ -634,3 +634,29 @@ All colors MUST be HSL.
     min-width: 0;
   }
 }
+
+/*
+ * A light sweep across a button on hover and on tap — the public site's
+ * signature for its primary buttons (the header's Login pill, the phone menu).
+ * The element needs `relative overflow-hidden`; the sweep sits under the
+ * label because it is drawn first and is fully transparent at its edges.
+ */
+@layer components {
+  .btn-shine::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+  }
+  .btn-shine:hover::before,
+  .btn-shine:active::before,
+  .btn-shine:focus-visible::before {
+    transform: translateX(120%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-shine::before { display: none; }
+  }
+}
