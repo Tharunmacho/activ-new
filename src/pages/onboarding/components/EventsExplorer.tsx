@@ -1,8 +1,8 @@
+import { PosterFrame } from '@/components/shared/PosterFrame';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video } from 'lucide-react';
 import type { CmsEvent, EventsSettings } from '@/services/cmsApi';
-import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { Reveal } from '@/components/shared/Reveal';
 import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
@@ -789,15 +789,15 @@ export function EventsExplorer({ events, settings }: Props) {
                                             />
                                             {/* No image is a valid event; a broken frame is not. */}
                                             {event?.media?.url && (
-                                                <div className="relative h-44 w-full overflow-hidden">
-                                                    <CmsMediaFrame
-                                                        media={event.media}
-                                                        width={320}
-                                                        className="transition-transform duration-700 group-hover:scale-105"
-                                                    />
+                                                /* The whole poster, filling the card — see PosterFrame. */
+                                                <PosterFrame
+                                                    media={event.media}
+                                                    width={420}
+                                                    imageClassName="transition-transform duration-700 group-hover:scale-105"
+                                                >
                                                     {/* Keeps the badges legible over a bright photograph. */}
                                                     <div className="absolute inset-0 bg-gradient-to-t
-                                                                    from-brand-900/70 via-brand-900/10 to-transparent" />
+                                                                    from-brand-900/45 via-transparent to-transparent" />
 
                                                     {event?.category && (
                                                         <span className="absolute left-3 top-3 rounded-md bg-brand-900/85
@@ -807,7 +807,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                             {event.category}
                                                         </span>
                                                     )}
-                                                </div>
+                                                </PosterFrame>
                                             )}
 
                                             <div className="relative flex flex-grow flex-col p-5">

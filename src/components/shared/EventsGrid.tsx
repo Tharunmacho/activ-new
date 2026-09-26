@@ -1,9 +1,9 @@
+import { PosterFrame } from '@/components/shared/PosterFrame';
 import { eventPath } from '@/lib/eventPath';
 import { useEffect, useState } from 'react';
 import { MapPin, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getCmsEvents, getEventsSettings, type CmsEvent, type EventsSettings } from '@/services/cmsApi';
-import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { Reveal } from '@/components/shared/Reveal';
 import { Tilt3D } from '@/components/shared/Tilt3D';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
@@ -218,15 +218,12 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                 />
                                 {/* No image is a valid event; a broken frame is not. */}
                                 {event.media?.url && (
-                                    <div className="w-full h-56 overflow-hidden">
-                                        {/* Honours the fit and focal point set in the CMS, so a
-                                            portrait upload is not cropped to a strip here. */}
-                                        <CmsMediaFrame
-                                            media={event.media}
-                                            width={420}
-                                            className="hover:scale-105 transition-transform duration-700"
-                                        />
-                                    </div>
+                                    /* The whole poster, filling the card — see PosterFrame. */
+                                    <PosterFrame
+                                        media={event.media}
+                                        width={480}
+                                        imageClassName="hover:scale-105 transition-transform duration-700"
+                                    />
                                 )}
 
                                 <div className="p-8 flex flex-col flex-grow">

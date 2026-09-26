@@ -1,3 +1,4 @@
+import { PosterFrame } from '@/components/shared/PosterFrame';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -24,7 +25,7 @@ import {
 import { Reveal } from '@/components/shared/Reveal';
 import { eventPath } from '@/lib/eventPath';
 import { setShareMeta } from '@/lib/shareMeta';
-import { EventQrCard } from '@/components/shared/EventQr';
+import { EventQrFeature } from '@/components/shared/EventQr';
 import { resolveMediaUrl } from '@/config/api.config';
 
 /**
@@ -658,6 +659,7 @@ export default function EventDetailPage() {
                         <div className={`${SHEET} mt-10`}>
                         <div className="grid gap-4 sm:gap-5 lg:gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start">
 
+                            <div className="min-w-0 space-y-4 sm:space-y-5 lg:space-y-6">
                             <div className={`${BIZ_CARD} p-6 sm:p-8 min-w-0`}>
                                 {event.category && (
                                     <span className={`${BIZ_BADGE} bg-brand-50 text-brand-700 border border-brand-100 mb-5`}>
@@ -932,6 +934,16 @@ export default function EventDetailPage() {
                                 )}
                             </div>
 
+                                {/*
+                                  * THE EVENT'S QR — a feature card of its own in
+                                  * the wide column, under the programme and the
+                                  * speakers, where there is room for a code a
+                                  * phone reads from across a room. Hidden when
+                                  * the editor turned it off.
+                                  */}
+                                {event.showQrOnPage !== false && <EventQrFeature event={event} />}
+                            </div>
+
                             {/* ---- the side card ---- */}
                             <aside className={`${BIZ_CARD} p-6 sm:p-7 lg:sticky lg:top-28 min-w-0`}>
                                 {/*
@@ -1191,17 +1203,6 @@ export default function EventDetailPage() {
                                   * work out why the page is telling them twice.
                                   */}
 
-                                {/*
-                                  * THE EVENT'S QR, under the booking button:
-                                  * scanned off a projector or a laptop it opens
-                                  * this page on a phone, and it can be saved as
-                                  * a flyer. Hidden when the editor turned it off.
-                                  */}
-                                {event.showQrOnPage !== false && (
-                                    <div className="mt-6 border-t border-slate-100 pt-6">
-                                        <EventQrCard event={event} />
-                                    </div>
-                                )}
                             </aside>
                         </div>
                         </div>
@@ -1239,18 +1240,18 @@ export default function EventDetailPage() {
                                               * on a row of four photographs reads
                                               * as an image that failed to load.
                                               */}
-                                            <div className="w-full h-40 overflow-hidden bg-slate-50
-                                                            flex items-center justify-center">
-                                                {other.media?.url ? (
-                                                    <CmsMediaFrame
-                                                        media={other.media}
-                                                        width={340}
-                                                        className="group-hover:scale-105 transition-transform duration-700 transform-gpu"
-                                                    />
-                                                ) : (
+                                            {other.media?.url ? (
+                                                <PosterFrame
+                                                    media={other.media}
+                                                    width={360}
+                                                    imageClassName="group-hover:scale-105 transition-transform duration-700 transform-gpu"
+                                                />
+                                            ) : (
+                                                <div className="w-full aspect-[16/9] overflow-hidden bg-slate-50
+                                                                flex items-center justify-center">
                                                     <Calendar size={28} className="text-slate-300" />
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
                                             <div className="p-4">
                                                 {/* A FIXED TWO-LINE BOX, so the dates line up
                                                     across the row. `line-clamp-2` caps a long

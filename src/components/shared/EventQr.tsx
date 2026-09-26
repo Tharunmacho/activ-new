@@ -25,10 +25,22 @@ interface QrEvent {
 }
 
 const NAVY = '#1e3a8a';
+// The code itself is pure black on white: the highest contrast, so every phone camera reads it first time.
+const QR_DARK = '#000000';
 
 /** The address the code opens, on this site's own origin. */
+/**
+ * ONE ADDRESS PER EVENT, FOR EVER. The path is the event's slug, written once
+ * at creation and never changed by an edit (backend `eventSlug.js`), so the
+ * same event always gives the same code. The ORIGIN is pinned to the public
+ * site (`VITE_PUBLIC_SITE_URL`) rather than taken from the tab: a code made
+ * from an admin session on another host, or on localhost, must still open the
+ * live event page.
+ */
+const PUBLIC_SITE = String(import.meta.env.VITE_PUBLIC_SITE_URL || '').trim().replace(/\/+$/, '');
+
 export const eventPublicUrl = (event?: QrEvent | null): string =>
-    `${window.location.origin}${eventPath(event)}`;
+    `${PUBLIC_SITE || window.location.origin}${eventPath(event)}`;
 
 /** A data: URL of the bare code, regenerated when the address changes. */
 export const useEventQr = (url: string, size = 640): string => {
@@ -36,7 +48,7 @@ export const useEventQr = (url: string, size = 640): string => {
     useEffect(() => {
         let live = true;
         if (!url) { setSrc(''); return undefined; }
-        QRCode.toDataURL(url, { width: size, margin: 1, errorCorrectionLevel: 'M', color: { dark: NAVY, light: '#ffffff' } })
+        QRCode.toDataURL(url, { width: size, margin: 1, errorCorrectionLevel: 'M', color: { dark: QR_DARK, light: '#ffffff' } })
             .then((data) => { if (live) setSrc(data); })
             .catch(() => { if (live) setSrc(''); });
         return () => { live = false; };
@@ -75,7 +87,7 @@ const wrap = (ctx: CanvasRenderingContext2D, text: string, width: number, maxLin
 /** The ready-to-post card: 1080 x 1350 PNG with the title, date, code and address. */
 const posterBlob = async (event: QrEvent, url: string): Promise<Blob | null> => {
     try {
-        const qr = await QRCode.toDataURL(url, { width: 760, margin: 1, errorCorrectionLevel: 'M', color: { dark: NAVY, light: '#ffffff' } });
+        const qr = await QRCode.toDataURL(url, { width: 760, margin: 1, errorCorrectionLevel: 'M', color: { dark: QR_DARK, light: '#ffffff' } });
         const img = new Image();
         await new Promise<void>((ok, fail) => { img.onload = () => ok(); img.onerror = () => fail(); img.src = qr; });
 
@@ -294,5 +306,67 @@ export function EventQrDialog({
                 </div>
             </div>
         </div>
+    );
+}
+
+/* ------------------------------------------------------------------------ */
+/*  The feature card on the event page — big, scannable across a room       */
+/* ------------------------------------------------------------------------ */
+export function EventQrFeature({ event }: { event: QrEvent }) {
+    const url = eventPublicUrl(event);
+    const src = useEventQr(url, 720);
+    if (!src) return null;
+    return (
+        <section
+            aria-label="Event QR code"
+            className="relative overflow-hidden rounded-[1.75rem] p-6 sm:p-8 text-white
+                       bg-[linear-gradient(135deg,#172554_0%,#1e3a8a_55%,#2563eb_100%)]
+                       shadow-[0_24px_60px_-24px_rgb(30_58_138/0.55)]"
+        >
+            {/* Soft light behind the code; decoration only. */}
+            <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
+            <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-sky-400/20 blur-3xl" />
+
+            <div className="relative flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
+                <div className="shrink-0 rounded-3xl bg-white p-3 shadow-[0_18px_40px_-12px_rgb(0_0_0/0.45)] ring-4 ring-white/20">
+                    <img
+                        src={src}
+                        alt={`QR code for ${event.title || 'this event'}`}
+                        width={240}
+                        height={240}
+                        className="block h-52 w-52 sm:h-60 sm:w-60"
+                    />
+                </div>
+
+                <div className="min-w-0 text-center sm:text-left">
+                    <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[0.8rem] font-extrabold uppercase tracking-widest">
+                        <QrCode size={14} /> Scan &amp; book
+                    </p>
+                    <h3 className="mt-3 text-[1.6rem] font-black leading-tight sm:text-[1.9rem]">
+                        Open this event on your phone
+                    </h3>
+                    <p className="mt-2 text-[1.05rem] leading-relaxed text-blue-100">
+                        Point your camera at the code to see the details and book your seat in seconds.
+                        Download it to share on WhatsApp or print it on your flyer.
+                    </p>
+                    <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
+                        <button
+                            type="button"
+                            onClick={() => downloadPoster(event, url)}
+                            className={`${BTN} bg-white text-brand-900 hover:bg-blue-50`}
+                        >
+                            <Download size={16} /> Download QR
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => sharePoster(event, url)}
+                            className={`${BTN} border border-white/40 bg-white/10 text-white hover:bg-white/20`}
+                        >
+                            <Share2 size={16} /> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 }
