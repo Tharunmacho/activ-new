@@ -8,3 +8,11 @@
  */
 export const eventPath = (event?: { id?: string; slug?: string } | null): string =>
     `/events/${encodeURIComponent(event?.slug || event?.id || '')}`;
+
+/**
+ * A gallery item's public address: `/gallery/activ-inked-mou-with-gem`.
+ * The slug when the server has given it one, the id otherwise; the server
+ * accepts either, so old links keep working.
+ */
+export const galleryPath = (item?: { _id?: string; id?: string; slug?: string } | null): string =>
+    `/gallery/${encodeURIComponent(item?.slug || item?._id || item?.id || '')}`;

@@ -233,6 +233,8 @@ export interface PaymentReturnResult {
     amount?: number;
     bookingRef: string;
     eventId: string;
+    /** The event's readable address, for the booking link (lib/eventPath). */
+    eventSlug?: string;
 }
 
 /**

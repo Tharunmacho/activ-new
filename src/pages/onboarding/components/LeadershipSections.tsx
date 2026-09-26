@@ -411,9 +411,19 @@ const tracksFor = (count: number, max = 5) => {
     return (fits > 2 && count % fits === 1) ? fits - 1 : fits;
 };
 
+/*
+ * ON A PHONE every bench of two or more is two columns, so an odd bench left
+ * its last portrait alone against a blank column. It is centred instead, at
+ * the same width as the others.
+ */
+const PHONE_ORPHAN =
+    'max-sm:[&>*:last-child:nth-child(odd)]:col-span-2 '
+    + 'max-sm:[&>*:last-child:nth-child(odd)]:w-[calc(50%-0.625rem)] '
+    + 'max-sm:[&>*:last-child:nth-child(odd)]:justify-self-center';
+
 const rowClass = (count: number, max = 5) => {
     const tracks = tracksFor(count, max);
-    return `${GRID[tracks] || GRID[5]} ${ROW_WIDTH[tracks] || ''}`;
+    return `${GRID[tracks] || GRID[5]} ${ROW_WIDTH[tracks] || ''} ${tracks >= 2 ? PHONE_ORPHAN : ''}`;
 };
 
 /**

@@ -109,7 +109,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 30% 15%;
 
-    --primary: 250 60% 55%;
+    --primary: 221 83% 53%; /* blue-600 — the site is blue, never violet */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 50% 50%;
@@ -118,7 +118,7 @@ All colors MUST be HSL.
     --muted: 210 40% 96%;
     --muted-foreground: 220 20% 50%;
 
-    --accent: 270 60% 60%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
@@ -129,7 +129,7 @@ All colors MUST be HSL.
 
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 250 60% 55%;
+    --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
@@ -154,7 +154,7 @@ All colors MUST be HSL.
     --popover: 220 25% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 250 60% 60%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 50% 45%;
@@ -163,7 +163,7 @@ All colors MUST be HSL.
     --muted: 220 25% 15%;
     --muted-foreground: 220 15% 65%;
 
-    --accent: 270 60% 55%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 60% 50%;
@@ -174,7 +174,7 @@ All colors MUST be HSL.
 
     --border: 220 20% 20%;
     --input: 220 20% 20%;
-    --ring: 250 60% 60%;
+    --ring: 217 91% 60%;
 
     --gradient-primary: linear-gradient(135deg, hsl(210, 40%, 15%) 0%, hsl(270, 40%, 20%) 100%);
     --gradient-card: linear-gradient(135deg, hsl(220, 25%, 12%) 0%, hsl(220, 25%, 15%) 100%);
@@ -659,4 +659,53 @@ All colors MUST be HSL.
   @media (prefers-reduced-motion: reduce) {
     .btn-shine::before { display: none; }
   }
+}
+
+/*
+ * TABLES THAT BECOME CARDS ON A PHONE — see `lib/useCardTable.ts`.
+ * Below 640px: no header row; each row is a bordered card; each cell is a
+ * line "LABEL  value" using the `data-label` the hook copied from the header.
+ * A cell whose header is blank (an actions column) spans the card instead.
+ */
+@media (max-width: 639px) {
+  .card-table { overflow-x: visible !important; }
+  .card-table table { min-width: 0 !important; width: 100% !important; border-collapse: separate; }
+  .card-table thead { display: none; }
+  .card-table tbody { display: block; }
+  .card-table tr {
+    display: block;
+    margin: 0 0 12px 0;
+    padding: 12px 14px;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  }
+  .card-table td {
+    display: grid;
+    grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 6px 0 !important;
+    border: 0 !important;
+    text-align: left !important;
+    position: static !important;
+    background: transparent !important;
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+  .card-table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgb(148 163 184);
+    padding-top: 2px;
+  }
+  .card-table td[data-label=""] { grid-template-columns: minmax(0, 1fr); }
+  .card-table td[data-label=""]::before { display: none; }
+  /* A row that is one cell spanning the table (loading / empty) is not a card. */
+  .card-table td[colspan] { grid-template-columns: minmax(0, 1fr); text-align: center !important; }
+  .card-table td[colspan]::before { display: none; }
 }

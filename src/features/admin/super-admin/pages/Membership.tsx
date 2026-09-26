@@ -1,3 +1,4 @@
+import { useCardTable } from '@/lib/useCardTable';
 import { useEffect, useMemo, useState } from 'react';
 import {
     Menu, Plus, Pencil, X, Loader2, IndianRupee, Users, Building2,
@@ -137,6 +138,7 @@ const inBand = (plan: MembershipPlanRow, years: number) => {
 };
 
 export default function SuperAdminMembership() {
+    const cardTableRef = useCardTable();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
     const [showAll, setShowAll] = useState(false);
@@ -816,7 +818,7 @@ export default function SuperAdminMembership() {
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto">
+                            <div ref={cardTableRef} className="overflow-x-auto card-table">
                                 <table className="w-full text-[1.25rem]">
                                     <thead>
                                         <tr className="text-left text-slate-500 border-b border-slate-200">

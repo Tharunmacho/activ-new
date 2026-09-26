@@ -1,3 +1,4 @@
+import { galleryPath } from '@/lib/eventPath';
 import { eventPath } from '@/lib/eventPath';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -254,7 +255,7 @@ export function CarouselSection() {
                         subheadline: item.caption || '',
                     }),
                 align: item.bannerAlign === 'right' ? 'right' as const : 'left' as const,
-                href: `/gallery/${item._id}`,
+                href: galleryPath(item),
                 title: item.title || '',
                 eventDate: item.eventDate || '',
                 location: item.location || '',

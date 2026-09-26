@@ -1,10 +1,11 @@
+import { MenuTile } from '@/components/shared/MenuTile';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-    Menu, CheckCircle, Clock, FileText, ArrowRight, TrendingUp, ShieldCheck, Sparkles,
+    CheckCircle, Clock, FileText, ArrowRight, TrendingUp, ShieldCheck, Sparkles,
     Search, Bell, CreditCard, BadgeCheck, BarChart3,
     CalendarDays, MapPin, Info, AlertTriangle, Users, Mail, Phone, LifeBuoy, Copy, Check,
     Megaphone, MessageSquare, FileBadge, Handshake, Store, Circle,
@@ -543,13 +544,7 @@ const UnpaidDashboard = () => {
               * two places to look for the same two facts.
               */}
             <div className="flex-1 min-h-0 overflow-y-auto">
-                <button
-                    className="lg:hidden fixed top-3 left-3 z-40 p-2 rounded-xl bg-white border border-slate-200 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]"
-                    onClick={() => setSidebarOpen(true)}
-                    aria-label="Open menu"
-                >
-                    <Menu className="h-5 w-5" />
-                </button>
+                <MenuTile onClick={() => setSidebarOpen(true)} className="fixed top-6 left-4 z-40" />
 
                 {/*
                   THE GREETING IS THE PAGE HEADER, in the white bar every other
@@ -631,10 +626,10 @@ const UnpaidDashboard = () => {
                             <span className="w-px h-10 bg-slate-200" aria-hidden />
                             <HeaderFact
                                 icon={<BadgeCheck className="h-3.5 w-3.5" />}
-                                tone="text-purple-600 bg-purple-50"
+                                tone="text-sky-600 bg-sky-50"
                                 label="Member Type"
                                 value={resolvedMemberType}
-                                valueTone="text-purple-700"
+                                valueTone="text-sky-700"
                             />
                             <span className="w-px h-10 bg-slate-200" aria-hidden />
                         </div>
@@ -663,7 +658,7 @@ const UnpaidDashboard = () => {
                           * before either question had been put.
                           */}
                         {access.applicationSubmitted && (
-                            <div className="grid grid-cols-2 gap-4 w-full lg:w-[28.75rem] lg:shrink-0">
+                            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 w-full lg:w-[28.75rem] lg:shrink-0">
                                 <IdentityTile
                                     icon={<FileText className="h-3.5 w-3.5" />}
                                     tone="text-blue-600 bg-blue-50"
@@ -674,10 +669,10 @@ const UnpaidDashboard = () => {
                                 />
                                 <IdentityTile
                                     icon={<BadgeCheck className="h-3.5 w-3.5" />}
-                                    tone="text-purple-600 bg-purple-50"
+                                    tone="text-sky-600 bg-sky-50"
                                     label="Member Type"
                                     value={resolvedMemberType}
-                                    valueTone="text-purple-700"
+                                    valueTone="text-sky-700"
                                 />
                             </div>
                         )}
@@ -849,7 +844,7 @@ const UnpaidDashboard = () => {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-violet-600 text-white overflow-hidden h-full rounded-2xl border-0 shadow-[0_10px_28px_-6px_rgba(16,24,40,0.25)]">
+                        <Card className="bg-gradient-to-br from-[#1e3a8a] to-[#2563eb] text-white overflow-hidden h-full rounded-2xl border-0 shadow-[0_10px_28px_-6px_rgba(16,24,40,0.25)]">
                             <CardContent className="p-5 h-full flex items-start justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <h2 className={`${CARD_TITLE} mb-2`}>Your Business Account</h2>
@@ -863,7 +858,7 @@ const UnpaidDashboard = () => {
                                     <Button
                                         onClick={() => navigate('/business/create-profile')}
                                         size="lg"
-                                        className={`bg-white text-purple-700 hover:bg-purple-50 ${ACTION_TEXT}`}
+                                        className={`w-full sm:w-auto h-auto min-h-11 whitespace-normal py-3 bg-white text-blue-700 hover:bg-blue-50 ${ACTION_TEXT}`}
                                     >
                                         Manage Business Account
                                         <ArrowRight className="ml-1.5 h-4 w-4" />

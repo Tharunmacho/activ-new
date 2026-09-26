@@ -1,3 +1,4 @@
+import { galleryPath } from '@/lib/eventPath';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -645,7 +646,7 @@ export function GalleryStrip({ state, region, title = 'Photo Gallery', href }: {
                 {photos.map((photo) => (
                     <Link
                         key={photo.id}
-                        to={`/gallery/${photo.id}`}
+                        to={galleryPath(photo)}
                         className={`${CARD} group block overflow-hidden transition-shadow
                                     hover:shadow-[0_22px_48px_-20px_rgb(28_46_104/0.4)]`}
                     >

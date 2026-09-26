@@ -1,3 +1,4 @@
+import { useCardTable } from '@/lib/useCardTable';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -116,6 +117,7 @@ function ModeChip({ mode }: { mode: string }) {
 }
 
 export default function SuperAdminBookings() {
+    const cardTableRef2 = useCardTable();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -579,7 +581,7 @@ export default function SuperAdminBookings() {
 
                     {/* ----------------------------------------------- table */}
                     <div className={`${ADMIN_CARD} overflow-hidden`}>
-                        <div className="overflow-x-auto">
+                        <div ref={cardTableRef2} className="overflow-x-auto card-table">
                             {/*
                               `min-w-[76rem]`, not 60. Nine columns including an
                               email address and a "View Booking Details" button do
@@ -1008,6 +1010,7 @@ function BookingDetail(props: {
     onMarkPaid: (mode: string) => void;
     onCancel: (reason: string) => void;
 }) {
+    const cardTableRef1 = useCardTable();
     const { booking, event, acting, onClose, onMarkPaid, onCancel } = props;
 
     /*
@@ -1225,7 +1228,7 @@ function BookingDetail(props: {
                         <h3 className={`${CARD_TITLE} text-slate-900 px-5 sm:px-6 pt-5 sm:pt-6 pb-3`}>
                             Participants
                         </h3>
-                        <div className="overflow-x-auto">
+                        <div ref={cardTableRef1} className="overflow-x-auto card-table">
                             <table className="w-full text-left border-collapse min-w-[34rem]">
                                 <thead>
                                     <tr className="bg-slate-50 border-y border-slate-200">

@@ -431,6 +431,8 @@ export interface GalleryDetailCopy {
 
 export interface GalleryItem {
     _id: string;
+    /** The readable public address (`/gallery/<slug>`); see lib/eventPath. */
+    slug?: string;
     media: CmsMedia;
     title: string;
     caption: string;

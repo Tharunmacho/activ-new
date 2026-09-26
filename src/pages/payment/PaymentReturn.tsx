@@ -84,7 +84,7 @@ export default function PaymentReturn() {
      * payment with Instamojo and confirms the booking, and this page then hands
      * over to the booking's own confirmation screen.
      */
-    const [booking, setBooking] = useState<{ eventId: string; bookingRef: string } | null>(null);
+    const [booking, setBooking] = useState<{ eventId: string; eventSlug: string; bookingRef: string } | null>(null);
 
     useEffect(() => {
         if (!orderId) { setOutcome('unknown'); return; }
@@ -93,11 +93,13 @@ export default function PaymentReturn() {
         const startedAt = Date.now();
         let timer: ReturnType<typeof setTimeout>;
         let isBooking: boolean | null = null;
+        /** The booking this order is for, once the server has said: where every exit goes. */
+        let target: { event: string; ref: string } | null = null;
 
-        const bookingHref = (eventId: string, ref: string) => {
+        const bookingHref = (eventKey: string, ref: string) => {
             let signedIn = false;
             try { signedIn = localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN) === 'true'; } catch { /* guest */ }
-            return `${signedIn ? '/member' : ''}/events/${encodeURIComponent(eventId)}/book`
+            return `${signedIn ? '/member' : ''}/events/${encodeURIComponent(eventKey)}/book`
                 + `?ref=${encodeURIComponent(ref)}`;
         };
 
@@ -115,10 +117,13 @@ export default function PaymentReturn() {
                     if (typeof found?.amount === 'number') setAmount(found.amount);
 
                     if (isBooking) {
-                        setBooking({ eventId: found.eventId || '', bookingRef: found.bookingRef || '' });
-                        if (found.status === 'paid' && found.eventId && found.bookingRef) {
+                        setBooking({ eventId: found.eventId || '', eventSlug: found.eventSlug || '', bookingRef: found.bookingRef || '' });
+                        if ((found.eventSlug || found.eventId) && found.bookingRef) {
+                            target = { event: found.eventSlug || found.eventId, ref: found.bookingRef };
+                        }
+                        if (found.status === 'paid' && (found.eventSlug || found.eventId) && found.bookingRef) {
                             try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
-                            navigate(bookingHref(found.eventId, found.bookingRef), { replace: true });
+                            navigate(bookingHref(found.eventSlug || found.eventId, found.bookingRef), { replace: true });
                             return;
                         }
                         if (found.status === 'failed' || gatewaySaysFailed) { setOutcome('failed'); return; }
@@ -142,6 +147,17 @@ export default function PaymentReturn() {
             }
 
             if (Date.now() - startedAt >= GIVE_UP_AFTER_MS) {
+                /*
+                 * AN EVENT BOOKING ALWAYS ENDS ON ITS OWN SCREEN. The booking
+                 * page shows the payment as it stands (and updates itself), so a
+                 * buyer is never left on a "still confirming" card or sent to a
+                 * dashboard — the one screen they came back for is their booking.
+                 */
+                if (isBooking && target && !gatewaySaysFailed) {
+                    try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
+                    navigate(bookingHref(target.event, target.ref), { replace: true });
+                    return;
+                }
                 setOutcome(gatewaySaysFailed ? 'failed' : 'unconfirmed');
                 return;
             }
@@ -188,7 +204,7 @@ export default function PaymentReturn() {
                                 </p>
                                 <Button
                                     className="mt-6 bg-green-600 py-6 text-[1.125rem] hover:bg-green-700"
-                                    onClick={() => navigate('/member/dashboard')}
+                                    onClick={() => navigate('/payment/member-dashboard')}
                                 >
                                     Go to my dashboard
                                 </Button>
@@ -225,9 +241,9 @@ export default function PaymentReturn() {
                                 <Button
                                     variant="outline"
                                     className="mt-6 py-6 text-[1.125rem]"
-                                    onClick={() => navigate(booking?.eventId && booking.bookingRef
-                                        ? `/events/${booking.eventId}/book?ref=${encodeURIComponent(booking.bookingRef)}`
-                                        : '/member/dashboard')}
+                                    onClick={() => navigate((booking?.eventSlug || booking?.eventId) && booking?.bookingRef
+                                        ? `/events/${encodeURIComponent(booking.eventSlug || booking.eventId)}/book?ref=${encodeURIComponent(booking.bookingRef)}`
+                                        : '/payment/member-dashboard')}
                                 >
                                     {booking ? 'View my booking' : 'Go to my dashboard'}
                                 </Button>
@@ -246,8 +262,8 @@ export default function PaymentReturn() {
                                 </p>
                                 <Button
                                     className="mt-6 py-6 text-[1.125rem]"
-                                    onClick={() => navigate(booking?.eventId
-                                        ? `/events/${booking.eventId}/book`
+                                    onClick={() => navigate((booking?.eventSlug || booking?.eventId)
+                                        ? `/events/${encodeURIComponent(booking.eventSlug || booking.eventId)}/book`
                                         : '/payment/membership-plans')}
                                 >
                                     {booking ? 'Book again' : 'Choose a plan'}
@@ -269,7 +285,7 @@ export default function PaymentReturn() {
                                 <Button
                                     variant="outline"
                                     className="mt-6 py-6 text-[1.125rem]"
-                                    onClick={() => navigate('/member/dashboard')}
+                                    onClick={() => navigate('/payment/member-dashboard')}
                                 >
                                     Go to my dashboard
                                 </Button>

@@ -1,5 +1,6 @@
+import { galleryPath } from '@/lib/eventPath';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Images, Calendar, MapPin, Grid3x3, ArrowRight } from 'lucide-react';
 import {
     getGallery, getGallerySettings,
@@ -33,7 +34,18 @@ import { Tilt3D } from '@/components/shared/Tilt3D';
 export function GallerySection() {
     const [images, setImages] = useState<GalleryItem[] | null>(null);
     const [settings, setSettings] = useState<GallerySettings | null>(null);
-    const [activeFilter, setActiveFilter] = useState('All');
+    /*
+     * THE CHOSEN CATEGORY LIVES IN THE ADDRESS (`/gallery?category=Conferences`),
+     * so a filtered gallery can be shared, bookmarked and reloaded. `replace`,
+     * so tapping through chips does not fill the history with one entry per tap.
+     */
+    const [params, setParams] = useSearchParams();
+    const activeFilter = params.get('category') || 'All';
+    const setActiveFilter = (value: string) => {
+        const next = new URLSearchParams(params);
+        if (!value || value === 'All') next.delete('category'); else next.set('category', value);
+        setParams(next, { replace: true });
+    };
     const [expanded, setExpanded] = useState(false);
 
     useEffect(() => {
@@ -246,7 +258,7 @@ export function GallerySection() {
                                     {collage[0] && (
                                         <div className="absolute top-4 left-0 w-3/5 h-4/5 z-10 -rotate-2 group transform-gpu">
                                             <Link
-                                                to={`/gallery/${collage[0]._id}`}
+                                                to={galleryPath(collage[0])}
                                                 aria-label={collage[0].title ? `View details of ${collage[0].title}` : 'View gallery item'}
                                                 className="block w-full h-full rounded-3xl overflow-hidden border-[6px]
                                                            border-white shadow-xl bg-gray-100 transform-gpu"
@@ -263,7 +275,7 @@ export function GallerySection() {
                                     {collage[1] && (
                                         <div className="absolute -top-4 right-4 w-[42%] h-[45%] z-20 rotate-2 group transform-gpu">
                                             <Link
-                                                to={`/gallery/${collage[1]._id}`}
+                                                to={galleryPath(collage[1])}
                                                 aria-label={collage[1].title ? `View details of ${collage[1].title}` : 'View gallery item'}
                                                 className="block w-full h-full rounded-3xl overflow-hidden border-[6px]
                                                            border-white shadow-xl bg-gray-100 transform-gpu"
@@ -279,7 +291,7 @@ export function GallerySection() {
                                     {collage[2] && (
                                         <div className="absolute bottom-4 right-0 w-[45%] h-[45%] z-30 -rotate-1 group transform-gpu">
                                             <Link
-                                                to={`/gallery/${collage[2]._id}`}
+                                                to={galleryPath(collage[2])}
                                                 aria-label={collage[2].title ? `View details of ${collage[2].title}` : 'View gallery item'}
                                                 className="block w-full h-full rounded-3xl overflow-hidden border-[6px]
                                                            border-white shadow-xl bg-gray-100 transform-gpu"
@@ -374,7 +386,7 @@ export function GallerySection() {
                                       whose picture is what everyone taps.
                                     */}
                                     <Link
-                                        to={`/gallery/${card._id}`}
+                                        to={galleryPath(card)}
                                         aria-label={card.title ? `View details of ${card.title}` : 'View gallery item'}
                                         className="bg-white rounded-[1.25rem] overflow-hidden h-full
                                                    border border-brand-100/70

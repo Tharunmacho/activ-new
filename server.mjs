@@ -69,24 +69,29 @@ const whenWhere = (e) => {
     return parts.join(' · ');
 };
 
-/** Up to 60 events, cached 60 s: a post going viral must not hammer the API. */
+/**
+ * One public CMS record — `events` or `gallery` — by slug or id. Up to 120,
+ * cached 60 s: a post going viral must not hammer the API.
+ */
 const cache = new Map();
-const fetchEvent = async(slug) => {
+const fetchPublic = async(kind, slug) => {
     if (!API) return null;
-    const hit = cache.get(slug);
-    if (hit && hit.at > Date.now() - 60_000) return hit.event;
+    const key = `${kind}:${slug}`;
+    const hit = cache.get(key);
+    if (hit && hit.at > Date.now() - 60_000) return hit.record;
     try {
-        const res = await fetch(`${API}/cms/events/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(4000) });
+        const res = await fetch(`${API}/cms/${kind}/${encodeURIComponent(slug)}`, { signal: AbortSignal.timeout(4000) });
         const body = res.ok ? await res.json() : null;
-        const event = body && (body.data || body);
-        const found = event && event.id ? event : null;
-        if (cache.size > 60) cache.delete(cache.keys().next().value);
-        cache.set(slug, { at: Date.now(), event: found });
+        const record = body && (body.data || body);
+        const found = record && (record.id || record._id) ? record : null;
+        if (cache.size > 120) cache.delete(cache.keys().next().value);
+        cache.set(key, { at: Date.now(), record: found });
         return found;
     } catch {
         return null;
     }
 };
+const fetchEvent = (slug) => fetchPublic('events', slug);
 
 /** index.html with this event's title, description and poster in its <head>. */
 const eventPage = (event, pageUrl) => {
@@ -149,6 +154,22 @@ const server = http.createServer(async(req, res) => {
                 const origin = SITE_URL || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
                 const pageUrl = `${origin}/events/${encodeURIComponent(event.slug || event.id)}`;
                 send(res, 200, eventPage(event, pageUrl), TYPES['.html']);
+                return;
+            }
+        }
+
+        // A gallery item (and any photo in it): its title, caption and cover.
+        const gallery = pathname.match(/^\/gallery\/([^/]+)(?:\/photo\/\d+)?\/?$/);
+        if (gallery && req.method === 'GET') {
+            const item = await fetchPublic('gallery', gallery[1]);
+            if (item) {
+                const origin = SITE_URL || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
+                const pageUrl = `${origin}/gallery/${encodeURIComponent(item.slug || item._id)}`;
+                send(res, 200, eventPage({
+                    title: item.title || 'ACTIV gallery',
+                    description: item.caption || '',
+                    imageUrl: (item.media && item.media.url) || ''
+                }, pageUrl), TYPES['.html']);
                 return;
             }
         }

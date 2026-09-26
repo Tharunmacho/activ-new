@@ -468,7 +468,7 @@ export function RepeatableList<T>({
                             : 'border-slate-200 hover:border-slate-300 dark:border-[#2a2a2a]'}`}
                     >
                         {/* ---------------- closed: what this row IS ---------------- */}
-                        <div className="flex items-center gap-3 p-3.5">
+                        <div className="flex flex-wrap items-center gap-3 p-3.5">
                             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
                                              bg-blue-50 text-[1.0625rem] font-bold text-[#2563EB]
                                              dark:bg-blue-950/40">
@@ -494,7 +494,7 @@ export function RepeatableList<T>({
                                 </span>
                             ) : null}
 
-                            <div className="min-w-0 flex-1">
+                            <div className="!min-w-[9rem] flex-1">
                                 <p className="truncate text-[1.25rem] font-bold text-slate-900
                                               dark:text-white">
                                     {said.title || `Untitled ${noun}`}
@@ -507,7 +507,7 @@ export function RepeatableList<T>({
                                 )}
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-1">
+                            <div className="ml-auto flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : index)}
@@ -809,7 +809,7 @@ export function CmsStep({
                             dark:border-[#1F1F1F] dark:bg-[#0A0A0A] dark:shadow-none">
 
             {title ? (
-                <header className="flex items-start justify-between gap-4 rounded-t-2xl border-b
+                <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 rounded-t-2xl border-b
                                    border-slate-100 bg-slate-50/70 px-4 pt-5 pb-5 sm:px-6 sm:pt-6 sm:pb-6
                                    dark:border-[#1a1a1a] dark:bg-[#0F0F0F]">
                     <div className="min-w-0">
@@ -857,7 +857,7 @@ export function CmsStep({
                     </div>
 
                     {(actions || removable) ? (
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex flex-wrap shrink-0 items-center gap-2">
                             {actions}
                             {removable && <RemoveSection onRemove={() => tools.setHidden(true)} />}
                         </div>

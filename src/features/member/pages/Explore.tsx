@@ -1,8 +1,9 @@
+import { MenuTile } from '@/components/shared/MenuTile';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Menu, UserPlus, Building2, Package } from "lucide-react";
+import { Search, UserPlus, Building2, Package } from "lucide-react";
 import { useState, useEffect } from "react";
 import MemberSidebar from "@/pages/member/MemberSidebar";
 import { toast } from "sonner";
@@ -105,15 +106,7 @@ const Explore = () => {
             rail was still a drawer, so between 768px and 1023px the screen had
             no title and no way to open the navigation. */}
         <div className="lg:hidden flex items-center gap-2 p-4 bg-white border-b">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open menu"
-            className="p-2 shrink-0"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
+          <MenuTile onClick={() => setSidebarOpen(true)} />
           <h1 className={`${PAGE_TITLE} flex-1 min-w-0 truncate`}>Explore Members</h1>
         </div>
 

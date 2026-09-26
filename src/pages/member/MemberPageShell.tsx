@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Menu, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { MenuTile } from '@/components/shared/MenuTile';
 import MemberSidebar from './MemberSidebar';
 import MemberTopBar from '@/features/member/components/MemberTopBar';
 import { useNavigate } from 'react-router-dom';
@@ -131,19 +132,12 @@ export default function MemberPageShell({
                 */}
                 <header className="h-[5.5rem] shrink-0 bg-white border-b border-slate-200 flex items-center gap-2 sm:gap-3 px-4 sm:px-6 sticky top-0 z-30">
                     {sidebar ? (
-                        <button
-                            type="button"
-                            className="lg:hidden text-slate-500 hover:text-slate-700 shrink-0"
-                            onClick={() => setSidebarOpen(true)}
-                            aria-label="Open menu"
-                        >
-                            <Menu className="w-5 h-5" />
-                        </button>
+                        <MenuTile onClick={() => setSidebarOpen(true)} />
                     ) : (
                         /* Without a rail there has to be a way out, at every width. */
                         <button
                             type="button"
-                            className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 flex items-center
+                            className="shrink-0 w-10 h-10 rounded-xl border border-slate-200 shadow-sm active:scale-90 flex items-center
                                        justify-center text-slate-600 hover:bg-slate-50 transition-colors"
                             onClick={() => (onBack ? onBack() : navigate(backTo))}
                             aria-label="Back"

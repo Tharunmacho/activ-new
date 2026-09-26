@@ -1,7 +1,11 @@
+import { publicUrl, shareLink } from '@/lib/share';
+import { setShareMeta } from '@/lib/shareMeta';
+import { resolveMediaUrl } from '@/config/api.config';
+import { galleryPath } from '@/lib/eventPath';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-    ArrowLeft, ArrowRight, Calendar, MapPin, Check,
+    ArrowLeft, ArrowRight, Calendar, MapPin, Check, Share2,
 } from 'lucide-react';
 import {
     getGalleryItem, getGallery, getGallerySettings,
@@ -94,6 +98,31 @@ export default function GalleryDetailPage() {
 
         return () => { cancelled = true; };
     }, [id, reloadKey]);
+
+    /*
+     * ONE ADDRESS PER ITEM: opened by its old id link, the address bar becomes
+     * the readable one (`/gallery/<slug>`) without a reload — only when the
+     * loaded item IS the one the id named, so moving between items can never
+     * write the previous item's address over the new one.
+     */
+    useEffect(() => {
+        if (!item?.slug || !id || id !== item._id) return;
+        try {
+            window.history.replaceState(window.history.state, '', `${galleryPath(item)}${window.location.search}`);
+        } catch { /* the id address still works */ }
+    }, [item, id]);
+
+    // The link-preview tags for this item (server.mjs sends the same to crawlers).
+    useEffect(() => {
+        if (!item) return undefined;
+        return setShareMeta({
+            title: item.title || 'ACTIV gallery',
+            description: item.caption || '',
+            image: resolveMediaUrl(item.media?.url || ''),
+            url: publicUrl(galleryPath(item)),
+            type: 'article',
+        });
+    }, [item]);
 
     const copy = settings?.detail;
     const backLabel = copy?.backLabel || 'Back to Gallery';
@@ -244,13 +273,30 @@ export default function GalleryDetailPage() {
 
                     <div className={`${SCREEN_CONTAINER} relative z-10`}>
 
-                        <Link
-                            to="/gallery"
-                            className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-700
-                                       font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors mb-8"
-                        >
-                            <ArrowLeft size={15} /> {backLabel}
-                        </Link>
+                        {/* Back on the left, Share on the right — the two things
+                            a visitor does on arriving from a shared link. */}
+                        <div className="mb-8 flex items-center justify-between gap-4">
+                            <Link
+                                to="/gallery"
+                                className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-700
+                                           font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors"
+                            >
+                                <ArrowLeft size={15} /> {backLabel}
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => shareLink({
+                                    title: item.title || 'ACTIV gallery',
+                                    text: item.title || undefined,
+                                    url: publicUrl(galleryPath(item)),
+                                })}
+                                className="inline-flex h-10 items-center gap-2 rounded-full border border-brand-200 bg-white
+                                           px-4 text-[0.95rem] font-bold text-brand-800 shadow-sm transition
+                                           hover:border-brand-500 hover:bg-brand-50 active:scale-95"
+                            >
+                                <Share2 size={16} /> Share
+                            </button>
+                        </div>
 
                         {/*
                           * ---- the poster ----
@@ -285,7 +331,7 @@ export default function GalleryDetailPage() {
                                   * an overlay for this one and a page for the rest.
                                   */}
                                 <Link
-                                    to={`/gallery/${item._id}/photo/0`}
+                                    to={`${galleryPath(item)}/photo/0`}
                                     aria-label="Open this photograph"
                                     className="group relative block w-full h-[22rem] sm:h-[28rem] lg:h-[34rem]"
                                 >
@@ -502,7 +548,7 @@ export default function GalleryDetailPage() {
                                               * picture there.
                                               */}
                                             <Link
-                                                to={`/gallery/${item._id}/photo/${i + coverOffset}`}
+                                                to={`${galleryPath(item)}/photo/${i + coverOffset}`}
                                                 className="group block w-full text-left"
                                                 aria-label={photo.title || photo.caption
                                                     ? `Open: ${photo.title || photo.caption}`
@@ -543,7 +589,7 @@ export default function GalleryDetailPage() {
                                     {moreFromGallery.map(other => (
                                         <Link
                                             key={other._id}
-                                            to={`/gallery/${other._id}`}
+                                            to={galleryPath(other)}
                                             className="group block rounded-2xl overflow-hidden bg-white border border-brand-100/70
                                                        shadow-[0_10px_30px_-16px_rgb(28_46_104/0.25)]
                                                        hover:shadow-[0_22px_48px_-20px_rgb(28_46_104/0.4)]

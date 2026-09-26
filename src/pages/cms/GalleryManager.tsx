@@ -1,3 +1,4 @@
+import { galleryPath } from '@/lib/eventPath';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft,
     Plus, Trash2, Eye, EyeOff, Star, Save, Check, Loader2,
@@ -1379,7 +1380,7 @@ export default function GalleryManager() {
                                         </button>
                                         <div className="flex shrink-0 items-center gap-2">
                                             {item.visible !== false && (
-                                                <a href={`/gallery/${item._id}`} target="_blank" rel="noopener noreferrer"
+                                                <a href={galleryPath(item)} target="_blank" rel="noopener noreferrer"
                                                    aria-label="Open on the site"
                                                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-600">
                                                     <ExternalLink className="h-4 w-4" />

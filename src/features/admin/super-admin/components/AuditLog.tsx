@@ -127,7 +127,7 @@ export default function AuditLog() {
                     />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     {categories.map(c => (
                         <button
                             key={c.key}

@@ -185,17 +185,17 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                 <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
                         <div>
                             <h2 className={`${CARD_TITLE} mb-4 text-slate-900`}>Overview Statistics</h2>
-                            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
                                 {TILES.map((t) => (
                                     <div
                                         key={t.label}
-                                        className={`bg-gradient-to-br ${t.tint} rounded-2xl p-6 border shadow-xl`}
+                                        className={`bg-gradient-to-br ${t.tint} rounded-2xl p-4 sm:p-6 border shadow-xl min-w-0`}
                                     >
                                         <div className="flex items-center gap-2 mb-2">
                                             <t.icon className={`w-5 h-5 ${t.sub}`} />
-                                            <p className={`${t.sub} text-[1.25rem] font-medium`}>{t.label}</p>
+                                            <p className={`${t.sub} text-[0.95rem] sm:text-[1.25rem] font-medium leading-tight`}>{t.label}</p>
                                         </div>
-                                        <p className="text-[2.5625rem] font-bold tracking-tight tabular-nums text-white tabular-nums">
+                                        <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">
                                             {loading ? "…" : t.value}
                                         </p>
                                     </div>

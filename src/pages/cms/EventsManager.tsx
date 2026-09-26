@@ -1,3 +1,4 @@
+import { useCardTable } from '@/lib/useCardTable';
 import { useEffect, useState } from 'react';
 import { ArrowLeft,
     Plus, Pencil, Trash2, X, Save, Check, Loader2, QrCode,
@@ -296,6 +297,7 @@ export default function EventsManager({
      */
     channel?: 'public' | 'members';
 } = {}) {
+    const cardTableRef = useCardTable();
     const [events, setEvents] = useState<CmsEvent[]>([]);
     /*
      * ==================================================================
@@ -1960,7 +1962,7 @@ export default function EventsManager({
                             hint="No event answers all of the filters above. Clear one of them."
                         />
                     ) : (
-                    <div className="overflow-x-auto">
+                    <div ref={cardTableRef} className="overflow-x-auto card-table">
                         <table className="w-full text-[1.25rem]">
                             <thead>
                                 <tr className="text-left text-neutral-500 dark:text-neutral-400 border-b border-slate-200 dark:border-[#1f1f1f]">

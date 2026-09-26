@@ -1,3 +1,4 @@
+import { useCardTable } from '@/lib/useCardTable';
 import { useEffect, useState } from 'react';
 import {
     Plus, Search, Pencil, Trash2, Loader2, Users,
@@ -42,6 +43,7 @@ const BLANK = {
 };
 
 export default function ManageAdmins() {
+    const cardTableRef = useCardTable();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [admins, setAdmins] = useState<ManagedAdmin[]>([]);
     const [counts, setCounts] = useState({ all: 0, block_admin: 0, district_admin: 0, state_admin: 0 });
@@ -486,7 +488,7 @@ export default function ManageAdmins() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
+                            <div ref={cardTableRef} className="overflow-x-auto card-table">
                                 <table className="w-full text-[1.25rem]">
                                     <thead className="bg-slate-50 text-left border-b border-slate-200">
                                         <tr>

@@ -613,6 +613,8 @@ export interface RegionMapEntry {
 
 export interface GalleryPhoto {
     id: string;
+    /** The readable public address; see lib/eventPath `galleryPath`. */
+    slug?: string;
     title: string;
     caption: string;
     category: string;

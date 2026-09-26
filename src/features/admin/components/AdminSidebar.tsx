@@ -396,7 +396,7 @@ export default function AdminSidebar({
      * inside need, so nothing lost the context `relative` was there to provide.
      */
     const shell =
-        'bg-gradient-to-b from-blue-600 via-purple-600 to-indigo-700 shadow-lg overflow-hidden';
+        'bg-gradient-to-b from-[#172554] via-[#1e3a8a] to-[#2563eb] shadow-lg overflow-hidden';
 
     return (
         <>

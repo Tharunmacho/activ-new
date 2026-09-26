@@ -391,11 +391,11 @@ export function StateHeroBand({
                                         className="shrink-0 text-white/70"
                                     />
                                     {fact.label && (
-                                        <span className="text-[1rem] font-semibold text-white/60">
+                                        <span className="shrink-0 whitespace-nowrap text-[1rem] font-semibold text-white/60">
                                             {fact.label}
                                         </span>
                                     )}
-                                    <span className="text-[1rem] font-bold text-white">
+                                    <span className="min-w-0 text-[1rem] font-bold text-white">
                                         {fact.value}
                                     </span>
                                 </li>

@@ -647,16 +647,16 @@ export default function PaidDashboard() {
                                 {/* Up a step throughout this block: it was all set
                                     smaller than the white card beside it, on a band
                                     four times its height. */}
-                                <span className="text-[1.5625rem] font-extrabold text-white">{today.date}</span>
-                                <span className="text-[1.25rem] font-semibold text-white/70">· {today.day}</span>
+                                <span className="whitespace-nowrap text-[1.2rem] sm:text-[1.5625rem] font-extrabold text-white">{today.date}</span>
+                                <span className="whitespace-nowrap text-[1.05rem] sm:text-[1.25rem] font-semibold text-white/70">· {today.day}</span>
                             </div>
 
-                            <div className="flex items-start gap-5">
+                            <div className="flex flex-col items-start gap-4 sm:flex-row sm:gap-5">
                                 {/* STATIC. The photo is changed on the profile
                                     screen and arrives here through the record.
                                     `onError` drops to the initials: a stored
                                     path outlives the file it points at. */}
-                                <span className="flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center
+                                <span className="flex h-16 w-16 sm:h-[5.5rem] sm:w-[5.5rem] shrink-0 items-center justify-center
                                                  overflow-hidden rounded-full bg-white/15 text-[2.125rem]
                                                  font-extrabold text-white shadow-lg ring-4 ring-white/30">
                                     {avatarSrc
@@ -672,14 +672,14 @@ export default function PaidDashboard() {
                                 </span>
 
                                 <div className="min-w-0">
-                                    <p className="text-[1.5625rem] font-bold text-white/70">{greeting},</p>
+                                    <p className="text-[1.2rem] sm:text-[1.5625rem] font-bold text-white/70">{greeting},</p>
                                     <h2 className={`${PAGE_TITLE} mt-1 text-white`}>
                                         {name} <span aria-hidden="true">👋</span>
                                     </h2>
-                                    <p className="mt-3 text-[1.5625rem] font-semibold leading-relaxed text-white/85">
+                                    <p className="mt-3 text-[1.15rem] sm:text-[1.5625rem] font-semibold leading-relaxed text-white/85">
                                         Your journey with ACTIV is making a difference.
                                     </p>
-                                    <p className="text-[1.5625rem] font-semibold leading-relaxed text-white/85">
+                                    <p className="text-[1.15rem] sm:text-[1.5625rem] font-semibold leading-relaxed text-white/85">
                                         Together we build a stronger community.
                                     </p>
                                 </div>
@@ -746,8 +746,8 @@ export default function PaidDashboard() {
                                 className="pointer-events-none absolute inset-0 h-full w-full object-cover"
                             />
 
-                            <div className="relative flex items-start justify-between gap-3">
-                                <div className="flex items-center gap-4">
+                            <div className="relative flex flex-wrap items-start justify-between gap-3">
+                                <div className="flex !min-w-[14rem] flex-1 items-center gap-4">
                                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl
                                                      bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-md">
                                         <User className="h-6 w-6" strokeWidth={2.4} />
@@ -770,30 +770,30 @@ export default function PaidDashboard() {
                                 </span>
                             </div>
 
-                            <div className="relative mt-3 grid grid-cols-3 divide-x divide-slate-200 border-t
+                            <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0 sm:divide-x divide-slate-200 border-t
                                             border-slate-200 pt-4">
                                 <CardFact label="Member ID" value={memberId} />
-                                <CardFact label="Member since" value={cardDate(memberSince)} className="px-3" />
+                                <CardFact label="Member since" value={cardDate(memberSince)} className="sm:px-3" />
                                 <CardFact
                                     label={lifetime ? 'Validity' : 'Valid until'}
                                     value={lifetime ? 'Lifetime' : cardDate(expiresAt)}
-                                    className="pl-3"
+                                    className="sm:pl-3"
                                 />
                             </div>
 
                             {abroad ? (
                                 /* Outside India: the place and the country, not three empty region cells. */
-                                <div className="relative mt-3 grid grid-cols-2 divide-x divide-slate-200 border-t
+                                <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-0 sm:divide-x divide-slate-200 border-t
                                                 border-slate-200 pt-4">
                                     <CardFact icon={MapPin} label="Place" value={place} />
-                                    <CardFact icon={MapPin} label="Country" value={country} className="pl-3" />
+                                    <CardFact icon={MapPin} label="Country" value={country} className="sm:pl-3" />
                                 </div>
                             ) : (
-                                <div className="relative mt-3 grid grid-cols-3 divide-x divide-slate-200 border-t
+                                <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0 sm:divide-x divide-slate-200 border-t
                                                 border-slate-200 pt-4">
                                     <CardFact icon={MapPin} label="State" value={state} />
-                                    <CardFact icon={MapPin} label="District" value={district} className="px-3" />
-                                    <CardFact icon={MapPin} label="Block" value={block} className="pl-3" />
+                                    <CardFact icon={MapPin} label="District" value={district} className="sm:px-3" />
+                                    <CardFact icon={MapPin} label="Block" value={block} className="sm:pl-3" />
                                 </div>
                             )}
 
@@ -813,7 +813,7 @@ export default function PaidDashboard() {
                                 <div className="relative mt-4 grid grid-cols-2 divide-x divide-slate-200
                                                 border-t border-slate-200 pt-4">
                                     <CardFact icon={Briefcase} label="Business type" value={businessType} />
-                                    <CardFact label="Application ID" value={applicationRef} className="pl-3" />
+                                    <CardFact label="Application ID" value={applicationRef} className="sm:pl-3" />
                                 </div>
                             )}
 

@@ -338,6 +338,8 @@ const App = () => (
 
               {/* Member Routes */}
 
+              {/* A link that used to be printed on the payment page; the dashboard lives at /payment/member-dashboard. */}
+              <Route path="/member/dashboard" element={<Navigate to="/payment/member-dashboard" replace />} />
               <Route path="/member/unpaid-dashboard" element={<UnpaidDashboard />} />
 
               {/* The paid member area (MEM-001, EVT-001/2, DIR-001). */}

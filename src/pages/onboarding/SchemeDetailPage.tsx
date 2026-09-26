@@ -1,3 +1,4 @@
+import { publicUrl, shareLink } from '@/lib/share';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -100,13 +101,8 @@ export default function SchemeDetailPage() {
         return () => { cancelled = true; };
     }, [slug]);
 
-    const share = () => {
-        const url = window.location.href;
-        try {
-            if (navigator.share) { navigator.share({ title: scheme?.title, url }); return; }
-            navigator.clipboard?.writeText(url);
-        } catch { /* nothing to do: the URL is in the address bar */ }
-    };
+    // One share behaviour site-wide — see lib/share.
+    const share = () => shareLink({ title: scheme?.title, url: publicUrl(window.location.pathname) });
 
     const apply = externalHref(scheme?.applyUrl);
     const docUrl = externalHref(scheme?.documentUrl);

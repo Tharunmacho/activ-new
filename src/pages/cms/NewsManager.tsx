@@ -96,7 +96,7 @@ function RowCard({ title, subtitle, status, onOpen, onRemove, badge }: {
     badge?: string;
 }) {
     return (
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5
                         transition-colors hover:border-slate-300 dark:border-[#2a2a2a]
                         dark:bg-[#0f0f0f]">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg
@@ -104,7 +104,7 @@ function RowCard({ title, subtitle, status, onOpen, onRemove, badge }: {
                 <Newspaper className="h-4 w-4" />
             </span>
 
-            <div className="min-w-0 flex-1">
+            <div className="!min-w-[9rem] flex-1">
                 <p className="truncate text-[1.25rem] font-bold text-slate-900 dark:text-white">
                     {title || 'Untitled'}
                 </p>

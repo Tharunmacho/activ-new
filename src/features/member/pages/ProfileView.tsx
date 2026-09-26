@@ -1,9 +1,10 @@
+import { MenuTile } from '@/components/shared/MenuTile';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-    Menu, User, Briefcase, FileText, Building2, Edit, Camera,
+    User, Briefcase, FileText, Building2, Edit, Camera,
     CheckCircle2, Circle, ArrowRight, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -324,13 +325,7 @@ const ProfileView = () => {
                       */}
                     <div className="h-[5.5rem] px-4 sm:px-6 flex items-center justify-between gap-2 sm:gap-3">
                         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-                            <button
-                                className="lg:hidden shrink-0 p-2 rounded-xl hover:bg-slate-100"
-                                onClick={() => setSidebarOpen(true)}
-                                aria-label="Open menu"
-                            >
-                                <Menu className="h-6 w-6" />
-                            </button>
+                            <MenuTile onClick={() => setSidebarOpen(true)} />
                             <div className="min-w-0">
                                 <h1 className={`${PAGE_TITLE} text-slate-900 truncate`}>My Profile</h1>
                                 <p className={`${PAGE_SUBTITLE} text-slate-500 mt-0.5 truncate hidden sm:block`}>

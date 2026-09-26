@@ -1,3 +1,4 @@
+import { useCardTable } from '@/lib/useCardTable';
 import { useCallback, useEffect, useState } from 'react';
 import { Menu, Plus, Pencil, Trash2, X, Pin, Globe, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
@@ -79,6 +80,7 @@ const toDateInput = (value?: string | null): string => {
 };
 
 export default function SuperAdminUpdates() {
+    const cardTableRef = useCardTable();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [rows, setRows] = useState<Announcement[]>([]);
@@ -538,7 +540,7 @@ export default function SuperAdminUpdates() {
                                 member's dashboard.
                             </p>
                         ) : (
-                            <div className="overflow-x-auto">
+                            <div ref={cardTableRef} className="overflow-x-auto card-table">
                                 <table className="w-full text-[1.25rem]">
                                     <thead>
                                         <tr className="text-left text-slate-500 border-b border-slate-200">

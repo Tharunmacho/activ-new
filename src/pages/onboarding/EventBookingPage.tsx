@@ -387,7 +387,14 @@ export default function EventBookingPage({ chrome = 'public' }: {
         getEventBooking(refFromUrl)
             .then((found) => {
                 if (cancelled) return;
-                if (found?.bookingRef && (!found.eventId || String(found.eventId) === String(id))) {
+                /*
+                 * The address carries the event's readable SLUG now, the booking
+                 * its id — comparing the two never matched, so every paid buyer
+                 * landed back on step 1. Checked once the event has loaded: its
+                 * id is what the slug resolves to.
+                 */
+                const here = [String(id), String(event?.id || '')];
+                if (found?.bookingRef && (!found.eventId || here.includes(String(found.eventId)) || !event)) {
                     setBooking(found);
                     setStep('done');
                 }
@@ -396,7 +403,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
             .finally(() => { if (!cancelled) setLoadingRef(false); });
 
         return () => { cancelled = true; };
-    }, [refFromUrl, id]);
+    }, [refFromUrl, id, event]);
 
     /* -------------------------------------------------------------- loading */
 

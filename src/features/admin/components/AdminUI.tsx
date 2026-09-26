@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { Menu, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { TIERS, tierForRole } from './tierConfig';
 
@@ -293,7 +293,7 @@ export function AdminBackButton({ to }: { to?: string }) {
             onClick={back}
             aria-label="Back"
             title="Back"
-            className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center
+            className="shrink-0 w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center shadow-sm active:scale-90
                        text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         >
             <ArrowLeft className="w-5 h-5" />
@@ -343,22 +343,38 @@ export function AdminPageHeader({
             * its bottom rule still runs the width of the pane.
             */}
           <div className={`${ADMIN_COLUMN} flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4`}>
-            <div className="flex items-start gap-2.5 min-w-0 sm:flex-1">
+            {/* On a phone the menu and back tiles are their own row and the
+                title takes the full width under them; beside the title they
+                squeezed it and its explanation into a narrow column. */}
+            <div className="flex flex-col gap-3 min-w-0 sm:flex-row sm:items-start sm:gap-2.5 sm:flex-1">
+              {(onMenu || back) && (
+              <div className="flex shrink-0 items-center gap-2">
                 {onMenu && (
+                    /* THE MENU TILE — the same three-bar mark the public site's
+                       header uses, in a 40px tile a thumb cannot miss. It was a
+                       bare 20px icon floating in the corner. */
                     <button
                         type="button"
-                        className="lg:hidden shrink-0 mt-1 text-slate-600 hover:text-slate-900"
+                        className="lg:hidden shrink-0 grid h-10 w-10 place-items-center rounded-xl border
+                                   border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition
+                                   hover:bg-slate-100 active:scale-90"
                         onClick={onMenu}
                         aria-label="Open menu"
                     >
-                        <Menu className="w-5 h-5" />
+                        <span aria-hidden="true" className="flex w-5 flex-col gap-[4px]">
+                            <span className="h-[2px] w-5 rounded-full bg-current" />
+                            <span className="h-[2px] w-3.5 rounded-full bg-current" />
+                            <span className="h-[2px] w-4 rounded-full bg-current" />
+                        </span>
                     </button>
                 )}
                 {back && (
-                    <div className="shrink-0 mt-0.5">
+                    <div className="shrink-0">
                         <AdminBackButton to={backTo} />
                     </div>
                 )}
+              </div>
+              )}
                 <div className="min-w-0">
                     {/* `font-extrabold` at 26px — the business shell's own
                         heading, so the two halves of the product open with the
@@ -419,7 +435,7 @@ export function AdminStat({
 
     const body = (
         <>
-            <div className="flex items-start gap-3">
+            <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:gap-3">
                 {icon && (
                     <span className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                         primary ? 'bg-white/20 text-white' : (TILE[tone] || TILE.blue)
@@ -428,13 +444,13 @@ export function AdminStat({
                     </span>
                 )}
                 <div className="min-w-0">
-                    <p className={`text-[1.25rem] font-extrabold tracking-tight leading-snug ${
+                    <p className={`text-[1.05rem] sm:text-[1.25rem] font-extrabold tracking-tight leading-snug ${
                         primary ? 'text-white' : 'text-slate-900'
                     }`}>
                         {label}
                     </p>
                     {hint && (
-                        <p className={`text-[1.1875rem] mt-1 leading-snug ${
+                        <p className={`text-[0.95rem] sm:text-[1.1875rem] mt-1 leading-snug ${
                             primary ? 'text-blue-100' : 'text-slate-500'
                         }`}>
                             {hint}

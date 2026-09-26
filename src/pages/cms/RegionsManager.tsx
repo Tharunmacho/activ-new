@@ -562,11 +562,11 @@ function PageRow({ title, subtitle, status, href, onToggle, action }: {
     return (
         <div className="rounded-xl border border-slate-200 transition-colors hover:border-slate-300
                         dark:border-[#2a2a2a] overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3.5 bg-slate-50/60 dark:bg-[#111]">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5 bg-slate-50/60 dark:bg-[#111]">
                 <button
                     type="button"
                     onClick={onToggle}
-                    className="flex-1 min-w-0 text-left"
+                    className="flex-1 !min-w-[9rem] text-left"
                 >
                     <p className="text-[1.25rem] font-bold text-slate-900 dark:text-neutral-100">
                         {title}

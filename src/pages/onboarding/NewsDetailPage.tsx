@@ -1,3 +1,4 @@
+import { publicUrl, shareLink } from '@/lib/share';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, Calendar, MapPin, Newspaper, Share2 } from 'lucide-react';
@@ -80,16 +81,8 @@ export default function NewsDetailPage() {
         return () => { cancelled = true; };
     }, [slug]);
 
-    const share = () => {
-        const url = window.location.href;
-        try {
-            if (navigator.share) { navigator.share({ title: article?.title, url }); return; }
-            navigator.clipboard?.writeText(url);
-        } catch {
-            /* No share sheet and no clipboard: the URL is in the address bar,
-               which is where it was before this button existed. */
-        }
-    };
+    // One share behaviour site-wide — see lib/share.
+    const share = () => shareLink({ title: article?.title, url: publicUrl(window.location.pathname) });
 
     const date = article?.displayDate || (article?.publishedAt
         ? new Date(article.publishedAt).toLocaleDateString('en-IN', {

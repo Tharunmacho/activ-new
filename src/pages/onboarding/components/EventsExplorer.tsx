@@ -1,5 +1,7 @@
 import { PosterFrame } from '@/components/shared/PosterFrame';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { getRegionTree } from '@/services/activApi';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video } from 'lucide-react';
 import type { CmsEvent, EventsSettings } from '@/services/cmsApi';
@@ -231,11 +233,37 @@ const EVENT_GRID: Record<number, string> = {
 };
 
 export function EventsExplorer({ events, settings }: Props) {
-    const [query, setQuery] = useState('');
-    const [category, setCategory] = useState<string>(ALL);
+    /*
+     * EVERY FILTER LIVES IN THE ADDRESS: /events?state=Tamil+Nadu&district=
+     * Dharmapuri&city=…&language=Tamil&category=…&mode=online&q=…
+     * A filtered list can be shared, bookmarked and reloaded, and opens the
+     * same way. Read once to start; written back (replace, not push) as the
+     * visitor changes a filter. `city` is the backend's block.
+     */
+    const [params, setParams] = useSearchParams();
+    const initial = (key: string) => params.get(key) || '';
+    const [query, setQuery] = useState(initial('q'));
+    const [category, setCategory] = useState<string>(initial('category') || ALL);
     const [location, setLocation] = useState<string>(ALL);
 
-    const [how, setHow] = useState<How>('all');
+    const [how, setHow] = useState<How>((['online', 'offline'].includes(initial('mode')) ? initial('mode') : 'all') as How);
+    const [language, setLanguage] = useState<string>(initial('language') || ALL);
+
+    /*
+     * THE REGION OPTIONS COME FROM THE ADMIN COLLECTIONS: every state,
+     * district and block the association is organised into (/regions/tree
+     * ?include=all), so a visitor can always narrow to where they are. The
+     * events' own targets are merged in, so a region an event names is offered
+     * even if the tree has not loaded. A failed load only leaves that part.
+     */
+    const [tree, setTree] = useState<{ name: string; districts?: { name: string; blocks?: { name: string }[] }[] }[]>([]);
+    useEffect(() => {
+        let live = true;
+        getRegionTree(false, 'all')
+            .then((t) => { if (live) setTree(Array.isArray(t?.states) ? t.states : []); })
+            .catch(() => { /* the events' own regions still fill the lists */ });
+        return () => { live = false; };
+    }, []);
 
     /*
      * The region filter, as three dependent choices rather than one flat list.
@@ -253,9 +281,25 @@ export function EventsExplorer({ events, settings }: Props) {
      * cleared when the level above it changes, and that is a conditional per
      * level whichever way it is stored.
      */
-    const [state, setState] = useState<string>(ALL);
-    const [district, setDistrict] = useState<string>(ALL);
-    const [block, setBlock] = useState<string>(ALL);
+    const [state, setState] = useState<string>(initial('state') || ALL);
+    const [district, setDistrict] = useState<string>(initial('district') || ALL);
+    const [block, setBlock] = useState<string>(initial('city') || ALL);
+
+    // Write the filters back to the address whenever one changes.
+    useEffect(() => {
+        const next = new URLSearchParams();
+        const put = (key: string, value: string) => { if (value && value !== ALL && value !== 'all') next.set(key, value); };
+        put('q', query.trim());
+        put('category', category);
+        put('state', state);
+        put('district', district);
+        put('city', block);
+        put('language', language);
+        put('mode', how);
+        if (next.toString() !== params.toString()) setParams(next, { replace: true });
+        // `params` is read to compare only; including it would loop.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [query, category, state, district, block, language, how]);
 
     /* The Search-and-chips card can be removed — see `cmsSections`. It takes
        the chips with it; the search box is not authored and stays. */
@@ -313,21 +357,55 @@ export function EventsExplorer({ events, settings }: Props) {
     };
 
     const stateOptions = useMemo(
-        () => uniq(regionIndex.map((r) => r.state)),
-        [regionIndex],
+        () => uniq([...tree.map((st) => st?.name || ''), ...regionIndex.map((r) => r.state)]),
+        [regionIndex, tree],
     );
 
     const districtOptions = useMemo(() => {
         if (state === ALL) return [];
-        return uniq(regionIndex.filter((r) => norm(r.state) === norm(state)).map((r) => r.district));
-    }, [regionIndex, state]);
+        const fromTree = tree.filter((st) => norm(st?.name) === norm(state))
+            .flatMap((st) => (st.districts || []).map((d) => d?.name || ''));
+        return uniq([...fromTree, ...regionIndex.filter((r) => norm(r.state) === norm(state)).map((r) => r.district)]);
+    }, [regionIndex, tree, state]);
 
+    /* "City" on screen; the backend's `block`. A visitor outside the
+       association does not know what a block is, but they know their town. */
     const blockOptions = useMemo(() => {
         if (state === ALL || district === ALL) return [];
-        return uniq(regionIndex
+        const fromTree = tree.filter((st) => norm(st?.name) === norm(state))
+            .flatMap((st) => (st.districts || []).filter((d) => norm(d?.name) === norm(district)))
+            .flatMap((d) => (d.blocks || []).map((b) => b?.name || ''));
+        return uniq([...fromTree, ...regionIndex
             .filter((r) => norm(r.state) === norm(state) && norm(r.district) === norm(district))
-            .map((r) => r.block));
-    }, [regionIndex, state, district]);
+            .map((r) => r.block)]);
+    }, [regionIndex, tree, state, district]);
+
+    /*
+     * The names that put a VENUE inside the region picked: the narrowest level
+     * chosen, plus every region the tree lists beneath it — so a venue in a
+     * block of Cuddalore district is found under Cuddalore even when its
+     * address never says "Cuddalore".
+     */
+    const placeNames = (sel: Region): string[] => {
+        if (sel.block) return [norm(sel.block)];
+        const st = tree.find((x) => norm(x?.name) === norm(sel.state));
+        if (sel.district) {
+            const d = (st?.districts || []).find((x) => norm(x?.name) === norm(sel.district));
+            return [norm(sel.district), ...(d?.blocks || []).map((b) => norm(b?.name))];
+        }
+        return [norm(sel.state), ...(st?.districts || []).flatMap((d) =>
+            [norm(d?.name), ...(d.blocks || []).map((b) => norm(b?.name))])];
+    };
+
+    /* Every language an upcoming event is held in, one spelling each ("tamil" = "Tamil"). */
+    const languageOptions = useMemo(() => {
+        const seen = new Map<string, string>();
+        (events || []).forEach((e) => {
+            const raw = String(e?.language || '').trim();
+            if (raw && !seen.has(norm(raw))) seen.set(norm(raw), raw.charAt(0).toUpperCase() + raw.slice(1));
+        });
+        return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+    }, [events]);
 
     /*
      * Choosing a wider region clears the narrower ones inside it.
@@ -382,12 +460,27 @@ export function EventsExplorer({ events, settings }: Props) {
              * Hiding it when a visitor narrows to their own district would make
              * the filter subtract the events that matter most.
              */
+            /*
+             * WHERE THE EVENT IS, in this order:
+             *   1. the regions it was aimed at (targets): the organiser's answer;
+             *   2. for an untargeted IN-PERSON event, its venue: the narrowest
+             *      region picked must appear in the venue or address, so an event
+             *      at "Nethaji Bypass, Dharmapuri" is found under Dharmapuri and
+             *      not under Chennai;
+             *   3. an online event, or one with no venue yet, is open to everyone
+             *      and stays in every region's list.
+             */
             if (regionPicked) {
                 const regions = regionsOf(event);
-                if (regions.length && !regions.some((target) => onSamePath(target, selection))) {
-                    return false;
+                if (regions.length) {
+                    if (!regions.some((target) => onSamePath(target, selection))) return false;
+                } else if (event?.mode !== 'online') {
+                    const venueText = norm([event?.venue, event?.venueAddress, event?.location].filter(Boolean).join(' '));
+                    if (venueText && !placeNames(selection).some((name) => name && venueText.includes(name))) return false;
                 }
             }
+
+            if (language !== ALL && norm(event?.language) !== norm(language)) return false;
 
             /*
              * Upcoming only — see the note at the top of this file. An event
@@ -419,10 +512,10 @@ export function EventsExplorer({ events, settings }: Props) {
          * when something in this list changes, so a value used inside and
          * missing from it is a control wired to nothing.
          */
-    }, [events, query, category, location, how, state, district, block]);
+    }, [events, query, category, location, how, state, district, block, language, tree]);
 
     const isFiltered = !!(query.trim()) || category !== ALL || location !== ALL
-        || how !== 'all' || state !== ALL || district !== ALL || block !== ALL;
+        || how !== 'all' || state !== ALL || district !== ALL || block !== ALL || language !== ALL;
 
     const reset = () => {
         setQuery('');
@@ -432,6 +525,7 @@ export function EventsExplorer({ events, settings }: Props) {
         setState(ALL);
         setDistrict(ALL);
         setBlock(ALL);
+        setLanguage(ALL);
     };
 
     /**
@@ -447,6 +541,7 @@ export function EventsExplorer({ events, settings }: Props) {
         if (district !== ALL) return district;
         if (state !== ALL) return state;
         if (category !== ALL) return category;
+        if (language !== ALL) return `${language} events`;
         if (location !== ALL) return location;
         return 'that filter';
     };
@@ -531,19 +626,6 @@ export function EventsExplorer({ events, settings }: Props) {
                                 </select>
                             )}
 
-                            {locations.length > 0 && (
-                                <select
-                                    aria-label="Location"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    className={selectClass}
-                                >
-                                    <option value={ALL}>All locations</option>
-                                    {locations.map((l, i) => (
-                                        <option key={i} value={l}>{l}</option>
-                                    ))}
-                                </select>
-                            )}
 
                             {/*
                               STATE, THEN DISTRICT, THEN BLOCK -- in that order,
@@ -595,12 +677,12 @@ export function EventsExplorer({ events, settings }: Props) {
 
                             {blockOptions.length > 0 && (
                                 <select
-                                    aria-label="Block"
+                                    aria-label="City"
                                     value={block}
                                     onChange={(e) => setBlock(e.target.value)}
                                     className={selectClass}
                                 >
-                                    <option value={ALL}>All blocks</option>
+                                    <option value={ALL}>All cities</option>
                                     {blockOptions.map((b, i) => (
                                         <option key={i} value={b}>{b}</option>
                                     ))}
@@ -610,6 +692,20 @@ export function EventsExplorer({ events, settings }: Props) {
                             {/* The date window used to sit here. See the note at
                                 the top of this file: this page is upcoming events,
                                 so there is no window left to choose. */}
+                            {languageOptions.length > 0 && (
+                                <select
+                                    aria-label="Language"
+                                    value={language}
+                                    onChange={(e) => setLanguage(e.target.value)}
+                                    className={selectClass}
+                                >
+                                    <option value={ALL}>All languages</option>
+                                    {languageOptions.map((l, i) => (
+                                        <option key={i} value={l}>{l}</option>
+                                    ))}
+                                </select>
+                            )}
+
                             <select
                                 aria-label="Online or in person"
                                 value={how}

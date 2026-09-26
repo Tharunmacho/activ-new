@@ -354,8 +354,77 @@ export function AdminTable<T>({
                 </div>
             )}
 
+            {/* ------------------------------------------------ phone: cards */}
+            {/*
+              * ON A PHONE EVERY ROW IS A CARD. The table is deliberately wider
+              * than a desktop pane and scrolls sideways there; at 390px that
+              * meant reading one column at a time with the name scrolled away.
+              * Each column's header becomes the label beside its value, the
+              * pinned action column becomes a full-width button at the foot,
+              * and `hideOnMobile` columns stay hidden. From `sm` the table.
+              */}
+            <div className="sm:hidden">
+                {loading && (
+                    <div className="px-5 py-16 text-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+                        <p className="mt-4 text-[1.05rem] font-semibold text-slate-500">Loading…</p>
+                    </div>
+                )}
+                {!loading && !visible.length && (
+                    <div className="px-5 py-16 text-center">
+                        <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
+                        <div className="mt-3 text-[1.05rem] font-semibold text-slate-500 leading-relaxed">
+                            {filtering ? (emptyFiltered || `Nothing matches “${query.trim()}”.`) : empty}
+                        </div>
+                    </div>
+                )}
+                {!loading && visible.length > 0 && (
+                    <ul className="divide-y divide-slate-100">
+                        {visible.map((row, index) => {
+                            const n = (current - 1) * (perPage || 0) + index;
+                            const shown = columns.filter((c) => !c.hideOnMobile && c.sticky !== 'right');
+                            const actions = columns.filter((c) => c.sticky === 'right');
+                            return (
+                                <li
+                                    key={rowKey(row, index)}
+                                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                    className={`px-4 py-4 transition-colors ${index % 2 === 1 ? 'bg-slate-50/60' : 'bg-white'}
+                                                ${onRowClick ? 'cursor-pointer active:bg-blue-50' : ''}`}
+                                >
+                                    <dl className="grid grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)] gap-x-3 gap-y-2">
+                                        {shown.map((column) => (
+                                            column.header ? (
+                                                <div key={column.key} className="contents">
+                                                    <dt className="pt-0.5 text-[0.8rem] font-bold uppercase tracking-wide text-slate-400">
+                                                        {column.header}
+                                                    </dt>
+                                                    <dd className="min-w-0 text-[1rem] text-slate-800 [overflow-wrap:anywhere]">
+                                                        {column.render(row, n)}
+                                                    </dd>
+                                                </div>
+                                            ) : (
+                                                <dd key={column.key} className="col-span-2 min-w-0 text-[1rem] text-slate-800">
+                                                    {column.render(row, n)}
+                                                </dd>
+                                            )
+                                        ))}
+                                    </dl>
+                                    {actions.length > 0 && (
+                                        <div className="mt-3 flex flex-wrap gap-2 [&>*]:flex-1" onClick={(e) => e.stopPropagation()}>
+                                            {actions.map((column) => (
+                                                <div key={column.key} className="flex [&>*]:w-full">{column.render(row, n)}</div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </div>
+
             {/* -------------------------------------------------------- table */}
-            <div className="overflow-x-auto">
+            <div className="hidden sm:block overflow-x-auto">
                 <table
                     className="w-full text-left border-collapse"
                     style={minWidth ? { minWidth } : undefined}
