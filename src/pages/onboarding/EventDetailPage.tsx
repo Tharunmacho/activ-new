@@ -25,6 +25,7 @@ import { Reveal } from '@/components/shared/Reveal';
 import { eventPath } from '@/lib/eventPath';
 import { setShareMeta } from '@/lib/shareMeta';
 import { EventQrCard } from '@/components/shared/EventQr';
+import { resolveMediaUrl } from '@/config/api.config';
 
 /**
  * One event, in full.
@@ -146,6 +147,8 @@ export default function EventDetailPage() {
     const [availability, setAvailability] = useState<BookableEvent | null>(null);
     const [loading, setLoading] = useState(true);
     const [missing, setMissing] = useState(false);
+    // Portrait poster? Decided from the loaded image; see the banner below.
+    const [bannerTall, setBannerTall] = useState(false);
 
     /*
      * ONE ADDRESS PER EVENT. Opened by its old id link, the address bar is
@@ -185,6 +188,7 @@ export default function EventDetailPage() {
         setLoading(true);
         setMissing(false);
         setEvent(null);
+        setBannerTall(false);
         // Arriving from a card lower down the previous page would otherwise open
         // this one already scrolled past its own banner.
         window.scrollTo({ top: 0, behavior: 'auto' });
@@ -619,7 +623,7 @@ export default function EventDetailPage() {
                                          * sides are then the same poster blurred,
                                          * never an empty plate.
                                          */
-                                        <div className="relative w-full overflow-hidden bg-slate-900">
+                                        <div className={`relative w-full overflow-hidden ${bannerTall ? "bg-slate-900" : "bg-slate-100"}`}>
                                             {bannerTall && (
                                                 <img
                                                     src={resolveMediaUrl(event.media.url)}
