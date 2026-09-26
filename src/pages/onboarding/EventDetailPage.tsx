@@ -152,7 +152,13 @@ export default function EventDetailPage() {
      * link a visitor copies from here is the one worth sharing.
      */
     useEffect(() => {
-        if (!event?.slug || id === event.slug) return;
+        /*
+         * ONLY when this page was opened by THIS event's old id. Moving from one
+         * event to another renders once with the new `id` and the previous
+         * `event` still in state; comparing slugs alone then wrote the previous
+         * event's address over the new one.
+         */
+        if (!event?.slug || !id || id !== event.id) return;
         try {
             window.history.replaceState(window.history.state, '', `${eventPath(event)}${window.location.search}`);
         } catch {
