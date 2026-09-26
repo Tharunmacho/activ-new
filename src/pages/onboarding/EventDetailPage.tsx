@@ -24,6 +24,7 @@ import {
 import { Reveal } from '@/components/shared/Reveal';
 import { eventPath } from '@/lib/eventPath';
 import { setShareMeta } from '@/lib/shareMeta';
+import { EventQrCard } from '@/components/shared/EventQr';
 
 /**
  * One event, in full.
@@ -586,13 +587,57 @@ export default function EventDetailPage() {
                                       * wants edge-to-edge still sets Fit to
                                       * "cover" on the banner and gets it.
                                       */}
-                                    <div className="w-full aspect-[16/9] max-h-[38rem] bg-slate-50">
-                                        <CmsMediaFrame
-                                            media={{ ...event.media, fit: event.media.fit || 'contain' }}
-                                            priority
-                                            width={1600}
-                                        />
-                                    </div>
+                                    {/*
+                                      * THE POSTER'S OWN SHAPE. A fixed 16/9 box
+                                      * with a 38rem cap stopped being 16/9 on any
+                                      * screen wider than ~1080px, and the poster
+                                      * was cropped top and bottom — its logo and
+                                      * footer strip cut off. An image is now drawn
+                                      * full width at its own height, whole, and
+                                      * only a very tall poster is capped (85vh)
+                                      * and shown whole inside that. Video keeps
+                                      * the 16/9 frame it needs.
+                                      */}
+                                    {event.media.type === 'video' ? (
+                                        <div className="w-full aspect-[16/9] bg-slate-50">
+                                            <CmsMediaFrame
+                                                media={{ ...event.media, fit: event.media.fit || 'contain' }}
+                                                priority
+                                                width={1600}
+                                            />
+                                        </div>
+                                    ) : (
+                                        /*
+                                         * FILLS THE CARD. A landscape or square
+                                         * poster has no height cap: full width,
+                                         * its own height, edge to edge. A cap on
+                                         * it (85vh) shrank a 16:9 banner on a
+                                         * laptop and left white bands either side.
+                                         *
+                                         * Only a PORTRAIT poster is capped, so it
+                                         * cannot run several screens tall; its
+                                         * sides are then the same poster blurred,
+                                         * never an empty plate.
+                                         */
+                                        <div className="relative w-full overflow-hidden bg-slate-900">
+                                            {bannerTall && (
+                                                <img
+                                                    src={resolveMediaUrl(event.media.url)}
+                                                    alt=""
+                                                    aria-hidden="true"
+                                                    className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70 blur-2xl"
+                                                />
+                                            )}
+                                            <CmsMediaFrame
+                                                media={event.media}
+                                                natural
+                                                className={`relative ${bannerTall ? 'max-h-[85vh]' : ''}`}
+                                                onNaturalSize={(w, h) => setBannerTall(h > w * 1.05)}
+                                                priority
+                                                width={1600}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </Reveal>
                         )}
@@ -1141,6 +1186,18 @@ export default function EventDetailPage() {
                                   * links now, and the reader is not asked to
                                   * work out why the page is telling them twice.
                                   */}
+
+                                {/*
+                                  * THE EVENT'S QR, under the booking button:
+                                  * scanned off a projector or a laptop it opens
+                                  * this page on a phone, and it can be saved as
+                                  * a flyer. Hidden when the editor turned it off.
+                                  */}
+                                {event.showQrOnPage !== false && (
+                                    <div className="mt-6 border-t border-slate-100 pt-6">
+                                        <EventQrCard event={event} />
+                                    </div>
+                                )}
                             </aside>
                         </div>
                         </div>

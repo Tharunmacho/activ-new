@@ -149,11 +149,21 @@ interface Props {
      * degrades to a transparent one.
      */
     transparent?: boolean;
+    /**
+     * Draw an image at its OWN shape instead of filling a fixed box: full width,
+     * height from the file, never cropped. For a poster that must be read
+     * whole — an event banner carries its date and venue along its edges. The
+     * caller bounds it (e.g. `max-h-[85vh]`); past that it is letterboxed.
+     * Videos ignore it.
+     */
+    natural?: boolean;
+    /** Called with the image's intrinsic size once it loads (e.g. to tell portrait from landscape). */
+    onNaturalSize?: (width: number, height: number) => void;
 }
 
 export function CmsMediaFrame({
     media, className = '', fallback = null, priority = false, width = 900,
-    transparent = false,
+    transparent = false, natural = false, onNaturalSize,
 }: Props) {
     const m = { ...EMPTY_MEDIA, ...(media || {}) };
 
@@ -220,8 +230,11 @@ export function CmsMediaFrame({
             {...{ fetchpriority: priority ? 'high' : undefined }}
             decoding="async"
             onError={() => setFailed(true)}
-            className={`w-full h-full ${plate} ${className}`}
-            style={style}
+            onLoad={onNaturalSize
+                ? (e) => onNaturalSize(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)
+                : undefined}
+            className={natural ? `block w-full h-auto ${className}` : `w-full h-full ${plate} ${className}`}
+            style={natural ? { objectFit: 'contain', objectPosition: 'center' } : style}
         />
     );
 }

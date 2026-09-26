@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { EventQrCard } from '@/components/shared/EventQr';
 import { toast } from 'sonner';
 import {
     MapPin, Clock, Users, Phone, Mail, CalendarDays, BadgeCheck, Lock,
@@ -771,6 +772,11 @@ export default function MemberEventDetail() {
                                 </p>
                             ) : null}
                         </SectionCard>
+
+                        {/* The event's QR — opens the public event page. See EventQr. */}
+                        {(event as { showQrOnPage?: boolean }).showQrOnPage !== false && (
+                            <EventQrCard event={event as { id?: string; slug?: string; title?: string; startAt?: string | null }} />
+                        )}
                     </div>
                 </div>
             </div>

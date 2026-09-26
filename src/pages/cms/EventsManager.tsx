@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft,
-    Plus, Pencil, Trash2, X, Save, Check, Loader2,
+    Plus, Pencil, Trash2, X, Save, Check, Loader2, QrCode,
     Lock, Globe, Building2, MapPin, Shield, Video, Home, Eye, EyeOff, Images, Search,
 } from 'lucide-react';
 import {
@@ -37,6 +37,7 @@ import EventDaysEditor, { addDays, dayDelta, shiftDays, daysInRange } from './co
 import RegionTargetPicker from './components/RegionTargetPicker';
 import { StatList, IconPicker, RepeatableList , ExtraFieldsEditor } from './components/CmsEditors';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
+import { EventQrDialog } from '@/components/shared/EventQr';
 import { CARD_TITLE } from '@/components/layout/appTypography';
 import EventDetailFields, {
     BLANK_DETAIL, toLocalDateTimeInput, type EventDetail,
@@ -126,6 +127,8 @@ const BLANK = {
      * and a CMS event is onboarding content by definition.
      */
     showOnOnboarding: false,
+    // The QR card on the event page; on for every new event (see EventQr).
+    showQrOnPage: true,
     /*
      * "Everyone in the association" — the first of the two audience cards.
      *
@@ -330,6 +333,8 @@ export default function EventsManager({
     const [editing, setEditing] = useState<string | null>(null);
     const [form, setForm] = useState<typeof BLANK>({ ...BLANK });
     const [showForm, setShowForm] = useState(false);
+    // The QR panel: opened for a just-created event, or from a row's QR button.
+    const [qrFor, setQrFor] = useState<{ event: CmsEvent; justCreated: boolean } | null>(null);
     /**
      * Which audience the list is showing.
      *
@@ -556,6 +561,7 @@ export default function EventsManager({
              * would have told them that was the state it was already in.
              */
             showOnOnboarding: isOnPublicSite(e),
+            showQrOnPage: e.showQrOnPage !== false,
             // `!== false`: the field postdates every event in the
             // collection, and those belong on the home page as before.
             /*
@@ -707,6 +713,7 @@ export default function EventsManager({
                  * could account for. Sending what was loaded keeps one answer.
                  */
                 showOnOnboarding: form.showOnOnboarding,
+                showQrOnPage: form.showQrOnPage,
                 // Sent alongside `targets`, never instead of it — the pair is
                 // what lets a reopened event show back both cards.
                 reachEveryone: form.reachEveryone,
@@ -767,8 +774,26 @@ export default function EventsManager({
                 registrationFields: JSON.stringify(form.detail.registrationFields),
             };
 
-            if (editing) await updateCmsEvent(editing, payload);
-            else await createCmsEvent(payload);
+            if (editing) {
+                await updateCmsEvent(editing, payload);
+            } else {
+                /*
+                 * A NEW EVENT OPENS ITS QR straight away — the moment somebody
+                 * posts an event is the moment they want the flyer code. The
+                 * server answers with the stored row, slug included.
+                 */
+                const created = await createCmsEvent(payload);
+                const newId = String(created?.id || created?._id || '');
+                if (newId) {
+                    setQrFor({
+                        event: {
+                            id: newId, slug: created?.slug || '', title: form.title,
+                            startAt: created?.startAt || null, showQrOnPage: form.showQrOnPage,
+                        } as CmsEvent,
+                        justCreated: true,
+                    });
+                }
+            }
             cmsSaved(editing ? 'Event' : 'New event');
             setShowForm(false);
             await load({ quiet: true });
@@ -1751,6 +1776,14 @@ export default function EventsManager({
                             </div>
                         )}
 
+                        <CmsCheck
+                            checked={form.showQrOnPage}
+                            onChange={(showQrOnPage) => setForm({ ...form, showQrOnPage })}
+                            icon={<QrCode className="w-4 h-4" />}
+                            title="Show the event's QR code on its page"
+                            detail="Scanning it opens this event on a phone. The code itself is always available from the QR button."
+                        />
+
                         <EventDetailFields
                             value={form.detail}
                             onChange={(detail) => setForm({ ...form, detail })}
@@ -2190,6 +2223,18 @@ export default function EventsManager({
                                                 it, so the two icons line up. */}
                                             <button
                                                 type="button"
+                                                onClick={() => setQrFor({ event: e, justCreated: false })}
+                                                title={`QR code for “${e.title || 'this event'}”`}
+                                                aria-label={`QR code for ${e.title || 'this event'}`}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg
+                                                           border border-slate-300 text-neutral-500 transition-colors
+                                                           hover:bg-slate-100 dark:border-[#2a2a2a]
+                                                           dark:text-neutral-400 dark:hover:bg-[#161616]"
+                                            >
+                                                <QrCode className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                type="button"
                                                 onClick={() => openEdit(e)}
                                                 title={`Edit “${e.title || 'this event'}”`}
                                                 aria-label={`Edit ${e.title || 'this event'}`}
@@ -2235,6 +2280,26 @@ export default function EventsManager({
                   </>
                 )}
             </CmsCard>
+            )}
+
+            {qrFor && (
+                <EventQrDialog
+                    event={qrFor.event}
+                    justCreated={qrFor.justCreated}
+                    showOnPage={qrFor.event.showQrOnPage !== false}
+                    onClose={() => setQrFor(null)}
+                    onToggleShowOnPage={async (next) => {
+                        try {
+                            // Only this field: the server leaves every absent one untouched.
+                            await updateCmsEvent(qrFor.event.id, { showQrOnPage: next });
+                            setQrFor({ ...qrFor, event: { ...qrFor.event, showQrOnPage: next } });
+                            cmsSaved(next ? 'QR shown on the event page' : 'QR hidden from the event page');
+                            await load({ quiet: true });
+                        } catch (err) {
+                            cmsFailed('the QR setting', errorMessage(err, 'Could not save'));
+                        }
+                    }}
+                />
             )}
         </CmsPage>
     );

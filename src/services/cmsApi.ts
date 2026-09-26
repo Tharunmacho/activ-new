@@ -556,6 +556,8 @@ export interface CmsEvent {
      * somebody turned it off, so a new event needs no second step.
      */
     showOnHome?: boolean;
+    /** The QR card on the event page (components/shared/EventQr). On unless turned off. */
+    showQrOnPage?: boolean;
     /**
      * In the home page BANNER (the slideshow at the top), with its own words —
      * the gallery item's banner fields, on an event. On unless switched off,
