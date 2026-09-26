@@ -1,3 +1,4 @@
+import api from '@/services/api';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -554,18 +555,72 @@ export default function EventBookingPage({ chrome = 'public' }: {
             }
         });
 
+        /*
+         * ONE PERSON, ONE SEAT. Participant 1 may be you (the default); every
+         * other row needs its own email and mobile — the server refuses the
+         * same, this just says so before anything is sent.
+         */
+        const bookerEmail = booker.email.trim().toLowerCase();
+        const bookerPhone = nationalMobile(booker.phone);
+        const seenEmail = new Map<string, number>();
+        const seenPhone = new Map<string, number>();
+        participants.forEach((person, i) => {
+            const email = person.email.trim().toLowerCase();
+            const phone = nationalMobile(person.phone);
+            if (i === 0 && (!email || email === bookerEmail) && (!phone || phone === bookerPhone)) return;
+            const who = (n: number | undefined) => (n === undefined ? 'you' : `participant ${n + 1}`);
+            if (email && !found[`p${i}.email`] && (email === bookerEmail || seenEmail.has(email))) {
+                found[`p${i}.email`] = `Each person needs their own email — already used by ${who(seenEmail.get(email))}`;
+            }
+            if (phone && !found[`p${i}.phone`] && (phone === bookerPhone || seenPhone.has(phone))) {
+                found[`p${i}.phone`] = `Each person needs their own mobile — already used by ${who(seenPhone.get(phone))}`;
+            }
+            if (email && !seenEmail.has(email)) seenEmail.set(email, i);
+            if (phone && !seenPhone.has(phone)) seenPhone.set(phone, i);
+        });
+
         return found;
     }, [booker, count, participants, maxPerBooking]);
 
-    const goToReview = () => {
-        const found = validate();
+    const [checking, setChecking] = useState(false);
+
+    /** Server-side "already registered for this event" — messages keyed like `errors`. */
+    const alreadyBooked = async (): Promise<Record<string, string>> => {
+        try {
+            await api.post(`/event-bookings/event/${encodeURIComponent(id)}/check`, {
+                email: booker.email.trim(),
+                phone: nationalMobile(booker.phone),
+                participants: participants.map((p) => ({ email: p.email.trim(), phone: nationalMobile(p.phone) })),
+            });
+            return {};
+        } catch (error) {
+            const fields = (error as { response?: { data?: { fields?: Record<string, string> } } })?.response?.data?.fields || {};
+            const mapped: Record<string, string> = {};
+            Object.entries(fields).forEach(([key, message]) => {
+                const m = key.match(/^participants\.(\d+)\.(email|phone)$/);
+                mapped[m ? `p${m[1]}.${m[2]}` : key] = String(message);
+            });
+            return mapped; // a network failure returns {}; the booking itself re-checks
+        }
+    };
+
+    const goToReview = async () => {
+        let found = validate();
+        if (!Object.keys(found).length) {
+            setChecking(true);
+            found = await alreadyBooked();
+            setChecking(false);
+        }
         setErrors(found);
         if (Object.keys(found).length) {
             // Put the first bad field in view. Without this, a validation error
             // on the participant rows of a long form is announced entirely
             // off-screen and the button simply appears not to work.
-            const first = document.querySelector('[data-invalid="true"]');
-            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // After React paints the new messages.
+            setTimeout(() => {
+                const first = document.querySelector('[data-invalid="true"]');
+                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 50);
             return;
         }
         setPayError('');
@@ -1575,12 +1630,15 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 <button
                                     type="button"
                                     onClick={goToReview}
+                                    disabled={checking}
                                     className="shrink-0 inline-flex flex-col items-center justify-center
                                                rounded-2xl bg-brand-800 hover:bg-brand-700 px-8 py-4
-                                               text-white transition-colors shadow-lg
+                                               text-white transition-colors shadow-lg disabled:opacity-70
                                                shadow-brand-900/20 min-w-[13rem]"
                                 >
-                                    <span className="text-[1.25rem] font-black tracking-tight">Continue</span>
+                                    <span className="text-[1.25rem] font-black tracking-tight">
+                                        {checking ? 'Checking…' : 'Continue'}
+                                    </span>
                                     <span className="mt-0.5 inline-flex items-center gap-1.5 text-[1.0625rem]
                                                      font-semibold text-white/75">
                                         {isFree ? 'Confirm your seats' : 'Proceed to payment'}
