@@ -15,16 +15,16 @@ Header always merge Vary "User-Agent"
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
-RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
 RewriteRule ^(?:member/)?events/([^/]+)(?:/book)?/?$ /api/v1/share/events/$1 [PT,L]
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
-RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
 RewriteRule ^gallery/([^/]+)(?:/photo/\d+)?/?$ /api/v1/share/gallery/$1 [PT,L]
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
-RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
 RewriteRule ^news(?:/([^/]+))?/?$ /api/v1/share/news/$1 [PT,L]
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
-RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
 RewriteRule ^(states|regions)/([^/]+)(?:/([^/]+))?/?$ /api/v1/share/$1/$2 [PT,L]
 </IfModule>
 # END ACTIV share previews
