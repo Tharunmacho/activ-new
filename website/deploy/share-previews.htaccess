@@ -1,9 +1,8 @@
 # BEGIN ACTIV share previews
-# Link-preview crawlers (WhatsApp, Facebook, LinkedIn, X, Telegram, Slack,
-# Discord, Pinterest, Google...) never run the site's JavaScript, so for an
-# event, gallery, news, state or zone (region) page they are handed the API's share page instead, which
-# carries that event's title, date, venue, description and banner as og:* tags.
-# People are unaffected. `ref=share` is the way back out for a person who
+# Public events serve the website shell with event metadata to every visitor.
+# Other public pages hand link-preview crawlers the API's share HTML because
+# crawlers do not run the website's JavaScript. `ref=share` bypasses these rules
+# for a person who
 # reaches the share page (it sends them on with it), so it can never loop.
 # Maintained in website/deploy/share-previews.htaccess; merged into
 # public_html/.htaccess by website/deploy/merge-htaccess.mjs on every deploy.
@@ -15,8 +14,13 @@ Header always merge Vary "User-Agent"
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
+# Public event HTML includes its preview tags for EVERY request. A crawler
+# using a browser identity must never receive the homepage's canonical URL.
+RewriteRule ^events/([^/]+)(?:/book)?/?$ /api/v1/share/events/$1?view=page [PT,L,QSA]
+# Member pages retain their normal authenticated application flow.
+RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
 RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
-RewriteRule ^(?:member/)?events/([^/]+)(?:/book)?/?$ /api/v1/share/events/$1 [PT,L]
+RewriteRule ^member/events/([^/]+)(?:/book)?/?$ /api/v1/share/events/$1 [PT,L]
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
 RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
 RewriteRule ^gallery/([^/]+)(?:/photo/\d+)?/?$ /api/v1/share/gallery/$1 [PT,L]

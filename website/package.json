@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "test:share-previews": "node tests/server-preview.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

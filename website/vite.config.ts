@@ -1,4 +1,5 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
+import fs from "node:fs";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -26,7 +27,18 @@ export default defineConfig(({ mode }) => ({
       ],
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger(), {
+    name: "activ-preview-config",
+    closeBundle() {
+      const env = loadEnv(mode, process.cwd(), "VITE_");
+      // Only public URLs already embedded in the browser bundle. The Node
+      // server needs the same API address when Dokploy has no runtime override.
+      fs.writeFileSync(path.resolve(__dirname, "dist/site-config.json"), JSON.stringify({
+        apiUrl: process.env.VITE_API_URL || env.VITE_API_URL || "",
+        siteUrl: process.env.VITE_PUBLIC_SITE_URL || env.VITE_PUBLIC_SITE_URL || "",
+      }));
+    },
+  }].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -38,7 +38,7 @@ const upsert = (attr: 'property' | 'name', key: string, value: string): (() => v
 export const setShareMeta = (meta: ShareMeta): (() => void) => {
     try {
         const title = (meta.title || '').trim();
-        const description = (meta.description || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+        const description = (meta.description || '').replace(/\s+/g, ' ').trim().slice(0, 300);
         const previousTitle = document.title;
         if (title) document.title = title;
 
@@ -48,16 +48,40 @@ export const setShareMeta = (meta: ShareMeta): (() => void) => {
             ['property', 'og:title', title],
             ['property', 'og:description', description],
             ['property', 'og:image', meta.image || ''],
+            ['property', 'og:image:secure_url', meta.image?.startsWith('https://') ? meta.image : ''],
+            ['property', 'og:image:alt', title],
             ['property', 'og:url', meta.url || window.location.href],
             ['name', 'twitter:card', meta.image ? 'summary_large_image' : 'summary'],
             ['name', 'twitter:title', title],
             ['name', 'twitter:description', description],
             ['name', 'twitter:image', meta.image || ''],
+            ['name', 'twitter:url', meta.url || window.location.href],
             ['name', 'description', description],
         ];
-        const undo = rows.filter(([, , v]) => v).map(([a, k, v]) => upsert(a, k, v));
+        const undo = rows.map(([a, k, v]) => upsert(a, k, v));
+        // A client-side navigation must not retain the homepage's canonical.
+        let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+        const createdCanonical = !canonical;
+        const previousCanonical = canonical?.getAttribute('href') || '';
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.rel = 'canonical';
+            document.head.appendChild(canonical);
+        }
+        canonical.href = meta.url || window.location.href;
+        // Dimensions belong to a particular image; never carry the logo's
+        // dimensions into a client-side event or gallery navigation.
+        const imageDetails = ['og:image:width', 'og:image:height', 'og:image:type'].map((key) => {
+            const el = document.head.querySelector<HTMLMetaElement>(`meta[property="${key}"]`);
+            const value = el?.content || '';
+            el?.remove();
+            return { el, value };
+        });
         return () => {
             undo.forEach((fn) => fn());
+            if (createdCanonical) canonical?.remove();
+            else canonical?.setAttribute('href', previousCanonical);
+            imageDetails.forEach(({ el, value }) => { if (el) { el.content = value; document.head.appendChild(el); } });
             document.title = previousTitle;
         };
     } catch {

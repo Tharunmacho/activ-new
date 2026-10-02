@@ -27,9 +27,14 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT || 8080);
-const API = String(process.env.API_URL || process.env.VITE_API_URL || '').replace(/\/+$/, '');
+const builtConfig = (() => {
+    try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'site-config.json'), 'utf8')); }
+    catch { return {}; }
+})();
+const apiBase = String(process.env.API_URL || process.env.VITE_API_URL || builtConfig.apiUrl || '').trim().replace(/\/+$/, '');
+const API = apiBase && !/\/api\/v\d+$/.test(apiBase) ? `${apiBase}/api/v1` : apiBase;
 const API_ORIGIN = API.replace(/\/api\/v\d+$/, '');
-const SITE_URL = String(process.env.SITE_URL || '').replace(/\/+$/, '');
+const SITE_URL = String(process.env.SITE_URL || builtConfig.siteUrl || '').replace(/\/+$/, '');
 const SITE_NAME = 'ACTIV - Adidravidar Confederation of Trade & Industrial Vision';
 
 const TYPES = {
@@ -54,6 +59,16 @@ const absolute = (url) => {
     if (!u) return '';
     if (/^https?:\/\//i.test(u)) return u;
     return API_ORIGIN ? `${API_ORIGIN}${u.startsWith('/') ? '' : '/'}${u}` : '';
+};
+
+const previewImage = (raw) => {
+    const image = absolute(raw);
+    if (!image) return '';
+    const url = new URL(image);
+    if (/^\/uploads\/.+\.(jpe?g|png|webp)$/i.test(url.pathname) && !url.searchParams.has('w')) {
+        url.searchParams.set('w', '1200');
+    }
+    return url.toString();
 };
 
 /** "Sunday, 27 September 2026 · 3:00 pm IST · Online on Zoom" */
@@ -95,11 +110,17 @@ const fetchEvent = (slug) => fetchPublic('events', slug);
 
 /** index.html with this event's title, description and poster in its <head>. */
 const eventPage = (event, pageUrl) => {
-    const title = event.title || 'ACTIV event';
+    const date = event.startAt ? new Date(event.startAt) : null;
+    const day = date && !Number.isNaN(date.getTime())
+        ? date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    const venue = event.mode === 'online'
+        ? `Online${event.onlinePlatform ? ` (${event.onlinePlatform})` : ''}`
+        : (event.venue || event.location || '');
+    const title = [event.title || 'ACTIV event', day && `on ${day}`, venue && `at ${venue}`].filter(Boolean).join(' ');
     const summary = String(event.description || '').replace(/\s+/g, ' ').trim();
     const line = whenWhere(event);
     const description = [line, summary].filter(Boolean).join(' — ').slice(0, 300);
-    const image = absolute(event.imageUrl || (event.media && event.media.url));
+    const image = previewImage(event.imageUrl || (event.media && event.media.url));
     const tags = [
         ['property', 'og:type', 'article'],
         ['property', 'og:site_name', SITE_NAME],
@@ -109,10 +130,12 @@ const eventPage = (event, pageUrl) => {
         ['property', 'og:image', image],
         ['property', 'og:image:secure_url', image.startsWith('https://') ? image : ''],
         ['property', 'og:image:alt', title],
+        ['property', 'fb:app_id', /^\d+$/.test(process.env.META_APP_ID || '') ? process.env.META_APP_ID : ''],
         ['name', 'twitter:card', image ? 'summary_large_image' : 'summary'],
         ['name', 'twitter:title', title],
         ['name', 'twitter:description', description],
         ['name', 'twitter:image', image],
+        ['name', 'twitter:url', pageUrl],
         ['name', 'description', description]
     ].filter(([, , v]) => v)
         .map(([a, k, v]) => `<meta ${a}="${k}" content="${esc(v)}" />`).join('\n    ');
@@ -121,6 +144,7 @@ const eventPage = (event, pageUrl) => {
         .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)} | ACTIV</title>`)
         .replace(/<meta\s+name="description"[^>]*>/i, '')
         .replace(/<meta\s+(property|name)="(og|twitter):[^"]*"[^>]*>/gi, '')
+        .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi, '')
         .replace('</head>', `    <link rel="canonical" href="${esc(pageUrl)}" />\n    ${tags}\n  </head>`);
 };
 
@@ -183,5 +207,5 @@ const server = http.createServer(async(req, res) => {
 });
 
 server.listen(PORT, () => {
-    console.log(`ACTIV website on :${PORT}${API ? ` (event previews from ${API})` : ' (API_URL unset: no event previews)'}`);
+    console.log(`ACTIV website on :${server.address().port}${API ? ` (event previews from ${API})` : ' (API_URL unset: no event previews)'}`);
 });

@@ -186,7 +186,7 @@ export default function EventDetailPage() {
         return setShareMeta({
             title: [event.title || 'ACTIV event', date && `on ${date}`, venue && `at ${venue}`].filter(Boolean).join(' '),
             description: [event.venueAddress, event.description].filter(Boolean).join(' — '),
-            image: resolveMediaUrl(event.imageUrl || ''),
+            image: resolveMediaUrl(event.imageUrl || event.media?.url || ''),
             url: `${window.location.origin}${eventPath(event)}`,
             type: 'article',
         });
