@@ -1,0 +1,13 @@
+providers = ["node"]
+
+[variables]
+NIXPACKS_NODE_VERSION = "22"
+
+[phases.install]
+cmds = ["npm --prefix website ci"]
+
+[phases.build]
+cmds = ["npm --prefix website run build"]
+
+[start]
+cmd = "node website/server.mjs"

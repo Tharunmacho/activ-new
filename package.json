@@ -1,0 +1,9 @@
+{
+  "name": "activ-website-deployment",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix website run build",
+    "start": "node website/server.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

@@ -661,9 +661,9 @@ const SuperEventEditorScreen: React.FC = () => {
           hint="They go to the people who register — linked in the booking email and sent on WhatsApp. Not shown on the public event page." />
         <PremiumInput tone="admin" label="YouTube or video link" icon="smart-display" value={form.videoUrl} onChangeText={(videoUrl) => set({ videoUrl })}
           autoCapitalize="none" keyboardType="url" placeholder="https://www.youtube.com/watch?v=…" />
-        <PremiumInput tone="admin" label="WhatsApp channel link" icon="link" value={form.whatsappChannelUrl}
+        <PremiumInput tone="admin" label="WhatsApp group link" icon="link" value={form.whatsappChannelUrl}
           onChangeText={(whatsappChannelUrl) => set({ whatsappChannelUrl })} autoCapitalize="none" keyboardType="url"
-          placeholder="https://whatsapp.com/channel/..." />
+          placeholder="https://chat.whatsapp.com/..." />
         {(form.attachments || []).map((a, i) => (
           <View key={`${a?.url}-${i}`} style={s.fileRow}>
             <Icon name="description" size={20} color={PALETTE.indigo} />

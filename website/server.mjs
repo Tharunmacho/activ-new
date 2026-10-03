@@ -55,7 +55,8 @@ const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const absolute = (url) => {
-    const u = String(url || '').trim();
+    let u = String(url || '').trim();
+    u = u.replace(/^https?:\/\/[^/]+(\/uploads\/.*)$/i, '$1');
     if (!u) return '';
     if (/^https?:\/\//i.test(u)) return u;
     return API_ORIGIN ? `${API_ORIGIN}${u.startsWith('/') ? '' : '/'}${u}` : '';
@@ -130,7 +131,7 @@ const eventPage = (event, pageUrl) => {
         ['property', 'og:image', image],
         ['property', 'og:image:secure_url', image.startsWith('https://') ? image : ''],
         ['property', 'og:image:alt', title],
-        ['property', 'fb:app_id', /^\d+$/.test(process.env.META_APP_ID || '') ? process.env.META_APP_ID : ''],
+        ['property', 'fb:app_id', /^\d+$/.test(process.env.META_APP_ID || '') ? process.env.META_APP_ID : '654787660325955'],
         ['name', 'twitter:card', image ? 'summary_large_image' : 'summary'],
         ['name', 'twitter:title', title],
         ['name', 'twitter:description', description],

@@ -71,13 +71,12 @@ export default function EventFilesEditor({
             </p>
 
             <label className="mt-4 block">
-                <span className="mb-1.5 block text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">WhatsApp channel link</span>
+                <span className="mb-1.5 block text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">WhatsApp group link</span>
                 <input
                     type="url"
                     value={whatsappChannelUrl}
                     onChange={(e) => onChange({ attachments: list, videoUrl, whatsappChannelUrl: e.target.value })}
-                    pattern="https://whatsapp\.com/channel/[A-Za-z0-9]+/?"
-                    placeholder="https://whatsapp.com/channel/..."
+                    placeholder="https://chat.whatsapp.com/..."
                     className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-[1.1rem] outline-none focus:border-blue-500 dark:border-[#262626] dark:bg-[#0b0b0b] dark:text-white"
                 />
                 <span className="mt-1 block text-sm text-slate-500">Optional. Included in booking confirmations and reminders for this event.</span>
