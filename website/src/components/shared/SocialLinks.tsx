@@ -137,14 +137,15 @@ export function SocialButtons({
             {links.map(({ platform, href }) => {
                 const meta = SOCIAL_META[platform];
                 const Icon = meta.icon;
+                const label = platform === 'whatsapp' && href.includes('/channel/') ? 'WhatsApp channel' : meta.label;
                 return (
                     <li key={platform}>
                         <a
                             href={href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`ACTIV on ${meta.label}`}
-                            title={meta.label}
+                            aria-label={`ACTIV on ${label}`}
+                            title={label}
                             style={tone === 'light' ? { backgroundColor: meta.brand } : undefined}
                             className={`group grid ${box} place-items-center rounded-full transition-all duration-200 hover:-translate-y-0.5
                                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${tone === 'dark'

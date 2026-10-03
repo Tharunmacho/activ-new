@@ -606,6 +606,7 @@ export interface CmsEvent {
     /** Documents for the event (agenda PDF …), and a YouTube / video link. */
     attachments?: EventAttachment[];
     videoUrl?: string;
+    whatsappChannelUrl?: string;
     /**
      * In the home page BANNER (the slideshow at the top), with its own words —
      * the gallery item's banner fields, on an event. On unless switched off,

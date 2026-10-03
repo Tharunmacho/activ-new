@@ -296,7 +296,7 @@ export interface CmsEventRow {
   contactName?: string; contactPhone?: string; contactEmail?: string; registrationEnabled?: boolean;
   registrationDeadline?: string | null; capacity?: number; registrationFee?: number; memberFee?: number | null;
   registrationNote?: string; topic?: string; language?: string; registrationFields?: any[]; reminderOffsetsHours?: number[];
-  attachments?: EventAttachment[]; videoUrl?: string;
+  attachments?: EventAttachment[]; videoUrl?: string; whatsappChannelUrl?: string;
 }
 export const EMPTY_EVENT_MEDIA: CmsEventMedia = { url: '', type: 'image', alt: '', fit: 'cover', position: 'center' };
 

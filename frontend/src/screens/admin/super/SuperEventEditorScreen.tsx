@@ -63,7 +63,7 @@ interface Detail {
 interface Form {
   title: string; description: string; date: string; time: string; endDate: string; endTime: string;
   days: EventDay[]; location: string; category: string; targets: EventTarget[];
-  showOnOnboarding: boolean; showQrOnPage: boolean; attachments: EventAttachment[]; videoUrl: string;
+  showOnOnboarding: boolean; showQrOnPage: boolean; attachments: EventAttachment[]; videoUrl: string; whatsappChannelUrl: string;
   reachEveryone: boolean; media: CmsEventMedia; status: 'published' | 'draft'; detail: Detail;
 }
 
@@ -78,7 +78,7 @@ const BLANK_DETAIL: Detail = {
 /** A new event: everyone, published, and on the onboarding site (website `openNew`). */
 const blankForm = (): Form => ({
   title: '', description: '', date: '', time: '', endDate: '', endTime: '', days: [], location: '', category: '',
-  targets: [], showOnOnboarding: true, showQrOnPage: true, attachments: [], videoUrl: '', reachEveryone: true,
+  targets: [], showOnOnboarding: true, showQrOnPage: true, attachments: [], videoUrl: '', whatsappChannelUrl: '', reachEveryone: true,
   media: { ...EMPTY_EVENT_MEDIA }, status: 'published', detail: { ...BLANK_DETAIL, audience: 'all' },
 });
 
@@ -119,6 +119,7 @@ const formFromEvent = (e: CmsEventRow): Form => ({
   showQrOnPage: e?.showQrOnPage !== false,
   attachments: Array.isArray(e?.attachments) ? e.attachments : [],
   videoUrl: e?.videoUrl || '',
+  whatsappChannelUrl: e?.whatsappChannelUrl || '',
   reachEveryone: e?.reachEveryone === true || !hasTargets(e),
   media: { ...EMPTY_EVENT_MEDIA, ...(e?.media || {}) } as CmsEventMedia,
   status: (e?.status === 'draft' ? 'draft' : 'published'),
@@ -438,6 +439,7 @@ const SuperEventEditorScreen: React.FC = () => {
       showQrOnPage: form.showQrOnPage,
       attachments: JSON.stringify(form.attachments || []),
       videoUrl: form.videoUrl || '',
+      whatsappChannelUrl: form.whatsappChannelUrl || '',
       reachEveryone: form.reachEveryone,
       agenda: JSON.stringify(d.agenda || []),
       speakers: JSON.stringify(d.speakers || []),
@@ -659,6 +661,9 @@ const SuperEventEditorScreen: React.FC = () => {
           hint="They go to the people who register — linked in the booking email and sent on WhatsApp. Not shown on the public event page." />
         <PremiumInput tone="admin" label="YouTube or video link" icon="smart-display" value={form.videoUrl} onChangeText={(videoUrl) => set({ videoUrl })}
           autoCapitalize="none" keyboardType="url" placeholder="https://www.youtube.com/watch?v=…" />
+        <PremiumInput tone="admin" label="WhatsApp channel link" icon="link" value={form.whatsappChannelUrl}
+          onChangeText={(whatsappChannelUrl) => set({ whatsappChannelUrl })} autoCapitalize="none" keyboardType="url"
+          placeholder="https://whatsapp.com/channel/..." />
         {(form.attachments || []).map((a, i) => (
           <View key={`${a?.url}-${i}`} style={s.fileRow}>
             <Icon name="description" size={20} color={PALETTE.indigo} />

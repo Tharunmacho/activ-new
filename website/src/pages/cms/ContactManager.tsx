@@ -492,7 +492,7 @@ export default function ContactManager() {
                                 key={key}
                                 label={meta.label}
                                 hint={key === 'whatsapp'
-                                    ? 'A number (e.g. +91 82201 12188) or a wa.me link.'
+                                    ? 'Paste the WhatsApp channel link for the website social icon. A phone number or wa.me link also works.'
                                     : key === 'threads'
                                         ? 'Paste the profile link or @yourhandle. Blank = your Instagram username on Threads.'
                                         : 'Paste the profile link, or just @yourhandle.'}
@@ -504,7 +504,7 @@ export default function ContactManager() {
                                     <CmsInput
                                         value={info.social[key] || ''}
                                         onChange={e => set({ social: { ...info.social, [key]: e.target.value } })}
-                                        placeholder={key === 'whatsapp' ? '+91 82201 12188' : key === 'x' ? 'https://x.com/…' : key === 'threads' ? 'https://www.threads.com/@…' : `https://www.${key}.com/…`}
+                                        placeholder={key === 'whatsapp' ? 'https://whatsapp.com/channel/…' : key === 'x' ? 'https://x.com/…' : key === 'threads' ? 'https://www.threads.com/@…' : `https://www.${key}.com/…`}
                                     />
                                 </div>
                             </CmsField>

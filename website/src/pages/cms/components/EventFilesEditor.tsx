@@ -21,11 +21,12 @@ export const sizeLabel = (bytes?: number) => {
 };
 
 export default function EventFilesEditor({
-    attachments, videoUrl, onChange,
+    attachments, videoUrl, whatsappChannelUrl = '', onChange,
 }: {
     attachments: EventAttachment[];
     videoUrl: string;
-    onChange: (next: { attachments: EventAttachment[]; videoUrl: string }) => void;
+    whatsappChannelUrl?: string;
+    onChange: (next: { attachments: EventAttachment[]; videoUrl: string; whatsappChannelUrl?: string }) => void;
 }) {
     const input = useRef<HTMLInputElement | null>(null);
     const [busy, setBusy] = useState(false);
@@ -65,8 +66,22 @@ export default function EventFilesEditor({
             <p className="mt-1 text-[1.05rem] text-slate-500 dark:text-neutral-400">
                 Upload the agenda or any file (PDF, Word, Excel, slides, image, ZIP — up to 20 MB) and add a YouTube link.
                 They go to the people who register: linked (and small files attached) in the booking email, and
-                PDFs/documents sent on WhatsApp. They are not shown on the public event page.
+                optional supporting PDFs/documents sent after the main WhatsApp confirmation. The event banner stays on the main message.
+                They are not shown on the public event page.
             </p>
+
+            <label className="mt-4 block">
+                <span className="mb-1.5 block text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">WhatsApp channel link</span>
+                <input
+                    type="url"
+                    value={whatsappChannelUrl}
+                    onChange={(e) => onChange({ attachments: list, videoUrl, whatsappChannelUrl: e.target.value })}
+                    pattern="https://whatsapp\.com/channel/[A-Za-z0-9]+/?"
+                    placeholder="https://whatsapp.com/channel/..."
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-[1.1rem] outline-none focus:border-blue-500 dark:border-[#262626] dark:bg-[#0b0b0b] dark:text-white"
+                />
+                <span className="mt-1 block text-sm text-slate-500">Optional. Included in booking confirmations and reminders for this event.</span>
+            </label>
 
             {/* Video */}
             <label className="mt-4 block">

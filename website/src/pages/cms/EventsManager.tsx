@@ -135,6 +135,7 @@ const BLANK = {
     // Documents (agenda PDF …) and a video link — see EventFilesEditor.
     attachments: [] as EventAttachment[],
     videoUrl: '',
+    whatsappChannelUrl: '',
     /*
      * "Everyone in the association" — the first of the two audience cards.
      *
@@ -571,6 +572,7 @@ export default function EventsManager({
             showQrOnPage: e.showQrOnPage !== false,
             attachments: Array.isArray(e.attachments) ? e.attachments : [],
             videoUrl: e.videoUrl || '',
+            whatsappChannelUrl: e.whatsappChannelUrl || '',
             // `!== false`: the field postdates every event in the
             // collection, and those belong on the home page as before.
             /*
@@ -726,6 +728,7 @@ export default function EventsManager({
                 // JSON for the same reason the agenda is: this payload may become FormData.
                 attachments: JSON.stringify(form.attachments || []),
                 videoUrl: form.videoUrl || '',
+                whatsappChannelUrl: form.whatsappChannelUrl || '',
                 // Sent alongside `targets`, never instead of it — the pair is
                 // what lets a reopened event show back both cards.
                 reachEveryone: form.reachEveryone,
@@ -1799,6 +1802,7 @@ export default function EventsManager({
                         <EventFilesEditor
                             attachments={form.attachments || []}
                             videoUrl={form.videoUrl || ''}
+                            whatsappChannelUrl={form.whatsappChannelUrl || ''}
                             onChange={(next) => setForm({ ...form, ...next })}
                         />
 
