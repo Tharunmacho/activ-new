@@ -184,9 +184,9 @@ export default function EventDetailPage() {
             ? `Online${event.onlinePlatform ? ` (${event.onlinePlatform})` : ''}`
             : (event.venue || event.location || '');
         return setShareMeta({
-            title: [event.title || 'ACTIV event', date && `on ${date}`, venue && `at ${venue}`].filter(Boolean).join(' '),
-            description: [event.venueAddress, event.description].filter(Boolean).join(' — '),
-            image: resolveMediaUrl(event.imageUrl || event.media?.url || ''),
+            title: event.share?.title || [event.title || 'ACTIV event', date && `on ${date}`, venue && `at ${venue}`].filter(Boolean).join(' '),
+            description: event.share?.description || [event.venueAddress, event.description].filter(Boolean).join(' — '),
+            image: event.share?.image || resolveMediaUrl(event.imageUrl || event.media?.url || ''),
             url: `${window.location.origin}${eventPath(event)}`,
             type: 'article',
         });

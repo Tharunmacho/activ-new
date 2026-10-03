@@ -39,7 +39,8 @@ try {
         const html = await response.text();
         assert.ok(html.includes('SCST Economic Liberty Conference on 10 October 2026 at DNC VIJAY MAHAL'));
         assert.ok(html.includes('Event description &amp; registration.'));
-        assert.ok(html.includes(`${slug}.png?w=1200`));
+        assert.match(html,new RegExp(`/api/v1/share/events/${slug}/preview/[a-f0-9]{20}\\.jpg`));
+        assert.ok(html.includes('property="og:image:type" content="image/jpeg"'));
         assert.ok(html.includes(`property="og:url" content="https://activ.org.in/events/${slug}"`));
         assert.equal((html.match(/rel="canonical"/g) || []).length, 1);
         assert.ok(!html.includes('property="og:image" content="https://activ.org.in/logo_'));

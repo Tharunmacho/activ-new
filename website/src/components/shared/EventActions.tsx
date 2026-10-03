@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-    CalendarPlus, Share2, MessageCircle, Link2, Check, Navigation, Mail,
+    CalendarPlus, Share2, MessageCircle, Link2, Check, Navigation, Mail, Copy, Download, Facebook, Linkedin,
 } from 'lucide-react';
 import {
     downloadIcs, googleCalendarUrl, directionsUrl, eventPageUrl, shareLine, eventPhase,
@@ -58,7 +58,7 @@ const MENU =
 
 export function EventActions({ event, layout = 'row', className = '' }: EventActionsProps) {
     const [openMenu, setOpenMenu] = useState<'calendar' | 'share' | null>(null);
-    const [copied, setCopied] = useState(false);
+    const [copied, setCopied] = useState<'link' | 'details' | ''>('');
     const holder = useRef<HTMLDivElement | null>(null);
 
     /*
@@ -84,6 +84,7 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
 
     const url = eventPageUrl(event);
     const line = shareLine(event);
+    const post = line.includes(url) ? line : `${line}\n\n${url}`;
     /*
      * No diary entry for an event that has already happened - it would be filed
      * in the past, where the reader will never see it, and the button reads as
@@ -96,10 +97,10 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
     const copyLink = async () => {
         try {
             await navigator.clipboard.writeText(url);
-            setCopied(true);
+            setCopied('link');
             // The tick is the whole confirmation, so it has to last long enough
             // to be noticed and short enough that the button is usable again.
-            setTimeout(() => setCopied(false), 2000);
+            setTimeout(() => setCopied(''), 2000);
         } catch {
             /*
              * The clipboard API is refused outright in some browsers and on any
@@ -112,6 +113,33 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
         setOpenMenu(null);
     };
 
+    const copyDetails = async () => {
+        try {
+            await navigator.clipboard.writeText(post);
+            setCopied('details');
+            setTimeout(() => setCopied(''), 2000);
+        } catch { window.prompt('Copy event details for your post', post); }
+        setOpenMenu(null);
+    };
+    const bannerFile = async () => {
+        const response = await fetch(event.imageUrl!, { signal: AbortSignal.timeout(10000) });
+        if (!response.ok || !/^image\//i.test(response.headers.get('content-type') || '')) throw new Error('Banner unavailable');
+        const blob = await response.blob();
+        const extension = /jpeg/i.test(blob.type) ? 'jpg' : /webp/i.test(blob.type) ? 'webp' : /gif/i.test(blob.type) ? 'gif' : 'png';
+        return new File([blob], `${event.slug || event.id || 'activ-event'}.${extension}`, { type: blob.type });
+    };
+    const downloadBanner = async () => {
+        try {
+            const file = await bannerFile();
+            const href = URL.createObjectURL(file);
+            const link = document.createElement('a');
+            link.href = href; link.download = file.name;
+            document.body.appendChild(link); link.click(); link.remove();
+            setTimeout(() => URL.revokeObjectURL(href), 1000);
+        } catch { window.open(event.imageUrl, '_blank', 'noopener,noreferrer'); }
+        setOpenMenu(null);
+    };
+
     /*
      * The phone's own share sheet when there is one — it reaches WhatsApp,
      * Telegram, Mail, AirDrop and everything else the reader has installed,
@@ -120,7 +148,13 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
      */
     const nativeShare = async () => {
         try {
-            await navigator.share({ title: event.title || 'ACTIV event', text: line, url });
+            let file: File | undefined;
+            if (event.imageUrl) { try { file = await bannerFile(); } catch { /* text and URL remain available */ } }
+            if (file && navigator.canShare?.({ files: [file] })) {
+                await navigator.share({ title: event.share?.title || event.title || 'ACTIV event', text: post, files: [file] });
+            } else {
+                await navigator.share({ title: event.share?.title || event.title || 'ACTIV event', text: line, ...(line.includes(url) ? {} : { url }) });
+            }
             setOpenMenu(null);
         } catch {
             /* Dismissed, or unsupported — the menu stays open and offers the rest. */
@@ -128,9 +162,9 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
     };
 
     const hasNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
-    const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${line}\n\n${url}`)}`;
-    const mailHref = `mailto:?subject=${encodeURIComponent(event.title || 'ACTIV event')}`
-        + `&body=${encodeURIComponent(`${line}\n\n${url}`)}`;
+    const whatsappHref = `https://wa.me/?text=${encodeURIComponent(post)}`;
+    const mailHref = `mailto:?subject=${encodeURIComponent(event.share?.title || event.title || 'ACTIV event')}`
+        + `&body=${encodeURIComponent(post)}`;
 
     const wrap = layout === 'stack'
         ? 'flex flex-col items-stretch gap-2'
@@ -195,7 +229,7 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
                     className={`${BTN} ${layout === 'stack' ? 'w-full justify-center' : ''}`}
                 >
                     {copied ? <Check size={15} className="text-emerald-600" /> : <Share2 size={15} />}
-                    {copied ? 'Link copied' : 'Share'}
+                    {copied === 'details' ? 'Details copied' : copied ? 'Link copied' : 'Share'}
                 </button>
 
                 {openMenu === 'share' && (
@@ -226,6 +260,20 @@ export function EventActions({ event, layout = 'row', className = '' }: EventAct
                         <button type="button" role="menuitem" className={MENU_ITEM} onClick={copyLink}>
                             <Link2 size={15} className="text-brand-500" /> Copy link
                         </button>
+                        <button type="button" role="menuitem" className={MENU_ITEM} onClick={copyDetails}>
+                            <Copy size={15} className="text-brand-500" /> Copy event details
+                        </button>
+                        {event.imageUrl && <button type="button" role="menuitem" className={MENU_ITEM} onClick={downloadBanner}>
+                            <Download size={15} className="text-brand-500" /> Download banner
+                        </button>}
+                        <a role="menuitem" className={MENU_ITEM} target="_blank" rel="noopener noreferrer"
+                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} onClick={() => setOpenMenu(null)}>
+                            <Facebook size={15} className="text-brand-500" /> Facebook
+                        </a>
+                        <a role="menuitem" className={MENU_ITEM} target="_blank" rel="noopener noreferrer"
+                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} onClick={() => setOpenMenu(null)}>
+                            <Linkedin size={15} className="text-brand-500" /> LinkedIn
+                        </a>
                     </div>
                 )}
             </div>

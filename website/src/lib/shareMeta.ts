@@ -38,7 +38,7 @@ const upsert = (attr: 'property' | 'name', key: string, value: string): (() => v
 export const setShareMeta = (meta: ShareMeta): (() => void) => {
     try {
         const title = (meta.title || '').trim();
-        const description = (meta.description || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+        const description = (meta.description || '').replace(/\s+/g, ' ').trim().slice(0, 700);
         const previousTitle = document.title;
         if (title) document.title = title;
 

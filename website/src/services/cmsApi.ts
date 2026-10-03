@@ -710,6 +710,7 @@ export interface CmsEvent {
     contactName?: string;
     contactPhone?: string;
     contactEmail?: string;
+    share?: { title: string; description: string; text: string; image?: string };
     registrationEnabled?: boolean;
     registrationDeadline?: string | null;
     capacity?: number;

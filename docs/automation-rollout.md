@@ -19,6 +19,26 @@ links are present. Each link has a separate heading and line in the fixed Meta
 template body. The original readable template remains the fallback while a new
 template is awaiting approval. PDFs remain separate supporting messages.
 
+PDF confirmation variants (v3) place the first supporting PDF's name and URL
+under the WhatsApp group section. The actual file is still sent immediately
+after the banner message. Document captions now default to the approved
+`activ_event_document_readable_v2`; the old v1 setting is migrated automatically.
+Only the booked event's own saved attachments are included.
+
+Public event metadata and share text come from one server-side formatter.
+Its title is `<Event> on <date> at <venue>`; the description includes the
+schedule, address, fee, language and introduction. Full post text includes
+organiser contacts, programme and registration link. Private group, meeting
+and attachment URLs are excluded from public shares. The share menu offers
+Copy event details and Download banner, plus Facebook/LinkedIn links and
+native image sharing where the device supports it.
+
+Event Open Graph images use the API's versioned JPEG preview endpoint,
+`/api/v1/share/events/<slug>/preview/<version>.jpg`, with 1200x630 JPEG output.
+It derives the image from the event banner, preserves the whole artwork,
+checks public event visibility, and changes the URL when the banner changes.
+Deploy the backend before the website so the JPEG endpoint is available.
+
 Membership bot commands: MEMBERSHIP/STATUS/MEMBER, REGISTER, PAYMENT, RENEW,
 UPI, PAID, HELP, EVENTS and MENU. Account state and the existing renewal window
 control the answer. Direct UPI amounts come from the same eligible-plan price

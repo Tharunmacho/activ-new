@@ -23,6 +23,9 @@ import { eventPath } from '@/lib/eventPath';
 
 /** The subset of an event these helpers read. Deliberately structural. */
 export interface CalendarEventLike {
+    slug?: string;
+    imageUrl?: string;
+    share?: { title: string; description: string; text: string; image?: string };
     id?: string;
     title?: string;
     description?: string;
@@ -308,9 +311,11 @@ export const directionsUrl = (event: CalendarEventLike): string => {
 
 /** "Tue, 20 Jan · 10:30" — the one-line summary a share message leads with. */
 export const shareLine = (event: CalendarEventLike): string => {
+    if (event.share?.text) return event.share.text;
     const start = parse(event.startAt);
     const when = start
         ? start.toLocaleString('en-GB', {
+            timeZone: 'Asia/Kolkata',
             weekday: 'short', day: 'numeric', month: 'short',
             hour: '2-digit', minute: '2-digit',
         })

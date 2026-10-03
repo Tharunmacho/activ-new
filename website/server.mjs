@@ -23,6 +23,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
@@ -117,11 +118,13 @@ const eventPage = (event, pageUrl) => {
     const venue = event.mode === 'online'
         ? `Online${event.onlinePlatform ? ` (${event.onlinePlatform})` : ''}`
         : (event.venue || event.location || '');
-    const title = [event.title || 'ACTIV event', day && `on ${day}`, venue && `at ${venue}`].filter(Boolean).join(' ');
+    const title = event.share?.title || [event.title || 'ACTIV event', day && `on ${day}`, venue && `at ${venue}`].filter(Boolean).join(' ');
     const summary = String(event.description || '').replace(/\s+/g, ' ').trim();
     const line = whenWhere(event);
-    const description = [line, summary].filter(Boolean).join(' — ').slice(0, 300);
-    const image = previewImage(event.imageUrl || (event.media && event.media.url));
+    const description = event.share?.description || [line, summary].filter(Boolean).join(' — ').slice(0, 700);
+    const banner = String(event.imageUrl || event.media?.url || '').replace(/^https?:\/\/[^/?#]+(\/uploads\/[^?#]+)(?:[?#].*)?$/i, '$1');
+    const image = event.share?.image || (banner && API_ORIGIN
+        ? `${API_ORIGIN}/api/v1/share/events/${encodeURIComponent(event.slug || event.id)}/preview/${crypto.createHash('sha256').update(banner).digest('hex').slice(0,20)}.jpg` : '');
     const tags = [
         ['property', 'og:type', 'article'],
         ['property', 'og:site_name', SITE_NAME],
@@ -131,6 +134,9 @@ const eventPage = (event, pageUrl) => {
         ['property', 'og:image', image],
         ['property', 'og:image:secure_url', image.startsWith('https://') ? image : ''],
         ['property', 'og:image:alt', title],
+        ['property', 'og:image:type', image ? 'image/jpeg' : ''],
+        ['property', 'og:image:width', image ? '1200' : ''],
+        ['property', 'og:image:height', image ? '630' : ''],
         ['property', 'fb:app_id', /^\d+$/.test(process.env.META_APP_ID || '') ? process.env.META_APP_ID : '654787660325955'],
         ['name', 'twitter:card', image ? 'summary_large_image' : 'summary'],
         ['name', 'twitter:title', title],

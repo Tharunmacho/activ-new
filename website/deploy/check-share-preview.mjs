@@ -7,7 +7,7 @@ if (!/^\/events\/[^/]+\/?$/.test(targetUrl.pathname)) throw new Error('Provide a
 const expected = targetUrl.origin + targetUrl.pathname.replace(/\/$/, '');
 let failed = false;
 for (const agent of ['Mozilla/5.0', 'facebookexternalhit/1.1', 'meta-externalfetcher/1.1', 'WhatsApp', 'Twitterbot/1.0', 'LinkedInBot/1.0']) {
-    const response = await fetch(target, { headers: { 'user-agent': agent, range: 'bytes=0-524288' }, signal: AbortSignal.timeout(15000) });
+    const response = await fetch(target, { headers: { 'user-agent': agent }, signal: AbortSignal.timeout(15000) });
     const html = await response.text();
     const meta = (key) => html.match(new RegExp(`<meta\\s+(?:property|name)=["']${key}["']\\s+content=["']([^"']*)`, 'i'))?.[1] || '';
     const url = meta('og:url');
