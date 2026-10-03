@@ -47,11 +47,21 @@ UTR does not mark a membership paid. The bot supplies the member reference and
 asks the sender to email proof to member@activ.org.in. The paid plan is read
 from the latest paid membership order.
 
-In BotBee, forward inbound messages and button replies to:
-`https://api.activ.org.in/api/v1/notifications/botbee/webhook`
-(confirm the mount in backend routes). Disable the old static membership flow
-when activating this receiver to avoid duplicate generic replies. Dokploy
-deployment alone does not change BotBee-hosted flows.
+Incoming chats now use the signed Meta webhook:
+`https://api.activ.org.in/api/v1/notifications/meta/webhook`.
+Configure the app's `whatsapp_business_account` subscription with the `messages`
+field, and subscribe that app to the ACTIV WABA. A configured callback URL alone
+does not connect a WhatsApp number. `META_APP_SECRET` is required before an
+incoming message can trigger a reply. The backend checks the sending phone ID
+and the 24-hour customer-service window, handles all messages in a batched
+delivery, and claims each message ID in MongoDB to prevent duplicate replies
+across retries and replicas. Session replies use Meta directly and are logged
+as BOT_REPLY; approved templates continue to cover lifecycle notifications.
+
+Disable BotBee's old welcome/default and membership keyword flows for the ACTIV
+number during cutover. Both subscribed apps can receive the same incoming chat;
+approving a template or deploying code does not disable a BotBee-hosted flow.
+The older BotBee forwarding endpoint remains for existing integrations.
 
 ## Membership email activation
 
