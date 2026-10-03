@@ -94,12 +94,14 @@ event URL, and re-scrape that exact URL in Facebook Sharing Debugger. Existing
 social cards can remain cached until the platform fetches the URL again.
 # Conversational WhatsApp replies and Google login
 
-The signed Meta receiver reports `X-ACTIV-Bot-Version: conversational-v2`.
-Normal sentences such as “Sir once u check sir” now check the caller's live
-application. Greetings, thanks and acknowledgements receive conversational
-replies. Follow-up requests such as “send link” use the last relevant successful
-bot reply for that same number within 24 hours, then read the current account
-state again. Unclear requests ask a short clarifying question.
+The signed Meta receiver reports `X-ACTIV-Bot-Version: conversational-v3`.
+Only clear account, membership or event requests trigger a reply. Ordinary
+human conversation, app publishing discussions and a bare “check” do not
+trigger account lookups, payment guidance or a fallback menu. Ignored inbound
+messages are recorded as ignored and remain quiet on webhook retries.
+Follow-ups such as “send link”, thanks and acknowledgements require a relevant
+bot request within ten minutes. Old replies caused by generic words do not
+establish that context. Greetings offer help without revealing account status.
 
 Login/password reset, profile changes, form completion, membership documents,
 fees and benefits point to the existing website journeys. Fees and benefits
@@ -112,3 +114,12 @@ and the registered callback `/api/v1/auth/oauth/google/callback`. Credentials
 JSON files are ignored by Git. Save these settings in the backend Dokploy
 environment and deploy; `/api/v1/auth/oauth/providers` must show Google enabled.
 The website and app use that endpoint to display the sign-in option.
+
+For Dokploy environment changes, copy the entire current editor document and
+back it up privately. CodeMirror accessibility values can contain only visible
+lines. Patch only the intended keys and verify that every other parsed value
+is unchanged. Save the editor dialog and then the main Environment form.
+Reopen the editor to verify persisted values before reloading the backend.
+Local development defaults are not a production environment backup. Production
+uses `PAYMENT_MODE=gateway`, `SITE_URL=https://activ.org.in` and the public API
+at `https://api.activ.org.in/api/v1`.
