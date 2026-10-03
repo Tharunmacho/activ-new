@@ -92,3 +92,23 @@ test inbox.
 After deployment, run `node website/deploy/check-share-preview.mjs` with the
 event URL, and re-scrape that exact URL in Facebook Sharing Debugger. Existing
 social cards can remain cached until the platform fetches the URL again.
+# Conversational WhatsApp replies and Google login
+
+The signed Meta receiver reports `X-ACTIV-Bot-Version: conversational-v2`.
+Normal sentences such as “Sir once u check sir” now check the caller's live
+application. Greetings, thanks and acknowledgements receive conversational
+replies. Follow-up requests such as “send link” use the last relevant successful
+bot reply for that same number within 24 hours, then read the current account
+state again. Unclear requests ask a short clarifying question.
+
+Login/password reset, profile changes, form completion, membership documents,
+fees and benefits point to the existing website journeys. Fees and benefits
+come from current CMS plans. The bot does not submit applications, change
+accounts or mark payments as paid from a chat message. Existing approval,
+renewal and shared-number checks still apply.
+
+Google sign-in uses backend-only `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+and the registered callback `/api/v1/auth/oauth/google/callback`. Credentials
+JSON files are ignored by Git. Save these settings in the backend Dokploy
+environment and deploy; `/api/v1/auth/oauth/providers` must show Google enabled.
+The website and app use that endpoint to display the sign-in option.
