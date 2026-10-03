@@ -14,9 +14,10 @@ The Entrepreneurship Awareness Programme currently has no saved banner.
 
 Event editors accept WhatsApp group invites and existing channel links in the
 backward-compatible `whatsappChannelUrl` field. The approved readable
-confirmation includes that link and the optional video in its event-information
-section. Meta parameters cannot contain line breaks, so these links are labeled
-within that section. PDFs remain separate supporting document messages.
+confirmation uses a dedicated aligned template when group/channel or video
+links are present. Each link has a separate heading and line in the fixed Meta
+template body. The original readable template remains the fallback while a new
+template is awaiting approval. PDFs remain separate supporting messages.
 
 Membership bot commands: MEMBERSHIP/STATUS/MEMBER, REGISTER, PAYMENT, RENEW,
 UPI, PAID, HELP, EVENTS and MENU. Account state and the existing renewal window
