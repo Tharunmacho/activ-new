@@ -472,8 +472,8 @@ export default function PaidDashboard() {
     }
 
     return (
-        <MemberPageShell title="Dashboard" subtitle="Your membership at a glance" width="wide">
-            <div className="space-y-4 sm:space-y-6">
+        <MemberPageShell title={platinum ? 'Your Platinum space' : 'Dashboard'} subtitle={platinum ? 'A lifetime with ACTIV' : 'Your membership at a glance'} width="wide">
+            <div className={`space-y-4 sm:space-y-6 ${platinum ? 'platinum-dashboard' : ''}`}>
 
                 {/* The last 30 days of the year: renewal is open, and said first. */}
                 <RenewalBanner renewal={renewal} />
@@ -802,7 +802,7 @@ export default function PaidDashboard() {
                         title="Quick Actions"
                         subtitle="Access your most used features"
                         icon={<Zap className="w-5 h-5" />}
-                        className="h-full"
+                        className={`h-full ${platinum ? 'platinum-panel' : ''}`}
                     >
                         {/*
                           FIVE TILES, EACH ITS OWN COLOUR. The colour is not
@@ -880,7 +880,7 @@ export default function PaidDashboard() {
                         subtitle="Your important documents at one place"
                         icon={<FolderOpen className="w-5 h-5" />}
                         actionTo="/member/documents"
-                        className="h-full"
+                        className={`h-full ${platinum ? 'platinum-panel' : ''}`}
                     >
                         {/* FOUR TILES IN A ROW, stacked inside — the icon
                             above the name, the badge under it and the arrow
