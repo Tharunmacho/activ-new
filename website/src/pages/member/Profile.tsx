@@ -1684,15 +1684,15 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <Label htmlFor="block" className={FIELD_LABEL}>Block *</Label>
+                      <Label htmlFor="block" className={FIELD_LABEL}>Block{blocks.length > 0 ? " *" : ""}</Label>
                       <Controller
                         name="block"
                         control={control}
-                        rules={{ required: true }}
+                        rules={{ required: blocks.length > 0 }}
                         render={({ field }) => (
-                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDistrict || isLocked}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDistrict || isLocked || !blocks.length}>
                             <SelectTrigger className={FIELD}>
-                              <SelectValue placeholder={selectedDistrict ? "Select block" : "Select district first"} />
+                              <SelectValue placeholder={selectedDistrict ? (blocks.length ? "Select block" : "No development blocks ? district only") : "Select district first"} />
                             </SelectTrigger>
                             <SelectContent>
                               {blocks.length > 0 ? (

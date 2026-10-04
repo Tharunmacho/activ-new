@@ -30,8 +30,6 @@ export const SOCIAL_META: Record<SocialPlatform, { label: string; icon: IconType
 /** Which platform a URL (or a footer row's icon name) belongs to. */
 export const platformOf = (href: string, iconName = ''): SocialPlatform | null => {
     const name = iconName.toLowerCase();
-    if (name === 'twitter') return 'x';
-    if ((SOCIAL_PLATFORMS as readonly string[]).includes(name)) return name as SocialPlatform;
     const h = href.toLowerCase();
     if (/facebook\.com|fb\.com/.test(h)) return 'facebook';
     if (/instagram\.com/.test(h)) return 'instagram';
@@ -41,6 +39,8 @@ export const platformOf = (href: string, iconName = ''): SocialPlatform | null =
     if (/wa\.me|whatsapp\.com/.test(h)) return 'whatsapp';
     if (/t\.me|telegram\./.test(h)) return 'telegram';
     if (/threads\.(net|com)/.test(h)) return 'threads';
+    if (name === 'twitter') return 'x';
+    if ((SOCIAL_PLATFORMS as readonly string[]).includes(name)) return name as SocialPlatform;
     return null;
 };
 
@@ -109,9 +109,9 @@ export function useSocialLinks(): SocialLink[] {
             }
             const rows = s.status === 'fulfilled' ? (s.value?.footer?.socials || []) : [];
             for (const row of rows) {
-                const href = absoluteUrl(row?.href);
-                const p = href ? platformOf(href, row?.icon || '') : null;
-                if (p && !byPlatform.has(p)) byPlatform.set(p, href);
+                const p = platformOf(row?.href || '', row?.icon || '');
+                const href = p ? socialHref(p, row?.href) : '';
+                if (p && href && !byPlatform.has(p)) byPlatform.set(p, href);
             }
             withThreads(byPlatform);
             setLinks(SOCIAL_PLATFORMS.filter((p) => byPlatform.has(p)).map((p) => ({ platform: p, href: byPlatform.get(p) as string })));

@@ -115,8 +115,8 @@ export default function MembershipPlanDetails() {
     }, [attempt]);
 
     const kind = useMemo(
-        () => resolvePlan({ declared: resolveApplicantKind(application), hasBusinessRecord: false }),
-        [application],
+        () => resolvePlan({ declared: resolveApplicantKind(profile?.paidMembership?.kind ? { memberType: profile.paidMembership.kind } : application), hasBusinessRecord: false }),
+        [application, profile?.paidMembership?.kind],
     );
 
     const membershipType = String(profile?.membershipType || '').trim();
@@ -193,7 +193,7 @@ export default function MembershipPlanDetails() {
                                     Your membership
                                 </p>
                                 <h2 className={`${PAGE_TITLE} mt-1`}>
-                                    {plan?.name || planLabel(kind) || 'Membership'}
+                                    {profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
                                 </h2>
                                 {membershipType && (
                                     <p className="mt-0.5 text-[1.1875rem] font-semibold text-white/80">

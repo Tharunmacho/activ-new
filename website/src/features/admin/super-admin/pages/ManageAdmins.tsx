@@ -1,5 +1,5 @@
 import { useCardTable } from '@/lib/useCardTable';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     Plus, Search, Pencil, Trash2, Loader2, Users,
     AlertTriangle, X, ShieldCheck, Eye, EyeOff, Menu,
@@ -11,7 +11,7 @@ import SiteStaffAccounts from '../components/SiteStaffAccounts';
 import { AdminBackButton, ADMIN_PAGE } from '@/features/admin/components/AdminUI';
 import { PAGE_SUBTITLE, PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
 import {
-    listAdmins, createAdmin, updateAdmin, deleteAdmin,
+    listAdmins, createAdmin, updateAdmin, deleteAdmin, getRegionTree, type RegionTree,
     previewAdminRemoval, suggestAdminRegions, errorMessage,
     type ManagedAdmin, type AdminRole,
 } from '@/services/activApi';
@@ -52,9 +52,21 @@ export default function ManageAdmins() {
     const [admins, setAdmins] = useState<ManagedAdmin[]>([]);
     const [counts, setCounts] = useState({ all: 0, block_admin: 0, district_admin: 0, state_admin: 0 });
     const [loading, setLoading] = useState(true);
+    const loadSequence = useRef(0);
 
     const [role, setRole] = useState('all');
     const [query, setQuery] = useState('');
+    const [regionTree, setRegionTree] = useState<RegionTree>({ coverageAvailable: false, states: [] });
+    const [filterState, setFilterState] = useState('');
+    const [filterDistrict, setFilterDistrict] = useState('');
+    const [filterBlock, setFilterBlock] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
+    const districts = regionTree.states.find(s => s.name === filterState)?.districts || [];
+    const blocks = districts.find(d => d.name === filterDistrict)?.blocks || [];
+    const pages = Math.max(1, Math.ceil(admins.length / pageSize));
+    const visibleAdmins = admins.slice((Math.min(page, pages) - 1) * pageSize, Math.min(page, pages) * pageSize);
+    useEffect(() => { getRegionTree(false, 'all').then(setRegionTree).catch(e => toast.error(errorMessage(e))); }, []);
 
     const [form, setForm] = useState({ ...BLANK });
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -82,28 +94,35 @@ export default function ManageAdmins() {
     const [reference, setReference] = useState<Record<string, string[]>>({});
 
     const load = async () => {
+        const sequence = ++loadSequence.current;
         setLoading(true);
         const params: Record<string, string> = {};
         if (role !== 'all') params.role = role;
+        if (filterState) params.state = filterState;
+        if (filterDistrict) params.district = filterDistrict;
+        if (filterBlock) params.block = filterBlock;
         // The server ignores a query under two characters; sending it anyway
         // would make the list flicker on the first keystroke.
         if (query.trim().length >= 2) params.q = query.trim();
 
+        try {
         const data = await listAdmins(params);
+        if (sequence !== loadSequence.current) return;
         // The CMS and events accounts have their own section below, with the
         // credential editor the tier form cannot offer (the tier edit refuses
         // any role that is not state / district / block).
         setAdmins((data.admins || []).filter((a: ManagedAdmin) => !STAFF_ROLES.includes(String(a?.role || ''))));
         setCounts(data.counts || counts);
-        setLoading(false);
+        } catch (e) { if (sequence === loadSequence.current) toast.error(errorMessage(e)); }
+        finally { if (sequence === loadSequence.current) setLoading(false); }
     };
 
-    useEffect(() => { load(); }, [role]);
+    useEffect(() => { setPage(1); load(); }, [role, filterState, filterDistrict, filterBlock]);
 
     // Debounced, because this runs on every keystroke and the endpoint scans
     // every admin row.
     useEffect(() => {
-        const t = setTimeout(() => { load(); }, 350);
+        const t = setTimeout(() => { setPage(1); load(); }, 350);
         return () => clearTimeout(t);
     }, [query]);
 
@@ -425,7 +444,7 @@ export default function ManageAdmins() {
                                 Manage Admins
                             </h1>
                             <p className={`${PAGE_SUBTITLE} text-slate-600 mt-0.5`}>
-                                Creating a block admin is what opens a region for registration.
+                                Manage regional accounts across India. Filter by state, district and block.
                             </p>
                         </div>
                     </div>
@@ -443,6 +462,26 @@ export default function ManageAdmins() {
                 </header>
 
                 <main className={ADMIN_PAGE}>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <label className="min-w-0 font-semibold text-slate-700">State
+                            <select aria-label="Filter by state" value={filterState} onChange={e => { setFilterState(e.target.value); setFilterDistrict(''); setFilterBlock(''); }} className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-white px-3 font-normal">
+                                <option value="">All states and union territories</option>
+                                {regionTree.states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                            </select>
+                        </label>
+                        <label className="min-w-0 font-semibold text-slate-700">District
+                            <select aria-label="Filter by district" disabled={!filterState} value={filterDistrict} onChange={e => { setFilterDistrict(e.target.value); setFilterBlock(''); }} className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-white px-3 font-normal disabled:opacity-50">
+                                <option value="">All districts</option>
+                                {districts.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
+                            </select>
+                        </label>
+                        <label className="min-w-0 font-semibold text-slate-700">Block
+                            <select aria-label="Filter by block" disabled={!filterDistrict} value={filterBlock} onChange={e => setFilterBlock(e.target.value)} className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-white px-3 font-normal disabled:opacity-50">
+                                <option value="">All blocks</option>
+                                {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                            </select>
+                        </label>
+                    </div>
                     {/* Filters */}
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="relative flex-1 basis-full sm:basis-auto min-w-0 sm:min-w-[13.75rem]">
@@ -507,7 +546,7 @@ export default function ManageAdmins() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {admins.map(a => (
+                                        {visibleAdmins.map(a => (
                                             <tr key={a.id} className={a.active ? '' : 'opacity-60'}>
                                                 <td className="px-5 py-3">
                                                     <p className="font-medium text-slate-900 break-words">{a.fullName || '—'}</p>
@@ -554,6 +593,11 @@ export default function ManageAdmins() {
                     </div>
 
                     {/* The CMS and events sign-ins: credentials only, no region. */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-slate-600">
+                        <label className="flex items-center gap-2">Per page <select aria-label="Admins per page" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="rounded-lg border bg-white p-2">{[10,25,50,100].map(n => <option key={n}>{n}</option>)}</select></label>
+                        <span>{admins.length} accounts · Page {Math.min(page, pages)} of {pages}</span>
+                        <div className="flex gap-2"><button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-lg border bg-white px-3 py-2 disabled:opacity-40">Previous</button><button disabled={page >= pages} onClick={() => setPage(p => p + 1)} className="rounded-lg border bg-white px-3 py-2 disabled:opacity-40">Next</button></div>
+                    </div>
                     <SiteStaffAccounts />
                 </main>
             </div>

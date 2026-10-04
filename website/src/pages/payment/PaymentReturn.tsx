@@ -8,37 +8,9 @@ import { isMemberSession } from '@/lib/session';
 import MemberPageShell from '../member/MemberPageShell';
 
 /**
- * ==========================================================================
- * WHERE INSTAMOJO SENDS THE MEMBER BACK TO
- * ==========================================================================
- *
- * `redirect_url` on every payment request this server creates is
- * `${FRONTEND_URL}/payment-success`, and Instamojo appends its own query
- * string: `payment_id`, `payment_request_id`, `payment_status`.
- *
- * THIS PAGE ACTIVATES NOTHING, AND THAT IS THE WHOLE POINT.
- *
- * Every one of those query values is in the member's own address bar. A page
- * that read `payment_status=Credit` and granted a membership would be handing
- * one to anybody who could type. The membership is activated by the WEBHOOK —
- * a server-to-server POST that carries an HMAC-SHA1 signed with the account's
- * private salt, verified in `payment.service.verifyWebhookSignature`. That is
- * the only thing on this flow that can be trusted about a payment.
- *
- * So all this page does is ask OUR server about OUR order, and report the
- * answer. The query string is used for exactly one thing: knowing which order
- * to ask about — and even that is checked, because `GET /payment/order/:id`
- * refuses an order that is not the caller's.
- *
- * ----------------------------------------------------------------- polling
- *
- * The member's browser usually arrives before the webhook does. Both leave
- * Instamojo at the same moment and the webhook has a round trip to make, so
- * "your payment did not go through" shown on arrival would be wrong most of
- * the time. The page waits, briefly, and says what it is doing while it
- * waits. After that it stops claiming anything either way: an unconfirmed
- * payment is reported as "we are still confirming", never as a failure,
- * because the money may well have left the member's account.
+ * Instamojo returns here with browser-supplied payment identifiers. The server
+ * verifies the stored order through the signed webhook or Instamojo's API.
+ * Keep polling that verification endpoint until the payment is confirmed.
  */
 const POLL_EVERY_MS = 2000;
 const GIVE_UP_AFTER_MS = 30000;
@@ -51,6 +23,7 @@ export default function PaymentReturn() {
 
     const [outcome, setOutcome] = useState<Outcome>('checking');
     const [amount, setAmount] = useState<number | null>(null);
+    const [receipt, setReceipt] = useState<{ planName: string; paymentId: string; paidAt: string | null } | null>(null);
     const stopped = useRef(false);
 
     /*
@@ -107,44 +80,52 @@ export default function PaymentReturn() {
         const ask = async () => {
             if (cancelled || stopped.current) return;
             try {
-                if (isBooking !== false) {
-                    const found = await resolvePaymentReturn(orderId, {
-                        paymentId: gatewayPaymentId,
-                        paymentStatus: gatewayStatus,
-                    });
-                    if (cancelled) return;
+                const found = await resolvePaymentReturn(orderId, {
+                    paymentId: gatewayPaymentId,
+                    paymentStatus: gatewayStatus,
+                });
+                if (cancelled) return;
 
-                    isBooking = found?.orderType === 'event_booking';
-                    if (typeof found?.amount === 'number') setAmount(found.amount);
+                isBooking = found?.orderType === 'event_booking';
+                if (typeof found?.amount === 'number') setAmount(found.amount);
 
-                    if (isBooking) {
-                        setBooking({ eventId: found.eventId || '', eventSlug: found.eventSlug || '', bookingRef: found.bookingRef || '' });
-                        if ((found.eventSlug || found.eventId) && found.bookingRef) {
-                            target = { event: found.eventSlug || found.eventId, ref: found.bookingRef };
-                        }
-                        if (found.status === 'paid' && (found.eventSlug || found.eventId) && found.bookingRef) {
-                            try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
-                            navigate(bookingHref(found.eventSlug || found.eventId, found.bookingRef), { replace: true });
-                            return;
-                        }
-                        if (found.status === 'failed' || gatewaySaysFailed) { setOutcome('failed'); return; }
+                if (isBooking) {
+                    setBooking({ eventId: found.eventId || '', eventSlug: found.eventSlug || '', bookingRef: found.bookingRef || '' });
+                    if ((found.eventSlug || found.eventId) && found.bookingRef) {
+                        target = { event: found.eventSlug || found.eventId, ref: found.bookingRef };
                     }
-                }
-
-                if (isBooking === false) {
-                    const order = await getPaymentOrder(orderId);
-                    if (cancelled) return;
-
-                    if (order && typeof order.amount === 'number') setAmount(order.amount);
-
-                    if (order?.status === 'paid') { setOutcome('paid'); return; }
-                    if (order?.status === 'failed') { setOutcome('failed'); return; }
+                    if (found.status === 'paid' && (found.eventSlug || found.eventId) && found.bookingRef) {
+                        try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
+                        navigate(bookingHref(found.eventSlug || found.eventId, found.bookingRef), { replace: true });
+                        return;
+                    }
+                    if (found.status === 'failed' || gatewaySaysFailed) { setOutcome('failed'); return; }
+                } else {
+                    if (found.status === 'paid') {
+                        setReceipt({ planName: found.planName || '', paymentId: found.paymentId || '', paidAt: found.paidAt || null });
+                        try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
+                        window.dispatchEvent(new Event('paymentCompleted'));
+                        setOutcome('paid');
+                        return;
+                    }
+                    if (found.status === 'failed') { setOutcome('failed'); return; }
                 }
             } catch {
                 /* A failed read is not an answer about the payment. Keep
                    asking; the deadline below is what ends it. An older server
                    without the public route falls back to the membership read. */
-                if (isBooking === null) isBooking = false;
+                if (isMemberSession() && isBooking !== true) {
+                    try {
+                        const order = await getPaymentOrder(orderId);
+                        if (cancelled) return;
+                        if (typeof order?.amount === 'number') setAmount(order.amount);
+                        if (order?.status === 'paid') {
+                            window.dispatchEvent(new Event('paymentCompleted'));
+                            setOutcome('paid'); return;
+                        }
+                        if (order?.status === 'failed') { setOutcome('failed'); return; }
+                    } catch { /* Keep waiting for a verified answer. */ }
+                }
             }
 
             if (Date.now() - startedAt >= GIVE_UP_AFTER_MS) {
@@ -203,6 +184,12 @@ export default function PaymentReturn() {
                                     {money(amount) ? `We have received ${money(amount)}. ` : ''}
                                     Your ACTIV membership is active.
                                 </p>
+                                <dl className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left space-y-3">
+                                    {receipt?.planName && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Membership plan</dt><dd className="mt-1 font-semibold text-slate-900">{receipt.planName}</dd></div>}
+                                    <div><dt className="text-xs uppercase tracking-wide text-slate-500">Order reference</dt><dd className="mt-1 font-semibold text-slate-900 break-all">{orderId}</dd></div>
+                                    {receipt?.paymentId && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Payment reference</dt><dd className="mt-1 font-semibold text-slate-900 break-all">{receipt.paymentId}</dd></div>}
+                                    {receipt?.paidAt && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Payment confirmed</dt><dd className="mt-1 font-semibold text-slate-900">{new Date(receipt.paidAt).toLocaleString('en-IN')}</dd></div>}
+                                </dl>
                                 <Button
                                     className="mt-6 bg-green-600 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem] hover:bg-green-700"
                                     onClick={() => navigate('/payment/member-dashboard')}
@@ -258,8 +245,8 @@ export default function PaymentReturn() {
                                     The payment did not go through
                                 </h1>
                                 <p className="mt-2 text-[1.125rem] text-slate-600">
-                                    Nothing has been taken. You can try again whenever you are
-                                    ready.
+                                    The gateway reported an unsuccessful payment. If money was
+                                    deducted, check its status or contact us before paying again.
                                 </p>
                                 <Button
                                     className="mt-6 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem]"

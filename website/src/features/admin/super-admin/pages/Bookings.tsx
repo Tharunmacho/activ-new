@@ -13,7 +13,7 @@ import {
 } from '@/features/admin/components/AdminUI';
 import { listEvents } from '@/services/activApi';
 import {
-    listEventBookings, recordBookingPayment, cancelEventBooking,
+    listEventBookings, recordBookingPayment, cancelEventBooking, deleteEventBooking,
     listEventAttendees, exportBookingsCsv,
     type BookingPage, type EventAttendee,
 } from '@/services/eventBookingAdminApi';
@@ -394,6 +394,14 @@ export default function SuperAdminBookings() {
         } finally {
             setActing('');
         }
+    };
+
+    const remove = async (booking: EventBooking) => {
+        if (!window.confirm(`Delete booking ${booking.bookingRef}? Its seats will be released and it will leave the booking list. Payment records are retained; this does not refund payments.`)) return;
+        setActing(booking.bookingRef);
+        try { await deleteEventBooking(eventId, booking.bookingRef); setOpen(null); load(); invalidateAttendees(); }
+        catch (err) { setError(errorMessage(err, 'The booking could not be deleted')); }
+        finally { setActing(''); }
     };
 
     /* -------------------------------------------------------------- render */
@@ -852,6 +860,7 @@ export default function SuperAdminBookings() {
                     onClose={() => setOpen(null)}
                     onMarkPaid={(mode) => markPaid(open, mode)}
                     onCancel={(reason) => cancel(open, reason)}
+                    onDelete={localStorage.getItem('role') === 'super_admin' ? () => remove(open) : undefined}
                 />
             )}
         </div>
@@ -1063,9 +1072,10 @@ function BookingDetail(props: {
     onClose: () => void;
     onMarkPaid: (mode: string) => void;
     onCancel: (reason: string) => void;
+    onDelete?: () => void;
 }) {
     const cardTableRef1 = useCardTable();
-    const { booking, event, acting, onClose, onMarkPaid, onCancel } = props;
+    const { booking, event, acting, onClose, onMarkPaid, onCancel, onDelete } = props;
 
     /*
      * The two actions open INLINE in the footer rather than as a second
@@ -1196,6 +1206,7 @@ function BookingDetail(props: {
                             {booking.bookingRef}
                         </p>
                     </div>
+                    {onDelete && <button type="button" onClick={onDelete} disabled={acting} className={`${ADMIN_SECONDARY_BTN} !text-rose-600`}>Delete booking</button>}
                     <button
                         type="button"
                         onClick={onClose}

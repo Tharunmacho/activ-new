@@ -1,8 +1,10 @@
 import { defineConfig, loadEnv } from "vite";
+import type { IndexHtmlTransformContext } from "vite";
 import fs from "node:fs";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from "./share-preview.mjs";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -28,6 +30,21 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [react(), mode === "development" && componentTagger(), {
+    name: "activ-local-share-previews",
+    transformIndexHtml: {
+      order: "post" as const,
+      async handler(html: string, context: IndexHtmlTransformContext) {
+        if (!context.server) return html;
+        const request = new URL(context.originalUrl || context.path, "http://localhost:8080");
+        if (request.searchParams.get("ref") === "share" || !isPublicPreviewPath(request.pathname)) return html;
+        const env = loadEnv(mode, process.cwd(), "VITE_");
+        let api = String(process.env.VITE_API_URL || env.VITE_API_URL || "").replace(/\/+$/, "");
+        if (api && !/\/api\/v\d+$/.test(api)) api += "/api/v1";
+        const preview = await fetchPagePreview(api, request.pathname);
+        return preview ? mergePagePreview(html, preview) : html;
+      },
+    },
+  }, {
     name: "activ-preview-config",
     closeBundle() {
       const env = loadEnv(mode, process.cwd(), "VITE_");

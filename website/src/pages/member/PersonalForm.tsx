@@ -237,7 +237,7 @@ const PersonalInformationForm = () => {
     /* The region is asked of members in India only; abroad, the place. */
     const locationMissing = isAbroad
       ? !(formData.place || "").trim()
-      : !formData.state || !formData.district || !formData.block || !formData.city;
+      : !formData.state || !formData.district || (blocks.length > 0 && !formData.block) || !formData.city;
 
     if (
       !formData.fullName ||
@@ -292,9 +292,7 @@ const PersonalInformationForm = () => {
     >
       {!isAbroad && !coverageAvailable && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[1.1875rem] text-amber-800">
-          No region on the platform currently has an active block admin, so there is
-          nothing to select yet. An administrator has to open a region before an
-          application can be routed.
+          Location data is unavailable. Reload the page to try again.
         </div>
       )}
 
@@ -348,16 +346,16 @@ const PersonalInformationForm = () => {
 
           <FormField
             label="Block"
-            required
-            hint={!formData.district ? "Choose a district first" : undefined}
+            required={blocks.length > 0}
+            hint={!formData.district ? "Choose a district first" : !blocks.length ? "No development blocks listed; your district is sufficient." : undefined}
           >
             <Select
               value={formData.block}
               onValueChange={(v) => setField("block", v)}
-              disabled={!formData.district}
+              disabled={!formData.district || !blocks.length}
             >
               <SelectTrigger className="h-11 border-slate-200 focus:ring-blue-500">
-                <SelectValue placeholder="Select Block" />
+                <SelectValue placeholder={formData.district && !blocks.length ? "District only" : "Select Block"} />
               </SelectTrigger>
               <SelectContent>
                 {blocks.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}

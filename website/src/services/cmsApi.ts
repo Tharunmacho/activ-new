@@ -807,7 +807,7 @@ export const ICON_GROUPS: { label: string; icons: string[] }[] = [
     { label: 'Notes & labels', icons: ['info', 'tag', 'quote', 'file-text'] },
     { label: 'Contact', icons: ['phone', 'mail', 'message-square', 'send'] },
     { label: 'Navigation', icons: ['arrow-right', 'external-link', 'home'] },
-    { label: 'Social', icons: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube'] },
+    { label: 'Social', icons: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube', 'whatsapp', 'telegram', 'threads'] },
 ];
 
 export const ICON_NAMES: string[] = ICON_GROUPS.flatMap(g => g.icons);

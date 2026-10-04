@@ -167,14 +167,7 @@ const MemberRegister = () => {
   const selectedState = watchStep2('stateName');
   const selectedDistrict = watchStep2('districtName');
 
-  /**
-   * Selectable regions come from the admin database.
-   *
-   * A state is offered only if some block beneath it has an active admin, so
-   * every choice here leads to a reviewable application. The bundled
-   * `india-districts` list offered all of India regardless — an applicant could
-   * register into a region with nobody to review them.
-   */
+  // National locations are available even before regional admins are appointed.
   useEffect(() => {
     let cancelled = false;
     getStates()
@@ -202,32 +195,18 @@ const MemberRegister = () => {
     return () => { cancelled = true; };
   }, [selectedState, setValueStep2]);
 
-  // Fetch blocks when district changes
+  // Ignore a previous district's response when the user changes selection.
   useEffect(() => {
-    const fetchBlocks = async () => {
-      if (!selectedState || !selectedDistrict) {
-        setBlocks([]);
-        return;
-      }
-
-      try {
-        setLoadingBlocks(true);
-        const result = await getBlocks(selectedState, selectedDistrict);
-        setBlocks((result.blocks || []).map((b) => b.name));
-        setValueStep2('block', '');
-      } catch (error) {
-        // Deliberately empty, never invented. This used to substitute
-        // "<District> Block 1/2/3" — names that exist nowhere in the database.
-        // Registering with one is refused by the region gate, so the applicant
-        // was offered a choice guaranteed to fail.
-        setBlocks([]);
-        setValueStep2('block', '');
-      } finally {
-        setLoadingBlocks(false);
-      }
-    };
-
-    fetchBlocks();
+    let cancelled = false;
+    setBlocks([]);
+    setValueStep2('block', '');
+    if (!selectedState || !selectedDistrict) { setLoadingBlocks(false); return; }
+    setLoadingBlocks(true);
+    getBlocks(selectedState, selectedDistrict)
+      .then(result => { if (!cancelled) setBlocks((result.blocks || []).map(b => b.name)); })
+      .catch(() => { if (!cancelled) setBlocks([]); })
+      .finally(() => { if (!cancelled) setLoadingBlocks(false); });
+    return () => { cancelled = true; };
   }, [selectedState, selectedDistrict, setValueStep2]);
 
   const handleStep1Submit = async (data: Step1Form) => {
@@ -692,11 +671,11 @@ const MemberRegister = () => {
                         <Select
                           value={field.value || ''}
                           onValueChange={(v: string) => field.onChange(v)}
-                          disabled={!selectedDistrict || loadingBlocks}
+                          disabled={!selectedDistrict || loadingBlocks || !blocks.length}
                         >
                           <SelectTrigger className={FIELD}>
                             <SelectValue placeholder={
-                              !selectedDistrict ? 'Please select district first' : loadingBlocks ? 'Loading blocks...' : 'Select block'
+                              !selectedDistrict ? 'Please select district first' : loadingBlocks ? 'Loading blocks...' : !blocks.length ? 'No development blocks ? district only' : 'Select block'
                             } />
                           </SelectTrigger>
                           <SelectContent>

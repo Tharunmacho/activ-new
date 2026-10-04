@@ -29,6 +29,7 @@ export interface PlatinumCandidate {
     membershipType: string;
     membershipTier: 'standard' | 'platinum';
     applicationOutcome: string;
+    canAdmitManually?: boolean; existingAccount?: boolean;
     /** Why a grant would be refused; '' when it can go ahead. */
     blockedReason: string;
     platinumGrant: null | {
@@ -73,7 +74,7 @@ export interface PlatinumRequest {
     handledAt: string | null;
     createdAt: string | null;
     /** Super admin list only: why a grant would be refused ('' = can grant). */
-    blockedReason?: string;
+    blockedReason?: string; canAdmitManually?: boolean;
     membershipTier?: string;
 }
 
@@ -128,9 +129,11 @@ export const searchPlatinumCandidates = async (q: string): Promise<PlatinumCandi
     unwrap<PlatinumCandidate[]>(await api.get(`${BASE}/search`, { params: { q } }), []);
 
 export const grantPlatinum = async (memberId: string, body: {
-    amount: number; paymentMode: PlatinumPaymentMode; receiptNumber?: string; receivedOn?: string; note?: string;
+    amount: number; paymentMode: PlatinumPaymentMode; receiptNumber?: string; receivedOn?: string; note?: string; manualAdmission?: boolean;
 }): Promise<PlatinumCandidate> =>
     unwrap<PlatinumCandidate>(await api.post(`${BASE}/${encodeURIComponent(memberId)}`, body), null as unknown as PlatinumCandidate);
 
 export const revokePlatinum = async (memberId: string): Promise<PlatinumCandidate> =>
     unwrap<PlatinumCandidate>(await api.delete(`${BASE}/${encodeURIComponent(memberId)}`), null as unknown as PlatinumCandidate);
+export const createPlatinumAccount = async (body: { fullName: string; email: string; password: string; phoneNumber: string; whatsappNumber: string; state: string; district: string; block: string }) =>
+    unwrap<PlatinumCandidate>(await api.post(`${BASE}/accounts`, body), null as unknown as PlatinumCandidate);

@@ -512,7 +512,7 @@ export default function SiteSettingsManager() {
                             fieldMode="card"
                             step="Footer 5"
                             title="Social buttons"
-                            hint="A button with no link at all is removed when you save. Leave # as a placeholder while an account is being set up."
+                            hint="These links also appear on the Contact page and mobile menu. Paste a profile link or handle; blank links are removed."
                         >
                             <RepeatableList<{ icon: string; href: string }>
                                 items={site.footer.socials}

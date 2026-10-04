@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/layout/ScrollToTop";
+import PublicSharePreview from "@/components/shared/PublicSharePreview";
 import RoleGate from "@/components/layout/RoleGate";
 import FloatingLaunchers from "@/components/layout/FloatingLaunchers";
 import { CartProvider } from "@/contexts/CartContext";
@@ -223,6 +224,7 @@ const SuperSettings = lazy(() => import("./features/admin/super-admin/pages/Sett
 const SuperManageAdmins = lazy(() => import("./features/admin/super-admin/pages/ManageAdmins"));
 const SuperEvents = lazy(() => import("./features/admin/super-admin/pages/Events"));
 const SuperMembership = lazy(() => import("./features/admin/super-admin/pages/Membership"));
+const SuperMembershipRegistrations = lazy(() => import("./features/admin/super-admin/pages/MembershipRegistrations"));
 const SuperDonations = lazy(() => import("./features/admin/super-admin/pages/Donations"));
 const SuperDonorDetail = lazy(() => import("./features/admin/super-admin/pages/DonorDetail"));
 /* Who is coming to which event, and who has paid. The organiser end of the
@@ -248,6 +250,7 @@ const EventsAdminSchemes = lazy(() => import("./features/admin/events-admin/page
 const CmsLayout = lazy(() => import("./pages/cms/CmsLayout"));
 const CmsDashboard = lazy(() => import("./pages/cms/CmsDashboard"));
 const SiteSettingsManager = lazy(() => import("./pages/cms/SiteSettingsManager"));
+const SharePreviewsManager = lazy(() => import("./pages/cms/SharePreviewsManager"));
 const HomeManager = lazy(() => import("./pages/cms/HomeManager"));
 const AboutManager = lazy(() => import("./pages/cms/AboutManager"));
 const EventsManager = lazy(() => import("./pages/cms/EventsManager"));
@@ -302,6 +305,7 @@ const App = () => (
                 the offset it had, so pressing a link from the foot of one page
                 lands on the footer of the next — see the component. */}
             <ScrollToTop />
+            <PublicSharePreview>
             <PreloadPublicPages />
             <FloatingLaunchers />
             <Suspense fallback={<RouteFallback />}>
@@ -605,6 +609,7 @@ const App = () => (
               <Route path="/super-admin/attendance" element={<SuperAttendance />} />
               <Route path="/super-admin/attendance/:eventId" element={<SuperAttendance />} />
               <Route path="/super-admin/membership" element={<SuperMembership />} />
+              <Route path="/super-admin/membership-registrations" element={<SuperMembershipRegistrations />} />
               <Route path="/super-admin/donations" element={<SuperDonations />} />
               <Route path="/super-admin/donations/:id" element={<SuperDonorDetail />} />
               {/* Association Updates (MEM-001) — authored here, delivered to the
@@ -661,6 +666,7 @@ const App = () => (
               <Route path="/cms" element={<CmsLayout />}>
                 <Route index element={<CmsDashboard />} />
                 <Route path="site" element={<SiteSettingsManager />} />
+                <Route path="social-previews" element={<SharePreviewsManager />} />
                 <Route path="home" element={<HomeManager />} />
                 <Route path="about" element={<AboutManager />} />
                 <Route path="events" element={<EventsManager />} />
@@ -678,6 +684,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            </PublicSharePreview>
           </BrowserRouter>
         </TooltipProvider>
         </ActiveCompanyProvider>

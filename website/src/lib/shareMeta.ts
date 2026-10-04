@@ -16,6 +16,8 @@ export interface ShareMeta {
     image?: string;
     url?: string;
     type?: string;
+    alt?: string;
+    imageMeta?: { width: number; height: number; type: string };
 }
 
 const upsert = (attr: 'property' | 'name', key: string, value: string): (() => void) => {
@@ -49,7 +51,10 @@ export const setShareMeta = (meta: ShareMeta): (() => void) => {
             ['property', 'og:description', description],
             ['property', 'og:image', meta.image || ''],
             ['property', 'og:image:secure_url', meta.image?.startsWith('https://') ? meta.image : ''],
-            ['property', 'og:image:alt', title],
+            ['property', 'og:image:alt', meta.alt || title],
+            ['property', 'og:image:width', meta.imageMeta ? String(meta.imageMeta.width) : ''],
+            ['property', 'og:image:height', meta.imageMeta ? String(meta.imageMeta.height) : ''],
+            ['property', 'og:image:type', meta.imageMeta?.type || ''],
             ['property', 'og:url', meta.url || window.location.href],
             ['name', 'twitter:card', meta.image ? 'summary_large_image' : 'summary'],
             ['name', 'twitter:title', title],
@@ -69,19 +74,10 @@ export const setShareMeta = (meta: ShareMeta): (() => void) => {
             document.head.appendChild(canonical);
         }
         canonical.href = meta.url || window.location.href;
-        // Dimensions belong to a particular image; never carry the logo's
-        // dimensions into a client-side event or gallery navigation.
-        const imageDetails = ['og:image:width', 'og:image:height', 'og:image:type'].map((key) => {
-            const el = document.head.querySelector<HTMLMetaElement>(`meta[property="${key}"]`);
-            const value = el?.content || '';
-            el?.remove();
-            return { el, value };
-        });
         return () => {
             undo.forEach((fn) => fn());
             if (createdCanonical) canonical?.remove();
             else canonical?.setAttribute('href', previousCanonical);
-            imageDetails.forEach(({ el, value }) => { if (el) { el.content = value; document.head.appendChild(el); } });
             document.title = previousTitle;
         };
     } catch {

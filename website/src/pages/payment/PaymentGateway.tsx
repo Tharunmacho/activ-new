@@ -98,6 +98,8 @@ export default function PaymentGateway() {
         const start = await startHostedMembershipPayment(
           paymentDetails.planId,
           paymentDetails.applicationId,
+          paymentDetails.upgrade === true,
+          paymentDetails.commencementYear,
         );
         if (!start?.payment_url) throw new Error('The payment could not be started');
         /* A fallback for the return page. The order id is also carried in
@@ -169,6 +171,8 @@ export default function PaymentGateway() {
 
       const order = await payForMembership(paymentDetails.planId, {
         applicationId: paymentDetails.applicationId,
+        upgrade: paymentDetails.upgrade === true,
+        commencementYear: paymentDetails.commencementYear,
         paymentMethod,
       });
 

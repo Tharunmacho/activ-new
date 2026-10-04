@@ -12,6 +12,7 @@ import {
     Facebook, Instagram, Linkedin, Twitter, Youtube,
     type LucideIcon,
 } from 'lucide-react';
+import { FaWhatsapp, FaTelegram, FaThreads } from 'react-icons/fa6';
 
 /**
  * Draw an icon the CMS named.
@@ -66,11 +67,13 @@ interface Props {
 }
 
 export function CmsIcon({ name, size = 20, className = '', fallback = 'star' }: Props) {
+    const Brand = ({ whatsapp: FaWhatsapp, telegram: FaTelegram, threads: FaThreads } as Record<string, typeof FaWhatsapp>)[String(name)];
+    if (Brand) return <Brand size={size} className={className} />;
     const Icon = ICONS[String(name || '').trim()] || ICONS[fallback] || Star;
     return <Icon size={size} className={className} />;
 }
 
 /** True when the renderer knows this name — used by the CMS picker. */
-export const hasIcon = (name?: string | null) => !!ICONS[String(name || '').trim()];
+export const hasIcon = (name?: string | null) => !!ICONS[String(name || '').trim()] || ['whatsapp', 'telegram', 'threads'].includes(String(name));
 
 export default CmsIcon;

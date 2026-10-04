@@ -324,3 +324,5 @@ export const getBookingPerson = async (email: string) =>
         await api.get(ENDPOINTS.EVENTS.BOOKING_PERSON, { params: { email } }),
         { person: {} as BookingPerson, bookings: [] },
     );
+
+export const deleteEventBooking = async (eventId: string, ref: string) => unwrap(await api.delete(`/events/${encodeURIComponent(eventId)}/bookings/${encodeURIComponent(ref)}`), null);

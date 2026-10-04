@@ -1,13 +1,14 @@
 import { useCardTable } from '@/lib/useCardTable';
-import { useEffect, useMemo, useState } from 'react';
+import { cloneElement, useEffect, useId, useMemo, useState } from 'react';
 import {
-    Menu, Plus, Pencil, X, Loader2, IndianRupee, Users, Building2,
+    Menu, Plus, Pencil, Loader2, IndianRupee, Users, Building2,
     GraduationCap, EyeOff, Check, AlertTriangle, Sparkles, CalendarRange, Wand2, Trash2, Crown, Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
 import PlatinumMembers from '../components/PlatinumMembers';
 import { CARD_TITLE } from '@/components/layout/appTypography';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ADMIN_PAGE, ADMIN_PRIMARY_BTN, AdminPageHeader, rupees,
 } from '@/features/admin/components/AdminUI';
 import {
@@ -545,21 +546,16 @@ export default function SuperAdminMembership() {
                     )}
 
                     {/* -------------------------------------------------- editor */}
-                    {(creating || editingKey) && (
-                        /*
-                          An inline card, not a dialog. The bands only make sense
-                          read against each other, and a modal covers the rows the
-                          editor is comparing this one to.
-                        */
-                        <form onSubmit={save} className="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)] p-4 sm:p-6 space-y-5 sm:space-y-6">
-                            <div className="flex items-center justify-between gap-3">
-                                <h2 className={`${CARD_TITLE} text-slate-900 min-w-0`}>
+                    <Dialog open={creating || !!editingKey} onOpenChange={open => { if (!open && !saving) closeForm(); }}>
+                        <DialogContent className="w-[calc(100%-2rem)] max-w-4xl max-h-[90dvh] overflow-y-auto rounded-2xl p-4 sm:p-6 font-sans"
+                            onEscapeKeyDown={e => { if (saving) e.preventDefault(); }}
+                            onInteractOutside={e => { if (saving) e.preventDefault(); }}>
+                        <form onSubmit={save} className="min-w-0 space-y-5 sm:space-y-6">
+                            <div className="pr-7">
+                                <DialogTitle className={`${CARD_TITLE} text-slate-900 min-w-0`}>
                                     {creating ? 'New plan' : `Editing ${editingPlan?.name || editingKey}`}
-                                </h2>
-                                <button type="button" onClick={closeForm} aria-label="Close"
-                                    className="shrink-0 -mr-2 grid h-10 w-10 place-items-center rounded-lg text-slate-400 hover:text-slate-700">
-                                    <X className="w-5 h-5" />
-                                </button>
+                                </DialogTitle>
+                                <DialogDescription className="mt-2">Update the fee, eligibility and benefits, then save your changes.</DialogDescription>
                             </div>
 
                             <div className="grid gap-5 sm:grid-cols-2">
@@ -733,7 +729,7 @@ export default function SuperAdminMembership() {
                                                 ...form,
                                                 features: e.target.value.split('\n'),
                                             })}
-                                            className={INPUT}
+                                            className={`${INPUT} min-h-32 py-2.5`}
                                         />
                                     </Field>
                                 </div>
@@ -752,8 +748,8 @@ export default function SuperAdminMembership() {
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-2 border-t">
-                                <button type="button" onClick={closeForm}
+                            <div className="sticky -bottom-4 sm:-bottom-6 bg-white flex flex-wrap gap-3 pt-3 pb-1 border-t">
+                                <button type="button" onClick={closeForm} disabled={saving}
                                     className="h-11 px-5 rounded-xl border border-slate-200 text-[1.25rem] font-semibold text-slate-700 transition-colors hover:border-slate-300">
                                     Cancel
                                 </button>
@@ -765,11 +761,12 @@ export default function SuperAdminMembership() {
                                                disabled:opacity-60"
                                 >
                                     {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {creating ? 'Create plan' : 'Save — applicants see it immediately'}
+                                    {creating ? 'Create plan' : 'Save plan'}
                                 </button>
                             </div>
                         </form>
-                    )}
+                        </DialogContent>
+                    </Dialog>
 
                     {/* --------------------------------------------------- plans */}
                     {loading ? (
@@ -986,13 +983,14 @@ const INPUT =
 
 /** `FormField` from `RegistrationFormShell`: bold label, hint underneath. */
 function Field({ label, hint, full, children }: {
-    label: string; hint?: string; full?: boolean; children: React.ReactNode;
+    label: string; hint?: string; full?: boolean; children: React.ReactElement<{ id?: string; 'aria-describedby'?: string }>;
 }) {
+    const id = useId();
     return (
         <div className={`min-w-0 ${full ? 'sm:col-span-2' : ''}`}>
-            <label className="block text-[1.25rem] font-semibold text-slate-700 mb-2">{label}</label>
-            {children}
-            {hint && <p className="text-[1.1875rem] text-slate-500 mt-1.5">{hint}</p>}
+            <label htmlFor={id} className="block text-[1.25rem] font-semibold text-slate-700 mb-2">{label}</label>
+            {cloneElement(children, { id, 'aria-describedby': hint ? `${id}-hint` : undefined })}
+            {hint && <p id={`${id}-hint`} className="text-[1.1875rem] text-slate-500 mt-1.5">{hint}</p>}
         </div>
     );
 }
@@ -1009,9 +1007,11 @@ function Field({ label, hint, full, children }: {
  * rather than in the label, and everything but digits is dropped on the way in
  * so a pasted "₹10,000" becomes 10000 rather than being rejected.
  */
-function MoneyInput({ value, onChange }: {
+function MoneyInput({ value, onChange, id, 'aria-describedby': describedBy }: {
     value: number | undefined;
     onChange: (value: number) => void;
+    id?: string;
+    'aria-describedby'?: string;
 }) {
     return (
         <div className="relative">
@@ -1020,6 +1020,8 @@ function MoneyInput({ value, onChange }: {
                 ₹
             </span>
             <input
+                id={id}
+                aria-describedby={describedBy}
                 type="text"
                 inputMode="numeric"
                 autoComplete="off"

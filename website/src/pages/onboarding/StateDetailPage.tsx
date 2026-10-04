@@ -17,6 +17,8 @@ import {
 } from '@/services/cmsRegionsApi';
 import { DASH_CARD, PhotoLightbox } from './components/StateDashboard';
 import { PersonPhoto } from './components/PersonPhoto';
+import { ShareMenu } from '@/components/shared/ShareMenu';
+import { publicUrl } from '@/lib/share';
 
 /**
  * What "View All" opens — one list, in full, on its own screen.
@@ -196,13 +198,16 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
      * state name above it already say where you are.
      */
     const crumbs = (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Link
             to={parentHref}
             className="inline-flex items-center gap-2 text-[1.0625rem] font-bold uppercase
-                       tracking-[0.1em] text-gray-500 hover:text-brand-700 transition-colors mb-6"
+                       tracking-[0.1em] text-gray-500 hover:text-brand-700 transition-colors"
         >
             <ArrowLeft size={14} /> Back to {parentName}
         </Link>
+        <ShareMenu title={`${heading} | ACTIV ${parentName}`} url={publicUrl(`${parentHref}/${key}`)} text={page.shortDescription} />
+        </div>
     );
 
     /* ------------------------------------------------------- the two odd ones */

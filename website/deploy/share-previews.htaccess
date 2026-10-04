@@ -13,6 +13,11 @@ Header always merge Vary "User-Agent"
 </IfModule>
 <IfModule mod_rewrite.c>
 RewriteEngine On
+# CMS controls the card for each public onboarding URL, including the home
+# page. Private dashboards, receipts and password-reset tokens stay outside.
+RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|facebookcatalog|Facebot|meta-externalagent|meta-externalfetcher|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Skype|Teams|Viber|Line/|KakaoTalk|Snapchat|vkShare|Embedly|Iframely|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Mastodon|Bluesky|Tumblr|Quora|W3C_Validator|Google-InspectionTool|opengraph|metainspector) [NC]
+RewriteRule ^((?:(?:onboarding|about|membership|contact|donate|login|register|forgot-password|privacy-policy|terms-and-conditions|refund-policy|cancellation-policy)|(?:events(?:/[^/]+(?:/book)?)?)|(?:gallery(?:/[^/]+(?:/photo/[0-9]+)?)?)|(?:news(?:/[^/]+)?)|(?:schemes(?:/(?:central|state)|/(?:view|state)/[^/]+)?)|(?:(?:states|regions)/[^/]+(?:/[^/]+)?)|(?:legal/[^/]+))?)/?$ /api/v1/share/page?path=/$1 [PT,L]
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
 # Public event HTML includes its preview tags for EVERY request. A crawler
 # using a browser identity must never receive the homepage's canonical URL.

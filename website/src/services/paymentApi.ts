@@ -65,10 +65,11 @@ export const getMembershipPlans = async () =>
  * client-supplied amount is a client-chosen price, and the endpoint this
  * replaces accepted one implicitly by accepting none.
  */
-export const createPaymentOrder = async (planId: string, applicationId?: string) =>
+export const createPaymentOrder = async (planId: string, applicationId?: string, upgrade = false, commencementYear?: string) =>
     unwrap<PaymentOrder>(
         await api.post(ENDPOINTS.PAYMENT.ORDER, {
             planId,
+            ...(upgrade ? { upgrade: true, commencementYear } : {}),
             ...(applicationId ? { applicationId } : {}),
         }),
         {} as PaymentOrder,
@@ -175,12 +176,15 @@ export interface HostedPaymentStart {
 export const startHostedMembershipPayment = async (
     planId: string,
     applicationId?: string,
+    upgrade = false,
+    commencementYear?: string,
 ) =>
     unwrap<HostedPaymentStart>(
         await api.post(ENDPOINTS.PAYMENT.CREATE_REQUEST, {
             /* No amount. The server prices it — see the route's own note. */
             membershipType: planId,
             orderType: 'membership',
+            ...(upgrade ? { upgrade: true, commencementYear } : {}),
             ...(applicationId ? { applicationId } : {}),
         }),
         {} as HostedPaymentStart,
@@ -216,9 +220,9 @@ export const startHostedBookingPayment = async (bookingRef: string) =>
  */
 export const payForMembership = async (
     planId: string,
-    options: { applicationId?: string; paymentMethod?: string } = {},
+    options: { applicationId?: string; paymentMethod?: string; upgrade?: boolean; commencementYear?: string } = {},
 ) => {
-    const order = await createPaymentOrder(planId, options.applicationId);
+    const order = await createPaymentOrder(planId, options.applicationId, options.upgrade, options.commencementYear);
     if (!order?.orderId) throw new Error('The payment could not be started');
 
     const authorized = await authorizeMockPayment(order.orderId);
@@ -240,6 +244,9 @@ export interface PaymentReturnResult {
     orderType: 'membership' | 'event_booking' | string;
     status: 'created' | 'paid' | 'failed' | string;
     amount?: number;
+    planName?: string;
+    paymentId?: string;
+    paidAt?: string | null;
     bookingRef: string;
     eventId: string;
     /** The event's readable address, for the booking link (lib/eventPath). */

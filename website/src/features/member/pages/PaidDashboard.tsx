@@ -1,3 +1,4 @@
+import PlatinumWelcome from '../components/PlatinumWelcome';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
@@ -230,8 +231,8 @@ export default function PaidDashboard() {
             getBusinessInfo(),
             /* The COMPANY record, which is where a business type actually
                lives — see the note where it is read. */
-            getMyCompanies(),
             getMyApplication(),
+            getMyCompanies(),
         ]);
 
         if (profileResult.status === 'fulfilled') setProfile(profileResult.value);
@@ -332,8 +333,8 @@ export default function PaidDashboard() {
      * treating them as an aspirant hides the screen they need next.
      */
     const plan: MemberPlan = useMemo(
-        () => resolvePlan({ declared: resolveApplicantKind(application), hasBusinessRecord }),
-        [application, hasBusinessRecord],
+        () => resolvePlan({ declared: resolveApplicantKind(profile?.paidMembership?.kind ? { memberType: profile.paidMembership.kind } : application), hasBusinessRecord }),
+        [application, hasBusinessRecord, profile?.paidMembership?.kind],
     );
 
     /** Only what the record holds — no placeholder id, no placeholder date. */
@@ -379,7 +380,7 @@ export default function PaidDashboard() {
     /* Platinum is the lifetime tier the Super Admin grants — always lifetime. */
     const platinum = isPlatinumProfile(profile);
     const lifetime = platinum || membershipType.toLowerCase() === 'lifetime';
-    const planTitle = platinum ? 'Platinum Lifetime Membership' : (planLabel(plan) || 'Member');
+    const planTitle = platinum ? 'Platinum Lifetime Membership' : (profile?.paidMembership?.planName || planLabel(plan) || 'Member');
     const expiresAt = useMemo(() => {
         if (lifetime) return '';
         if (profile?.membershipExpiresAt) return profile.membershipExpiresAt;
@@ -476,6 +477,7 @@ export default function PaidDashboard() {
 
                 {/* The last 30 days of the year: renewal is open, and said first. */}
                 <RenewalBanner renewal={renewal} />
+                {!lifetime && <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><h2 className="text-[1.5rem] font-semibold">Upgrade your membership</h2><p className="mt-2 text-[1.25rem]">Moving from student to aspirant or starting a business? Choose your new plan and enter a commencement year for business membership. Your email, password and payment history stay with this account.</p><button className="mt-3 rounded-xl bg-blue-600 px-5 py-3 text-[1.25rem] font-semibold text-white" onClick={() => navigate('/payment/membership-plans?upgrade=1')}>Review membership upgrade</button></div>}
 
                 {/* ============================= greeting · membership card
                     TWO CARDS, NOT ONE BAND.
@@ -507,7 +509,7 @@ export default function PaidDashboard() {
                     the status, the facts and the button. What has gone is the
                     duplicate frame, the duplicate background and the gap
                     between them. */}
-                <section className="relative overflow-hidden rounded-[1.75rem]
+                {platinum ? <PlatinumWelcome name={name} greeting={greeting} memberId={memberId} memberSince={cardDate(memberSince)} region={abroad ? [place, country].filter(Boolean).join(', ') : [block, district, state].filter(Boolean).join(', ')} active={activeNow} onPlan={() => navigate('/member/plan')} onBusiness={() => navigate('/business/dashboard')} onDocuments={() => navigate('/member/documents')} onReceipt={() => navigate('/member/payment-success?view=receipt')} /> : <section className="relative overflow-hidden rounded-[1.75rem]
                                     bg-gradient-to-br from-brand-900 via-blue-700 to-sky-500
                                     shadow-[0_1px_2px_rgba(16,24,40,0.06),0_18px_44px_-20px_rgba(28,46,104,0.55)]">
 
@@ -603,7 +605,7 @@ export default function PaidDashboard() {
                       decoration visible behind it.
                     */}
                     <div className="relative grid items-center justify-between gap-5 sm:gap-6 p-4 sm:p-8
-                                    lg:grid-cols-[minmax(0,auto)_minmax(0,26rem)] lg:pr-24">
+                                    2xl:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]">
 
                         {/* ------------------------------------ the greeting */}
                         <div>
@@ -730,14 +732,14 @@ export default function PaidDashboard() {
                                 </span>
                             </div>
 
-                            <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0 sm:divide-x divide-slate-200 border-t
+                            <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 divide-slate-200 border-t
                                             border-slate-200 pt-4">
-                                <CardFact label="Member ID" value={memberId} />
-                                <CardFact label="Member since" value={cardDate(memberSince)} className="sm:px-3" />
+                                <CardFact label="Member ID" value={memberId} className="sm:col-span-2" />
+                                <CardFact label="Member since" value={cardDate(memberSince)} className="" />
                                 <CardFact
                                     label={lifetime ? 'Validity' : 'Valid until'}
                                     value={lifetime ? 'Lifetime' : cardDate(expiresAt)}
-                                    className="sm:pl-3"
+                                    className=""
                                 />
                             </div>
 
@@ -746,14 +748,14 @@ export default function PaidDashboard() {
                                 <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-0 sm:divide-x divide-slate-200 border-t
                                                 border-slate-200 pt-4">
                                     <CardFact icon={MapPin} label="Place" value={place} />
-                                    <CardFact icon={MapPin} label="Country" value={country} className="sm:pl-3" />
+                                    <CardFact icon={MapPin} label="Country" value={country} className="" />
                                 </div>
                             ) : (
-                                <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0 sm:divide-x divide-slate-200 border-t
+                                <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 divide-slate-200 border-t
                                                 border-slate-200 pt-4">
                                     <CardFact icon={MapPin} label="State" value={state} />
-                                    <CardFact icon={MapPin} label="District" value={district} className="sm:px-3" />
-                                    <CardFact icon={MapPin} label="Block" value={block} className="sm:pl-3" />
+                                    <CardFact icon={MapPin} label="District" value={district} className="" />
+                                    <CardFact icon={MapPin} label="Block" value={block} className="" />
                                 </div>
                             )}
 
@@ -773,7 +775,7 @@ export default function PaidDashboard() {
                                 <div className="relative mt-4 grid grid-cols-2 divide-x divide-slate-200
                                                 border-t border-slate-200 pt-4">
                                     <CardFact icon={Briefcase} label="Business type" value={businessType} />
-                                    <CardFact label="Application ID" value={applicationRef} className="sm:pl-3" />
+                                    <CardFact label="Application ID" value={applicationRef} className="" />
                                 </div>
                             )}
 
@@ -788,7 +790,7 @@ export default function PaidDashboard() {
                             </button>
                         </div>
                     </div>
-                </section>
+                </section>}
 
                 {/* ============================ quick actions · documents */}
                 {/* 1.6 / 1, not 1.05 / 1. Five tiles in half a 1280px
@@ -1303,12 +1305,12 @@ function CardFact({ icon: Icon, label, value, className = '' }: {
                 frame the panel lost 24px, and "MEMBER SINCE" was wrapping to
                 two lines in its column while its neighbours stayed on one —
                 which pushed that one value down a line. */}
-            <p className="flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-[1rem] font-extrabold
+            <p className="flex min-w-0 items-center gap-1.5 text-[1rem] font-extrabold
                           uppercase tracking-[0.06em] text-slate-400">
                 {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" /> : null}
-                <span className="truncate" title={label}>{label}</span>
+                <span className="break-words" title={label}>{label}</span>
             </p>
-            <p className="mt-1 truncate text-[1.25rem] font-bold text-slate-900" title={value || '—'}>
+            <p className="mt-1 break-words text-[1.25rem] font-bold text-slate-900" title={value || '—'}>
                 {value || '—'}
             </p>
         </div>
@@ -1320,7 +1322,7 @@ function HeroFact({ label, value }: { label: string; value: string }) {
     return (
         <div className="min-w-0 rounded-xl bg-slate-50 px-3.5 py-3">
             <p className={BIZ_DETAIL_LABEL}>{label}</p>
-            <p className="mt-1 truncate text-[1.25rem] font-bold text-slate-900" title={value}>
+            <p className="mt-1 break-words text-[1.25rem] font-bold text-slate-900" title={value}>
                 {value}
             </p>
         </div>

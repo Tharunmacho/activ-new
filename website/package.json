@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.mjs",
-    "test:share-previews": "node tests/server-preview.test.mjs"
+    "test:share-previews": "node tests/server-preview.test.mjs && node tests/cms-share-previews.test.mjs",
+    "test:payment-return": "node tests/payment-return.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

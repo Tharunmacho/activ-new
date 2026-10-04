@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import api, { unwrap } from '@/services/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowLeft, Lock, Shield, CreditCard, Zap, FileText, Mail, Star, Building2, Loader2, Crown, Sparkles, Award, GraduationCap } from 'lucide-react';
@@ -8,6 +9,9 @@ import { toast } from 'sonner';
 import MemberPageShell from '../member/MemberPageShell';
 
 interface Plan {
+  audience: string;
+  minYears?: number;
+  maxYears?: number | null;
   id: string;
   name: string;
   description: string;
@@ -77,6 +81,10 @@ const KIND_LABEL: Record<string, string> = { business: 'Company', aspirant: 'Asp
 
 export default function MembershipPlans() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const upgrading = params.get('upgrade') === '1';
+  const [upgradeReason, setUpgradeReason] = useState('');
+  const [commencementYear, setCommencementYear] = useState('');
   /**
    * Which plans this member is offered, and which is preselected.
    *
@@ -104,10 +112,21 @@ export default function MembershipPlans() {
 
   useEffect(() => {
     loadUserData();
-  }, []);
+  }, [upgrading]);
 
   const loadUserData = async () => {
+    setLoading(true);
+    setLoadFailed(false);
     try {
+      if (upgrading) {
+        const result = unwrap<any>(await api.get('/payment/upgrade/plans'), {});
+        const offered = (result.plans || []).map((p: any) => decorate({ ...p, id: p.key }));
+        setPlans(offered); setSelectedPlan(offered[0] || null); setPlanLocked(false);
+        setCommencementYear(String(result.commencementYear || ''));
+        setUpgradeReason(result.reason || 'The full plan fee is charged. Your upgraded annual membership starts after successful payment and is valid for one year.');
+        setUserData({ memberType: KIND_LABEL[result.kind], experience: result.currentPlan, applicationId: '' });
+        return;
+      }
       const eligibility = await resolvePlanEligibility();
 
       const offered = eligibility.plans.map(decorate);
@@ -177,6 +196,11 @@ export default function MembershipPlans() {
       toast.error('The membership prices have not loaded yet. Please try again.');
       return;
     }
+    if (upgrading && selectedPlan.audience === 'business') {
+      const year = Number(commencementYear), age = new Date().getFullYear() - year;
+      if (!/^\d{4}$/.test(commencementYear) || year < 1800 || age < 0) { toast.error('Enter a valid business commencement year.'); return; }
+      if (age < Number(selectedPlan.minYears || 0) || (selectedPlan.maxYears != null && age >= selectedPlan.maxYears)) { toast.error('Choose the plan matching your business commencement year.'); return; }
+    }
 
     setProcessing(true);
     try {
@@ -187,6 +211,8 @@ export default function MembershipPlans() {
           planAmount: selectedPlan.price,
           totalAmount: selectedPlan.price,
           applicationId: userData?.applicationId || '',
+          upgrade: upgrading,
+          commencementYear: upgrading && selectedPlan.audience === 'business' ? commencementYear : undefined,
         },
       });
     } catch (error) {
@@ -241,18 +267,18 @@ export default function MembershipPlans() {
    */
   if (!selectedPlan || plans.length === 0) {
     return (
-      <MemberPageShell title="Membership">
+      <MemberPageShell title={upgrading ? 'Upgrade membership' : 'Membership'}>
         <div className="max-w-md mx-auto py-12 sm:py-20 px-4 text-center">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
             <FileText className="w-6 h-6 text-amber-600" />
           </div>
           <h2 className="text-[1.1875rem] font-semibold text-slate-900 mb-1">
-            {loadFailed ? 'Could not load the plans' : 'No membership plans are available'}
+            {loadFailed ? 'Could not load the plans' : upgrading ? 'Update your profile to change membership' : 'No membership plans are available'}
           </h2>
           <p className="text-slate-500 text-[1.0625rem] mb-6">
             {loadFailed
               ? 'The membership prices could not be read just now. Nothing has been charged.'
-              : 'The association has not published a plan for your membership yet. '
+              : upgrading ? upgradeReason : 'The association has not published a plan for your membership yet. '
                 + 'Please contact the office.'}
           </p>
           {loadFailed && (
@@ -260,6 +286,7 @@ export default function MembershipPlans() {
               Try again
             </Button>
           )}
+          {upgrading && !loadFailed && <div className="flex flex-wrap justify-center gap-3"><Button className="max-w-full h-auto whitespace-normal py-2" onClick={() => navigate('/member/profile?step=2')}>Edit category and commencement year</Button><Button variant="outline" onClick={() => void loadUserData()}>Refresh eligible plan</Button></div>}
         </div>
       </MemberPageShell>
     );
@@ -268,12 +295,12 @@ export default function MembershipPlans() {
   /* ------------------------------------------------------------------ design */
 
   const fmt = (n: number) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
-  const JOURNEY = ['Application', 'Approved', 'Payment', 'Active'];
+  const JOURNEY = upgrading ? ['Profile', 'Plan', 'Payment', 'Active'] : ['Application', 'Approved', 'Payment', 'Active'];
 
   return (
     <MemberPageShell
-      title="Membership"
-      subtitle="Complete your ACTIV membership"
+      title={upgrading ? 'Upgrade membership' : 'Membership'}
+      subtitle={upgrading ? 'Your plan follows your updated profile' : 'Complete your ACTIV membership'}
       width="wide"
       sidebar={false}
       actions={
@@ -283,6 +310,7 @@ export default function MembershipPlans() {
         </div>
       }
     >
+      {upgrading && <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><p className="text-[1.25rem]">{upgradeReason}</p><p className="mt-2 text-slate-600">Your email, password, mobile number and previous receipts stay with this account.</p>{selectedPlan.audience === 'business' && <label className="mt-4 block max-w-md font-semibold text-slate-700">Business commencement year<input aria-label="Business commencement year" inputMode="numeric" maxLength={4} value={commencementYear} onChange={e => setCommencementYear(e.target.value.replace(/\D/g, ''))} placeholder="Year your business started" className="mt-2 h-12 w-full rounded-xl border border-blue-200 bg-white px-4 font-normal" /><span className="mt-2 block text-base font-normal">Choose the business plan matching this year. Your profile updates after payment succeeds.</span></label>}</div>}
       <div className="pb-28 lg:pb-6">
         {/* ============================================================ hero */}
         <section className="relative mb-6 overflow-hidden rounded-3xl px-5 py-7 text-white sm:mb-8 sm:px-10 sm:py-10"
@@ -295,13 +323,13 @@ export default function MembershipPlans() {
           <div className="relative grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div className="min-w-0">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[0.8rem] font-bold uppercase tracking-[0.14em] ring-1 ring-white/25">
-                <Sparkles className="h-3.5 w-3.5" /> Application approved
+                <Sparkles className="h-3.5 w-3.5" /> {upgrading ? 'Membership upgrade' : 'Application approved'}
               </span>
               <h1 className="mt-4 text-[1.75rem] font-black leading-tight tracking-tight sm:text-[2.5rem]">
-                {planLocked ? 'Your membership is one step away' : 'Choose your membership'}
+                {upgrading ? 'Your next membership' : planLocked ? 'Your membership is one step away' : 'Choose your membership'}
               </h1>
               <p className="mt-2 max-w-xl text-[1rem] text-blue-100 sm:text-[1.0625rem]">
-                {planLocked
+                {upgrading ? 'Select your new membership. Business plans follow the commencement year you enter above.' : planLocked
                   ? userData?.memberType === 'Student'
                     ? 'The plan for students who are not yet in business.'
                     : userData?.memberType === 'Aspirant'
@@ -314,8 +342,8 @@ export default function MembershipPlans() {
             {/* Where they are in the journey */}
             <ol className="flex items-center gap-1.5 sm:gap-2">
               {JOURNEY.map((step, i) => {
-                const done = i < 2;
-                const now = i === 2;
+                const done = i < (upgrading ? 1 : 2);
+                const now = i === (upgrading ? 1 : 2);
                 return (
                   <li key={step} className="flex items-center gap-1.5 sm:gap-2">
                     <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.75rem] font-bold sm:px-3 sm:text-[0.8rem]

@@ -167,6 +167,10 @@ export const resolveMediaUrl = (value?: string | null): string => {
     // Local picker results and inline data are already displayable.
     if (raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
 
+    // Generated social images are API resources, even when stored as a
+    // relative path. The static website does not serve these endpoints.
+    if (raw.startsWith('/api/v1/share/')) return `${API_ORIGIN}${raw}`;
+
     /*
      * ======================================================================
      * RE-ANCHOR A STALE HOST, NOT A WORKING ONE

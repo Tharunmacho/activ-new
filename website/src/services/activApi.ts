@@ -610,7 +610,7 @@ export const getRegionTree = async (
             }), {});
 
             const tree: RegionTree = {
-                // False means the platform has no staffed region at all — a
+                // False means no location directory is available — a
                 // different thing from "the request failed", and the two need
                 // different messages on screen.
                 coverageAvailable: !!payload.coverageAvailable,
@@ -652,31 +652,7 @@ export const invalidateRegionCache = () => {
 const sameName = (a?: string | null, b?: string | null) =>
     String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
 
-/**
- * The three list helpers all read the one cached tree rather than calling their
- * own endpoint, so filling in a registration form costs a single request.
- *
- * THEY READ THE FULL TREE, NOT THE PRUNED ONE.
- *
- * The pruned listing keeps only regions staffed all the way down to a block
- * admin. As a rule for opening a region to registration that is sound; as the
- * answer to "which states exist" it is wrong, and it was reaching the applicant
- * as the second. A platform with two staffed states offered one, and the state
- * the Super Admin had just created was missing from the form with nothing on
- * screen to explain it.
- *
- * Showing it is safe because THE APPLICATION STILL ROUTES. `tierRouting`
- * computes ownership from live staffing at read time — `effectiveTier` walks up
- * from the tier the status names to the first one that has an admin, and falls
- * back to `super` when none does — so an application filed in a state with no
- * block admin lands in the state admin's queue rather than in nobody's. That
- * machinery exists precisely for the region tree being uneven, and pruning the
- * dropdown as well only hid the region from the person trying to join it.
- *
- * District and block stay optional on the form, so a state with nothing beneath
- * it is not a dead end: the applicant picks the state, leaves the rest blank,
- * and their file goes to whoever is actually there.
- */
+/** Cascading national location lists read one cached tree, including unstaffed regions. */
 export const getStates = async () => {
     const tree = await getRegionTree(false, 'all');
     return {

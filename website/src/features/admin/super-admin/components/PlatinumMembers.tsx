@@ -5,10 +5,12 @@ import {
     Phone, MessageCircle, Mail, Inbox, PhoneCall, Building2, MapPin, Clock, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { errorMessage } from '@/services/activApi';
+import { errorMessage, getRegionTree } from '@/services/activApi';
+import { ADMIN_INPUT, ADMIN_PRIMARY_BTN, ADMIN_SECONDARY_BTN } from '@/features/admin/components/AdminUI';
+import { CARD_TITLE, CARD_SUBTITLE } from '@/components/layout/appTypography';
 import { PlatinumBadge } from '@/components/shared/Platinum';
 import {
-    getPlatinumOverview, searchPlatinumCandidates, grantPlatinum, revokePlatinum,
+    getPlatinumOverview, searchPlatinumCandidates, grantPlatinum, revokePlatinum, createPlatinumAccount,
     PAYMENT_MODE_LABEL, type PlatinumCandidate, type PlatinumPaymentMode, type PlatinumOverview,
     listPlatinumRequests, updatePlatinumRequest, type PlatinumRequest, type PlatinumRequestStatus,
 } from '@/services/platinumApi';
@@ -33,7 +35,60 @@ const day = (v?: string | null) => {
     return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 const today = () => new Date().toISOString().slice(0, 10);
+const FIELD_LABEL = 'block text-[1.1875rem] font-semibold text-slate-700';
 const region = (m: PlatinumCandidate) => [m.block, m.district, m.state].filter(Boolean).join(', ');
+
+function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) => void }) {
+    const [form, setForm] = useState({ fullName: '', email: '', password: '', phoneNumber: '', whatsappNumber: '', state: '', district: '', block: '' });
+    const [busy, setBusy] = useState(false);
+    const [states, setStates] = useState<any[]>([]);
+    const [regionsLoading, setRegionsLoading] = useState(true);
+    const [regionError, setRegionError] = useState('');
+    const loadRegions = useCallback(async (force = false) => {
+        setRegionsLoading(true); setRegionError('');
+        try { const tree = await getRegionTree(force, 'all'); setStates(tree.states); }
+        catch (err) { setRegionError(errorMessage(err, 'Could not load registration regions.')); }
+        finally { setRegionsLoading(false); }
+    }, []);
+    useEffect(() => { void loadRegions(); }, [loadRegions]);
+    const districts = states.find(s => s.name === form.state)?.districts || [];
+    const blocks = districts.find((d: any) => d.name === form.district)?.blocks || [];
+    const selectExisting = async () => {
+        const email = form.email.trim().toLowerCase();
+        const phone = form.phoneNumber.replace(/\D/g, '').slice(-10);
+        if (!email && phone.length !== 10) { toast.error('Enter the existing member’s email or 10-digit mobile number.'); return; }
+        setBusy(true);
+        try {
+            const matches = await searchPlatinumCandidates(email || phone);
+            const member = matches.find(m => email ? m.email.toLowerCase() === email : m.phoneNumber.replace(/\D/g, '').slice(-10) === phone);
+            if (!member) { toast.info('No account matches. Use the new account fields below if this member has never registered.'); return; }
+            if (member.blockedReason && !member.canAdmitManually) { toast.error(member.blockedReason); return; }
+            setForm(f => ({ ...f, password: '' }));
+            onCreated(member); toast.success('Existing account selected. Its login and contact details are retained.');
+        } catch (err) { toast.error(errorMessage(err, 'Could not find the existing member.')); }
+        finally { setBusy(false); }
+    };
+    const submit = async () => {
+        if (!form.email.trim() && form.phoneNumber.replace(/\D/g, '').length < 10) { toast.error('Enter the member email or mobile number.'); return; }
+        setBusy(true);
+        try {
+            const member = await createPlatinumAccount(form);
+            setForm({ fullName: '', email: '', password: '', phoneNumber: '', whatsappNumber: '', state: '', district: '', block: '' });
+            onCreated(member); toast.success(member.existingAccount ? 'Existing account selected. Record payment to upgrade; login details are retained.' : 'Account created. Record payment to activate Platinum.');
+        } catch (e) { toast.error(errorMessage(e, 'Could not create account.')); }
+        finally { setBusy(false); }
+    };
+    return <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5 font-sans"><h3 className={CARD_TITLE}>Member account for Platinum</h3><p className={`mt-2 text-slate-600 ${CARD_SUBTITLE}`}>Existing business members keep the same email, password and mobile when upgrading to Platinum. Enter their email or mobile and select their existing account. Fill all fields only for a new member.</p>
+        <button type="button" disabled={busy} onClick={() => void selectExisting()} className={`mt-4 ${ADMIN_SECONDARY_BTN} h-auto min-h-12 py-3 max-w-full !whitespace-normal`}>Use existing account / upgrade</button>
+        {regionError && <p role="alert" className="mt-3 text-red-700">{regionError} <button type="button" className="underline" onClick={() => void loadRegions(true)}>Retry</button></p>}
+        {!regionsLoading && !regionError && !states.length && <p role="status" className="mt-3 text-slate-600">Location data is unavailable. Reload regions to try again.</p>}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {(['fullName', 'email', 'password', 'phoneNumber', 'whatsappNumber'] as const).map(key => <label key={key} className={`min-w-0 ${FIELD_LABEL}`}>{{ fullName: 'Full name', email: 'Email', password: 'Password', phoneNumber: 'Mobile', whatsappNumber: 'WhatsApp number' }[key]}<input className={`mt-2 ${ADMIN_INPUT} font-normal`} type={key === 'password' ? 'password' : key === 'email' ? 'email' : 'text'} inputMode={key === 'phoneNumber' || key === 'whatsappNumber' ? 'tel' : undefined} autoComplete={key === 'password' ? 'new-password' : 'off'} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} /></label>)}
+            <label className={`min-w-0 ${FIELD_LABEL}`}>State<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="State" value={form.state} disabled={regionsLoading || busy || !states.length} onChange={e => setForm(f => ({ ...f, state: e.target.value, district: '', block: '' }))}><option value="">{regionsLoading ? 'Loading regions…' : 'Choose state'}</option>{states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}</select></label>
+            <label className={`min-w-0 ${FIELD_LABEL}`}>District<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="District" value={form.district} disabled={!form.state || busy || !districts.length} onChange={e => setForm(f => ({ ...f, district: e.target.value, block: '' }))}><option value="">Choose district</option>{districts.map((d: any) => <option key={d.name} value={d.name}>{d.name}</option>)}</select></label>
+            <label className={`min-w-0 ${FIELD_LABEL}`}>Block<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="Block" value={form.block} disabled={!form.district || busy || !blocks.length} onChange={e => setForm(f => ({ ...f, block: e.target.value }))}><option value="">{form.district && !blocks.length ? 'No development blocks — district only' : 'Choose block'}</option>{blocks.map((b: any) => <option key={b.name} value={b.name}>{b.name}</option>)}</select></label>
+        </div><button type="button" disabled={busy || (!form.email.trim() && !form.phoneNumber.trim())} onClick={() => void submit()} className={`mt-5 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 w-full sm:w-auto !whitespace-normal`}>{busy ? 'Creating…' : 'Continue to Platinum payment'}</button></div>;
+}
 
 function GrantForm({ member, price, onDone, onCancel }: {
     member: PlatinumCandidate; price: number; onDone: (m: PlatinumCandidate) => void; onCancel: () => void;
@@ -45,15 +100,18 @@ function GrantForm({ member, price, onDone, onCancel }: {
     const [note, setNote] = useState('');
     const [confirmed, setConfirmed] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [manualAdmission, setManualAdmission] = useState(false);
 
     const submit = async () => {
         const value = Number(amount);
-        if (!Number.isFinite(value) || value < 0) { toast.error('Enter the amount received'); return; }
+        if (!Number.isFinite(value) || value <= 0) { toast.error('Enter the actual positive amount received'); return; }
+        if (member.blockedReason && (!manualAdmission || !note.trim())) { toast.error('Confirm office admission and enter its reason.'); return; }
+        if (value !== price && !note.trim()) { toast.error('Explain the difference from the Platinum fee.'); return; }
         if (!confirmed) { toast.error('Tick the box to confirm the payment was received'); return; }
         setBusy(true);
         try {
             const updated = await grantPlatinum(member.id, {
-                amount: value, paymentMode: mode, receiptNumber: receipt.trim(), receivedOn, note: note.trim(),
+                amount: value, paymentMode: mode, receiptNumber: receipt.trim(), receivedOn, note: note.trim(), manualAdmission,
             });
             toast.success(`${member.fullName || 'The member'} is now a Platinum lifetime member`);
             onDone(updated);
@@ -64,7 +122,7 @@ function GrantForm({ member, price, onDone, onCancel }: {
         }
     };
 
-    const field = 'mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
+    const field = `mt-2 ${ADMIN_INPUT} font-normal`;
 
     return (
         <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50/50 p-3 sm:p-4">
@@ -72,23 +130,24 @@ function GrantForm({ member, price, onDone, onCancel }: {
                 <Receipt className="h-4 w-4 text-blue-700" /> Record the payment received at the office
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="block min-w-0 text-[1.0625rem] font-semibold text-slate-700">Amount received (₹)
+                {member.blockedReason && <label className="sm:col-span-2 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-slate-700"><input type="checkbox" checked={manualAdmission} onChange={e => setManualAdmission(e.target.checked)} className="mt-1" /><span>I admit this member directly as Super Admin after office payment. Their application is not marked approved; my admission reason must be recorded below.</span></label>}
+                <label className={`min-w-0 ${FIELD_LABEL}`}>Amount received (₹)
                     <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={field} />
                 </label>
-                <label className="block min-w-0 text-[1.0625rem] font-semibold text-slate-700">Paid by
+                <label className={`min-w-0 ${FIELD_LABEL}`}>Paid by
                     <select value={mode} onChange={(e) => setMode(e.target.value as PlatinumPaymentMode)} className={field}>
                         {(Object.keys(PAYMENT_MODE_LABEL) as PlatinumPaymentMode[]).map((k) => (
                             <option key={k} value={k}>{PAYMENT_MODE_LABEL[k]}</option>
                         ))}
                     </select>
                 </label>
-                <label className="block min-w-0 text-[1.0625rem] font-semibold text-slate-700">Receipt / cheque / UTR no.
+                <label className={`min-w-0 ${FIELD_LABEL}`}>Receipt / cheque / UTR no.
                     <input value={receipt} onChange={(e) => setReceipt(e.target.value)} placeholder="Optional" className={field} />
                 </label>
-                <label className="block min-w-0 text-[1.0625rem] font-semibold text-slate-700">Received on
+                <label className={`min-w-0 ${FIELD_LABEL}`}>Received on
                     <input type="date" value={receivedOn} max={today()} onChange={(e) => setReceivedOn(e.target.value)} className={field} />
                 </label>
-                <label className="block min-w-0 text-[1.0625rem] font-semibold text-slate-700 sm:col-span-2">Note
+                <label className={`min-w-0 sm:col-span-2 ${FIELD_LABEL}`}>Note
                     <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional — e.g. received at the Chennai office" className={field} />
                 </label>
             </div>
@@ -104,11 +163,11 @@ function GrantForm({ member, price, onDone, onCancel }: {
             </label>
             <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button type="button" onClick={onCancel} disabled={busy}
-                    className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 font-semibold text-slate-700">
+                    className={ADMIN_SECONDARY_BTN}>
                     <X className="h-4 w-4" /> Cancel
                 </button>
                 <button type="button" onClick={submit} disabled={busy || !confirmed}
-                    className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-5 font-semibold text-white disabled:opacity-60">
+                    className={ADMIN_PRIMARY_BTN}>
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />} Grant Platinum
                 </button>
             </div>
@@ -261,7 +320,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                                     {busy === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Mark contacted
                                                 </button>
                                             ) : null}
-                                            <button type="button" onClick={() => setGranting(r.id)} disabled={!!r.blockedReason}
+                                            <button type="button" onClick={() => setGranting(r.id)} disabled={!!r.blockedReason && !r.canAdmitManually}
                                                 title={r.blockedReason || undefined}
                                                 className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 font-semibold text-white disabled:opacity-50">
                                                 <Crown className="h-4 w-4" /> Grant Platinum
@@ -313,6 +372,8 @@ export default function PlatinumMembers() {
     const [granting, setGranting] = useState<string>('');
     const [undoing, setUndoing] = useState<string>('');
     const [undoBusy, setUndoBusy] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [created, setCreated] = useState<PlatinumCandidate | null>(null);
 
     const load = useCallback(async () => {
         try { setOverview(await getPlatinumOverview()); }
@@ -360,6 +421,9 @@ export default function PlatinumMembers() {
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
+            <button type="button" className={`mb-4 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 max-w-full !whitespace-normal`} onClick={() => setCreating(v => !v)}>Create an office member account</button>
+            {creating && <OfficeAccountForm onCreated={m => { setCreated(m); setCreating(false); }} />}
+            {created && <div className="mb-6 rounded-xl border border-blue-200 p-4"><h3 className="font-bold">Selected account: {created.fullName}</h3><p className="text-slate-600">{created.email} keeps its account password and mobile number. Record payment received below to activate Platinum lifetime access on this same account.</p><GrantForm member={created} price={price} onDone={m => { setCreated(null); onGranted(m); }} onCancel={() => setCreated(null)} /></div>}
             {/* ---- the offer ---- */}
             <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b1f5c] via-[#1e3a8a] to-[#2563eb] p-4 sm:p-5 text-white">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -418,7 +482,7 @@ export default function PlatinumMembers() {
                                 </div>
                                 {m.membershipTier === 'platinum' ? (
                                     <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-700"><Check className="h-4 w-4" /> Platinum</span>
-                                ) : m.blockedReason ? (
+                                ) : m.blockedReason && !m.canAdmitManually ? (
                                     <span className="text-[1.0625rem] text-amber-700 sm:max-w-[16rem] sm:text-right">{m.blockedReason}</span>
                                 ) : granting === m.id ? null : (
                                     <button type="button" onClick={() => setGranting(m.id)}

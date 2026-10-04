@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     Home, LayoutGrid, FileText, PartyPopper, Images, Newspaper, Landmark, BadgeCheck, PanelTop,
     Phone, Inbox, LogOut, ChevronsUpDown, Sun, Moon, Menu, X, Shield, MessageSquare,
-    Search, Bell, ExternalLink, CornerDownLeft, Scale, MapPin,
+    Search, Bell, ExternalLink, CornerDownLeft, Scale, MapPin, Share2,
 } from 'lucide-react';
 import { getStoredRole, logout } from '@/services/activApi';
 import { listContactMessages, getSiteSettings, type SiteSettings } from '@/services/cmsApi';
@@ -69,6 +69,7 @@ const CONTENT_NAV: NavItem[] = [
        have their own page at /schemes now. */
     { to: '/cms/news', label: 'News', icon: Newspaper, keywords: 'news article press headline newspaper hindu source link youtube' },
     { to: '/cms/schemes', label: 'Schemes', icon: Landmark, keywords: 'scheme schemes benefit subsidy central national state district apply government' },
+    { to: '/cms/social-previews', label: 'Social previews', icon: Share2, keywords: 'social preview share image open graph facebook linkedin whatsapp' },
     { to: '/cms/regions', label: 'Zones & States', icon: MapPin, keywords: 'zone region state leadership chairman focus states south north east west gallery' },
     { to: '/cms/contact', label: 'Contact Details', icon: Phone, keywords: 'address phone email map' },
     // Last in the content group because it is opened rarely and deliberately —
@@ -100,6 +101,7 @@ const SUPPORT_NAV: NavItem[] = [
 const TITLES: Record<string, string> = {
     '/cms': 'Overview',
     '/cms/site': 'Header & Footer',
+    '/cms/social-previews': 'Social previews',
     '/cms/home': 'Home Page',
     '/cms/about': 'About Us',
     '/cms/membership': 'Membership',

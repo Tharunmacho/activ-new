@@ -16,7 +16,6 @@ import {
     SectionHead, LeaderGrid, TierPanel, ContactGroup, contactEntries,
 } from './components/LeadershipSections';
 import { StateDistrictMap } from './components/StateDistrictMap';
-import { setShareMeta } from '@/lib/shareMeta';
 import { publicUrl } from '@/lib/share';
 import { ShareMenu } from '@/components/shared/ShareMenu';
 import { resolveMediaUrl } from '@/config/api.config';
@@ -139,15 +138,6 @@ export default function StatePage() {
      * since it was written, and read by nothing: the tab kept the site's own
      * title. Blank fields fall back to the page's name and description.
      */
-    useEffect(() => {
-        if (!page) return undefined;
-        const seo = page.seo || ({} as Partial<typeof page.seo>);
-        return setShareMeta({
-            title: (seo.metaTitle || '').trim() || `ACTIV ${page.stateName || ''}`.trim(),
-            description: (seo.metaDescription || '').trim() || page.shortDescription || '',
-            image: seo.ogImageUrl ? resolveMediaUrl(seo.ogImageUrl) : '',
-        });
-    }, [page]);
 
     if (loading) {
         return (

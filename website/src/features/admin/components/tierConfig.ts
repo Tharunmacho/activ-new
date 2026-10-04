@@ -221,7 +221,13 @@ export const TIERS: Record<AdminTier, TierConfig> = {
             },
             // What a membership costs, and which commencement-year band earns
             // which plan. Only this role sets prices.
-            { to: '/super-admin/membership', label: 'Membership', icon: 'shield' },
+            {
+                to: '/super-admin/membership-registrations', label: 'Membership', icon: 'shield',
+                children: [
+                    { to: '/super-admin/membership-registrations', label: 'Registrations & payments', icon: 'users' },
+                    { to: '/super-admin/membership', label: 'Plans & Platinum', icon: 'shield' },
+                ],
+            },
             // Who donated, how much, and their 80G receipts and year certificates.
             { to: '/super-admin/donations', label: 'Donors', icon: 'heart' },
             // Association Updates. Only this role authors them, and they are

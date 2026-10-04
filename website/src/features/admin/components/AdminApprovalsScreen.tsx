@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { adminRegionLabel } from '@/lib/session';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Loader2, RefreshCw } from 'lucide-react';
 
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,7 +11,7 @@ import useApplicantDetail from './useApplicantDetail';
 import ProfileViewModal from "@/components/ui/profile-view-modal";
 import {
     apiFetch, dashboardPathForRole, approveApplication, rejectApplication,
-    errorMessage, type Applicant,
+    errorMessage, getSuperApplications, type Applicant,
 } from "@/services/activApi";
 import { TIERS, type AdminTier } from "./tierConfig";
 import { AdminPageHeader, ADMIN_BG, ADMIN_PAGE } from './AdminUI';
@@ -37,6 +38,12 @@ import ApplicantRegionFilter, {
 export default function AdminApprovalsScreen({ tier }: { tier: AdminTier }) {
     const navigate = useNavigate();
     const config = TIERS[tier];
+    const [params] = useSearchParams();
+    const requestedApplication = params.get('application') || '';
+    const openedApplication = useRef('');
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
+    const [truncated, setTruncated] = useState(false);
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [tab, setTab] = useState<BucketKey>("all");
@@ -87,13 +94,24 @@ export default function AdminApprovalsScreen({ tier }: { tier: AdminTier }) {
     const { openDetail, target: detailApplicant, detailProps } = useApplicantDetail();
 
     const load = useCallback(async () => {
+        setLoading(true); setLoadError('');
         try {
             const token = localStorage.getItem("token");
             if (!token) {
-                toast.error("Please login again");
+                throw new Error('Please login again');
+            }
+            if (tier === 'super') {
+                // The super dashboard supplies statistics, not the queue. Read
+                // the actual application endpoint, including its later pages.
+                const first = await getSuperApplications({ limit: 100 });
+                const pages = Math.max(1, Number(first.pagination?.pages || 1));
+                const rest = await Promise.all(Array.from({ length: pages - 1 }, (_, index) => getSuperApplications({ limit: 100, page: index + 2 })));
+                const all: Applicant[] = [first, ...rest].flatMap(result => result.applicants || []);
+                const outcome = (row: Applicant) => row.outcome || row.status;
+                setServerBuckets({ all, pending: all.filter(row => !['Approved', 'Rejected'].includes(outcome(row))), approved: all.filter(row => outcome(row) === 'Approved'), rejected: all.filter(row => outcome(row) === 'Rejected') });
+                setTruncated(!!first.pagination?.truncated);
                 return;
             }
-
             const response = await apiFetch(dashboardPathForRole());
             if (!response.ok) throw new Error("Failed to fetch applications");
 
@@ -106,12 +124,16 @@ export default function AdminApprovalsScreen({ tier }: { tier: AdminTier }) {
                 all: buckets.all || [],
             });
         } catch (error) {
-            console.error("Error loading applications:", error);
-            toast.error(errorMessage(error, "Failed to load applications"));
-        }
-    }, []);
+            setLoadError(errorMessage(error, "Failed to load applications"));
+        } finally { setLoading(false); }
+    }, [tier]);
 
     useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        if (!requestedApplication || loading || loadError || openedApplication.current === requestedApplication) return;
+        openedApplication.current = requestedApplication;
+        void openDetail(serverBuckets.all.find(row => row.id === requestedApplication) || { id: requestedApplication });
+    }, [requestedApplication, loading, loadError, serverBuckets.all, openDetail]);
 
     /**
      * Approve or reject, then refetch.
@@ -190,6 +212,9 @@ export default function AdminApprovalsScreen({ tier }: { tier: AdminTier }) {
                     `p-6` with a `max-w-[90rem]` carrying no `mx-auto`, so the
                     content hugged the left on a wide display. */}
                 <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
+                    <div className="flex flex-wrap justify-end gap-3"><button disabled={loading} onClick={() => void load()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 font-semibold disabled:opacity-50"><RefreshCw size={18} /> Refresh</button></div>
+                    {loading ? <div role="status" className="flex items-center justify-center gap-3 py-16 text-slate-500"><Loader2 className="animate-spin" size={24} />Loading applications…</div> : loadError ? <div role="alert" className="rounded-xl bg-rose-50 p-5 text-rose-700">{loadError}<button className="ml-3 underline" onClick={() => void load()}>Retry</button></div> : <>
+                        {truncated && <p className="rounded-xl bg-amber-50 p-4 text-amber-800">Showing the most recent 500 applications. Use the Hub’s region filters to review older regional applications.</p>}
                         {/*
                           Above the pills, because it narrows what they count.
                           Options are built from the `all` bucket — the complete
@@ -211,6 +236,7 @@ export default function AdminApprovalsScreen({ tier }: { tier: AdminTier }) {
                             onReview={handleReview}
                             onPressApplicant={openDetail}
                         />
+                    </>}
                 </div>
             </div>
 

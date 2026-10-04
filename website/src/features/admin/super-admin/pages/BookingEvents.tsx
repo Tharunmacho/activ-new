@@ -125,7 +125,7 @@ export default function SuperAdminBookingEvents() {
                 <div className="min-w-0">
                     {/* An untitled event reads as "Untitled event", never as a
                         blank cell — a blank reads as a broken row. */}
-                    <div className="text-[1.25rem] font-semibold tracking-tight text-slate-900 truncate">
+                    <div className="text-[1.25rem] font-semibold tracking-tight text-slate-900 break-words">
                         {row.title || 'Untitled event'}
                     </div>
                     {/* The meta line steps down but stays legible: 15px, not the
@@ -139,9 +139,9 @@ export default function SuperAdminBookingEvents() {
                             {formatDay(row.startAt) || 'Date to be confirmed'}
                         </span>
                         {!!row.venue && (
-                            <span className="inline-flex items-center gap-1 truncate max-w-[16rem]">
+                            <span className="inline-flex items-center gap-1 min-w-0">
                                 <MapPin className="w-4 h-4 shrink-0" />
-                                <span className="truncate">{row.venue}</span>
+                                <span className="break-words">{row.venue}</span>
                             </span>
                         )}
                         {!!row.category && <AdminChip tone="violet">{row.category}</AdminChip>}
@@ -163,7 +163,6 @@ export default function SuperAdminBookingEvents() {
             header: 'Price',
             align: 'right',
             width: 'w-40',
-            hideOnMobile: true,
             sortValue: (row) => row.price,
             render: (row) => (
                 <div className="text-right">
@@ -185,7 +184,7 @@ export default function SuperAdminBookingEvents() {
         },
         {
             key: 'total',
-            header: 'Total Seat',
+            header: <>Total<br />seats</>,
             align: 'center',
             width: 'w-32',
             sortValue: (row) => row.totalSeats,
@@ -195,7 +194,7 @@ export default function SuperAdminBookingEvents() {
         },
         {
             key: 'booked',
-            header: 'Booked Seat',
+            header: <>Booked<br />seats</>,
             align: 'center',
             width: 'w-32',
             sortValue: (row) => row.bookedSeats,
@@ -203,7 +202,7 @@ export default function SuperAdminBookingEvents() {
         },
         {
             key: 'remaining',
-            header: 'Remaining Seat',
+            header: <>Remaining<br />seats</>,
             align: 'center',
             width: 'w-36',
             // Uncapped events sort to the bottom rather than to the top: -1 is
@@ -242,7 +241,6 @@ export default function SuperAdminBookingEvents() {
             header: 'Collected',
             align: 'right',
             width: 'w-40',
-            hideOnMobile: true,
             sortValue: (row) => row.collected,
             render: (row) => (
                 <div className="text-right">
@@ -266,7 +264,6 @@ export default function SuperAdminBookingEvents() {
             align: 'right',
             // Pinned: on a table this wide the Action button is the first thing
             // to fall off the right edge, and it is the reason the row is here.
-            sticky: 'right',
             width: 'w-48',
             render: (row) => (
                 <button
@@ -385,7 +382,8 @@ export default function SuperAdminBookingEvents() {
                         onRowClick={open}
                         searchable
                         searchPlaceholder="Search an event by name, venue or category"
-                        minWidth="78rem"
+                        cardBreakpoint={760}
+                        minWidth="1100px"
                         empty={<>
                             No published events yet. Create one under{' '}
                             <strong className="font-semibold text-slate-700">Events</strong>{' '}

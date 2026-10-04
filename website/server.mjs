@@ -25,6 +25,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from './share-preview.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT || 8080);
@@ -177,7 +178,18 @@ const server = http.createServer(async(req, res) => {
             return;
         }
 
-        // An event page: fill in its share tags.
+        // Every public route gets the saved CMS preview in its initial HTML.
+        // No metadata cache: the next fetch after a CMS save reads its image.
+        if ((req.method === 'GET' || req.method === 'HEAD') && url.searchParams.get('ref') !== 'share' && isPublicPreviewPath(pathname)) {
+            const preview = await fetchPagePreview(API, pathname);
+            if (preview) {
+                const origin = SITE_URL || `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
+                send(res, 200, mergePagePreview(index(), preview, origin), TYPES['.html']);
+                return;
+            }
+        }
+
+        // Older backends still provide event metadata through the public API.
         const match = pathname.match(/^\/(?:member\/)?events\/([^/]+)(?:\/book)?\/?$/);
         if (match && req.method === 'GET') {
             const event = await fetchEvent(match[1]);

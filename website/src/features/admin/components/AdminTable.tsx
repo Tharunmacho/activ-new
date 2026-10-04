@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState, useId } from 'react';
+import { type ReactNode, useMemo, useState, useId, useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Inbox, Loader2 } from 'lucide-react';
 import { ADMIN_CARD, ADMIN_INPUT } from './AdminUI';
 
@@ -106,6 +106,8 @@ export interface AdminTableProps<T> {
 
     /** The minimum width the table needs before it scrolls sideways. */
     minWidth?: string;
+    /** Switch wide data rows to cards when their actual container is narrow. */
+    cardBreakpoint?: number;
     /** Row click, for a table whose rows open something. */
     onRowClick?: (row: T) => void;
     /** A footer strip under the pager — a totals row, a note. */
@@ -204,9 +206,18 @@ export function AdminTable<T>({
     toolbar,
     serverPaged,
     minWidth,
+    cardBreakpoint,
     onRowClick,
     footer,
 }: AdminTableProps<T>) {
+    const container = useRef<HTMLDivElement>(null);
+    const [cardLayout, setCardLayout] = useState(!!cardBreakpoint);
+    useEffect(() => {
+        if (!cardBreakpoint || !container.current) return;
+        const observer = new ResizeObserver(([entry]) => setCardLayout(entry.contentRect.width < cardBreakpoint));
+        observer.observe(container.current);
+        return () => observer.disconnect();
+    }, [cardBreakpoint]);
     const [query, setQuery] = useState('');
     const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
     const [limit, setLimit] = useState(pageSize);
@@ -314,7 +325,7 @@ export function AdminTable<T>({
     const filtering = client && !!query.trim();
 
     return (
-        <div className={`${ADMIN_CARD} overflow-hidden`}>
+        <div ref={container} className={`${ADMIN_CARD} overflow-hidden`}>
 
             {/* ------------------------------------------------------ toolbar */}
             {(searchable || toolbar || (client && pageSizeOptions.length > 1)) && (
@@ -363,7 +374,7 @@ export function AdminTable<T>({
               * pinned action column becomes a full-width button at the foot,
               * and `hideOnMobile` columns stay hidden. From `sm` the table.
               */}
-            <div className="sm:hidden">
+            <div className={cardBreakpoint ? undefined : "sm:hidden"} style={cardBreakpoint ? { display: cardLayout ? 'block' : 'none' } : undefined}>
                 {loading && (
                     <div className="px-4 py-10 text-center">
                         <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
@@ -382,8 +393,8 @@ export function AdminTable<T>({
                     <ul className="divide-y divide-slate-100">
                         {visible.map((row, index) => {
                             const n = (current - 1) * (perPage || 0) + index;
-                            const shown = columns.filter((c) => !c.hideOnMobile && c.sticky !== 'right');
-                            const actions = columns.filter((c) => c.sticky === 'right');
+                            const shown = columns.filter((c) => !c.hideOnMobile && c.sticky !== 'right' && c.key !== 'action');
+                            const actions = columns.filter((c) => c.sticky === 'right' || c.key === 'action');
                             return (
                                 <li
                                     key={rowKey(row, index)}
@@ -398,7 +409,7 @@ export function AdminTable<T>({
                                                     <dt className="pt-0.5 text-[0.8rem] font-bold uppercase tracking-wide text-slate-400">
                                                         {column.header}
                                                     </dt>
-                                                    <dd className="min-w-0 text-[1rem] text-slate-800 [overflow-wrap:anywhere]">
+                                                    <dd className="min-w-0 text-[1rem] text-slate-800 [overflow-wrap:anywhere] [&>div.text-right]:text-left [&>div.items-center]:items-start">
                                                         {column.render(row, n)}
                                                     </dd>
                                                 </div>
@@ -424,7 +435,7 @@ export function AdminTable<T>({
             </div>
 
             {/* -------------------------------------------------------- table */}
-            <div className="hidden sm:block overflow-x-auto">
+            <div className={cardBreakpoint ? "overflow-x-auto" : "hidden sm:block overflow-x-auto"} style={cardBreakpoint ? { display: cardLayout ? 'none' : 'block' } : undefined}>
                 <table
                     className="w-full text-left border-collapse"
                     style={minWidth ? { minWidth } : undefined}

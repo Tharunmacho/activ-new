@@ -32,9 +32,12 @@ interface Props {
     aspect?: string;
     /** Guidance for this particular slot, e.g. which fit suits it. */
     hint?: string;
+    imagesOnly?: boolean;
+    showLayoutControls?: boolean;
+    onUploadStateChange?: (uploading: boolean) => void;
 }
 
-export default function MediaPicker({ value, onChange, label = 'Media', aspect = '16 / 9', hint }: Props) {
+export default function MediaPicker({ value, onChange, label = 'Media', aspect = '16 / 9', hint, imagesOnly = false, showLayoutControls = true, onUploadStateChange }: Props) {
     const media = { ...EMPTY_MEDIA, ...(value || {}) };
 
     /**
@@ -62,7 +65,13 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
     const handleFile = async (file: File | null) => {
         if (!file) return;
         setError('');
+        if (imagesOnly && !['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+            setError('Choose a JPEG, PNG, WebP or GIF image.');
+            if (fileRef.current) fileRef.current.value = '';
+            return;
+        }
         setUploading(true);
+        onUploadStateChange?.(true);
         try {
             const { url, type } = await uploadMedia(file);
             // The server decides the type from the real mimetype, not from the
@@ -72,6 +81,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
             setError(errorMessage(err, 'Upload failed'));
         } finally {
             setUploading(false);
+            onUploadStateChange?.(false);
             if (fileRef.current) fileRef.current.value = '';
         }
     };
@@ -147,7 +157,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                                        hover:bg-slate-200 dark:hover:bg-[#262626] text-slate-800 dark:text-[#E4E4E7] disabled:opacity-50"
                         >
                             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                            {uploading ? 'Uploading…' : 'Upload image or video'}
+                            {uploading ? 'Uploading…' : imagesOnly ? 'Upload image' : 'Upload image or video'}
                         </button>
 
                         {media.url && (
@@ -193,7 +203,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                     <input
                         ref={fileRef}
                         type="file"
-                        accept="image/*,video/*"
+                        accept={imagesOnly ? 'image/jpeg,image/png,image/webp,image/gif' : 'image/*,video/*'}
                         className="hidden"
                         onChange={(e) => handleFile(e.target.files?.[0] || null)}
                     />
@@ -218,7 +228,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                   * stored is still read and still rendered, including ones that
                   * were pasted. Only the box for typing a new one is gone.
                   */}
-                <div className="grid gap-4 sm:grid-cols-2">
+                {showLayoutControls && <div className="grid gap-4 sm:grid-cols-2">
                     <CmsField label="How it fills the space">
                         <div className="flex gap-2">
                             {FITS.map((f) => (
@@ -255,7 +265,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                             ))}
                         </select>
                     </CmsField>
-                </div>
+                </div>}
 
                 <CmsField label="Alt text" hint="Describes the media to screen readers and to search engines.">
                     <CmsInput value={media.alt} onChange={(e) => set({ alt: e.target.value })} />

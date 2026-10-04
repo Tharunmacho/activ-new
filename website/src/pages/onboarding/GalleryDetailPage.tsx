@@ -1,6 +1,5 @@
 import { publicUrl } from '@/lib/share';
 import { ShareMenu } from '@/components/shared/ShareMenu';
-import { setShareMeta } from '@/lib/shareMeta';
 import { resolveMediaUrl, sizedMediaUrl } from '@/config/api.config';
 import { galleryPath } from '@/lib/eventPath';
 import { useEffect, useState } from 'react';
@@ -114,16 +113,6 @@ export default function GalleryDetailPage() {
     }, [item, id]);
 
     // The link-preview tags for this item (server.mjs sends the same to crawlers).
-    useEffect(() => {
-        if (!item) return undefined;
-        return setShareMeta({
-            title: item.title || 'ACTIV gallery',
-            description: item.caption || '',
-            image: resolveMediaUrl(item.media?.url || ''),
-            url: publicUrl(galleryPath(item)),
-            type: 'article',
-        });
-    }, [item]);
 
     const copy = settings?.detail;
     const backLabel = copy?.backLabel || 'Back to Gallery';

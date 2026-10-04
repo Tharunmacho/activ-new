@@ -442,7 +442,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
 
             {/* ---------------------------------------------------------- list */}
             <div className={`${ADMIN_CARD} overflow-hidden`}>
-                <div ref={tableRef} className="overflow-x-auto card-table">
+                <div ref={tableRef} className="relative min-w-0 max-w-full overflow-x-auto card-table">
                     <table className="w-full text-left border-collapse min-w-[56rem]">
                         <colgroup>
                             <col className="w-[18rem]" />

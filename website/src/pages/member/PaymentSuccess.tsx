@@ -23,12 +23,13 @@ import MemberPageShell from '@/pages/member/MemberPageShell';
 import { getMyProfile } from '@/services/activApi';
 import { getUserApplication } from '@/services/applicationApi';
 import { formatApplicationRef } from '@/lib/applicationRef';
+import { getPaymentOrder } from '@/services/paymentApi';
 
 const GRADIENT = 'bg-gradient-to-br from-[#0b1f5c] via-[#1e3a8a] to-[#2563eb]';
 
 const money = (n: unknown): string => {
     const value = Number(n);
-    if (!Number.isFinite(value) || value <= 0) return '—';
+    if (n === null || n === undefined || !Number.isFinite(value) || value < 0) return '—';
     return `₹${value.toLocaleString('en-IN')}`;
 };
 
@@ -55,18 +56,33 @@ export default function PaymentSuccess() {
     const [profile, setProfile] = useState<any>(null);
     const [application, setApplication] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [order, setOrder] = useState<any>(null);
+    const [orderError, setOrderError] = useState('');
     const [copied, setCopied] = useState(false);
 
     const isReceipt = searchParams.get('view') === 'receipt';
     /* Set by the payment screen when this payment RENEWED an existing membership. */
     const renewed = !isReceipt && (location.state as any)?.renewed === true;
+    const requestedOrder = searchParams.get('orderId') || '';
 
     const load = useCallback(async () => {
+        setLoading(true); setOrderError('');
         const [p, a] = await Promise.allSettled([getMyProfile(), getUserApplication()]);
         setProfile(p.status === 'fulfilled' ? p.value : null);
         setApplication(a.status === 'fulfilled' ? a.value : null);
+        const orderId = requestedOrder || (p.status === 'fulfilled' ? p.value?.paidMembership?.orderId : '');
+        if (orderId) {
+            try {
+                const receipt = await getPaymentOrder(orderId);
+                if (receipt.status !== 'paid' || receipt.orderType !== 'membership') throw new Error('This membership payment is not confirmed.');
+                setOrder(receipt);
+            } catch {
+                setOrder(null);
+                if (requestedOrder) setOrderError('This receipt could not be loaded. Check that you are signed in to the account that made this payment.');
+            }
+        } else setOrder(null);
         setLoading(false);
-    }, []);
+    }, [requestedOrder]);
 
     useEffect(() => {
         load();
@@ -101,24 +117,30 @@ export default function PaymentSuccess() {
         );
     }
 
+    if (orderError) return <MemberPageShell {...shellProps}><div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-800"><p>{orderError}</p><button className="mt-4 font-semibold underline" onClick={() => void load()}>Retry loading receipt</button></div></MemberPageShell>;
+
     /* ------------------------------------------------------------ the facts */
     const memberName = String(profile?.fullName || application?.fullName || '');
     const firstName = memberName.split(' ').filter(Boolean)[0] || 'member';
     const memberId = String(profile?.membershipNumber || profile?.memberCode || formatApplicationRef(application).short || '');
-    const kind = String(profile?.memberType || application?.memberType || '').toLowerCase();
+    const kind = String(order?.planAudience || profile?.memberType || application?.memberType || '').toLowerCase();
     const kindLabel = kind === 'student' ? 'Student' : kind === 'aspirant' ? 'Aspirant' : kind === 'business' ? 'Business' : '';
-    const platinum = String(profile?.membershipTier || '').toLowerCase() === 'platinum';
-    const typeRaw = String(profile?.membershipType || '').toLowerCase();
-    const lifetime = platinum || typeRaw === 'lifetime';
-    const planName = platinum ? 'Platinum Lifetime' : [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership';
+    const platinum = order ? kind === 'platinum' : String(profile?.membershipTier || '').toLowerCase() === 'platinum';
+    const typeRaw = String(order?.membershipType || profile?.membershipType || '').toLowerCase();
+    const lifetime = typeRaw === 'lifetime' || platinum;
+    const planName = order?.planName || profile?.paidMembership?.planName || (platinum ? 'Platinum Lifetime' : [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership');
     const period = lifetime ? 'Lifetime' : typeRaw === 'annual' ? 'Annual' : '';
-    const paidAt = profile?.lastPaymentDate || profile?.membershipActivatedAt || null;
-    const amount = profile?.lastPaymentAmount ?? profile?.paymentAmount;
-    const txnRef = String(profile?.paymentId || '');
-    const method = String(profile?.paymentMethod || '');
+    const paidAt = order?.paidAt || profile?.lastPaymentDate || profile?.membershipActivatedAt || null;
+    const amount = order?.amount ?? profile?.lastPaymentAmount ?? profile?.paymentAmount;
+    const txnRef = String(order?.gatewayPaymentId || profile?.paymentId || '');
+    const method = String(order?.paymentMethod || profile?.paymentMethod || '');
 
     const validUntil = (() => {
         if (lifetime) return 'Lifetime — no renewal';
+        // A receipt for an older annual payment must not acquire the member's
+        // current expiry after a later renewal or Platinum upgrade.
+        if (order && order.orderId !== profile?.paidMembership?.orderId
+            && order.orderId !== profile?.paymentId && order.gatewayPaymentId !== profile?.paymentId) return '';
         if (profile?.membershipExpiresAt) return formatDate(profile.membershipExpiresAt);
         const start = profile?.membershipActivatedAt || paidAt;
         if (!start) return '';
@@ -180,7 +202,7 @@ export default function PaymentSuccess() {
                             <img src="/logo_ACTIVian-removebg-preview.png" alt="ACTIV" style={{ height: 46, background: '#fff', borderRadius: 8, padding: '4px 8px' }} />
                             <div>
                                 <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: 0.3 }}>Adidravidar Confederation of Trade &amp; Industrial Vision</div>
-                                <div style={{ fontSize: 12, opacity: 0.85 }}>6&amp;7, Hayagreeva Apartment, 121, Velachery Main Road, Chennai 600032 · info@activ.org.in · +91 82201 12188</div>
+                                <div style={{ fontSize: 12, opacity: 0.85 }}>6&amp;7, Hayagreeva Apartment, 121, Velachery Main Road, Chennai 600032 · member@activ.org.in · +91 82201 12188</div>
                             </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>

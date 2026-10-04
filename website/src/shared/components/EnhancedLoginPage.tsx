@@ -97,12 +97,14 @@ export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 
    * is not set up yet says so instead of failing silently.
    */
   const [providers, setProviders] = useState<SocialProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
   useEffect(() => {
     if (forAdmins) return undefined;
     let cancelled = false;
     getSocialProviders()
       .then((rows) => { if (!cancelled) setProviders(rows || []); })
-      .catch(() => { /* buttons stay, and explain themselves on click */ });
+      .catch(() => { /* buttons stay, and explain themselves on click */ })
+      .finally(() => { if (!cancelled) setProvidersLoading(false); });
     return () => { cancelled = true; };
   }, [forAdmins]);
 
@@ -363,10 +365,11 @@ export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 
           <button
             key={key}
             type="button"
+            disabled={isLoading || providersLoading}
             onClick={() => handleSocialLogin(key, name)}
             aria-label={`Sign in with ${name}`}
             className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-200
-                       bg-white transition-colors hover:border-slate-300 hover:bg-slate-50"
+                       bg-white transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-50"
           >
             {icon}
           </button>

@@ -24,7 +24,6 @@ import {
 } from '@/components/layout/surface';
 import { Reveal } from '@/components/shared/Reveal';
 import { eventPath } from '@/lib/eventPath';
-import { setShareMeta } from '@/lib/shareMeta';
 import { EventQrFeature } from '@/components/shared/EventQr';
 import { resolveMediaUrl } from '@/config/api.config';
 
@@ -172,25 +171,6 @@ export default function EventDetailPage() {
     }, [event, id]);
 
     // The share tags for this event; see lib/shareMeta and server.mjs.
-    useEffect(() => {
-        if (!event) return undefined;
-        // "<name> on <date> at <venue>" — the same card the crawlers get from
-        // the API's share page (backend modules/share).
-        const start = event.startAt ? new Date(event.startAt) : null;
-        const date = start && !Number.isNaN(start.getTime())
-            ? start.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' })
-            : '';
-        const venue = event.mode === 'online'
-            ? `Online${event.onlinePlatform ? ` (${event.onlinePlatform})` : ''}`
-            : (event.venue || event.location || '');
-        return setShareMeta({
-            title: event.share?.title || [event.title || 'ACTIV event', date && `on ${date}`, venue && `at ${venue}`].filter(Boolean).join(' '),
-            description: event.share?.description || [event.venueAddress, event.description].filter(Boolean).join(' — '),
-            image: event.share?.image || resolveMediaUrl(event.imageUrl || event.media?.url || ''),
-            url: `${window.location.origin}${eventPath(event)}`,
-            type: 'article',
-        });
-    }, [event]);
 
     useEffect(() => {
         let cancelled = false;

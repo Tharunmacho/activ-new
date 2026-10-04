@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { completeSocialLogin, errorMessage, getPaymentStatus } from '@/services/activApi';
+import { completeSocialLogin, errorMessage, getMyProfile, getPaymentStatus } from '@/services/activApi';
 import AuthSplitLayout from '@/shared/components/AuthSplitLayout';
 
 /**
@@ -15,6 +15,9 @@ import AuthSplitLayout from '@/shared/components/AuthSplitLayout';
  */
 
 const REASONS: Record<string, string> = {
+    configuration: '{provider} rejected the sign-in configuration. Please contact ACTIV support to check the client credentials.',
+    callback: 'The {provider} callback address does not match the address configured for this environment. Please contact ACTIV support.',
+    permissions: '{provider} has not enabled the email and profile permissions needed for sign-in. Please use your email and password or contact ACTIV support.',
     cancelled: 'Sign-in was cancelled.',
     expired: 'That sign-in took too long or was started in another window. Please try again.',
     failed: 'We could not complete the sign-in with that provider. Please try again.',
@@ -49,7 +52,7 @@ export default function SocialSignIn() {
             return;
         }
         if (!code) {
-            setError(REASONS[reason] || REASONS.failed);
+            setError((REASONS[reason] || REASONS.failed).replace('{provider}', PROVIDER_NAME[provider] || 'Sign-in provider'));
             return;
         }
 
@@ -57,9 +60,10 @@ export default function SocialSignIn() {
             try {
                 const result = await completeSocialLogin(code);
                 toast.success(`Welcome ${result.user?.fullName || 'back'}!`);
-                const status = String(result.memberDetails?.membershipStatus || '').toLowerCase();
-                const paid = status === 'active' || status === 'completed'
-                    || (!status && (await getPaymentStatus().catch(() => 'pending')) === 'completed');
+                const profile = await getMyProfile().catch(() => result.memberDetails);
+                const status = String(profile?.membershipStatus || result.memberDetails?.membershipStatus || '').toLowerCase();
+                const paid = profile?.renewal?.state !== 'expired' && (status === 'active' || status === 'completed'
+                    || (!status && (await getPaymentStatus().catch(() => 'pending')) === 'completed'));
                 navigate(paid ? '/payment/member-dashboard' : '/member/unpaid-dashboard', { replace: true });
             } catch (err) {
                 setError(errorMessage(err, REASONS.failed));

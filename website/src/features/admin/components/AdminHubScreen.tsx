@@ -176,15 +176,25 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
             // Only the fields this region actually names — sending an empty
             // block would filter to applications whose block is literally ''.
             if (r.state) params.set('state', r.state);
-            if (r.district) params.set('district', r.district);
-            if (r.block) params.set('block', r.block);
+            if (tier !== 'state' && r.district) params.set('district', r.district);
+            if (tier === 'block' && r.block) params.set('block', r.block);
             if (nextStatus !== 'all') params.set('status', nextStatus);
 
             const res = await apiFetch(`/admin/team/applications?${params}`);
-            const data = res.ok ? (await res.json()).data : {};
-            setApplicants(data.applicants || []);
+            if (!res.ok) throw new Error('Could not load this region’s applications.');
+            const data = (await res.json()).data || {};
+            const rows = [...(data.applicants || [])];
+            for (let page = 2; page <= (data.pagination?.pages || 1); page++) {
+                params.set('page', String(page));
+                const next = await apiFetch(`/admin/team/applications?${params}`);
+                if (!next.ok) throw new Error('Could not load all application pages.');
+                rows.push(...((await next.json()).data?.applicants || []));
+            }
+            setApplicants(rows);
+            if (data.pagination?.truncated) toast.warning('This list shows the most recent applications within the server limit. Use Applications to narrow the search.');
         } catch {
             setApplicants([]);
+            toast.error('Could not load this region’s applications. Please try again.');
         } finally {
             setLoading(false);
         }

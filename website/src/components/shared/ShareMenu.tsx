@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Share2, MessageCircle, Link2, Check, Mail } from 'lucide-react';
+import { usePublicSharePreview } from './PublicSharePreview';
 
 /**
  * The event page's Share popover, for every other public page that is worth
@@ -71,8 +72,14 @@ export function ShareMenu({
         };
     }, [open]);
 
-    const subject = (title || '').trim() || 'ACTIV';
-    const line = (text || '').trim() || subject;
+    const preview = usePublicSharePreview();
+    let matches = false;
+    try {
+        const path = decodeURIComponent(new URL(url, window.location.href).pathname).replace(/\/+$/, '') || '/';
+        matches = !!preview && (path === preview.path || path === preview.canonicalPath);
+    } catch { /* An external or malformed link keeps its supplied share text. */ }
+    const subject = (matches ? preview?.title : title)?.trim() || 'ACTIV';
+    const line = (matches ? preview?.shareText || text : text)?.trim() || subject;
 
     const copyLink = async () => {
         try {
