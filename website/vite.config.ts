@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from "./share-preview.mjs";
+import { resolveApiBase } from "./api-base.mjs";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -30,6 +31,18 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [react(), mode === "development" && componentTagger(), {
+    name: "activ-api-prefetch-base",
+    transformIndexHtml: {
+      order: "pre" as const,
+      handler(html: string, context: IndexHtmlTransformContext) {
+        const env = loadEnv(mode, process.cwd(), "VITE_");
+        const api = resolveApiBase(process.env.VITE_API_URL || env.VITE_API_URL, { development: !!context.server });
+        // The early CMS prefetch runs before React. It must not populate the
+        // page cache from the retired API while the app uses the current one.
+        return html.replaceAll("%VITE_API_URL%", api);
+      },
+    },
+  }, {
     name: "activ-local-share-previews",
     transformIndexHtml: {
       order: "post" as const,
@@ -38,8 +51,7 @@ export default defineConfig(({ mode }) => ({
         const request = new URL(context.originalUrl || context.path, "http://localhost:8080");
         if (request.searchParams.get("ref") === "share" || !isPublicPreviewPath(request.pathname)) return html;
         const env = loadEnv(mode, process.cwd(), "VITE_");
-        let api = String(process.env.VITE_API_URL || env.VITE_API_URL || "").replace(/\/+$/, "");
-        if (api && !/\/api\/v\d+$/.test(api)) api += "/api/v1";
+        const api = resolveApiBase(process.env.VITE_API_URL || env.VITE_API_URL, { development: true });
         const preview = await fetchPagePreview(api, request.pathname);
         return preview ? mergePagePreview(html, preview) : html;
       },
@@ -51,7 +63,7 @@ export default defineConfig(({ mode }) => ({
       // Only public URLs already embedded in the browser bundle. The Node
       // server needs the same API address when Dokploy has no runtime override.
       fs.writeFileSync(path.resolve(__dirname, "dist/site-config.json"), JSON.stringify({
-        apiUrl: process.env.VITE_API_URL || env.VITE_API_URL || "",
+        apiUrl: resolveApiBase(process.env.VITE_API_URL || env.VITE_API_URL),
         siteUrl: process.env.VITE_PUBLIC_SITE_URL || env.VITE_PUBLIC_SITE_URL || "",
       }));
     },

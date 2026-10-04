@@ -14,6 +14,8 @@
  * `services/activApi.ts` instead.
  */
 
+import { resolveApiBase, PRODUCTION_API } from '../../api-base.mjs';
+
 const API_CONFIG = {
     development: {
         // The backend listens on 5000 (backend/.env → PORT). The `/api/v1`
@@ -24,7 +26,7 @@ const API_CONFIG = {
         timeout: 20000,
     },
     production: {
-        baseURL: 'https://YOUR_DOKPLOY_BACKEND_URL.com/api/v1',
+        baseURL: PRODUCTION_API,
         timeout: 10000,
     },
 };
@@ -38,14 +40,9 @@ const ENV = import.meta.env.DEV ? 'development' : 'production';
  * environment: a bare origin in VITE_API_URL is the easy mistake, and it turns
  * every request into a 404 against the static handler instead of the API.
  */
-const normaliseBase = (value: string): string => {
-    const trimmed = value.replace(/\/+$/, '');
-    return /\/api\/v\d+$/.test(trimmed) ? trimmed : `${trimmed}/api/v1`;
-};
-
 const envBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
 
-export const API_BASE_URL = envBase ? normaliseBase(envBase) : API_CONFIG[ENV].baseURL;
+export const API_BASE_URL = resolveApiBase(envBase, { development: import.meta.env.DEV });
 
 export const API_TIMEOUT = API_CONFIG[ENV].timeout;
 

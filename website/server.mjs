@@ -26,6 +26,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from './share-preview.mjs';
+import { resolveApiBase } from './api-base.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT || 8080);
@@ -33,8 +34,7 @@ const builtConfig = (() => {
     try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'site-config.json'), 'utf8')); }
     catch { return {}; }
 })();
-const apiBase = String(process.env.API_URL || process.env.VITE_API_URL || builtConfig.apiUrl || '').trim().replace(/\/+$/, '');
-const API = apiBase && !/\/api\/v\d+$/.test(apiBase) ? `${apiBase}/api/v1` : apiBase;
+const API = resolveApiBase(process.env.API_URL || process.env.VITE_API_URL || builtConfig.apiUrl);
 const API_ORIGIN = API.replace(/\/api\/v\d+$/, '');
 const SITE_URL = String(process.env.SITE_URL || builtConfig.siteUrl || '').replace(/\/+$/, '');
 const SITE_NAME = 'ACTIV - Adidravidar Confederation of Trade & Industrial Vision';

@@ -98,17 +98,22 @@ export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 
    */
   const [providers, setProviders] = useState<SocialProvider[]>([]);
   const [providersLoading, setProvidersLoading] = useState(true);
+  const [providersFailed, setProvidersFailed] = useState(false);
   useEffect(() => {
     if (forAdmins) return undefined;
     let cancelled = false;
     getSocialProviders()
       .then((rows) => { if (!cancelled) setProviders(rows || []); })
-      .catch(() => { /* buttons stay, and explain themselves on click */ })
+      .catch(() => { if (!cancelled) setProvidersFailed(true); })
       .finally(() => { if (!cancelled) setProvidersLoading(false); });
     return () => { cancelled = true; };
   }, [forAdmins]);
 
   const handleSocialLogin = (key: string, name: string) => {
+    if (providersFailed) {
+      toast.error('Could not check social sign-in availability. Refresh the page and try again.');
+      return;
+    }
     const enabled = (providers || []).some((p) => p?.key === key && p?.enabled);
     if (!enabled) {
       toast.info(`${name} sign-in is being set up — use your email for now.`);
