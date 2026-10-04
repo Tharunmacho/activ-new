@@ -17,7 +17,9 @@ export interface CmsSharePreview {
     updatedAt?: string | null;
 }
 
-export const getSharePreviewEditor = async(): Promise<{ routes: CmsSharePreview[] }> =>
+export type CmsSharePreviewRoute = Pick<CmsSharePreview, 'path' | 'label' | 'group'>;
+
+export const getSharePreviewEditor = async(): Promise<{ routes: CmsSharePreviewRoute[] }> =>
     unwrap(await api.get('/cms/share-previews'), { routes: [] });
 
 export const getPublicSharePreview = async(path: string): Promise<CmsSharePreview> =>

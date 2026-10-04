@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Share2, Save, RotateCcw, ExternalLink, Search, Loader2 } from 'lucide-react';
 import { resolveMediaUrl } from '@/config/api.config';
 import { errorMessage, type CmsMedia } from '@/services/cmsApi';
-import { getSharePreviewEditor, getPublicSharePreview, saveSharePreview, resetSharePreview, type CmsSharePreview } from '@/services/cmsSharePreviewsApi';
+import { getSharePreviewEditor, getPublicSharePreview, saveSharePreview, resetSharePreview, type CmsSharePreview, type CmsSharePreviewRoute } from '@/services/cmsSharePreviewsApi';
 import { CmsPage, CmsField, CmsInput, CmsLoading, CmsError, cmsSaved, cmsFailed } from './components/CmsUI';
 import MediaPicker from './components/MediaPicker';
 
 export default function SharePreviewsManager() {
-    const [routes, setRoutes] = useState<CmsSharePreview[]>([]);
+    const [routes, setRoutes] = useState<CmsSharePreviewRoute[]>([]);
     const [selected, setSelected] = useState('/');
     const [preview, setPreview] = useState<CmsSharePreview | null>(null);
     const [draft, setDraft] = useState<{ title: string; description: string; image: CmsMedia } | null>(null);
@@ -47,7 +47,7 @@ export default function SharePreviewsManager() {
     }, [selected, loading]);
 
     const groups = useMemo(() => {
-        const result = new Map<string, CmsSharePreview[]>();
+        const result = new Map<string, CmsSharePreviewRoute[]>();
         for (const row of routes.filter(row => `${row.label} ${row.path}`.toLowerCase().includes(filter.toLowerCase()) || row.path === selected)) {
             const group = row.group || 'Other public pages';
             result.set(group, [...(result.get(group) || []), row]);
@@ -94,7 +94,7 @@ export default function SharePreviewsManager() {
                     {Array.from(groups).map(([group, rows]) => <optgroup key={group} label={group}>{rows.map(row => <option key={row.path} value={row.path}>{row.label} — {row.path}</option>)}</optgroup>)}
                 </select>
             </div>
-            <p className="text-sm text-slate-500">Event, news, gallery and zone detail links use their published banner and details automatically.</p>
+            <p className="text-sm text-slate-500">Choose a zone to set its own preview. Event, news, gallery and zone section links use their published banner and details automatically.</p>
         </section>
         <CmsError message={error} />
         {reading && <CmsLoading label="Loading this page’s preview…" />}

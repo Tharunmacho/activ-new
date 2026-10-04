@@ -33,7 +33,7 @@ try {
         child.once('error', err => { clearTimeout(timeout); reject(err); });
         child.once('exit', () => { clearTimeout(timeout); reject(new Error('Website exited before startup')); });
     });
-    for (const path of ['/', '/about', '/membership', '/contact', '/events', '/gallery', '/news', '/news/chapter-news', '/schemes/central', '/register', '/states/tamil-nadu/newsUpdates', '/states/tamil-nadu/leaders', '/states/tamil-nadu/keyAchievements', '/regions/south/leaders', '/regions/south/about', '/regions/south/section-business-support', '/gallery/album/photo/1']) {
+    for (const path of ['/', '/about', '/membership', '/contact', '/events', '/gallery', '/news', '/news/chapter-news', '/schemes/central', '/register', '/states/tamil-nadu/newsUpdates', '/states/tamil-nadu/leaders', '/states/tamil-nadu/keyAchievements', '/regions/national', '/regions/south', '/regions/south/leaders', '/regions/south/about', '/regions/south/section-business-support', '/gallery/album/photo/1']) {
         for (const agent of ['Mozilla/5.0', 'facebookexternalhit/1.1', 'WhatsApp', 'LinkedInBot/1.0']) {
             const response = await fetch(`http://127.0.0.1:${port}${path}`, { headers: { 'user-agent': agent } });
             const html = await response.text();
