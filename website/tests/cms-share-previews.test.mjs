@@ -8,10 +8,11 @@ let aboutImage = 'https://api.activ.org.in/uploads/about-first.jpg';
 const escapes = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const preview = (path, image) => `<!doctype html><html><head><title>${escapes(path)} | ACTIV</title><meta property="og:title" content="${escapes(`ACTIV ${path}`)}"><meta property="og:description" content="CMS description"><meta name="description" content="CMS description"><meta property="og:url" content="https://configured.example${path}"><meta property="og:image" content="${escapes(image)}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:image" content="${escapes(image)}"><link rel="canonical" href="https://configured.example${path}"></head><body><script>location.replace('https://configured.example')</script></body></html>`;
 const hits = [];
+const canonical = path => ({ '/onboarding': '/', '/schemes/central': '/schemes', '/schemes/state': '/schemes' })[path] || path;
 const api = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
     if (url.pathname === '/api/v1/share/page') {
-        const path = url.searchParams.get('path');
+        const path = canonical(url.searchParams.get('path'));
         hits.push(path);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         return res.end(preview(path, path === '/about' ? aboutImage : path === '/' ? 'https://api.activ.org.in/share/activ-conference.jpg' : 'https://api.activ.org.in/share/preview-placeholder.jpg'));
@@ -33,13 +34,13 @@ try {
         child.once('error', err => { clearTimeout(timeout); reject(err); });
         child.once('exit', () => { clearTimeout(timeout); reject(new Error('Website exited before startup')); });
     });
-    for (const path of ['/', '/about', '/membership', '/contact', '/events', '/gallery', '/news', '/news/chapter-news', '/schemes/central', '/register', '/states/tamil-nadu/newsUpdates', '/states/tamil-nadu/leaders', '/states/tamil-nadu/keyAchievements', '/regions/national', '/regions/south', '/regions/south/leaders', '/regions/south/about', '/regions/south/section-business-support', '/gallery/album/photo/1']) {
+    for (const path of ['/', '/onboarding', '/about', '/membership', '/contact', '/events', '/gallery', '/news', '/news/chapter-news', '/schemes', '/schemes/central', '/schemes/state', '/register', '/states/tamil-nadu/newsUpdates', '/states/tamil-nadu/leaders', '/states/tamil-nadu/keyAchievements', '/regions/national', '/regions/south', '/regions/south/leaders', '/regions/south/about', '/regions/south/section-business-support', '/gallery/album/photo/1']) {
         for (const agent of ['Mozilla/5.0', 'facebookexternalhit/1.1', 'WhatsApp', 'LinkedInBot/1.0']) {
             const response = await fetch(`http://127.0.0.1:${port}${path}`, { headers: { 'user-agent': agent } });
             const html = await response.text();
             assert.equal(response.status, 200);
-            assert.ok(html.includes(`property="og:title" content="ACTIV ${path}"`));
-            assert.ok(html.includes(`property="og:url" content="https://activ.org.in${path}"`));
+            assert.ok(html.includes(`property="og:title" content="ACTIV ${canonical(path)}"`));
+            assert.ok(html.includes(`property="og:url" content="https://activ.org.in${canonical(path)}"`));
             assert.equal((html.match(/property="og:image"/g) || []).length, 1);
             assert.equal((html.match(/rel="canonical"/g) || []).length, 1);
             assert.ok(html.includes('id="root"') && html.includes('/assets/'), 'SPA remains intact');

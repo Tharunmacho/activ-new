@@ -91,7 +91,7 @@ export default function SharePreviewsManager() {
             <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
                 <div className="relative"><Search className="absolute left-3 top-4 text-slate-400" size={20} /><CmsInput aria-label="Filter routes" value={filter} onChange={e => setFilter(e.target.value)} placeholder="Find a page or route" className="pl-10" /></div>
                 <select aria-label="Website route" value={selected} disabled={saving || uploading} onChange={e => choose(e.target.value)} className="w-full min-w-0 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-4 py-3 text-lg">
-                    {Array.from(groups).map(([group, rows]) => <optgroup key={group} label={group}>{rows.map(row => <option key={row.path} value={row.path}>{row.label} — {row.path}</option>)}</optgroup>)}
+                    {Array.from(groups).map(([group, rows]) => <optgroup key={group} label={group}>{rows.map(row => <option key={row.path} value={row.path}>{row.label}</option>)}</optgroup>)}
                 </select>
             </div>
             <p className="text-sm text-slate-500">Choose a zone to set its own preview. Event, news, gallery and zone section links use their published banner and details automatically.</p>
