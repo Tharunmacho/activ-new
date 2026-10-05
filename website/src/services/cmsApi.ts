@@ -1571,10 +1571,23 @@ export const uploadEventAttachment = async (file: File): Promise<EventAttachment
     return { url: data.url || '', name: data.name || file.name, type: data.type || file.type, size: Number(data.size) || file.size };
 };
 
-export const uploadMedia = async (file: File): Promise<{ url: string; type: 'image' | 'video' }> => {
+export const uploadMedia = async (file: File, onProgress?: (status: string) => void): Promise<{ url: string; type: 'image' | 'video' }> => {
+    if (!/^(image|video)\//.test(file.type)) throw new Error('Choose an image or video.');
+    if (file.size > 50 * 1024 * 1024) throw new Error('Choose a file smaller than 50 MB.');
+    onProgress?.(file.type.startsWith('image/') ? 'Preparing image…' : 'Preparing video…');
+    const { prepareImage } = await import('@/lib/prepareImage');
+    const prepared = await prepareImage(file);
     const form = new FormData();
-    form.append('file', file);
-    const data = unwrap<any>(await api.post('/cms/media', form), { url: '', type: 'image' });
+    form.append('file', prepared);
+    onProgress?.('Uploading…');
+    const data = unwrap<any>(await api.post('/cms/media', form, {
+        timeout: 120000,
+        onUploadProgress: event => {
+            const percent = event.total ? Math.round(event.loaded * 100 / event.total) : null;
+            onProgress?.(percent === 100 ? 'Saving image…' : percent === null ? 'Uploading…' : `Uploading ${percent}%`);
+        },
+    }), { url: '', type: 'image' });
+    if (!data.url) throw new Error('The upload did not return an image. Please try again.');
     return { url: data.url || '', type: data.type === 'video' ? 'video' : 'image' };
 };
 
@@ -1595,25 +1608,26 @@ const invalidateGallery = () => {
 };
 
 /** `image` is a file upload; the server prefers it over a pasted `imageUrl`. */
-const withImage = (fields: Record<string, any>, image?: File | null) => {
+const withImage = async (fields: Record<string, any>, image?: File | null) => {
     if (!image) return fields;
     const form = new FormData();
     Object.entries(fields).forEach(([k, v]) => {
         if (v === undefined || v === null) return;
         form.append(k, Array.isArray(v) ? JSON.stringify(v) : String(v));
     });
-    form.append('image', image);
+    const { prepareImage } = await import('@/lib/prepareImage');
+    form.append('image', await prepareImage(image));
     return form;
 };
 
 export const addGalleryItem = async (fields: Record<string, any>, image?: File | null) => {
-    const result = unwrap<GalleryItem>(await api.post('/cms/gallery', withImage(fields, image)), null as any);
+    const result = unwrap<GalleryItem>(await api.post('/cms/gallery', await withImage(fields, image), { timeout: 120000 }), null as any);
     invalidateGallery();
     return result;
 };
 
 export const updateGalleryItem = async (id: string, fields: Record<string, any>, image?: File | null) => {
-    const result = unwrap<GalleryItem>(await api.put(`/cms/gallery/${id}`, withImage(fields, image)), null as any);
+    const result = unwrap<GalleryItem>(await api.put(`/cms/gallery/${id}`, await withImage(fields, image), { timeout: 120000 }), null as any);
     invalidateGallery();
     return result;
 };
@@ -1625,14 +1639,14 @@ export const deleteGalleryItem = async (id: string) => {
 };
 
 export const createCmsEvent = async (fields: Record<string, any>, image?: File | null) => {
-    const result = unwrap<any>(await api.post('/cms/events', withImage(fields, image)), null);
+    const result = unwrap<any>(await api.post('/cms/events', await withImage(fields, image), { timeout: 120000 }), null);
     // Both gallery scopes, or the events list, now answer differently.
     invalidateCmsCache('events');
     return result;
 };
 
 export const updateCmsEvent = async (id: string, fields: Record<string, any>, image?: File | null) => {
-    const result = unwrap<any>(await api.put(`/cms/events/${id}`, withImage(fields, image)), null);
+    const result = unwrap<any>(await api.put(`/cms/events/${id}`, await withImage(fields, image), { timeout: 120000 }), null);
     // Both gallery scopes, or the events list, now answer differently.
     invalidateCmsCache('events');
     return result;

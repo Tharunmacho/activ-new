@@ -8,7 +8,7 @@ let aboutImage = 'https://api.activ.org.in/uploads/about-first.jpg';
 const escapes = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const preview = (path, image) => `<!doctype html><html><head><title>${escapes(path)} | ACTIV</title><meta property="og:title" content="${escapes(`ACTIV ${path}`)}"><meta property="og:description" content="CMS description"><meta name="description" content="CMS description"><meta property="og:url" content="https://configured.example${path}"><meta property="og:image" content="${escapes(image)}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:image" content="${escapes(image)}"><link rel="canonical" href="https://configured.example${path}"></head><body><script>location.replace('https://configured.example')</script></body></html>`;
 const hits = [];
-const canonical = path => ({ '/onboarding': '/', '/schemes/central': '/schemes', '/schemes/state': '/schemes' })[path] || path;
+const canonical = path => ({ '/onboarding': '/' })[path] || path;
 const api = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
     if (url.pathname === '/api/v1/share/page') {

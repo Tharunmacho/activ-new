@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Upload, Loader2, Trash2, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { uploadMedia, errorMessage } from '@/services/cmsApi';
-import { resolveMediaUrl } from '@/config/api.config';
+import { errorMessage } from '@/services/cmsApi';
+import { useMediaUpload } from './useMediaUpload';
+import { MediaFileName } from './MediaFileName';
 
 /**
  * Choose a picture. Never type an address, and never a file.
@@ -33,7 +34,7 @@ import { resolveMediaUrl } from '@/config/api.config';
  * the backend's upload directory. Previewing the raw path shows a broken image
  * for a file that uploaded perfectly.
  */
-export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9]', shape = 'image' }: {
+export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9]', shape = 'image', compact = false }: {
     url: string;
     onChange: (url: string) => void;
     label?: string;
@@ -41,46 +42,43 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
     /** The shape of the frame, matching the slot this picture fills. */
     aspect?: string;
     shape?: 'image' | 'portrait';
+    compact?: boolean;
 }) {
     const fileRef = useRef<HTMLInputElement>(null);
-    const [busy, setBusy] = useState(false);
+    const { busy, status, preview, upload } = useMediaUpload(url, media => onChange(media.url));
 
     const pick = async (file?: File | null) => {
         if (!file) return;
-        setBusy(true);
         try {
-            const { url: uploaded } = await uploadMedia(file);
-            onChange(uploaded);
+            await upload(file);
             /* An upload writes the FILE; the record is written by Save. Saying
                so here is the difference between an editor who saves and one who
                reports that the link did not update. */
             toast.success('Picture uploaded — press Save page to keep it');
         } catch (err) {
             toast.error(errorMessage(err, 'That picture could not be uploaded'));
-        } finally {
-            setBusy(false);
         }
     };
 
     const frame = shape === 'portrait' ? 'w-28 aspect-[3/4]' : `w-full max-w-xs ${aspect}`;
 
     return (
-        <div className="block">
+        <div className={compact ? 'shrink-0 w-28' : 'block'}>
             {label && (
                 <span className="block text-[1.1875rem] font-semibold text-slate-800 dark:text-neutral-100 mb-1.5">
                     {label}
                 </span>
             )}
 
-            <div className="flex flex-wrap items-start gap-4">
+            <div className={compact ? 'flex flex-col items-start gap-2' : 'flex flex-wrap items-start gap-4'}>
                 <div
                     className={`${frame} shrink-0 overflow-hidden rounded-xl border border-slate-300
                                 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#141414] flex items-center
                                 justify-center text-slate-300`}
                 >
-                    {busy ? (
+                    {busy && !preview ? (
                         <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                    ) : url ? (
+                    ) : preview ? (
                         /*
                          * CONTAIN, not cover — the preview has to be the
                          * picture, not a crop of it.
@@ -94,7 +92,7 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
                          * show it correctly.
                          */
                         <img
-                            src={resolveMediaUrl(url)}
+                            src={preview}
                             alt=""
                             className="h-full w-full object-contain"
                         />
@@ -103,7 +101,7 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
                     )}
                 </div>
 
-                <div className="flex min-w-0 flex-1 basis-[14rem] flex-col items-start gap-2">
+                <div className={compact ? 'flex min-w-0 w-full flex-col items-start gap-2' : 'flex min-w-0 flex-1 basis-[14rem] flex-col items-start gap-2'}>
                     <button
                         type="button"
                         onClick={() => fileRef.current?.click()}
@@ -113,13 +111,14 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
                                    text-[1.1875rem] font-semibold text-blue-700 dark:text-blue-300
                                    transition-colors hover:bg-blue-100 disabled:opacity-50"
                     >
-                        <Upload size={15} /> {url ? 'Choose a different picture' : 'Upload a picture'}
+                        {busy ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />} {busy ? status || 'Preparing…' : compact ? 'Choose photo' : url ? 'Choose a different picture' : 'Upload a picture'}
                     </button>
 
                     {url && (
                         <button
                             type="button"
                             onClick={() => onChange('')}
+                            disabled={busy}
                             className="inline-flex items-center gap-2 rounded-lg px-4 py-2
                                        text-[1.0625rem] font-semibold text-slate-500 dark:text-neutral-400
                                        transition-colors hover:text-red-600"
@@ -128,34 +127,11 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
                         </button>
                     )}
 
-                    <span className="text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                    {(!compact || hint) && <span className="text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
                         {hint || 'JPG or PNG. It is uploaded and used straight away.'}
-                    </span>
+                    </span>}
 
-                    {/*
-                      * THE STORED ADDRESS, AS A FACT RATHER THAN A FIELD.
-                      *
-                      * This used to be a box to type into. Uploading writes it,
-                      * so what an editor needs is to SEE what was saved — to
-                      * check it went in, and to copy it if the same picture is
-                      * wanted elsewhere. Read-only, small, and selectable.
-                      */}
-                    {url && (
-                        <span className="text-[1.0625rem] font-semibold uppercase tracking-wide
-                                         text-slate-400 dark:text-neutral-500">
-                            Picture address, saved with the page
-                        </span>
-                    )}
-                    {url && (
-                        <code
-                            title={url}
-                            className="block max-w-full sm:max-w-md truncate rounded bg-slate-100 dark:bg-[#141414]
-                                       px-2 py-1 text-[1.0625rem] font-mono text-slate-500
-                                       dark:text-neutral-400 select-all"
-                        >
-                            {url}
-                        </code>
-                    )}
+                    <MediaFileName url={url} label={label || "Image"} />
                 </div>
             </div>
 

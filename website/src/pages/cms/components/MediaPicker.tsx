@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { Upload, Loader2, Trash2, Image as ImageIcon, Film } from 'lucide-react';
-import { uploadMedia, errorMessage, EMPTY_MEDIA, type CmsMedia } from '@/services/cmsApi';
-import { resolveMediaUrl } from '@/config/api.config';
+import { errorMessage, EMPTY_MEDIA, type CmsMedia } from '@/services/cmsApi';
+import { useMediaUpload } from './useMediaUpload';
+import { MediaFileName } from './MediaFileName';
 import { CmsInput, CmsField } from './CmsUI';
 
 /**
@@ -54,13 +55,11 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
      * public page already does on read. Remote URLs and `data:`/`blob:` values
      * pass through untouched.
      */
-    const previewSrc = resolveMediaUrl(media.url);
-
     const fileRef = useRef<HTMLInputElement>(null);
-    const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
 
     const set = (patch: Partial<CmsMedia>) => onChange({ ...media, ...patch });
+    const { busy: uploading, status, preview: previewSrc, localType, upload } = useMediaUpload(media.url, set, onUploadStateChange);
 
     const handleFile = async (file: File | null) => {
         if (!file) return;
@@ -70,18 +69,11 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
             if (fileRef.current) fileRef.current.value = '';
             return;
         }
-        setUploading(true);
-        onUploadStateChange?.(true);
         try {
-            const { url, type } = await uploadMedia(file);
-            // The server decides the type from the real mimetype, not from the
-            // filename — a `.mp4` served as an image would render as nothing.
-            set({ url, type });
+            await upload(file, imagesOnly);
         } catch (err) {
             setError(errorMessage(err, 'Upload failed'));
         } finally {
-            setUploading(false);
-            onUploadStateChange?.(false);
             if (fileRef.current) fileRef.current.value = '';
         }
     };
@@ -122,12 +114,12 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                                w-full max-w-[15rem] sm:max-w-none sm:w-[13.75rem] shrink-0"
                     style={{ aspectRatio: aspect }}
                 >
-                    {!media.url ? (
+                    {!previewSrc ? (
                         <div className="text-center text-neutral-400 dark:text-neutral-600 px-3">
                             <ImageIcon className="w-6 h-6 mx-auto mb-1" />
                             <span className="text-[1.1875rem]">Nothing selected</span>
                         </div>
-                    ) : media.type === 'video' ? (
+                    ) : (localType || media.type) === 'video' ? (
                         <video
                             src={previewSrc}
                             className="w-full h-full"
@@ -157,13 +149,14 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                                        hover:bg-slate-200 dark:hover:bg-[#262626] text-slate-800 dark:text-[#E4E4E7] disabled:opacity-50"
                         >
                             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                            {uploading ? 'Uploading…' : imagesOnly ? 'Upload image' : 'Upload image or video'}
+                            {uploading ? status || 'Preparing…' : imagesOnly ? 'Upload image' : 'Upload image or video'}
                         </button>
 
                         {media.url && (
                             <button
                                 type="button"
                                 onClick={() => set({ ...EMPTY_MEDIA })}
+                                disabled={uploading}
                                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[1.25rem]
                                            text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-[#1A1A1A]"
                             >
@@ -179,26 +172,7 @@ export default function MediaPicker({ value, onChange, label = 'Media', aspect =
                         )}
                     </div>
 
-                    {/* WHAT WAS SAVED. The upload writes this address; showing
-                        it is how an editor checks it went in, and how they copy
-                        it when the same picture is wanted elsewhere. */}
-                    {media.url && (
-                        <div className="w-full">
-                            <span className="block text-[1.0625rem] font-bold uppercase tracking-wide
-                                             text-slate-400 dark:text-neutral-500">
-                                Picture address, saved with the page
-                            </span>
-                            <code
-                                title={media.url}
-                                className="mt-1 block max-w-full sm:max-w-lg truncate rounded bg-slate-100 dark:bg-[#141414]
-                                           px-2 py-1 text-[1.0625rem] font-mono text-slate-500
-                                           dark:text-neutral-400 select-all"
-                            >
-                                {media.url}
-                            </code>
-                        </div>
-                    )}
-
+                    <MediaFileName url={media.url} label={label || "Image"} />
 
                     <input
                         ref={fileRef}

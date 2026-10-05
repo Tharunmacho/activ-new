@@ -18,7 +18,7 @@ import { stateMaps } from '@/data/maps';
 import { normaliseDistrict } from '@/data/maps/match';
 import { CARD_TITLE } from '@/components/layout/appTypography';
 import {
-    uploadMedia, addGalleryItem, updateGalleryItem, deleteGalleryItem,
+    addGalleryItem, updateGalleryItem, deleteGalleryItem,
 } from '@/services/cmsApi';
 import {
     listRegionPagesAdmin, getRegionPageAdmin, getStatePageAdmin,
@@ -3876,62 +3876,9 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
     );
 }
 
-/** Uploaded, like every other image on this site — never a pasted URL. */
+/** Share the same upload feedback and readable filename as other CMS images. */
 function LeaderPhoto({ url, onChange }: { url: string; onChange: (url: string) => void }) {
-    const [busy, setBusy] = useState(false);
-
-    const pick = async (file?: File | null) => {
-        if (!file) return;
-        setBusy(true);
-        try {
-            const { url: uploaded } = await uploadMedia(file);
-            onChange(uploaded);
-        } catch (err) {
-            toast.error(errorMessage(err, 'That image could not be uploaded'));
-        } finally {
-            setBusy(false);
-        }
-    };
-
-    return (
-        <div className="shrink-0 w-20">
-            <label className="block cursor-pointer">
-                <span className="w-20 h-24 rounded-lg overflow-hidden border border-slate-200
-                                 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#141414] flex items-center
-                                 justify-center text-neutral-400 hover:border-blue-300 transition-colors">
-                    {busy ? <Loader2 className="w-5 h-5 animate-spin" />
-                        /* `resolveMediaUrl`: an upload is stored as a relative
-                           `/uploads/…` path and the CMS is not served from the
-                           API's origin, so the raw value previews as a broken
-                           frame for a file that uploaded perfectly. */
-                        : url ? <img src={resolveMediaUrl(url)} alt="" className="w-full h-full object-cover" />
-                            : <Users className="w-5 h-5" />}
-                </span>
-                <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => { pick(e.target.files && e.target.files[0]); e.target.value = ''; }}
-                />
-                <span className="mt-1.5 block text-center text-[1.0625rem] font-semibold text-blue-600
-                                 dark:text-blue-400">
-                    {url ? 'Change' : 'Photo'}
-                </span>
-            </label>
-
-            {/* The address the upload saved, as everywhere else in this panel. */}
-            {url && (
-                <code
-                    title={url}
-                    className="mt-1.5 block w-20 truncate rounded bg-slate-100 dark:bg-[#141414] px-1.5
-                               py-1 text-[1.0625rem] font-mono text-slate-500 dark:text-neutral-400
-                               select-all"
-                >
-                    {url}
-                </code>
-            )}
-        </div>
-    );
+    return <UploadField url={url} onChange={onChange} shape="portrait" compact label="Leader photo" />;
 }
 
 /**

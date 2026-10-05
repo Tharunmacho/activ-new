@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { HeaderSection } from '../../components/layout/HeaderSection';
 import { FooterSection } from '../../components/layout/FooterSection';
 import { META_TEXT } from '@/components/layout/appTypography';
 import { getRegionMap } from '@/services/cmsRegionsApi';
 import {
-    getSchemes, getSchemeSettings, normRegion, type SchemeRecord, type SchemeSettings,
+    getSchemes, getSchemeSettings, getSchemeStateCounts, normRegion, type SchemeRecord, type SchemeSettings,
 } from '@/services/cmsSchemesApi';
 import { SCHEME_COLUMN, SchemesBand, Crumbs, SchemeGrid, slugifyRegion } from './components/SchemeUI';
 
@@ -15,19 +15,19 @@ import { SCHEME_COLUMN, SchemesBand, Crumbs, SchemeGrid, slugifyRegion } from '.
  * ============================================================================
  *
  *     /schemes, /schemes/central   every central scheme
+ *     /schemes/state               states with published schemes
  *     /schemes/state/:slug         that state's schemes, then its districts'
  *
  * Choosing happens in the header's Schemes dropdown (`SchemesMenu`) — Central,
  * or a region and then a state — the same way the Regions menu works. So this
- * page does no choosing of its own: no landing cards, no grid of states, no
- * search box, no filter chips. It prints the list it was opened on.
+ * state directory also gives the State schemes share link a page of its own.
  *
  * On a state page the district schemes are GROUPED under a heading per
  * district rather than filtered behind chips, so every district's schemes are
  * on the page at once and a reader scrolls to their own.
  */
 
-type View = 'central' | 'state';
+type View = 'central' | 'state' | 'states';
 
 export default function SchemesPage({ view }: { view: View }) {
     const { slug = '' } = useParams();
@@ -36,6 +36,7 @@ export default function SchemesPage({ view }: { view: View }) {
     const [stateName, setStateName] = useState('');
     const [schemes, setSchemes] = useState<SchemeRecord[]>([]);
     const [loading, setLoading] = useState(true);
+    const [states, setStates] = useState<{ name: string; slug: string }[]>([]);
 
     /* The name the slug stands for: the region map's spelling where it has
        one, otherwise the slug read back as words ("tamil-nadu" -> "Tamil Nadu").
@@ -51,9 +52,10 @@ export default function SchemesPage({ view }: { view: View }) {
         setSchemes([]);
 
         (async () => {
-            const [config, map] = await Promise.all([
+            const [config, map, counts] = await Promise.all([
                 getSchemeSettings().catch(() => null),
-                view === 'state' ? getRegionMap().catch(() => []) : Promise.resolve([]),
+                view !== 'central' ? getRegionMap().catch(() => []) : Promise.resolve([]),
+                view === 'states' ? getSchemeStateCounts().catch(() => []) : Promise.resolve([]),
             ]);
 
             let name = '';
@@ -64,13 +66,17 @@ export default function SchemesPage({ view }: { view: View }) {
                 name = found?.name || fromSlug;
             }
 
-            const rows = await (view === 'central'
+            const rows = await (view === 'states' ? Promise.resolve([]) : view === 'central'
                 ? getSchemes({ tier: 'national' })
                 : getSchemes({ state: name })
             ).catch(() => [] as SchemeRecord[]);
 
             if (cancelled) return;
             setSettings(config);
+            setStates(counts.filter(row => row.total > 0).map(row => ({
+                name: row.state,
+                slug: map.flatMap(region => region.states || []).find(state => normRegion(state.name) === normRegion(row.state))?.slug || slugifyRegion(row.state),
+            })).sort((a, b) => a.name.localeCompare(b.name)));
             setStateName(name);
             setSchemes(rows || []);
             setLoading(false);
@@ -80,7 +86,7 @@ export default function SchemesPage({ view }: { view: View }) {
     }, [view, slug, fromSlug]);
 
     const empty = settings?.emptyMessage || 'Nothing has been published here yet.';
-    const title = view === 'central' ? (settings?.centralLabel || 'Central schemes') : (stateName || fromSlug);
+    const title = view === 'central' ? (settings?.centralLabel || 'Central schemes') : view === 'states' ? (settings?.stateLabel || 'State schemes') : (stateName || fromSlug);
 
     const stateOwn = useMemo(() => schemes.filter((s) => s.tier === 'state'), [schemes]);
     /* District schemes, one group per district, in alphabetical order. */
@@ -100,8 +106,8 @@ export default function SchemesPage({ view }: { view: View }) {
             <HeaderSection />
 
             <main className="flex-grow bg-gray-50/60">
-                {view === 'central' ? (
-                    <SchemesBand settings={settings} title={title} description={settings?.centralDescription} />
+                {view !== 'state' ? (
+                    <SchemesBand settings={settings} title={title} description={view === 'central' ? settings?.centralDescription : settings?.stateDescription} />
                 ) : (
                     <SchemesBand settings={settings} title={title} highlight="schemes"
                                  description={`Schemes run by the ${title} government, and by its districts.`} />
@@ -114,6 +120,13 @@ export default function SchemesPage({ view }: { view: View }) {
                         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                             {[1, 2, 3].map((i) => <div key={i} className="h-72 animate-pulse rounded-2xl bg-gray-100" />)}
                         </div>
+                    ) : view === 'states' ? (
+                        states.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {states.map(state => <Link key={state.slug} to={`/schemes/state/${state.slug}`}
+                                className="rounded-2xl border border-brand-100 bg-white p-6 text-xl font-semibold text-brand-800 hover:border-brand-400 hover:bg-brand-50">
+                                {state.name}
+                            </Link>)}
+                        </div> : <SchemeGrid schemes={[]} empty={empty} />
                     ) : view === 'central' ? (
                         <SchemeGrid schemes={schemes} empty={empty} showWhere={false} />
                     ) : (

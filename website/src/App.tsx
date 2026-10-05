@@ -353,7 +353,7 @@ const App = () => (
                   scheme's slug can never collide with `central` or `state`. */}
               <Route path="/schemes" element={<SchemesPage view="central" />} />
               <Route path="/schemes/central" element={<SchemesPage view="central" />} />
-              <Route path="/schemes/state" element={<Navigate to="/schemes/central" replace />} />
+              <Route path="/schemes/state" element={<SchemesPage view="states" />} />
               <Route path="/schemes/state/:slug" element={<SchemesPage view="state" />} />
               <Route path="/schemes/view/:slug" element={<SchemeDetailPage />} />
 

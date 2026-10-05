@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Share2, Save, RotateCcw, ExternalLink, Search, Loader2 } from 'lucide-react';
-import { resolveMediaUrl } from '@/config/api.config';
+import { sizedMediaUrl } from '@/config/api.config';
 import { errorMessage, type CmsMedia } from '@/services/cmsApi';
 import { getSharePreviewEditor, getPublicSharePreview, saveSharePreview, resetSharePreview, type CmsSharePreview, type CmsSharePreviewRoute } from '@/services/cmsSharePreviewsApi';
 import { CmsPage, CmsField, CmsInput, CmsLoading, CmsError, cmsSaved, cmsFailed } from './components/CmsUI';
@@ -94,7 +94,7 @@ export default function SharePreviewsManager() {
                     {Array.from(groups).map(([group, rows]) => <optgroup key={group} label={group}>{rows.map(row => <option key={row.path} value={row.path}>{row.label}</option>)}</optgroup>)}
                 </select>
             </div>
-            <p className="text-sm text-slate-500">Choose a zone to set its own preview. Event, news, gallery and zone section links use their published banner and details automatically.</p>
+            <p className="text-sm text-slate-500">Choose a main page, Central or State schemes, zone, or state to set its own preview. Home also controls the onboarding link. Event, news, gallery and section links use their published banner and details automatically.</p>
         </section>
         <CmsError message={error} />
         {reading && <CmsLoading label="Loading this page’s preview…" />}
@@ -112,7 +112,7 @@ export default function SharePreviewsManager() {
                 <div className="min-w-0">
                     <p className="mb-3 font-medium text-slate-600 dark:text-slate-300">Link preview</p>
                     <div className="rounded-xl border border-slate-200 dark:border-neutral-700 overflow-hidden">
-                        <img src={resolveMediaUrl(draft.image.url || preview.image.url)} alt={draft.image.alt || preview.title} className="w-full aspect-[1200/630] object-contain bg-slate-100 dark:bg-neutral-900" />
+                        <img src={sizedMediaUrl(draft.image.url || preview.image.url, 800)} alt={draft.image.alt || preview.title} className="w-full aspect-[1200/630] object-contain bg-slate-100 dark:bg-neutral-900" />
                         <div className="p-5 space-y-2"><p className="text-xs uppercase tracking-wide text-slate-500">activ.org.in</p><p className="text-xl font-semibold break-words">{draft.title || preview.title}</p><p className="text-slate-500 break-words line-clamp-4">{draft.description || preview.description}</p></div>
                     </div>
                     <p className="mt-3 text-sm text-slate-500">Saved changes apply to new preview requests. A platform may keep an older card until it refreshes its cached preview.</p>

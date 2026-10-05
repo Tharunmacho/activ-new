@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, Clock, ChevronDown, ChevronUp, Loader2, User, MapPin, Video } from 'lucide-react';
+import { Plus, Trash2, Clock, ChevronDown, ChevronUp, User, MapPin, Video } from 'lucide-react';
 // `RegistrationFormBuilder` itself is no longer rendered — the per-event
 // question builder was removed from the form. The TYPE stays: every saved
 // event still carries `registrationFields`, and dropping it from the shape
@@ -9,8 +9,7 @@ import TimeField from './TimeField';
 import { CmsField, CmsInput, CmsTextarea, CmsSection, CmsChoice } from './CmsUI';
 import { errorMessage } from '@/services/activApi';
 import type { CmsAgendaItem, CmsSpeaker } from '@/services/cmsApi';
-import { uploadMedia } from '@/services/cmsApi';
-import { resolveMediaUrl } from '@/config/api.config';
+import { UploadField } from './UploadField';
 
 /**
  * The advanced half of the event editor (EVT-001, EVT-002).
@@ -214,73 +213,7 @@ export const toLocalDateTimeInput = (value?: string | null): string => {
  * would show the error under every speaker at once.
  */
 function SpeakerPhoto({ url, onChange }: { url: string; onChange: (url: string) => void }) {
-    const [busy, setBusy] = useState(false);
-    const [failed, setFailed] = useState('');
-
-    const pick = async (file?: File | null) => {
-        if (!file) return;
-        setBusy(true);
-        setFailed('');
-        try {
-            const { url: uploaded } = await uploadMedia(file);
-            onChange(uploaded);
-        } catch (error) {
-            setFailed(errorMessage(error));
-        } finally {
-            setBusy(false);
-        }
-    };
-
-    return (
-        /*
-         * 7rem, not 5rem — the editor has to be able to SEE the portrait.
-         *
-         * At 80px a face is a smudge, so there was no way to tell from this
-         * screen whether the right photograph had been attached, whether it
-         * was the right way up, or whether the crop had taken the head off.
-         * The public card draws it at 5.5rem, and the control that sets it
-         * should not be smaller than the thing it sets.
-         */
-        <div className="shrink-0 w-24 sm:w-28">
-            <label className="block cursor-pointer">
-                <span className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border border-slate-200
-                                 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#141414] flex items-center
-                                 justify-center text-neutral-400 hover:border-blue-300 transition-colors">
-                    {busy ? <Loader2 className="w-5 h-5 animate-spin" />
-                        : url ? (
-                            /* `object-top`, like the public card: a portrait
-                               centred in a circle crops to a chest. */
-                            <img
-                                src={resolveMediaUrl(url)}
-                                alt=""
-                                className="w-full h-full object-cover object-top"
-                            />
-                        ) : <User className="w-6 h-6" />}
-                </span>
-                <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => { pick(e.target.files && e.target.files[0]); e.target.value = ''; }}
-                />
-                <span className="mt-1.5 block text-center text-[1.0625rem] font-medium text-blue-600
-                                 dark:text-blue-400">
-                    {url ? 'Change' : 'Photo'}
-                </span>
-            </label>
-
-            {url && (
-                <button
-                    type="button"
-                    onClick={() => onChange('')}
-                    className="mt-0.5 w-full text-center text-[1.0625rem] text-neutral-500 hover:text-red-500"
-                >
-                    Remove
-                </button>
-            )}
-            {failed && <p className="mt-1 text-[1.0625rem] text-red-500 break-words">{failed}</p>}
-        </div>
-    );
+    return <UploadField url={url} onChange={onChange} shape="portrait" compact label="Speaker photo" />;
 }
 
 export default function EventDetailFields({
