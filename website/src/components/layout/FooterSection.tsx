@@ -95,7 +95,7 @@ export function FooterSection() {
     /**
      * The legal row — the association's actual policy documents, live.
      *
-     * TWO SOURCES, AND NEITHER IS HARDCODED. `policyLinks` is
+     * `policyLinks` is
      * `/cms/legal/links`: one row per published document in
      * `web_legal_documents`, labelled and ordered by the editor. A fifth policy
      * appears here the moment it is published, and an unpublished one
@@ -120,6 +120,11 @@ export function FooterSection() {
         ...authoredLegal,
         ...policyLinks.filter((l) => !authoredHrefs.has(l.href.replace(/\/+$/, ''))),
     ];
+    // Account deletion is a permanent service route, available even if CMS
+    // policy links cannot load or the authored bottom bar has been hidden.
+    if (!legalLinks.some((link) => (link.href || '').replace(/\/+$/, '') === '/delete-account')) {
+        legalLinks.push({ label: 'Delete account', href: '/delete-account' });
+    }
 
     /**
      * The navigation rule.

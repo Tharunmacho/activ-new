@@ -113,6 +113,7 @@ const MembershipPage = lazy(() => import("./pages/onboarding/MembershipPage"));
  * landing chunk would make every first visit carry four policies.
  */
 const LegalPage = lazy(() => import("./pages/onboarding/LegalPage"));
+const DeleteAccountPage = lazy(() => import("./pages/onboarding/DeleteAccountPage"));
 /* The public Book Now flow. Lazy for the same reason the detail page is. */
 const EventBookingPage = lazy(() => import("./pages/onboarding/EventBookingPage"));
 // The harmless page an entry-pass QR opens in an ordinary phone camera.
@@ -391,6 +392,7 @@ const App = () => (
                 way round. It is not the canonical form: nothing links to it.
               */}
               <Route path="/privacy-policy" element={<LegalPage />} />
+              <Route path="/delete-account" element={<DeleteAccountPage />} />
               <Route path="/terms-and-conditions" element={<LegalPage />} />
               <Route path="/refund-policy" element={<LegalPage />} />
               <Route path="/cancellation-policy" element={<LegalPage />} />
