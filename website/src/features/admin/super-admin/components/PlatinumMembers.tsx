@@ -10,7 +10,7 @@ import { ADMIN_INPUT, ADMIN_PRIMARY_BTN, ADMIN_SECONDARY_BTN } from '@/features/
 import { CARD_TITLE, CARD_SUBTITLE } from '@/components/layout/appTypography';
 import { PlatinumBadge } from '@/components/shared/Platinum';
 import {
-    getPlatinumOverview, searchPlatinumCandidates, grantPlatinum, revokePlatinum, createPlatinumAccount,
+    getPlatinumOverview, searchPlatinumCandidates, grantPlatinum, revokePlatinum, createPlatinumAccount, updatePlatinumAccount,
     PAYMENT_MODE_LABEL, type PlatinumCandidate, type PlatinumPaymentMode, type PlatinumOverview,
     listPlatinumRequests, updatePlatinumRequest, type PlatinumRequest, type PlatinumRequestStatus,
 } from '@/services/platinumApi';
@@ -74,11 +74,11 @@ function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) =>
         try {
             const member = await createPlatinumAccount(form);
             setForm({ fullName: '', email: '', password: '', phoneNumber: '', whatsappNumber: '', state: '', district: '', block: '' });
-            onCreated(member); toast.success(member.existingAccount ? 'Existing account selected. Record payment to upgrade; login details are retained.' : 'Account created. Record payment to activate Platinum.');
+            onCreated(member); toast.success(member.existingAccount ? 'Existing account selected. Record payment to upgrade; login details are retained.' : 'Account created. Record payment to activate Lifetime.');
         } catch (e) { toast.error(errorMessage(e, 'Could not create account.')); }
         finally { setBusy(false); }
     };
-    return <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5 font-sans"><h3 className={CARD_TITLE}>Member account for Platinum</h3><p className={`mt-2 text-slate-600 ${CARD_SUBTITLE}`}>Existing business members keep the same email, password and mobile when upgrading to Platinum. Enter their email or mobile and select their existing account. Fill all fields only for a new member.</p>
+    return <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5 font-sans"><h3 className={CARD_TITLE}>Member account for Lifetime</h3><p className={`mt-2 text-slate-600 ${CARD_SUBTITLE}`}>Existing business members keep the same email, password and mobile when upgrading to Lifetime. Enter their email or mobile and select their existing account. Fill all fields only for a new member.</p>
         <button type="button" disabled={busy} onClick={() => void selectExisting()} className={`mt-4 ${ADMIN_SECONDARY_BTN} h-auto min-h-12 py-3 max-w-full !whitespace-normal`}>Use existing account / upgrade</button>
         {regionError && <p role="alert" className="mt-3 text-red-700">{regionError} <button type="button" className="underline" onClick={() => void loadRegions(true)}>Retry</button></p>}
         {!regionsLoading && !regionError && !states.length && <p role="status" className="mt-3 text-slate-600">Location data is unavailable. Reload regions to try again.</p>}
@@ -87,7 +87,34 @@ function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) =>
             <label className={`min-w-0 ${FIELD_LABEL}`}>State<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="State" value={form.state} disabled={regionsLoading || busy || !states.length} onChange={e => setForm(f => ({ ...f, state: e.target.value, district: '', block: '' }))}><option value="">{regionsLoading ? 'Loading regions…' : 'Choose state'}</option>{states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}</select></label>
             <label className={`min-w-0 ${FIELD_LABEL}`}>District<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="District" value={form.district} disabled={!form.state || busy || !districts.length} onChange={e => setForm(f => ({ ...f, district: e.target.value, block: '' }))}><option value="">Choose district</option>{districts.map((d: any) => <option key={d.name} value={d.name}>{d.name}</option>)}</select></label>
             <label className={`min-w-0 ${FIELD_LABEL}`}>Block<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="Block" value={form.block} disabled={!form.district || busy || !blocks.length} onChange={e => setForm(f => ({ ...f, block: e.target.value }))}><option value="">{form.district && !blocks.length ? 'No development blocks — district only' : 'Choose block'}</option>{blocks.map((b: any) => <option key={b.name} value={b.name}>{b.name}</option>)}</select></label>
-        </div><button type="button" disabled={busy || (!form.email.trim() && !form.phoneNumber.trim())} onClick={() => void submit()} className={`mt-5 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 w-full sm:w-auto !whitespace-normal`}>{busy ? 'Creating…' : 'Continue to Platinum payment'}</button></div>;
+        </div><button type="button" disabled={busy || (!form.email.trim() && !form.phoneNumber.trim())} onClick={() => void submit()} className={`mt-5 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 w-full sm:w-auto !whitespace-normal`}>{busy ? 'Creating…' : 'Continue to Lifetime payment'}</button></div>;
+}
+
+function AccountEditor({ member, onSaved }: { member: PlatinumCandidate; onSaved: (m: PlatinumCandidate) => void }) {
+    const [open, setOpen] = useState(false);
+    const [form, setForm] = useState({ email: member.email, phoneNumber: member.phoneNumber, whatsappNumber: member.whatsappNumber || member.phoneNumber, password: '' });
+    const [busy, setBusy] = useState(false);
+    const save = async () => {
+        setBusy(true);
+        try {
+            const updated = await updatePlatinumAccount(member.id, { ...form, password: form.password || undefined });
+            if (!updated?.id) throw new Error('Account update could not be confirmed.');
+            setForm(f => ({ ...f, password: '' })); onSaved(updated); setOpen(false);
+            toast.success('Login and contact details saved. Use the saved email and password to sign in.');
+        } catch (err) { toast.error(errorMessage(err, 'Could not save account details.')); }
+        finally { setBusy(false); }
+    };
+    return <div className="my-3">
+        <button type="button" className={ADMIN_SECONDARY_BTN} onClick={() => setOpen(!open)}>Edit login and contact details</button>
+        {open && <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <p className="text-slate-600">Changes update this member's account. Leave the new password blank to keep the current password.</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">{(['email', 'phoneNumber', 'whatsappNumber', 'password'] as const).map(key => <label key={key} className={FIELD_LABEL}>
+                {{ email: 'Login email', phoneNumber: 'Mobile number', whatsappNumber: 'WhatsApp number', password: 'New password' }[key]}
+                <input className={`mt-2 ${ADMIN_INPUT}`} type={key === 'password' ? 'password' : key === 'email' ? 'email' : 'tel'} autoComplete={key === 'password' ? 'new-password' : 'off'} value={form[key]} disabled={busy} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+            </label>)}</div>
+            <button type="button" disabled={busy} className={`mt-4 ${ADMIN_PRIMARY_BTN}`} onClick={() => void save()}>{busy ? 'Saving…' : 'Save account details'}</button>
+        </div>}
+    </div>;
 }
 
 function GrantForm({ member, price, onDone, onCancel }: {
@@ -106,17 +133,17 @@ function GrantForm({ member, price, onDone, onCancel }: {
         const value = Number(amount);
         if (!Number.isFinite(value) || value <= 0) { toast.error('Enter the actual positive amount received'); return; }
         if (member.blockedReason && (!manualAdmission || !note.trim())) { toast.error('Confirm office admission and enter its reason.'); return; }
-        if (value !== price && !note.trim()) { toast.error('Explain the difference from the Platinum fee.'); return; }
+        if (value !== price && !note.trim()) { toast.error('Explain the difference from the Lifetime fee.'); return; }
         if (!confirmed) { toast.error('Tick the box to confirm the payment was received'); return; }
         setBusy(true);
         try {
             const updated = await grantPlatinum(member.id, {
                 amount: value, paymentMode: mode, receiptNumber: receipt.trim(), receivedOn, note: note.trim(), manualAdmission,
             });
-            toast.success(`${member.fullName || 'The member'} is now a Platinum lifetime member`);
+            toast.success(`${member.fullName || 'The member'} is now a Lifetime membership member`);
             onDone(updated);
         } catch (err) {
-            toast.error(errorMessage(err, 'Could not grant Platinum'));
+            toast.error(errorMessage(err, 'Could not grant Lifetime'));
         } finally {
             setBusy(false);
         }
@@ -153,7 +180,7 @@ function GrantForm({ member, price, onDone, onCancel }: {
             </div>
             {Number(amount) !== Number(price) && amount !== '' ? (
                 <p className="mt-2 text-[1rem] text-amber-700">
-                    This differs from the Platinum price of {rupees(price)}. That is allowed — the amount received is what is recorded.
+                    This differs from the Lifetime price of {rupees(price)}. That is allowed — the amount received is what is recorded.
                 </p>
             ) : null}
             <label className="mt-3 flex items-start gap-2 text-[1.125rem] text-slate-700">
@@ -168,7 +195,7 @@ function GrantForm({ member, price, onDone, onCancel }: {
                 </button>
                 <button type="button" onClick={submit} disabled={busy || !confirmed}
                     className={ADMIN_PRIMARY_BTN}>
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />} Grant Platinum
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />} Grant Lifetime
                 </button>
             </div>
         </div>
@@ -182,7 +209,7 @@ const STATUS_CHIP: Record<string, string> = {
     converted: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
     declined: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 };
-const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted', converted: 'Platinum granted', declined: 'Declined' };
+const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted', converted: 'Lifetime granted', declined: 'Declined' };
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 const waNumber = (v: string) => { const d = digits(v); return d.length === 10 ? `91${d}` : d; };
 
@@ -211,7 +238,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
             setRows(r.requests || []);
             setCounts(r.counts || {});
         } catch (err) {
-            toast.error(errorMessage(err, 'Could not load Platinum requests'));
+            toast.error(errorMessage(err, 'Could not load Lifetime requests'));
         } finally {
             setLoading(false);
         }
@@ -241,9 +268,9 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                     <h3 className="flex items-center gap-2 font-display text-[1.5rem] font-semibold text-slate-900">
-                        <Inbox className="h-5 w-5 text-blue-700" /> Platinum requests
+                        <Inbox className="h-5 w-5 text-blue-700" /> Lifetime requests
                     </h3>
-                    <p className="text-[1.0625rem] text-slate-500">Members who asked to become Platinum. Call them, then grant it once the payment is received.</p>
+                    <p className="text-[1.0625rem] text-slate-500">Members who asked to become Lifetime. Call them, then grant it once the payment is received.</p>
                 </div>
                 <div className="flex gap-1 rounded-xl bg-white p-1 ring-1 ring-slate-200">
                     {TABS.map((t) => (
@@ -259,7 +286,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                 <p className="mt-4 flex items-center gap-2 text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</p>
             ) : rows.length === 0 ? (
                 <p className="mt-4 rounded-xl bg-white p-4 text-[1.0625rem] text-slate-500 ring-1 ring-slate-100">
-                    {tab === 'new' ? 'No new requests. When a member presses “Apply for Platinum”, it appears here and the office is emailed.' : 'Nothing here yet.'}
+                    {tab === 'new' ? 'No new requests. When a member presses “Apply for Lifetime”, it appears here and the office is emailed.' : 'Nothing here yet.'}
                 </p>
             ) : (
                 <ul className="mt-4 space-y-3">
@@ -290,7 +317,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                                 </a>
                                             ) : null}
                                             {r.email ? (
-                                                <a href={`mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Platinum membership request')}`}
+                                                <a href={`mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Lifetime membership request')}`}
                                                     className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 text-[1rem] font-semibold text-slate-700 hover:bg-slate-100">
                                                     <Mail className="h-4 w-4 shrink-0" /> <span className="truncate">{r.email}</span>
                                                 </a>
@@ -323,7 +350,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                             <button type="button" onClick={() => setGranting(r.id)} disabled={!!r.blockedReason && !r.canAdmitManually}
                                                 title={r.blockedReason || undefined}
                                                 className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 font-semibold text-white disabled:opacity-50">
-                                                <Crown className="h-4 w-4" /> Grant Platinum
+                                                <Crown className="h-4 w-4" /> Grant Lifetime
                                             </button>
                                             <button type="button" onClick={() => { setDeclining(r.id); setNote(''); }}
                                                 className="min-h-10 rounded-xl px-3 font-semibold text-slate-500 hover:bg-slate-50">Decline</button>
@@ -374,10 +401,15 @@ export default function PlatinumMembers() {
     const [undoBusy, setUndoBusy] = useState(false);
     const [creating, setCreating] = useState(false);
     const [created, setCreated] = useState<PlatinumCandidate | null>(null);
+    const accountSaved = (member: PlatinumCandidate) => {
+        setCreated(current => current?.id === member.id ? member : current);
+        setResults(current => current.map(row => row.id === member.id ? member : row));
+        setOverview(current => current ? { ...current, members: current.members.map(row => row.id === member.id ? member : row) } : current);
+    };
 
     const load = useCallback(async () => {
         try { setOverview(await getPlatinumOverview()); }
-        catch (err) { toast.error(errorMessage(err, 'Could not load Platinum members')); }
+        catch (err) { toast.error(errorMessage(err, 'Could not load Lifetime members')); }
         finally { setLoading(false); }
     }, []);
     useEffect(() => { load(); }, [load]);
@@ -409,11 +441,11 @@ export default function PlatinumMembers() {
         setUndoBusy(true);
         try {
             await revokePlatinum(m.id);
-            toast.success(`Platinum removed from ${m.fullName || 'the member'}; their earlier membership is restored`);
+            toast.success(`Lifetime removed from ${m.fullName || 'the member'}; their earlier membership is restored`);
             setUndoing('');
             load();
         } catch (err) {
-            toast.error(errorMessage(err, 'Could not remove Platinum'));
+            toast.error(errorMessage(err, 'Could not remove Lifetime'));
         } finally {
             setUndoBusy(false);
         }
@@ -423,13 +455,13 @@ export default function PlatinumMembers() {
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
             <button type="button" className={`mb-4 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 max-w-full !whitespace-normal`} onClick={() => setCreating(v => !v)}>Create an office member account</button>
             {creating && <OfficeAccountForm onCreated={m => { setCreated(m); setCreating(false); }} />}
-            {created && <div className="mb-6 rounded-xl border border-blue-200 p-4"><h3 className="font-bold">Selected account: {created.fullName}</h3><p className="text-slate-600">{created.email} keeps its account password and mobile number. Record payment received below to activate Platinum lifetime access on this same account.</p><GrantForm member={created} price={price} onDone={m => { setCreated(null); onGranted(m); }} onCancel={() => setCreated(null)} /></div>}
+            {created && <div className="mb-6 rounded-xl border border-blue-200 p-4"><h3 className="font-bold">Selected account: {created.fullName}</h3><p className="text-slate-600">Sign-in email: {created.email}. Edit the login or contact details below if needed, then record payment to activate lifetime membership.</p><AccountEditor key={created.id} member={created} onSaved={accountSaved} /><GrantForm member={created} price={price} onDone={m => { setCreated(null); onGranted(m); }} onCancel={() => setCreated(null)} /></div>}
             {/* ---- the offer ---- */}
             <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b1f5c] via-[#1e3a8a] to-[#2563eb] p-4 sm:p-5 text-white">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                         <p className="flex items-center gap-2 text-[1rem] font-semibold uppercase tracking-[0.18em] text-[#f8e7b0]">
-                            <Crown className="h-4 w-4" /> Platinum lifetime membership
+                            <Crown className="h-4 w-4" /> Lifetime membership
                         </p>
                         <p className="mt-1 font-display text-[2rem] sm:text-[2.5rem] font-bold">{rupees(price)}</p>
                         <p className="text-[1.125rem] text-white/75">One payment at the office · never renews · granted here</p>
@@ -437,7 +469,7 @@ export default function PlatinumMembers() {
                     <div className="grid grid-cols-2 gap-2 text-center">
                         <div className="rounded-xl bg-white/10 px-3 py-2">
                             <p className="font-display text-[1.625rem] font-bold">{loading ? '—' : members.length}</p>
-                            <p className="text-[1.125rem] text-white/70">Platinum members</p>
+                            <p className="text-[1.125rem] text-white/70">Lifetime members</p>
                         </div>
                         <div className="rounded-xl bg-white/10 px-3 py-2">
                             <p className="grid place-items-center"><InfinityIcon className="h-6 w-6" /></p>
@@ -446,7 +478,7 @@ export default function PlatinumMembers() {
                     </div>
                 </div>
                 <p className="mt-3 text-[1rem] text-white/60">
-                    The price is the Platinum plan in the list above — edit it there. Members see it advertised on their dashboard.
+                    The price is the Lifetime plan in the list above — edit it there. Members see it advertised on their dashboard.
                 </p>
             </div>
 
@@ -455,7 +487,7 @@ export default function PlatinumMembers() {
 
             {/* ---- grant ---- */}
             <div className="mt-5">
-                <h3 className="font-display text-[1.5rem] font-semibold text-slate-900">Make a member Platinum</h3>
+                <h3 className="font-display text-[1.5rem] font-semibold text-slate-900">Make a member Lifetime</h3>
                 <p className="text-[1.125rem] text-slate-500">Search by name, email, mobile or Member ID. Their application must be approved.</p>
                 <div className="relative mt-3">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -471,6 +503,7 @@ export default function PlatinumMembers() {
                 <ul className="mt-3 space-y-2">
                     {results.map((m) => (
                         <li key={m.id} className="rounded-xl border border-slate-200 p-3">
+                            <AccountEditor member={m} onSaved={accountSaved} />
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="min-w-0">
                                     <p className="flex flex-wrap items-center gap-2 font-semibold text-slate-900">
@@ -481,13 +514,13 @@ export default function PlatinumMembers() {
                                     <p className="truncate text-[1rem] text-slate-400">{[m.membershipNumber, region(m)].filter(Boolean).join(' · ')}</p>
                                 </div>
                                 {m.membershipTier === 'platinum' ? (
-                                    <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-700"><Check className="h-4 w-4" /> Platinum</span>
+                                    <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-700"><Check className="h-4 w-4" /> Lifetime</span>
                                 ) : m.blockedReason && !m.canAdmitManually ? (
                                     <span className="text-[1.0625rem] text-amber-700 sm:max-w-[16rem] sm:text-right">{m.blockedReason}</span>
                                 ) : granting === m.id ? null : (
                                     <button type="button" onClick={() => setGranting(m.id)}
                                         className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 font-semibold text-white sm:w-auto">
-                                        <Crown className="h-4 w-4" /> Make Platinum
+                                        <Crown className="h-4 w-4" /> Make Lifetime
                                     </button>
                                 )}
                             </div>
@@ -501,17 +534,18 @@ export default function PlatinumMembers() {
 
             {/* ---- the list ---- */}
             <div className="mt-6">
-                <h3 className="font-display text-[1.5rem] font-semibold text-slate-900">Platinum members</h3>
+                <h3 className="font-display text-[1.5rem] font-semibold text-slate-900">Lifetime members</h3>
                 {loading ? (
                     <p className="mt-3 flex items-center gap-2 text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</p>
                 ) : members.length === 0 ? (
                     <p className="mt-3 rounded-xl bg-slate-50 p-4 text-[1.125rem] text-slate-500">
-                        No Platinum members yet. Search above to grant the first one.
+                        No Lifetime members yet. Search above to grant the first one.
                     </p>
                 ) : (
                     <ul className="mt-3 space-y-2">
                         {members.map((m) => (
                             <li key={m.id} className="rounded-xl border border-slate-200 p-3">
+                                <AccountEditor member={m} onSaved={accountSaved} />
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">
                                         <p className="flex flex-wrap items-center gap-2 font-semibold text-slate-900">

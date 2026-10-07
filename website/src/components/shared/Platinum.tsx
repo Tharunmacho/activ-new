@@ -26,7 +26,7 @@ import {
 
 const GOLD = 'text-[#f5d27a]';
 
-export function PlatinumBadge({ size = 'md', label = 'Platinum' }: { size?: 'sm' | 'md' | 'lg'; label?: string }) {
+export function PlatinumBadge({ size = 'md', label = 'Lifetime' }: { size?: 'sm' | 'md' | 'lg'; label?: string }) {
     const pad = size === 'sm' ? 'px-2 py-0.5 text-[0.75rem]' : size === 'lg' ? 'px-3.5 py-1.5 text-base' : 'px-2.5 py-1 text-[0.8125rem]';
     const icon = size === 'lg' ? 'h-4 w-4' : size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5';
     return (
@@ -65,8 +65,8 @@ export const usePlatinumPrice = (): number | null => {
 
 const BENEFITS = [
     { icon: InfinityIcon, title: 'Member for life', text: 'One payment — no renewal, ever.' },
-    { icon: BadgeCheck, title: 'Platinum badge', text: 'On your dashboard and your membership certificate.' },
-    { icon: Award, title: 'Recognised at ACTIV', text: 'Acknowledged as a Platinum member at association conclaves.' },
+    { icon: BadgeCheck, title: 'Lifetime badge', text: 'On your dashboard and your membership certificate.' },
+    { icon: Award, title: 'Recognised at ACTIV', text: 'Acknowledged as a Lifetime member at association conclaves.' },
     { icon: CalendarCheck, title: 'First to hear', text: 'Early word on ACTIV events and business programmes.' },
     { icon: Headset, title: 'A direct line', text: 'The ACTIV office looks after your membership personally.' },
     { icon: Sparkles, title: 'Everything included', text: 'Every member benefit, for as long as you are a member.' },
@@ -80,7 +80,7 @@ const CONTACTS: { key: PlatinumContact; label: string; icon: typeof Phone }[] = 
 
 const STATUS_COPY: Record<string, { title: string; text: string }> = {
     new: { title: 'We have your request', text: 'The ACTIV office will contact you within two working days.' },
-    contacted: { title: 'The office has been in touch', text: 'Complete the payment at the office and your membership is upgraded to Platinum.' },
+    contacted: { title: 'The office has been in touch', text: 'Complete the payment at the office and your membership is upgraded to Lifetime.' },
 };
 
 function ApplyForm({ onDone, onCancel }: { onDone: (r: PlatinumRequest) => void; onCancel: () => void }) {
@@ -133,7 +133,7 @@ function ApplyForm({ onDone, onCancel }: { onDone: (r: PlatinumRequest) => void;
                 </label>
             </div>
             <p className="mt-3 text-[0.875rem] text-slate-500">
-                Nothing is charged online. The office explains the next steps; Platinum is paid at the office and
+                Nothing is charged online. The office explains the next steps; Lifetime is paid at the office and
                 activated for you once your membership application is approved.
             </p>
             <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -187,15 +187,15 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
             <div className={`relative flex flex-col lg:flex-row lg:items-start lg:justify-between ${compact ? 'gap-3' : 'gap-5'}`}>
                 <div className="min-w-0 max-w-2xl">
                     <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.8125rem] font-semibold uppercase tracking-[0.16em] ring-1 ring-white/20">
-                        <Crown className={`h-4 w-4 ${GOLD}`} /> Platinum lifetime membership
+                        <Crown className={`h-4 w-4 ${GOLD}`} /> Lifetime membership
                     </p>
                     <h3 className={`font-display font-bold leading-tight ${compact ? 'mt-2 text-[1.25rem] sm:text-[1.5rem]' : 'mt-3 text-[1.75rem] sm:text-[2.25rem]'}`}>
                         Join once. Stay an ACTIV member for life.
                     </h3>
                     <p className={`text-blue-100 ${compact ? 'mt-1 text-[0.9375rem]' : 'mt-2 text-[1rem] sm:text-[1.0625rem]'}`}>
                         {context === 'application'
-                            ? 'Building a business? Platinum makes your membership permanent — one payment, no renewals, and the association’s highest recognition.'
-                            : 'Upgrade to Platinum: one payment makes your membership permanent, with the association’s highest recognition.'}
+                            ? 'Building a business? Lifetime makes your membership permanent — one payment, no renewals, and the association’s highest recognition.'
+                            : 'Upgrade to Lifetime: one payment makes your membership permanent, with the association’s highest recognition.'}
                     </p>
                 </div>
                 <div className={`shrink-0 rounded-2xl bg-white/10 ring-1 ring-white/20 backdrop-blur-sm ${compact ? 'p-3 sm:p-4 lg:min-w-[12rem]' : 'p-4 sm:p-5 lg:min-w-[15rem]'}`}>
@@ -235,7 +235,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
                     <X className="h-4 w-4 shrink-0 text-blue-200" /> <span><strong className="text-white">Annual membership</strong> — renew every year</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-blue-900">
-                    <Check className="h-4 w-4 shrink-0 text-emerald-600" /> <span><strong>Platinum</strong> — pay once, never renew</span>
+                    <Check className="h-4 w-4 shrink-0 text-emerald-600" /> <span><strong>Lifetime</strong> — pay once, never renew</span>
                 </div>
             </div>
             )}
@@ -243,7 +243,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
             {/* ---- the way in ---- */}
             <div className={`relative ${compact ? 'mt-4' : 'mt-6'}`}>
                 {!member ? (
-                    <p className="text-[0.9375rem] text-blue-100">Sign in as a member to apply for Platinum.</p>
+                    <p className="text-[0.9375rem] text-blue-100">Sign in as a member to apply for Lifetime.</p>
                 ) : !state.loaded ? null : openRequest ? (
                     <div className="flex items-start gap-3 rounded-2xl bg-white p-4 text-slate-800">
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700"><Clock className="h-5 w-5" /></span>
@@ -259,7 +259,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
                         <button type="button" onClick={() => setOpen(true)}
                             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-base font-bold text-blue-800
                                        shadow-lg transition-transform hover:-translate-y-0.5 sm:w-auto">
-                            <Crown className="h-5 w-5 text-[#d4a72c]" /> Apply for Platinum
+                            <Crown className="h-5 w-5 text-[#d4a72c]" /> Apply for Lifetime
                         </button>
                         <p className="text-[0.9375rem] text-blue-100">No payment online — the ACTIV office calls you and explains everything.</p>
                     </div>

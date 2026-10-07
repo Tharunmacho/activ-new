@@ -27,10 +27,10 @@ export default function PlatinumWelcome({ name, greeting, memberId, memberSince,
         { label: 'Your documents', detail: 'Certificates and membership records.', Icon: FileText, onClick: onDocuments },
         { label: 'Payment receipt', detail: 'Your contribution, on record.', Icon: ReceiptText, onClick: onReceipt },
     ];
-    return <section aria-label="Platinum membership dashboard" className="platinum-welcome">
+    return <section aria-label="Lifetime membership dashboard" className="platinum-welcome">
         <div className="platinum-welcome__main">
             <div className="platinum-welcome__intro">
-                <span className="platinum-overline"><span className="platinum-overline__mark"><Crown size={15} /></span> THE PLATINUM MEMBERSHIP</span>
+                <span className="platinum-overline"><span className="platinum-overline__mark"><Crown size={15} /></span> LIFETIME MEMBERSHIP</span>
                 <p className="platinum-greeting">{greeting},</p>
                 <h2 className="platinum-name">{name}</h2>
                 <p className="platinum-welcome__copy">A lifetime of connection. <br />A world of possibility.</p>
@@ -39,11 +39,11 @@ export default function PlatinumWelcome({ name, greeting, memberId, memberSince,
             </div>
             <div className="platinum-card-stage">
                 <div className="platinum-card-stage__halo" aria-hidden="true" />
-                <button type="button" className="platinum-metal-card" onClick={onPlan} onPointerMove={tiltCard} onPointerLeave={resetTilt} onPointerCancel={resetTilt} aria-label={`View Platinum membership details for ${name}. Member ID ${memberId || 'not assigned'}. ${active ? 'Active' : 'Pending'}. Lifetime membership.`}>
+                <button type="button" className="platinum-metal-card" onClick={onPlan} onPointerMove={tiltCard} onPointerLeave={resetTilt} onPointerCancel={resetTilt} aria-label={`View Lifetime membership details for ${name}. Member ID ${memberId || 'not assigned'}. ${active ? 'Active' : 'Pending'}. Lifetime membership.`}>
                     <span className="platinum-card__grain" aria-hidden="true" />
                     <span className="platinum-card__contours" aria-hidden="true">{[0, 1, 2, 3, 4, 5, 6].map(i => <i key={i} style={{ inset: `${i * 11}px` }} />)}</span>
                     <span className="platinum-card__top"><span className="platinum-wordmark">ACTIV<span>MEMBERSHIP</span></span><span className="platinum-card__seal"><Crown size={21} strokeWidth={1.4} /></span></span>
-                    <span className="platinum-card__tier">Platinum<span>LIFETIME EDITION</span></span>
+                    <span className="platinum-card__tier">Lifetime<span>LIFETIME EDITION</span></span>
                     <span className="platinum-card__identity"><span className="platinum-card__label">MEMBER ID</span><span className="platinum-card__id">{memberId || 'Awaiting assignment'}</span></span>
                     <span className="platinum-card__bottom"><span className="platinum-card__holder">{name}<span>{memberSince ? `Member since ${memberSince}` : 'Lifetime member'}</span></span><span className={`platinum-card__status ${active ? 'is-active' : ''}`}><BadgeCheck size={13} />{active ? 'Active' : 'Pending'}</span></span>
                 </button>

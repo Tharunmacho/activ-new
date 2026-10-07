@@ -21,6 +21,7 @@ export interface PlatinumCandidate {
     fullName: string;
     email: string;
     phoneNumber: string;
+    whatsappNumber?: string;
     block: string;
     district: string;
     state: string;
@@ -123,7 +124,7 @@ export const updatePlatinumRequest = async (id: string, body: { status?: Platinu
     unwrap<PlatinumRequest>(await api.patch(`${BASE}/requests/${encodeURIComponent(id)}`, body), null as unknown as PlatinumRequest);
 
 export const getPlatinumOverview = async (): Promise<PlatinumOverview> =>
-    unwrap<PlatinumOverview>(await api.get(BASE), { plan: { name: 'Platinum Lifetime', price: 200000, active: true }, members: [] });
+    unwrap<PlatinumOverview>(await api.get(BASE), { plan: { name: 'Lifetime membership', price: 200000, active: true }, members: [] });
 
 export const searchPlatinumCandidates = async (q: string): Promise<PlatinumCandidate[]> =>
     unwrap<PlatinumCandidate[]>(await api.get(`${BASE}/search`, { params: { q } }), []);
@@ -137,3 +138,6 @@ export const revokePlatinum = async (memberId: string): Promise<PlatinumCandidat
     unwrap<PlatinumCandidate>(await api.delete(`${BASE}/${encodeURIComponent(memberId)}`), null as unknown as PlatinumCandidate);
 export const createPlatinumAccount = async (body: { fullName: string; email: string; password: string; phoneNumber: string; whatsappNumber: string; state: string; district: string; block: string }) =>
     unwrap<PlatinumCandidate>(await api.post(`${BASE}/accounts`, body), null as unknown as PlatinumCandidate);
+
+export const updatePlatinumAccount = async (id: string, body: { email: string; phoneNumber: string; whatsappNumber: string; password?: string }) =>
+    unwrap<PlatinumCandidate>(await api.patch(`${BASE}/${encodeURIComponent(id)}/account`, body), null as unknown as PlatinumCandidate);

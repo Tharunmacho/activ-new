@@ -380,7 +380,7 @@ export default function PaidDashboard() {
     /* Platinum is the lifetime tier the Super Admin grants — always lifetime. */
     const platinum = isPlatinumProfile(profile);
     const lifetime = platinum || membershipType.toLowerCase() === 'lifetime';
-    const planTitle = platinum ? 'Platinum Lifetime Membership' : (profile?.paidMembership?.planName || planLabel(plan) || 'Member');
+    const planTitle = platinum ? 'Lifetime membership Membership' : (profile?.paidMembership?.planName || planLabel(plan) || 'Member');
     const expiresAt = useMemo(() => {
         if (lifetime) return '';
         if (profile?.membershipExpiresAt) return profile.membershipExpiresAt;
@@ -447,7 +447,7 @@ export default function PaidDashboard() {
             tint: 'bg-violet-50 text-violet-600', issued: true,
         },
         {
-            label: 'Membership Plan', detail: platinum ? 'Platinum Lifetime' : (planLabel(plan) || 'Your plan'),
+            label: 'Membership Plan', detail: platinum ? 'Lifetime membership' : (planLabel(plan) || 'Your plan'),
             to: '/member/plan', icon: BadgeCheck,
             tint: 'bg-amber-50 text-amber-600', issued: false,
         },
@@ -472,7 +472,7 @@ export default function PaidDashboard() {
     }
 
     return (
-        <MemberPageShell title={platinum ? 'Your Platinum space' : 'Dashboard'} subtitle={platinum ? 'A lifetime with ACTIV' : 'Your membership at a glance'} width="wide">
+        <MemberPageShell title={platinum ? 'Your Lifetime space' : 'Dashboard'} subtitle={platinum ? 'A lifetime with ACTIV' : 'Your membership at a glance'} width="wide">
             <div className={`space-y-4 sm:space-y-6 ${platinum ? 'platinum-dashboard' : ''}`}>
 
                 {/* The last 30 days of the year: renewal is open, and said first. */}
@@ -656,7 +656,7 @@ export default function PaidDashboard() {
                             */}
                             <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-2.5">
                                 {platinum ? (
-                                    <PlatinumBadge size="lg" label="Platinum Lifetime Member" />
+                                    <PlatinumBadge size="lg" label="Lifetime membership Member" />
                                 ) : plan && (
                                     <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 sm:py-2.5
                                                      text-base sm:text-[1.375rem] font-bold text-white ring-1 ring-white/25

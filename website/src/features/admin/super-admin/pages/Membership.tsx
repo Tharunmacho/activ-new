@@ -604,7 +604,7 @@ export default function SuperAdminMembership() {
                                         <option value="business">A company — priced by years trading</option>
                                         <option value="aspirant">An aspirant — no company</option>
                                         <option value="student">A student — no company</option>
-                                        <option value="platinum">Platinum — lifetime, granted by Super Admin (not paid online)</option>
+                                        <option value="platinum">Lifetime — lifetime, granted by Super Admin (not paid online)</option>
                                     </select>
                                 </Field>
 
@@ -803,7 +803,7 @@ export default function SuperAdminMembership() {
                                 onDelete={removePlan}
                             />
                             <PlanGroup
-                                title="Platinum plan"
+                                title="Lifetime plan"
                                 hint="Lifetime membership, paid offline and granted by the Super Admin. Never offered to applicants online."
                                 icon={<Crown className="w-4 h-4 text-amber-600" />}
                                 plans={platinum}

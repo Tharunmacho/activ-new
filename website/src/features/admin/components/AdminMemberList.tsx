@@ -23,7 +23,7 @@ const day = (v?: string | null) => {
 
 /** A membership-kind badge: icon + colour per kind. */
 export function MembershipTypeBadge({ member }: { member: Pick<AdminMember, 'kind' | 'kindLabel' | 'platinum' | 'lifetime'> }) {
-    if (member.platinum) return <PlatinumBadge size="sm" label="Platinum" />;
+    if (member.platinum) return <PlatinumBadge size="sm" label="Lifetime" />;
     const style: Record<string, { icon: ReactNode; cls: string }> = {
         business: { icon: <Briefcase className="h-3.5 w-3.5" />, cls: 'bg-blue-50 text-blue-700 ring-blue-200' },
         aspirant: { icon: <Sparkles className="h-3.5 w-3.5" />, cls: 'bg-sky-50 text-sky-700 ring-sky-200' },

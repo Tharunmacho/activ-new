@@ -193,7 +193,7 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
     const dates = keep([
         { icon: CalendarDays, label: 'Date of Membership', value: date(cert.memberSince || cert.activatedAt) },
         { icon: CalendarCheck, label: 'Valid Till', value: validTill },
-        { icon: BadgeCheck, label: 'Membership', value: platinum ? 'Platinum Lifetime Member' : '' },
+        { icon: BadgeCheck, label: 'Membership', value: platinum ? 'Lifetime membership Member' : '' },
     ]);
     const columns = identity.length <= 3
         ? [[...identity, ...dates], address]
@@ -234,7 +234,7 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
                     </p>
                     <span className="mx-auto mt-1 block h-[1.5px] w-[440px]" style={{ background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)` }} />
                     <p className="mt-1 text-[17px]" style={{ color: INK }}>
-                        has been admitted as {platinum ? 'a Platinum Lifetime Member' : 'an official member'} of
+                        has been admitted as {platinum ? 'a Lifetime membership Member' : 'an official member'} of
                     </p>
                     <p className="text-[20px] font-bold" style={{ color: NAVY }}>ACTIV</p>
                 </div>

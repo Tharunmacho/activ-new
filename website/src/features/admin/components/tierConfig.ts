@@ -225,7 +225,7 @@ export const TIERS: Record<AdminTier, TierConfig> = {
                 to: '/super-admin/membership-registrations', label: 'Membership', icon: 'shield',
                 children: [
                     { to: '/super-admin/membership-registrations', label: 'Registrations & payments', icon: 'users' },
-                    { to: '/super-admin/membership', label: 'Plans & Platinum', icon: 'shield' },
+                    { to: '/super-admin/membership', label: 'Plans & Lifetime', icon: 'shield' },
                 ],
             },
             // Who donated, how much, and their 80G receipts and year certificates.

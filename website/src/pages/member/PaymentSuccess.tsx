@@ -128,7 +128,7 @@ export default function PaymentSuccess() {
     const platinum = order ? kind === 'platinum' : String(profile?.membershipTier || '').toLowerCase() === 'platinum';
     const typeRaw = String(order?.membershipType || profile?.membershipType || '').toLowerCase();
     const lifetime = typeRaw === 'lifetime' || platinum;
-    const planName = order?.planName || profile?.paidMembership?.planName || (platinum ? 'Platinum Lifetime' : [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership');
+    const planName = order?.planName || profile?.paidMembership?.planName || (platinum ? 'Lifetime membership' : [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership');
     const period = lifetime ? 'Lifetime' : typeRaw === 'annual' ? 'Annual' : '';
     const paidAt = order?.paidAt || profile?.lastPaymentDate || profile?.membershipActivatedAt || null;
     const amount = order?.amount ?? profile?.lastPaymentAmount ?? profile?.paymentAmount;

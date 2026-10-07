@@ -94,7 +94,7 @@ export default function PlatinumRequestDetails({ requestId }: { requestId: strin
             <Section icon={<BadgeCheck className="h-4 w-4" />} title="Membership & application">
                 <Row label="Member ID" value={ms.memberNumber} />
                 <Row label="Member type" value={words(ms.memberType)} />
-                <Row label="Membership" value={`${words(ms.status)}${ms.type && ms.type !== 'none' ? ` · ${words(ms.type)}` : ''}${ms.tier === 'platinum' ? ' · Platinum' : ''}`} />
+                <Row label="Membership" value={`${words(ms.status)}${ms.type && ms.type !== 'none' ? ` · ${words(ms.type)}` : ''}${ms.tier === 'platinum' ? ' · Lifetime' : ''}`} />
                 <Row label="Member since" value={day(ms.activatedAt)} />
                 <Row label="Valid until" value={ms.tier === 'platinum' || ms.type === 'lifetime' ? 'Lifetime' : day(ms.expiresAt)} />
                 <Row label="Last payment" value={ms.lastPaymentAmount ? `₹${Number(ms.lastPaymentAmount).toLocaleString('en-IN')}${ms.lastPaymentDate ? ` · ${day(ms.lastPaymentDate)}` : ''}` : ''} />
@@ -138,7 +138,7 @@ export default function PlatinumRequestDetails({ requestId }: { requestId: strin
 
             {earlier.length ? (
                 <div className="lg:col-span-2">
-                    <Section icon={<History className="h-4 w-4" />} title="Earlier Platinum requests">
+                    <Section icon={<History className="h-4 w-4" />} title="Earlier Lifetime requests">
                         {earlier.map((h) => (
                             <Row key={h.id} label={day(h.createdAt)} value={`${words(h.status)}${h.notes ? ` — ${h.notes}` : ''}`} wide />
                         ))}
