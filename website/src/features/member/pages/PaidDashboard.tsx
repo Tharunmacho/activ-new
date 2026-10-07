@@ -472,7 +472,7 @@ export default function PaidDashboard() {
     }
 
     return (
-        <MemberPageShell title={platinum ? 'Your Lifetime space' : 'Dashboard'} subtitle={platinum ? 'A lifetime with ACTIV' : 'Your membership at a glance'} width="wide">
+        <MemberPageShell title={platinum ? 'Lifetime Membership' : 'Dashboard'} subtitle={platinum ? 'Your connection to the ACTIV community' : 'Your membership at a glance'} width="wide" appearance={platinum ? 'gold' : 'default'}>
             <div className={`space-y-4 sm:space-y-6 ${platinum ? 'platinum-dashboard' : ''}`}>
 
                 {/* The last 30 days of the year: renewal is open, and said first. */}
@@ -825,7 +825,7 @@ export default function PaidDashboard() {
                             beside it. Four abreast left a short row floating in
                             the middle of a tall card (the body centres its
                             content), so the two cards never lined up. */}
-                        <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-2">
+                        <div className="lifetime-tiles grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-2">
                             {QUICK_ACTIONS.map(({ label, detail, icon: Icon, to, tint, ink }) => (
                                 <button
                                     key={label}
@@ -888,7 +888,7 @@ export default function PaidDashboard() {
                             abreast until there is room for four. */}
                         {/* Always two abreast: this card is HALF the page wide, and four
                             tiles in it split "Membership" into "Membershi / p". */}
-                        <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-2">
+                        <div className="lifetime-tiles grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-2">
                             {DOCUMENTS.map((doc) => (
                                 <button
                                     key={doc.to}

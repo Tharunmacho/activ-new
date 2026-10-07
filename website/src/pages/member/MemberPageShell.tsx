@@ -71,6 +71,7 @@ export default function MemberPageShell({
     subtitle,
     actions,
     width = 'standard',
+    appearance = 'default',
     sidebar = true,
     backTo = '/member/unpaid-dashboard',
     onBack,
@@ -89,6 +90,7 @@ export default function MemberPageShell({
     subtitle?: string;
     actions?: ReactNode;
     width?: ShellWidth;
+    appearance?: 'default' | 'gold';
     /** False for a linear flow — see the note above. */
     sidebar?: boolean;
     /** Where the back arrow goes when there is no sidebar. */
@@ -107,7 +109,7 @@ export default function MemberPageShell({
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen flex bg-white font-sans">
+        <div className={`min-h-screen flex bg-white font-sans ${appearance === 'gold' ? 'member-shell--gold' : ''}`}>
             {sidebar ? (
                 <MemberSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             ) : null}
