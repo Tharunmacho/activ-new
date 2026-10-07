@@ -380,7 +380,7 @@ export default function PaidDashboard() {
     /* Platinum is the lifetime tier the Super Admin grants — always lifetime. */
     const platinum = isPlatinumProfile(profile);
     const lifetime = platinum || membershipType.toLowerCase() === 'lifetime';
-    const planTitle = platinum ? 'Lifetime membership Membership' : (profile?.paidMembership?.planName || planLabel(plan) || 'Member');
+    const planTitle = platinum ? 'Lifetime membership' : (profile?.paidMembership?.planName || planLabel(plan) || 'Member');
     const expiresAt = useMemo(() => {
         if (lifetime) return '';
         if (profile?.membershipExpiresAt) return profile.membershipExpiresAt;

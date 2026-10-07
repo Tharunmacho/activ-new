@@ -193,7 +193,7 @@ export default function MembershipPlanDetails() {
                                     Your membership
                                 </p>
                                 <h2 className={`${PAGE_TITLE} mt-1`}>
-                                    {profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
+                                    {profile?.membershipTier === 'platinum' ? 'Lifetime membership' : profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
                                 </h2>
                                 {membershipType && (
                                     <p className="mt-0.5 text-[1.1875rem] font-semibold text-white/80">
