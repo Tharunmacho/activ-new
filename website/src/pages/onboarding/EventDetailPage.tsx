@@ -147,8 +147,22 @@ export default function EventDetailPage() {
     const [availability, setAvailability] = useState<BookableEvent | null>(null);
     const [loading, setLoading] = useState(true);
     const [missing, setMissing] = useState(false);
+    const [now, setNow] = useState(() => new Date());
     // Portrait poster? Decided from the loaded image; see the banner below.
     const [bannerTall, setBannerTall] = useState(false);
+
+    // Recheck time while the page stays open and when a reader returns to it.
+    useEffect(() => {
+        const refreshTime = () => setNow(new Date());
+        const interval = window.setInterval(refreshTime, 60_000);
+        window.addEventListener('focus', refreshTime);
+        document.addEventListener('visibilitychange', refreshTime);
+        return () => {
+            window.clearInterval(interval);
+            window.removeEventListener('focus', refreshTime);
+            document.removeEventListener('visibilitychange', refreshTime);
+        };
+    }, []);
 
     /*
      * ONE ADDRESS PER EVENT. Opened by its old id link, the address bar is
@@ -521,17 +535,18 @@ export default function EventDetailPage() {
         href?: string;
     }[];
 
-    const countdown = countdownLabel(event.startAt);
+    const countdown = countdownLabel(event.startAt, now);
     /*
      * Ahead, on, or over - and an end time is respected where there is one.
      * Deciding this from the start time alone called a running event finished.
      */
-    const phase = eventPhase(event);
+    const phase = eventPhase(event, now);
     const hasPassed = phase === 'past';
     const isLive = phase === 'live';
 
-    /* Same category first, then anything else — and never this event itself. */
-    const others = (related || []).filter(e => e.id !== event.id);
+    // Exclude finished events before prioritising the category and limiting the row.
+    // The shared phase logic keeps ongoing events until their end time.
+    const others = (related || []).filter(e => e.id !== event.id && eventPhase(e, now) !== 'past');
     const sameCategory = event.category ? others.filter(e => e.category === event.category) : [];
     const moreEvents = [...sameCategory, ...others.filter(e => !sameCategory.includes(e))].slice(0, 4);
 
