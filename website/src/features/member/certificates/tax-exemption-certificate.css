@@ -1,0 +1,74 @@
+.tax-certificate {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  color: #182d50;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.tax-certificate__frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.tax-certificate__flow { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 42px 70px 32px; }
+.tax-certificate__header { flex-shrink: 0; text-align: center; }
+.tax-certificate__logo { display: block; width: 266px; height: 84px; object-fit: contain; margin: 0 auto 28px; }
+.tax-certificate__association { margin: 0; font-size: 15px; line-height: 1.4; font-weight: 600; letter-spacing: .75px; text-transform: uppercase; }
+.tax-certificate__header h1 { margin: 17px -8px 0; font-family: inherit; color: #091e50; font-size: 43px; line-height: 1.2; letter-spacing: -1.1px; font-weight: 700; }
+.tax-certificate__section { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 13px 0 0; color: #233a5c; font-size: 12.5px; font-weight: 600; letter-spacing: 2.2px; line-height: 1.5; text-transform: uppercase; white-space: nowrap; }
+.tax-certificate__section > span { height: 1.5px; flex: 1; background: #c5a365; }
+.tax-certificate__stamp { width: fit-content; max-width: 100%; margin: 13px auto 0; padding: 3px 10px; border: 1px solid #ddc79c; border-radius: 4px; color: #705321; background: #fffbf0; font-size: 11px; line-height: 1.5; }
+.tax-certificate__body { flex-shrink: 0; margin-top: 40px; }
+.tax-certificate__details { margin: 0; display: flex; flex-direction: column; gap: 3px; font-size: 16px; line-height: 1.6; }
+.tax-certificate__details > div { display: flex; align-items: baseline; gap: 10px; }
+.tax-certificate__details dt { flex-shrink: 0; color: #102e5a; font-weight: 700; }
+.tax-certificate__details dd { min-width: 0; overflow-wrap: anywhere; }
+.tax-certificate__contribution { margin: 29px 0 0; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
+.tax-certificate strong { color: #102c59; font-weight: 700; }
+.tax-certificate__payments { width: 100%; margin-top: 25px; border: 1px solid #ccdaea; border-collapse: separate; border-spacing: 0; border-radius: 6px; overflow: hidden; table-layout: fixed; font-size: 15px; line-height: 1.5; }
+.tax-certificate__date-column { width: 27%; }
+.tax-certificate__amount-column { width: 32%; }
+.tax-certificate__payments th { background: #edf1f6; color: #102e5a; font-weight: 700; }
+.tax-certificate__payments td,
+.tax-certificate__payments th { padding: 9px 17px; text-align: right; vertical-align: middle; overflow-wrap: anywhere; }
+.tax-certificate__payments td:first-child,
+.tax-certificate__payments th:first-child { text-align: left; }
+.tax-certificate__payments tr > * + * { border-left: 1px solid #ccdaea; }
+.tax-certificate__payments tbody td { border-top: 1px solid #ccdaea; }
+.tax-certificate__payment-mode { display: block; margin-top: 1px; color: #536987; font-size: 10.5px; line-height: 1.35; }
+.tax-certificate__thanks { margin: 28px 0 0; font-size: 16px; line-height: 1.65; }
+.tax-certificate__address { margin-top: 28px; font-size: 13px; line-height: 1.55; font-style: normal; color: #455e80; }
+.tax-certificate__closing { flex-shrink: 0; margin-top: auto; padding-top: 22px; }
+.tax-certificate__motto { display: flex; align-items: center; justify-content: center; gap: 17px; }
+.tax-certificate__motto p { margin: 0; color: #455e80; font-size: 12.5px; line-height: 1.55; font-style: italic; text-align: center; }
+.tax-certificate__motto > span { height: 1px; flex: 1; background: #c5a365; }
+.tax-certificate__footer { margin-top: 23px; padding-top: 12px; border-top: 1px solid #cfdae8; text-align: center; }
+.tax-certificate__footer-name { margin: 0; color: #12366a; font-size: 13px; line-height: 1.5; font-weight: 700; letter-spacing: .35px; text-transform: uppercase; }
+.tax-certificate__footer-address { display: flex; align-items: flex-start; justify-content: center; gap: 8px; margin: 7px 0 0; color: #315583; font-size: 10.5px; line-height: 1.5; }
+.tax-certificate__footer-address svg { flex-shrink: 0; margin-top: 1px; }
+.tax-certificate__contacts { display: flex; align-items: center; justify-content: center; gap: 13px; margin-top: 8px; font-size: 10.5px; line-height: 1.5; color: #315583; }
+.tax-certificate__contacts > span { display: flex; align-items: center; gap: 7px; }
+.tax-certificate__contacts i { display: block; height: 12px; border-left: 1px solid #9fb3cf; }
+.tax-certificate__reference { width: fit-content; max-width: 100%; margin: 11px auto 0; padding: 8px 12px 0; border-top: 1px solid #cfdae8; color: #315583; font-size: 10px; line-height: 1.65; }
+.tax-certificate__reference p { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin: 0; }
+.tax-certificate__reference p + p { margin-top: 3px; }
+.tax-certificate__reference span { overflow-wrap: anywhere; min-width: 0; }
+.tax-certificate__reference span + span { padding-left: 12px; border-left: 1px solid #a8bbd3; }
+/* Annual statements keep every payment while using less decorative whitespace. */
+.tax-certificate--dense .tax-certificate__flow { padding-top: 28px; }
+.tax-certificate--dense .tax-certificate__logo { height: 64px; margin-bottom: 17px; }
+.tax-certificate--dense .tax-certificate__header h1 { font-size: 38px; margin-top: 12px; }
+.tax-certificate--dense .tax-certificate__body { margin-top: 22px; }
+.tax-certificate--dense .tax-certificate__contribution { margin-top: 18px; font-size: 14px; line-height: 1.6; }
+.tax-certificate--dense .tax-certificate__payments { margin-top: 18px; font-size: 12px; }
+.tax-certificate--dense .tax-certificate__payments th,
+.tax-certificate--dense .tax-certificate__payments td { padding: 4px 12px; }
+.tax-certificate--dense .tax-certificate__payment-mode { display: inline; margin-left: 6px; font-size: 9px; }
+.tax-certificate--dense .tax-certificate__thanks { margin-top: 20px; font-size: 14px; }
+.tax-certificate--dense .tax-certificate__address { margin-top: 18px; font-size: 12px; }
+.tax-certificate--dense .tax-certificate__closing { padding-top: 18px; }
+.tax-certificate--dense .tax-certificate__footer { margin-top: 16px; }

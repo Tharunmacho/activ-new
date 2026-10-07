@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Printer, Loader2, AlertCircle, CalendarRange } from 'lucide-react';
 import TaxExemptionCertificate from '@/features/member/certificates/TaxExemptionCertificate';
+import CertificatePreview from '@/features/member/certificates/CertificatePreview';
 import type { Certificate } from '@/services/activApi';
 import { errorMessage } from '@/services/api';
 import {
@@ -127,7 +128,7 @@ function State({ loading, error }: { loading: boolean; error: string }) {
 
 function Sheet({ children }: { children: React.ReactNode }) {
     return (
-        <div className="max-md:[zoom:0.75] max-sm:[zoom:0.42] print:[zoom:1]">{children}</div>
+        <CertificatePreview>{children}</CertificatePreview>
     );
 }
 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Printer, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { getCertificate, errorMessage, type Certificate } from '@/services/activApi';
 import MemberCertificate from '@/features/member/certificates/MemberCertificate';
+import CertificatePreview from '@/features/member/certificates/CertificatePreview';
 
 /**
  * A member's certificate, laid out to be printed.
@@ -73,32 +74,15 @@ export default function CertificatePage() {
         );
     }
 
-    /*
-     * The chrome has to be as wide as the sheet under it, and the two sheets
-     * are not the same width any more: the membership certificate is A4
-     * landscape (297mm) and the tax certificate is A5 portrait (148mm). At a
-     * fixed 210mm the Back and Print buttons sat inside the edges of one and
-     * outside the edges of the other.
-     */
-    // Tax: A4 portrait (210mm), to the association's template. Membership: A4 landscape.
+    // The toolbar follows the paper width: A4 portrait for tax, landscape for membership.
     const sheetWidth = cert.kind === 'tax-exemption' ? '210mm' : '297mm';
-
-    /*
-     * The sheet is laid out at its paper size (1123px landscape, 794px
-     * portrait), so a phone is shown the whole page zoomed down rather than a
-     * corner of it. `zoom`, not `transform`, because zoom also shrinks the space
-     * the sheet takes up. Print always gets the real size.
-     */
-    const fitToScreen = cert.kind === 'tax-exemption'
-        ? 'max-lg:[zoom:0.9] max-md:[zoom:0.75] max-sm:[zoom:0.4]'
-        : 'max-xl:[zoom:0.85] max-lg:[zoom:0.62] max-md:[zoom:0.5] max-sm:[zoom:0.28]';
 
     return (
         <div className="min-h-screen overflow-x-auto bg-[#eef1f8] px-4 py-6 sm:py-10 print:overflow-visible
                         print:bg-white print:p-0">
             {/* Chrome — on screen only. */}
             <div
-                className="mx-auto mb-4 sm:mb-6 flex items-center justify-between gap-3 print:hidden"
+                className="mx-auto mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden"
                 style={{ maxWidth: sheetWidth }}
             >
                 <button
@@ -119,9 +103,9 @@ export default function CertificatePage() {
                 </button>
             </div>
 
-            <div className={`${fitToScreen} print:[zoom:1]`}>
+            <CertificatePreview widthMm={cert.kind === 'tax-exemption' ? 210 : 297}>
                 <MemberCertificate cert={cert} />
-            </div>
+            </CertificatePreview>
         </div>
     );
 }
