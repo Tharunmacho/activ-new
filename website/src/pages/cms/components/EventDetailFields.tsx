@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Plus, Trash2, Clock, ChevronDown, ChevronUp, User, MapPin, Video } from 'lucide-react';
 // `RegistrationFormBuilder` itself is no longer rendered — the per-event
 // question builder was removed from the form. The TYPE stays: every saved
@@ -253,15 +253,42 @@ export default function EventDetailFields({
      * form can do is visible until someone chooses otherwise.
      */
     const [open, setOpen] = useState(true);
-    const set = (patch: Partial<EventDetail>) => onChange({ ...value, ...patch });
+    const latest = useRef({ value, onChange });
+    latest.current = { value, onChange };
+    const set = (patch: Partial<EventDetail>) => latest.current.onChange({ ...latest.current.value, ...patch });
+    // Stable row keys keep an in-flight photo upload attached to its guest
+    // when the editor moves a row or changes that guest's name.
+    const speakerKeys = useRef(new WeakMap<CmsSpeaker, string>());
+    const nextSpeakerKey = useRef(0);
+    const speakerKey = (row: CmsSpeaker) => {
+        let key = speakerKeys.current.get(row);
+        if (!key) {
+            key = String(++nextSpeakerKey.current);
+            speakerKeys.current.set(row, key);
+        }
+        return key;
+    };
 
     const updateAgenda = (index: number, patch: Partial<CmsAgendaItem>) => {
         const agenda = value.agenda.map((row, i) => (i === index ? { ...row, ...patch } : row));
         set({ agenda });
     };
 
-    const updateSpeaker = (index: number, patch: Partial<CmsSpeaker>) => {
-        const speakers = value.speakers.map((row, i) => (i === index ? { ...row, ...patch } : row));
+    const updateSpeaker = (key: string, patch: Partial<CmsSpeaker>) => {
+        const speakers = latest.current.value.speakers.map((row) => {
+            if (speakerKey(row) !== key) return row;
+            const updated = { ...row, ...patch };
+            speakerKeys.current.set(updated, key);
+            return updated;
+        });
+        set({ speakers });
+    };
+
+    const moveSpeaker = (index: number, direction: number) => {
+        const speakers = [...latest.current.value.speakers];
+        const target = index + direction;
+        if (target < 0 || target >= speakers.length) return;
+        [speakers[index], speakers[target]] = [speakers[target], speakers[index]];
         set({ speakers });
     };
 
@@ -456,8 +483,8 @@ export default function EventDetailFields({
                       * the event page prints whichever parts exist.
                       */}
                     <CmsSection
-                        title="Speakers"
-                        hint="Shown as cards on the event page. Add as many as you need."
+                        title="Guests and speakers"
+                        hint="Use Move up or Move down to set the display order, then save the event. Cards appear in this order on the event page."
                         actions={
                             <button
                                 type="button"
@@ -466,26 +493,48 @@ export default function EventDetailFields({
                                            font-medium text-blue-600 dark:text-blue-400 border
                                            border-blue-200 dark:border-blue-500/30 hover:bg-blue-500/10"
                             >
-                                <Plus className="w-3.5 h-3.5" /> Add speaker
+                                <Plus className="w-3.5 h-3.5" /> Add guest / speaker
                             </button>
                         }
                     >
                         {value.speakers.length === 0 ? (
                             <p className="text-[1.25rem] text-neutral-500 dark:text-neutral-400">
-                                No speakers yet. The event page simply leaves the section out.
+                                No guests or speakers yet. The event page simply leaves the section out.
                             </p>
                         ) : (
                             <div className="space-y-3">
-                                {value.speakers.map((row, index) => (
+                                {value.speakers.map((row, index) => {
+                                    const key = speakerKey(row);
+                                    const guest = row.name || `guest ${index + 1}`;
+                                    return (
                                     <div
-                                        key={index}
+                                        key={key}
                                         className="rounded-lg border border-slate-200 dark:border-[#2a2a2a] p-3"
                                     >
+                                        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 dark:border-[#2a2a2a]">
+                                            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-300">
+                                                Position {index + 1} of {value.speakers.length}
+                                            </span>
+                                            <div className="flex flex-wrap gap-2">
+                                                <button type="button" disabled={index === 0}
+                                                    aria-label={`Move ${guest} up`}
+                                                    onClick={() => moveSpeaker(index, -1)}
+                                                    className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#333] dark:text-blue-300 dark:hover:bg-blue-950/40">
+                                                    <ChevronUp className="h-4 w-4" /> Move up
+                                                </button>
+                                                <button type="button" disabled={index === value.speakers.length - 1}
+                                                    aria-label={`Move ${guest} down`}
+                                                    onClick={() => moveSpeaker(index, 1)}
+                                                    className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#333] dark:text-blue-300 dark:hover:bg-blue-950/40">
+                                                    <ChevronDown className="h-4 w-4" /> Move down
+                                                </button>
+                                            </div>
+                                        </div>
                                         {/* Phone: photo and delete share the top line, the fields run full width below. */}
                                         <div className="flex flex-wrap items-start gap-3 sm:flex-nowrap">
                                             <SpeakerPhoto
                                                 url={row.photoUrl}
-                                                onChange={(photoUrl) => updateSpeaker(index, { photoUrl })}
+                                                onChange={(photoUrl) => updateSpeaker(key, { photoUrl })}
                                             />
 
                                             <div className="order-3 basis-full sm:order-none sm:basis-auto grid gap-3 sm:grid-cols-2 flex-1 min-w-0">
@@ -493,14 +542,14 @@ export default function EventDetailFields({
                                                     <CmsInput
                                                         value={row.name}
                                                         placeholder="As it should be printed"
-                                                        onChange={(e) => updateSpeaker(index, { name: e.target.value })}
+                                                        onChange={(e) => updateSpeaker(key, { name: e.target.value })}
                                                     />
                                                 </CmsField>
                                                 <CmsField label="Designation">
                                                     <CmsInput
                                                         value={row.role}
                                                         placeholder="Managing Director"
-                                                        onChange={(e) => updateSpeaker(index, { role: e.target.value })}
+                                                        onChange={(e) => updateSpeaker(key, { role: e.target.value })}
                                                     />
                                                 </CmsField>
                                                 <div className="sm:col-span-2">
@@ -508,7 +557,7 @@ export default function EventDetailFields({
                                                         <CmsInput
                                                             value={row.organization}
                                                             placeholder="Company or department"
-                                                            onChange={(e) => updateSpeaker(index, { organization: e.target.value })}
+                                                            onChange={(e) => updateSpeaker(key, { organization: e.target.value })}
                                                         />
                                                     </CmsField>
                                                 </div>
@@ -517,7 +566,7 @@ export default function EventDetailFields({
                                                         <CmsInput
                                                             value={row.bio}
                                                             placeholder="One line, optional"
-                                                            onChange={(e) => updateSpeaker(index, { bio: e.target.value })}
+                                                            onChange={(e) => updateSpeaker(key, { bio: e.target.value })}
                                                         />
                                                     </CmsField>
                                                 </div>
@@ -525,7 +574,7 @@ export default function EventDetailFields({
 
                                             <button
                                                 type="button"
-                                                aria-label="Remove speaker"
+                                                aria-label={`Remove ${guest}`}
                                                 onClick={() => set({
                                                     speakers: value.speakers.filter((_, i) => i !== index),
                                                 })}
@@ -535,7 +584,8 @@ export default function EventDetailFields({
                                             </button>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </CmsSection>

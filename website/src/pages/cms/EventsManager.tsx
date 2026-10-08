@@ -1,6 +1,7 @@
 import EventFilesEditor from './components/EventFilesEditor';
 import type { EventAttachment } from '@/services/cmsApi';
 import { useCardTable } from '@/lib/useCardTable';
+import { normalizeWhatsAppEventLink } from '@/lib/whatsappEventLink';
 import { useEffect, useState } from 'react';
 import { ArrowLeft,
     Plus, Pencil, Trash2, X, Save, Check, Loader2, QrCode,
@@ -728,7 +729,7 @@ export default function EventsManager({
                 // JSON for the same reason the agenda is: this payload may become FormData.
                 attachments: JSON.stringify(form.attachments || []),
                 videoUrl: form.videoUrl || '',
-                whatsappChannelUrl: form.whatsappChannelUrl || '',
+                whatsappChannelUrl: normalizeWhatsAppEventLink(form.whatsappChannelUrl || ''),
                 // Sent alongside `targets`, never instead of it — the pair is
                 // what lets a reopened event show back both cards.
                 reachEveryone: form.reachEveryone,
@@ -1803,12 +1804,12 @@ export default function EventsManager({
                             attachments={form.attachments || []}
                             videoUrl={form.videoUrl || ''}
                             whatsappChannelUrl={form.whatsappChannelUrl || ''}
-                            onChange={(next) => setForm({ ...form, ...next })}
+                            onChange={(next) => setForm((current) => ({ ...current, ...next }))}
                         />
 
                         <EventDetailFields
                             value={form.detail}
-                            onChange={(detail) => setForm({ ...form, detail })}
+                            onChange={(detail) => setForm((current) => ({ ...current, detail }))}
                             eventId={editing}
                             /*
                              * Decided from the DATES, which live on this form

@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FileText, Loader2, Paperclip, Trash2, Upload, Youtube } from 'lucide-react';
 import { uploadEventAttachment, type EventAttachment } from '@/services/cmsApi';
 import { resolveMediaUrl } from '@/config/api.config';
+import { isWhatsAppEventLink, normalizeWhatsAppEventLink, whatsappEventLinkFromClipboard } from '@/lib/whatsappEventLink';
 
 /**
  * THE EVENT'S DOCUMENTS AND VIDEO — on the event form (CMS, Super Admin,
@@ -26,12 +27,19 @@ export default function EventFilesEditor({
     attachments: EventAttachment[];
     videoUrl: string;
     whatsappChannelUrl?: string;
-    onChange: (next: { attachments: EventAttachment[]; videoUrl: string; whatsappChannelUrl?: string }) => void;
+    onChange: (next: { attachments?: EventAttachment[]; videoUrl?: string; whatsappChannelUrl?: string }) => void;
 }) {
     const input = useRef<HTMLInputElement | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const [linkTouched, setLinkTouched] = useState(false);
     const list = Array.isArray(attachments) ? attachments : [];
+    const latest = useRef({ list, onChange });
+    latest.current = { list, onChange };
+    const alive = useRef(true);
+    useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+    const linkError = isWhatsAppEventLink(whatsappChannelUrl) ? ''
+        : 'Paste a WhatsApp group invite (https://chat.whatsapp.com/...) or channel link.';
 
     const pick = async (files: FileList | null) => {
         const chosen = Array.from(files || []);
@@ -43,25 +51,29 @@ export default function EventFilesEditor({
             if (file.size > 20 * 1024 * 1024) { setError(`${file.name} is larger than 20 MB.`); continue; }
             try {
                 const up = await uploadEventAttachment(file);
+                if (!alive.current) return;
                 if (up.url) added.push(up);
             } catch (e: any) {
+                if (!alive.current) return;
                 setError(e?.response?.data?.message || e?.message || `Could not upload ${file.name}`);
             }
         }
-        onChange({ attachments: [...list, ...added], videoUrl });
+        // A slow upload must not restore an old link, video, or event form.
+        if (!alive.current) return;
+        latest.current.onChange({ attachments: [...latest.current.list, ...added] });
         setBusy(false);
         if (input.current) input.current.value = '';
     };
 
     const rename = (i: number, name: string) =>
-        onChange({ attachments: list.map((a, n) => (n === i ? { ...a, name } : a)), videoUrl });
+        onChange({ attachments: list.map((a, n) => (n === i ? { ...a, name } : a)) });
     const remove = (i: number) =>
-        onChange({ attachments: list.filter((_, n) => n !== i), videoUrl });
+        onChange({ attachments: list.filter((_, n) => n !== i) });
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-[#1F1F1F] dark:bg-[#0A0A0A]">
             <h3 className="flex items-center gap-2 text-[1.25rem] font-extrabold text-slate-900 dark:text-white">
-                <Paperclip className="h-5 w-5 text-blue-600" /> Agenda, documents &amp; video
+                <Paperclip className="h-5 w-5 text-blue-600" /> WhatsApp group, documents &amp; video
             </h3>
             <p className="mt-1 text-[1.05rem] text-slate-500 dark:text-neutral-400">
                 Upload the agenda or any file (PDF, Word, Excel, slides, image, ZIP — up to 20 MB) and add a YouTube link.
@@ -71,15 +83,37 @@ export default function EventFilesEditor({
             </p>
 
             <label className="mt-4 block">
-                <span className="mb-1.5 block text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">WhatsApp group link</span>
+                <span className="mb-1.5 block text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">WhatsApp group or channel link</span>
                 <input
-                    type="url"
+                    type="text"
+                    inputMode="url"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    name="whatsappChannelUrl"
+                    aria-describedby="event-whatsapp-link-hint"
+                    aria-invalid={linkTouched && !!linkError}
+                    ref={(element) => { element?.setCustomValidity(linkError); }}
                     value={whatsappChannelUrl}
-                    onChange={(e) => onChange({ attachments: list, videoUrl, whatsappChannelUrl: e.target.value })}
+                    onChange={(e) => onChange({ whatsappChannelUrl: e.target.value })}
+                    onBlur={() => {
+                        setLinkTouched(true);
+                        onChange({ whatsappChannelUrl: normalizeWhatsAppEventLink(whatsappChannelUrl) });
+                    }}
+                    onInvalid={() => setLinkTouched(true)}
+                    onPaste={(e) => {
+                        const link = whatsappEventLinkFromClipboard(e.clipboardData.getData('text'));
+                        if (link) {
+                            e.preventDefault();
+                            onChange({ whatsappChannelUrl: link });
+                        }
+                        setLinkTouched(true);
+                    }}
                     placeholder="https://chat.whatsapp.com/..."
                     className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-[1.1rem] outline-none focus:border-blue-500 dark:border-[#262626] dark:bg-[#0b0b0b] dark:text-white"
                 />
-                <span className="mt-1 block text-sm text-slate-500">Optional. Included in booking confirmations and reminders for this event.</span>
+                <span id="event-whatsapp-link-hint" className={`mt-1 block text-sm ${linkTouched && linkError ? 'text-red-600' : 'text-slate-500'}`}>
+                    {linkTouched && linkError ? linkError : 'Optional. Paste the invite link, then save the event. Included in booking confirmations and reminders.'}
+                </span>
             </label>
 
             {/* Video */}
@@ -90,7 +124,7 @@ export default function EventFilesEditor({
                 <input
                     type="url"
                     value={videoUrl}
-                    onChange={(e) => onChange({ attachments: list, videoUrl: e.target.value })}
+                    onChange={(e) => onChange({ videoUrl: e.target.value })}
                     placeholder="https://www.youtube.com/watch?v=…"
                     className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 sm:px-4 text-[1.1rem] outline-none
                                focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
