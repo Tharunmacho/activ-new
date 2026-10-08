@@ -13,6 +13,8 @@ Header always merge Vary "User-Agent"
 </IfModule>
 <IfModule mod_rewrite.c>
 RewriteEngine On
+RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)
+RewriteRule ^network/company/([a-fA-F0-9]{24})/?$ /api/v1/share/companies/$1?view=page [PT,L,QSA]
 # CMS controls the card for each public onboarding URL, including the home
 # page. Private dashboards, receipts and password-reset tokens stay outside.
 RewriteCond %{QUERY_STRING} !(^|&)ref=share(&|$)

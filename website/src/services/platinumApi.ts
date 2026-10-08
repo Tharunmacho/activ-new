@@ -124,7 +124,7 @@ export const updatePlatinumRequest = async (id: string, body: { status?: Platinu
     unwrap<PlatinumRequest>(await api.patch(`${BASE}/requests/${encodeURIComponent(id)}`, body), null as unknown as PlatinumRequest);
 
 export const getPlatinumOverview = async (): Promise<PlatinumOverview> =>
-    unwrap<PlatinumOverview>(await api.get(BASE), { plan: { name: 'Lifetime membership', price: 200000, active: true }, members: [] });
+    unwrap<PlatinumOverview>(await api.get(BASE), { plan: { name: 'Lifetime Membership', price: 200000, active: true }, members: [] });
 
 export const searchPlatinumCandidates = async (q: string): Promise<PlatinumCandidate[]> =>
     unwrap<PlatinumCandidate[]>(await api.get(`${BASE}/search`, { params: { q } }), []);

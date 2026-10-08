@@ -122,7 +122,7 @@ export default function MemberMessages() {
                         <GateBenefit
                             open
                             icon={<Users className="w-4 h-4" />}
-                            title="Member directory"
+                            title="ACTIV Network"
                             detail="See who is already a member across the state — open to you now."
                         />
                     </ul>

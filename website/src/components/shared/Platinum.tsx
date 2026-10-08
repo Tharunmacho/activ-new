@@ -187,7 +187,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
             <div className={`relative flex flex-col lg:flex-row lg:items-start lg:justify-between ${compact ? 'gap-3' : 'gap-5'}`}>
                 <div className="min-w-0 max-w-2xl">
                     <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.8125rem] font-semibold uppercase tracking-[0.16em] ring-1 ring-white/20">
-                        <Crown className={`h-4 w-4 ${GOLD}`} /> Lifetime membership
+                        <Crown className={`h-4 w-4 ${GOLD}`} /> Lifetime Membership
                     </p>
                     <h3 className={`font-display font-bold leading-tight ${compact ? 'mt-2 text-[1.25rem] sm:text-[1.5rem]' : 'mt-3 text-[1.75rem] sm:text-[2.25rem]'}`}>
                         Join once. Stay an ACTIV member for life.

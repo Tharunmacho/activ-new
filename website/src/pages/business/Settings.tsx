@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import api, { unwrap } from '@/services/api';
+import { publicUrl, shareLink } from '@/lib/share';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -53,9 +55,9 @@ type StatusTone = {
 
 // The company record carries `status` (pending until an admin activates it).
 const STATUS_TONES: Record<string, StatusTone> = {
-    active: { label: 'Active', tone: 'green', Icon: BadgeCheck },
-    pending: { label: 'Pending Approval', tone: 'amber', Icon: Clock },
-    inactive: { label: 'Inactive', tone: 'red', Icon: Ban },
+    active: { label: 'Published', tone: 'green', Icon: BadgeCheck },
+    pending: { label: 'Not published', tone: 'amber', Icon: Clock },
+    inactive: { label: 'Not published', tone: 'red', Icon: Ban },
 };
 
 const Settings = () => {
@@ -144,6 +146,30 @@ const Settings = () => {
             return;
         }
 
+        if (next && activeCompany?.publication?.paymentRequired) {
+            try {
+                const quote = unwrap<any>(await api.get(`/business-profiles/${companyId}/publishing`), {});
+                if (quote.paymentRequired) {
+                    if (!window.confirm(`Publish ${quote.companyName}\n₹${Number(quote.amount).toLocaleString('en-IN')} · ${quote.term}\n\n${quote.message}\n\nContinue to payment?`)) return;
+                    setIsSavingListing(true);
+                    const config = unwrap<any>(await api.get('/payment/config'), {});
+                    if (config.mode === 'mock') {
+                        const order = unwrap<any>(await api.post('/payment/order', { companyId }), {});
+                        const auth = unwrap<any>(await api.post('/payment/mock-authorize', { orderId: order.orderId }), {});
+                        await api.post('/payment/complete', { orderId: order.orderId, gatewayPaymentId: auth.gatewayPaymentId, signature: auth.signature });
+                        navigate(`/payment-success?orderId=${encodeURIComponent(order.orderId)}`);
+                    } else if (config.mode === 'gateway') {
+                        const order = unwrap<any>(await api.post('/payment/create-request', { orderType: 'company_listing', companyId }), {});
+                        const destination = new URL(order.payment_url || order.longurl);
+                        if (destination.protocol !== 'https:') throw new Error('The secure checkout could not be opened.');
+                        sessionStorage.setItem('activ:lastOrderId', order.orderId);
+                        window.location.assign(destination.toString());
+                    } else throw new Error('The payment service is unavailable. Please retry.');
+                    return;
+                }
+            } catch (error: any) { toast.error(error?.response?.data?.message || error.message || 'Could not start payment.'); return; }
+            finally { setIsSavingListing(false); }
+        }
         setIsListed(next);
         setIsSavingListing(true);
 
@@ -157,7 +183,7 @@ const Settings = () => {
             if (!result.success) throw new Error(result.message || 'Update failed');
 
             await loadCompanies({ force: true });
-            toast.success(next ? 'Listed in Discover' : 'Hidden from Discover');
+            toast.success(next ? 'Listed in ACTIV Network' : 'Hidden from ACTIV Network');
         } catch (error: any) {
             setIsListed(!next);
             toast.error('Could not update listing', {
@@ -174,6 +200,8 @@ const Settings = () => {
             return;
         }
 
+        if (activeCompany.isActive === false) { toast.info('Publish this company in ACTIV Network before sharing its public preview.'); return; }
+        const url = publicUrl(`/network/company/${encodeURIComponent(companyId)}`);
         const lines = [
             activeCompany.businessName || '',
             activeCompany.businessType || '',
@@ -189,12 +217,7 @@ const Settings = () => {
             // The Web Share sheet is mobile's `Share.share`. It does not exist on
             // most desktop browsers, so fall back to the clipboard rather than
             // leaving the button dead there.
-            if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-                await navigator.share({ title: activeCompany.businessName || 'Business Details', text });
-                return;
-            }
-            await navigator.clipboard.writeText(text);
-            toast.success('Business details copied to clipboard');
+            await shareLink({ title: activeCompany.businessName || 'Business details', text, url });
         } catch (err) {
             // An abort (the user dismissed the share sheet) is not an error.
             console.warn('Share safely caught:', err);
@@ -414,7 +437,7 @@ const Settings = () => {
                                     <Compass className="h-[1.125rem] w-[1.125rem] text-blue-600" />
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-[1.25rem] text-slate-900">List in Discover</p>
+                                    <p className="font-bold text-[1.25rem] text-slate-900">List in ACTIV Network</p>
                                     <p className="text-[1.0625rem] text-slate-500">
                                         {isListed
                                             ? 'Other members can find this company and its products'
@@ -434,7 +457,7 @@ const Settings = () => {
 
                             <Row
                                 Icon={Compass}
-                                title="Browse the Network"
+                                title="ACTIV Network"
                                 subtitle="Search companies and products across members"
                                 onClick={() => navigate('/business/discover')}
                             />

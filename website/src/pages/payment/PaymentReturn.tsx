@@ -23,6 +23,7 @@ export default function PaymentReturn() {
 
     const [outcome, setOutcome] = useState<Outcome>('checking');
     const [amount, setAmount] = useState<number | null>(null);
+    const [companyPayment, setCompanyPayment] = useState(false);
     const [receipt, setReceipt] = useState<{ planName: string; paymentId: string; paidAt: string | null } | null>(null);
     const stopped = useRef(false);
 
@@ -87,6 +88,7 @@ export default function PaymentReturn() {
                 if (cancelled) return;
 
                 isBooking = found?.orderType === 'event_booking';
+                setCompanyPayment(found?.orderType === 'company_listing');
                 if (typeof found?.amount === 'number') setAmount(found.amount);
 
                 if (isBooking) {
@@ -182,7 +184,7 @@ export default function PaymentReturn() {
                                 </h1>
                                 <p className="mt-2 text-[1.125rem] text-slate-600">
                                     {money(amount) ? `We have received ${money(amount)}. ` : ''}
-                                    Your ACTIV membership is active.
+                                    {companyPayment ? 'Your additional company publishing payment is confirmed. Open company settings to view its status.' : 'Your ACTIV membership is active.'}
                                 </p>
                                 <dl className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left space-y-3">
                                     {receipt?.planName && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Membership plan</dt><dd className="mt-1 font-semibold text-slate-900">{receipt.planName}</dd></div>}
@@ -192,9 +194,9 @@ export default function PaymentReturn() {
                                 </dl>
                                 <Button
                                     className="mt-6 bg-green-600 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem] hover:bg-green-700"
-                                    onClick={() => navigate('/payment/member-dashboard')}
+                                    onClick={() => navigate(companyPayment ? '/business/settings' : '/payment/member-dashboard')}
                                 >
-                                    Go to my dashboard
+                                    {companyPayment ? 'Company settings' : 'Go to my dashboard'}
                                 </Button>
                             </>
                         )}

@@ -804,7 +804,7 @@ export default function SuperAdminMembership() {
                             />
                             <PlanGroup
                                 title="Lifetime plan"
-                                hint="Lifetime membership, paid offline and granted by the Super Admin. Never offered to applicants online."
+                                hint="Lifetime Membership, paid offline and granted by the Super Admin. Never offered to applicants online."
                                 icon={<Crown className="w-4 h-4 text-amber-600" />}
                                 plans={platinum}
                                 thisYear={thisYear}

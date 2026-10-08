@@ -695,7 +695,7 @@ export default function ApplicationStatus() {
                                             ? 'Your application was not approved. The reviewer note above explains why — you can correct your details and speak to your Block Admin.'
                                             : isApproved
                                                 ? (isPaid
-                                                    ? 'Your membership is active. Your certificate and member directory entry are available from the dashboard.'
+                                                    ? 'Your membership is active. Your certificate and ACTIV Network entry are available from the dashboard.'
                                                     : 'Your State Admin has approved you. Complete the membership payment to activate your account.')
                                                 : 'Your Block, District and State Admins each hold your file and are reviewing it at the same time — nobody is queued behind anybody. Only the State Admin\'s approval grants the membership; the other two are recorded as endorsements.'}
                                     </p>

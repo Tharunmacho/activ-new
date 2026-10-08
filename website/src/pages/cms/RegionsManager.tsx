@@ -4298,7 +4298,7 @@ function CustomSections({ draft, set, basePath }: {
             {!rows.length ? (
                 <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
                     No sections of your own yet. Add one for anything this page does not already
-                    cover — scholarships, trade delegations, a member directory — and choose how it
+                    cover — scholarships, trade delegations, a ACTIV Network — and choose how it
                     should be drawn.
                 </p>
             ) : (

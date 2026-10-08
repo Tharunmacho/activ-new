@@ -1069,7 +1069,7 @@ const CompanyForm = ({
               />
               <Subsection
                 title="Tax identification"
-                hint="Kept private — never shown in the member directory."
+                hint="Kept private — never shown in the ACTIV Network."
               >
                 <FieldGrid>
                   <Field label="PAN Number">

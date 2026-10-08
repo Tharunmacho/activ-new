@@ -174,7 +174,7 @@ const BusinessDashboard = () => {
                             schema has no `status` field, so the badge read "0
                             active" for every catalog, however many items were live.
                         */}
-                        <StatTile label="Live Products" value={stats.active} unit="Visible in Discover" icon={CheckCircle2} />
+                        <StatTile label="Live Products" value={stats.active} unit="Visible in ACTIV Network" icon={CheckCircle2} />
                         <StatTile label="Featured" value={stats.featured} unit="Promoted items" icon={Star} />
                     </div>
 

@@ -2026,7 +2026,7 @@ export interface PublicCompany {
 /** A company as the rest of the network sees it. */
 export const getPublicCompany = async (id: string) =>
     unwrap<PublicCompany | null>(
-        await api.get(`/business-profiles/public/${encodeURIComponent(id)}`),
+        await api.get(`/network/companies/${encodeURIComponent(id)}`),
         null,
     );
 

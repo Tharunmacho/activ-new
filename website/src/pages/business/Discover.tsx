@@ -80,6 +80,7 @@ interface CompanyItem {
     email?: string;
     description?: string;
     logo?: string;
+    banner?: string;
     products?: ProductItem[];
     matchedProducts?: ProductItem[];
     /**
@@ -146,7 +147,7 @@ const CountOnly = ({ companies, products, term, regionLabel, onJoin }: {
         </p>
         <p className="mx-auto mt-2 max-w-xl text-[1.25rem] text-slate-600">
             {term ? <>match “{term}” in {regionLabel}. </> : <>in {regionLabel}. </>}
-            Membership opens the directory — names, catalogues and contact details for
+            Membership opens ACTIV Network — names, catalogues and contact details for
             every one of them.
         </p>
         <Button className="mt-5 sm:mt-6 h-11 w-full sm:w-auto bg-blue-600 hover:bg-blue-700" onClick={onJoin}>
@@ -644,6 +645,7 @@ const Discover = () => {
                     />
                 </button>
 
+                {item.banner ? <img src={resolveMediaUrl(item.banner)} alt={`${item.businessName || 'Company'} banner`} className="mb-4 w-full h-36 object-contain rounded-xl bg-white" loading="lazy" /> : null}
                 <div className="flex items-start gap-3 sm:gap-4 pr-10">
                     {item.logo ? (
                         <img
@@ -895,7 +897,7 @@ const Discover = () => {
 
     return (
         <BusinessPageShell
-            title="Discover Network"
+            title="ACTIV Network"
             subtitle="Search companies and products across the member network"
             width="wide"
         >
@@ -1110,7 +1112,7 @@ const Discover = () => {
                 </Card>
 
                 {loading ? (
-                    <Loading label={hasQuery ? 'Searching the business network…' : 'Loading the directory…'} />
+                    <Loading label={hasQuery ? 'Searching the business network…' : 'Loading ACTIV Network…'} />
                 ) : (paid === false) ? (
                     /*
                      * GATED ON THE MEMBERSHIP, NOT ON THERE BEING A SEARCH.

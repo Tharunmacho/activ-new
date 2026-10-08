@@ -48,7 +48,7 @@ const KIND_BENEFITS: Record<'student' | 'aspirant' | 'business', { Icon: typeof 
     student: [
         { Icon: Handshake, title: 'Mentorship', text: 'Guidance from established ACTIV entrepreneurs while you study.' },
         { Icon: CalendarDays, title: 'Events & workshops', text: 'Invitations to conclaves, seminars and skill workshops.' },
-        { Icon: Users, title: 'Member network', text: 'The member directory — reach business owners across the association.' },
+        { Icon: Users, title: 'Member network', text: 'The ACTIV Network — reach business owners across the association.' },
         { Icon: Landmark, title: 'Schemes & funding', text: 'Updates on government schemes for first-generation entrepreneurs.' },
         { Icon: Award, title: 'Membership certificate', text: 'An official ACTIV certificate for your résumé and portfolio.' },
         { Icon: TrendingUp, title: 'Grow into business', text: 'Move to a Business membership the day you start trading.' },
@@ -56,7 +56,7 @@ const KIND_BENEFITS: Record<'student' | 'aspirant' | 'business', { Icon: typeof 
     aspirant: [
         { Icon: Handshake, title: 'Start-up guidance', text: 'Mentors who have built businesses, for the one you are planning.' },
         { Icon: Landmark, title: 'Schemes & funding', text: 'Stand-Up India, MSME and state schemes explained and announced.' },
-        { Icon: Users, title: 'Member network', text: 'Suppliers, partners and customers in the member directory.' },
+        { Icon: Users, title: 'Member network', text: 'Suppliers, partners and customers in the ACTIV Network.' },
         { Icon: CalendarDays, title: 'Events & workshops', text: 'Invitations to conclaves, seminars and business programmes.' },
         { Icon: Store, title: 'Business account', text: 'Draft your company page and catalogue before you launch.' },
         { Icon: Award, title: 'Membership certificate', text: 'An official ACTIV certificate with your Member ID.' },
@@ -192,8 +192,8 @@ export default function Payment() {
                                     : isCompany
                                     ? 'Your plan follows your years in business. One payment a year, every member benefit.'
                                     : isStudent
-                                        ? 'For students who are not in business yet — the full ACTIV network while you study.'
-                                        : 'For future entrepreneurs — the full ACTIV network while you build.'}
+                                        ? 'For students who are not in business yet — the full ACTIV Network while you study.'
+                                        : 'For future entrepreneurs — the full ACTIV Network while you build.'}
                             </p>
                         </div>
 

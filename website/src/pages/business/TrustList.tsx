@@ -123,7 +123,7 @@ const TrustList = () => {
             title="Trust List"
             subtitle={
                 loading
-                    ? 'Companies you have kept from Discover'
+                    ? 'Companies you have kept from ACTIV Network'
                     : `${companies.length} ${companies.length === 1 ? 'company' : 'companies'} you have kept from Discover`
             }
             width="wide"
@@ -146,7 +146,7 @@ const TrustList = () => {
                         <EmptyState
                             icon={ShieldCheck}
                             title="Your trust list is empty"
-                            hint="Search the network in Discover and add the companies you want to keep. They stay here until you remove them."
+                            hint="Search the network in ACTIV Network and add the companies you want to keep. They stay here until you remove them."
                             action={
                                 <Button
                                     className="bg-blue-600 hover:bg-blue-700"
@@ -189,7 +189,7 @@ const TrustList = () => {
                                 {
                                     icon: ShieldPlus,
                                     title: 'Keep who you trust',
-                                    detail: 'Add a company from Discover and it stays until you remove it.',
+                                    detail: 'Add a company from ACTIV Network and it stays until you remove it.',
                                 },
                                 {
                                     icon: Eye,
@@ -262,7 +262,7 @@ const TrustList = () => {
                             <EmptyState
                                 icon={Search}
                                 title={`Nothing in your trust list matches “${query.trim()}”`}
-                                hint="Clear the filter to see all of them, or search the whole network in Discover."
+                                hint="Clear the filter to see all of them, or search the whole network in ACTIV Network."
                             />
                         </Card>
                     ) : (

@@ -48,7 +48,7 @@ const NAV_GROUPS: { label: string; entries: { to: string; label: string; icon: t
     {
         label: 'Network',
         entries: [
-            { to: '/business/discover', label: 'Discover', icon: Compass },
+            { to: '/business/discover', label: 'ACTIV Network', icon: Compass },
             /*
              * Trust List sits directly under Discover, because that is where its
              * entries come from. A saved-companies list filed under Settings is

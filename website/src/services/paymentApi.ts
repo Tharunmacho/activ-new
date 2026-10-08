@@ -240,6 +240,7 @@ export const payForMembership = async (
 
 /** What the return page learns about an order — public, works for a guest. */
 export interface PaymentReturnResult {
+    companyId?: string;
     orderId: string;
     orderType: 'membership' | 'event_booking' | string;
     status: 'created' | 'paid' | 'failed' | string;

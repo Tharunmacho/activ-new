@@ -9,7 +9,9 @@ import { SectionCard, RowsSkeleton } from '@/features/member/components/MemberUI
 import { BIZ_DETAIL_LABEL } from '@/components/layout/surface';
 import { getMyProfile, getMyApplication } from '@/services/activApi';
 import { RENEW_PATH, readRenewal, renewalDate, renewalMessage } from '@/features/member/useRenewal';
-import { resolvePlanEligibility, type MembershipPlan } from '@/features/member/membershipPlans';
+import { type MembershipPlan } from '@/features/member/membershipPlans';
+import { getHeldMembershipPlan } from '@/features/member/heldMembershipPlan';
+import { isLifetimeTier } from '@/lib/heldMembershipPlan';
 import { resolveApplicantKind, resolvePlan, planLabel } from '@/features/member/memberAccess';
 
 import { CARD_TITLE, PAGE_TITLE } from '@/components/layout/appTypography';
@@ -97,15 +99,19 @@ export default function MembershipPlanDetails() {
     useEffect(() => {
         let cancelled = false;
 
-        Promise.allSettled([getMyProfile(), getMyApplication(), resolvePlanEligibility()])
-            .then(([p, a, e]) => {
+        Promise.allSettled([getMyProfile(), getMyApplication()])
+            .then(async ([p, a]) => {
                 if (cancelled) return;
-                if (p.status === 'fulfilled') setProfile(p.value);
+                setProfile(p.status === 'fulfilled' ? p.value : null);
                 if (a.status === 'fulfilled') setApplication(a.value);
-                if (e.status === 'fulfilled') {
-                    setPlan(e.value.selected || e.value.plans[0] || null);
-                    setPriceFailed(!!e.value.failed);
-                } else {
+                try {
+                    const selected = await getHeldMembershipPlan(p.status === 'fulfilled' ? p.value : null);
+                    if (cancelled) return;
+                    setPlan(selected);
+                    setPriceFailed(!selected);
+                } catch {
+                    if (cancelled) return;
+                    setPlan(null);
                     setPriceFailed(true);
                 }
                 setLoading(false);
@@ -120,7 +126,8 @@ export default function MembershipPlanDetails() {
     );
 
     const membershipType = String(profile?.membershipType || '').trim();
-    const lifetime = membershipType.toLowerCase() === 'lifetime';
+    const platinum = isLifetimeTier(profile);
+    const lifetime = platinum || membershipType.toLowerCase() === 'lifetime';
     const status = String(profile?.membershipStatus || 'active');
     const activeNow = status.toLowerCase() === 'active';
 
@@ -181,23 +188,23 @@ export default function MembershipPlanDetails() {
                 {/* ================================================ the plan */}
                 <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white
                                     shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_30px_-12px_rgba(16,24,40,0.28)]">
-                    <div className="flex flex-col gap-5 bg-gradient-to-r from-blue-600 to-blue-700 p-4 sm:p-6 text-white
-                                    sm:flex-row sm:items-center sm:justify-between">
+                    <div className={`flex flex-col gap-5 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between ${platinum ? 'text-[#3e2c0e]' : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'}`}
+                        style={platinum ? { background: 'linear-gradient(115deg, #c8a04a 0%, #e9cb80 24%, #f8e6b2 47%, #e7c776 72%, #ccaa58 100%)' } : undefined}>
                         <div className="flex items-center gap-4">
                             <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl
                                              bg-white/15 ring-1 ring-white/25">
                                 <UserCircle className="h-7 w-7" />
                             </span>
                             <div>
-                                <p className="text-[1.0625rem] font-extrabold uppercase tracking-[0.12em] text-white/70">
+                                <p className={`text-sm font-semibold uppercase tracking-[0.12em] ${platinum ? 'text-[#674c1b]' : 'text-white/70'}`}>
                                     Your membership
                                 </p>
                                 <h2 className={`${PAGE_TITLE} mt-1`}>
-                                    {profile?.membershipTier === 'platinum' ? 'Lifetime membership' : profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
+                                    {platinum ? 'Lifetime Membership' : profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
                                 </h2>
                                 {membershipType && (
-                                    <p className="mt-0.5 text-[1.1875rem] font-semibold text-white/80">
-                                        {membershipType} term
+                                    <p className={`mt-1 text-base ${platinum ? 'text-[#674c1b]' : 'text-white/80'}`}>
+                                        {lifetime ? 'One payment · No renewal needed' : `${membershipType} term`}
                                     </p>
                                 )}
                             </div>
@@ -205,7 +212,7 @@ export default function MembershipPlanDetails() {
 
                         <span className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2
                                           text-[1.0625rem] font-extrabold uppercase tracking-[0.08em]
-                                          ${activeNow
+                                          ${platinum ? (activeNow ? 'bg-[#f4faeb] text-[#255a39]' : 'bg-[#fff5dc] text-[#704911]') : activeNow
                                 ? 'bg-emerald-400/20 text-emerald-50 ring-1 ring-emerald-200/40'
                                 : 'bg-amber-400/20 text-amber-50 ring-1 ring-amber-200/40'}`}>
                             <BadgeCheck className="h-5 w-5" /> {status}
@@ -249,7 +256,7 @@ export default function MembershipPlanDetails() {
                                     The current rate could not be loaded
                                 </p>
                                 <p className="mt-1 text-[1.1875rem] font-semibold text-amber-800">
-                                    Nothing is shown here rather than a figure that might be out of date.
+                                    Your recorded payment is shown below. Please retry to load this membership's current rate.
                                 </p>
                                 <button
                                     type="button"
@@ -263,16 +270,16 @@ export default function MembershipPlanDetails() {
                             </div>
                         ) : (
                             <>
-                                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                                <div className={`rounded-2xl border p-4 sm:p-5 ${platinum ? 'border-[#dec78e] bg-[#fff8e6]' : 'border-slate-200 bg-slate-50'}`}>
                                     <p className={BIZ_DETAIL_LABEL}>Current rate</p>
                                     <p className="mt-1 flex flex-wrap items-baseline gap-x-2">
                                         <span className="text-[1.875rem] sm:text-[2.25rem] font-extrabold tracking-tight text-slate-900
                                                          tabular-nums">
                                             {rupees(plan.price)}
                                         </span>
-                                        {membershipType && (
+                                        {(membershipType || plan.membershipType) && (
                                             <span className="text-[1.1875rem] font-bold text-slate-500">
-                                                per {membershipType.toLowerCase() === 'annual' ? 'year' : 'term'}
+                                                {lifetime || plan.membershipType === 'lifetime' ? 'one-time · lifetime' : 'per year'}
                                             </span>
                                         )}
                                     </p>

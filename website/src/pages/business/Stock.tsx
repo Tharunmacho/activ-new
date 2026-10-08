@@ -530,7 +530,7 @@ function StockCard({
                                        text-slate-600 hover:text-slate-900 disabled:opacity-60"
                         >
                             {row.isActive === false ? (
-                                <><Check className="w-4 h-4" /> Publish to the directory</>
+                                <><Check className="w-4 h-4" /> Publish to ACTIV Network</>
                             ) : (
                                 <><X className="w-4 h-4" /> Unpublish — hide from other members</>
                             )}

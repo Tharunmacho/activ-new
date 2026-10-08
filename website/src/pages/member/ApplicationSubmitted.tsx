@@ -85,7 +85,7 @@ const WHAT_NEXT = [
         icon: BadgeCheck,
         title: 'Then you pay and you are in',
         detail: 'Once it is approved, your membership payment unlocks and your '
-            + 'profile goes live in the directory.',
+            + 'profile goes live in ACTIV Network.',
     },
 ];
 

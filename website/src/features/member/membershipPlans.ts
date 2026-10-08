@@ -27,6 +27,7 @@ export interface MembershipPlan {
     popular?: boolean;
     /** business / aspirant / student. Platinum never reaches this list. */
     audience: PlanAudience;
+    membershipType?: string;
 }
 
 /*

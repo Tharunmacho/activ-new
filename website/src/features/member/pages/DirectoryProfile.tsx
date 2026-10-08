@@ -175,7 +175,7 @@ export default function DirectoryProfile() {
 
     if (loading) {
         return (
-            <MemberPageShell title="Member" subtitle="Member Directory" width="standard">
+            <MemberPageShell title="Member" subtitle="ACTIV Network" width="standard">
                 <RowsSkeleton rows={4} />
             </MemberPageShell>
         );
@@ -183,18 +183,18 @@ export default function DirectoryProfile() {
 
     if (error || !entry) {
         return (
-            <MemberPageShell title="Member" subtitle="Member Directory" width="standard">
+            <MemberPageShell title="Member" subtitle="ACTIV Network" width="standard">
                 <EmptyState
                     icon={<Users className="w-6 h-6" />}
                     title="This member is not listed"
-                    detail={error || 'Only members with an active membership appear in the directory.'}
+                    detail={error || 'Only members with an active membership appear in ACTIV Network.'}
                     action={
                         <button
                             type="button"
                             onClick={() => navigate('/member/directory')}
                             className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
                         >
-                            Back to the directory
+                            Back to ACTIV Network
                         </button>
                     }
                 />
@@ -216,7 +216,7 @@ export default function DirectoryProfile() {
     return (
         <MemberPageShell
             title={entry.fullName}
-            subtitle="Member Directory"
+            subtitle="ACTIV Network"
             width="standard"
             actions={
                 <button

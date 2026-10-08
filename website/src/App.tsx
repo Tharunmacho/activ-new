@@ -509,6 +509,7 @@ const App = () => (
                 * a 404 with money gone.
                 */}
               <Route path="/payment-success" element={<PaymentReturn />} />
+              <Route path="/network/company/:id" element={<CompanyPublicView />} />
               {/* Outside the gate, above: guests pay for event bookings too. */}
               <Route element={<RoleGate area="member" />}>
               <Route path="/payment/member-dashboard" element={<PaymentMemberDashboard />} />

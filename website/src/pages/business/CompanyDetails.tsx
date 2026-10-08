@@ -242,7 +242,7 @@ const CompanyDetails = () => {
                 <span className="capitalize">{status}</span>
               </Chip>
               <Chip tone={company.isActive ? 'blue' : 'slate'} icon={Compass}>
-                {company.isActive ? 'Listed in Discover' : 'Hidden from Discover'}
+                {company.isActive ? 'Listed in ACTIV Network' : 'Hidden from ACTIV Network'}
               </Chip>
               {isSelected && (
                 <Chip tone="green" icon={CheckCircle}>Active company</Chip>
@@ -260,7 +260,7 @@ const CompanyDetails = () => {
         {/* Catalog figures */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5">
           <StatTile label="Catalog Products" value={stats.total} unit="Total listed" icon={Package} />
-          <StatTile label="Live Products" value={stats.active} unit="Visible in Discover" icon={CheckCircle2} />
+          <StatTile label="Live Products" value={stats.active} unit="Visible in ACTIV Network" icon={CheckCircle2} />
           <StatTile label="Featured" value={stats.featured} unit="Promoted items" icon={Star} />
         </div>
 

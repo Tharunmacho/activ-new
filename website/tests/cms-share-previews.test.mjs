@@ -11,6 +11,11 @@ const hits = [];
 const canonical = path => ({ '/onboarding': '/' })[path] || path;
 const api = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
+    if (url.pathname === '/api/v1/share/companies/507f1f77bcf86cd799439011') {
+        hits.push('/network/company/507f1f77bcf86cd799439011');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.end(preview('/network/company/507f1f77bcf86cd799439011', 'https://api.activ.org.in/share/companies/507f1f77bcf86cd799439011/preview/test.jpg'));
+    }
     if (url.pathname === '/api/v1/share/page') {
         const path = canonical(url.searchParams.get('path'));
         hits.push(path);
@@ -47,6 +52,18 @@ try {
             assert.ok(!html.includes("location.replace('https://configured.example')"), 'Only metadata is merged');
         }
     }
+    for (const agent of ['Mozilla/5.0', 'facebookexternalhit/1.1', 'WhatsApp', 'LinkedInBot/1.0']) {
+        const companyPath = '/network/company/507f1f77bcf86cd799439011';
+        const response = await fetch(`http://127.0.0.1:${port}${companyPath}`, { headers: { 'user-agent': agent } });
+        const html = await response.text();
+        assert.equal(response.status, 200);
+        assert.ok(html.includes(`property="og:title" content="ACTIV ${companyPath}"`));
+        assert.ok(html.includes(`property="og:url" content="https://activ.org.in${companyPath}"`));
+        assert.ok(html.includes('companies/507f1f77bcf86cd799439011/preview/test.jpg'));
+        assert.ok(html.includes('id="root"') && html.includes('/assets/'));
+        assert.equal((html.match(/property="og:image"/g) || []).length, 1);
+    }
+    assert.equal(isPublicPreviewPath('/network/company/not-an-id'), false);
     aboutImage = 'https://api.activ.org.in/uploads/about-replacement.jpg';
     const changed = await fetch(`http://127.0.0.1:${port}/about`).then(response => response.text());
     assert.ok(changed.includes('content="https://api.activ.org.in/uploads/about-replacement.jpg"'));

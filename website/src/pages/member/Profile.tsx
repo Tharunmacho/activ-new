@@ -1793,7 +1793,7 @@ export default function Profile() {
                 <Section
                   icon={UsersRound}
                   title="Demographic details"
-                  subtitle="Used for association reporting only, never shown in the member directory."
+                  subtitle="Used for association reporting only, never shown in the ACTIV Network."
                 >
                   <Fields>
                     <div>

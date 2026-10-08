@@ -27,7 +27,7 @@ export default function PlatinumWelcome({ name, greeting, memberId, memberSince,
         { label: 'Your documents', detail: 'Certificates and membership records.', Icon: FileText, onClick: onDocuments },
         { label: 'Payment receipt', detail: 'View your membership payment.', Icon: ReceiptText, onClick: onReceipt },
     ];
-    return <section aria-label="Lifetime membership dashboard" className="platinum-welcome">
+    return <section aria-label="Lifetime Membership dashboard" className="platinum-welcome">
         <div className="platinum-welcome__main">
             <div className="platinum-welcome__intro">
                 <span className="platinum-overline"><span className="platinum-overline__mark"><Crown size={18} /></span> Lifetime Membership</span>
@@ -39,7 +39,7 @@ export default function PlatinumWelcome({ name, greeting, memberId, memberSince,
             </div>
             <div className="platinum-card-stage">
                 <div className="platinum-card-stage__halo" aria-hidden="true" />
-                <button type="button" className="platinum-metal-card" onClick={onPlan} onPointerMove={tiltCard} onPointerLeave={resetTilt} onPointerCancel={resetTilt} aria-label={`View Lifetime membership details for ${name}. Member ID ${memberId || 'not assigned'}. ${active ? 'Active' : 'Pending'}. Lifetime membership.`}>
+                <button type="button" className="platinum-metal-card" onClick={onPlan} onPointerMove={tiltCard} onPointerLeave={resetTilt} onPointerCancel={resetTilt} aria-label={`View Lifetime Membership details for ${name}. Member ID ${memberId || 'not assigned'}. ${active ? 'Active' : 'Pending'}. Lifetime Membership.`}>
                     <span className="platinum-card__grain" aria-hidden="true" />
                     <span className="platinum-card__contours" aria-hidden="true">{[0, 1, 2, 3, 4, 5, 6].map(i => <i key={i} style={{ inset: `${i * 11}px` }} />)}</span>
                     <span className="platinum-card__top"><span className="platinum-wordmark">ACTIV<span>CONNECTED FOR LIFE</span></span><span className="platinum-card__seal"><Crown size={23} strokeWidth={1.5} /></span></span>

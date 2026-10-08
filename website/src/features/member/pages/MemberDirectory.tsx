@@ -201,7 +201,7 @@ export default function MemberDirectory() {
             setError('');
         } catch (err) {
             if (requestId.current !== id) return;
-            setError(errorMessage(err, 'Could not search the directory'));
+            setError(errorMessage(err, 'Could not search ACTIV Network'));
             setMembers([]);
         } finally {
             if (requestId.current === id) setLoading(false);
@@ -247,7 +247,7 @@ export default function MemberDirectory() {
 
     return (
         <MemberPageShell
-            title="Member Directory"
+            title="ACTIV Network"
             subtitle="Find members and businesses across the association"
             width="standard"
         >
@@ -265,7 +265,7 @@ export default function MemberDirectory() {
             */}
             {isPaid !== true ? (
                 <PlanLockedCard
-                    title="The member directory opens with your membership"
+                    title="The ACTIV Network opens with your membership"
                     explanation={
                         'Who the members are — their businesses, their districts and their '
                         + 'trades — is what the membership buys. Complete yours and the '
@@ -371,7 +371,7 @@ export default function MemberDirectory() {
                 ) : error ? (
                     <EmptyState
                         icon={<Users className="w-6 h-6" />}
-                        title="The directory could not be searched"
+                        title="ACTIV Network could not be searched"
                         detail={error}
                     />
                 ) : members.length === 0 ? (

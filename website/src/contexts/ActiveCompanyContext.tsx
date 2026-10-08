@@ -47,6 +47,8 @@ export interface ActiveCompany {
     area?: string;
     location?: string;
     logo?: string;
+    banner?: string;
+    publication?: { published: boolean; canPublish: boolean; memberActive: boolean; unlimited: boolean; paymentRequired: boolean; publishedCount: number; label: string };
     status?: string;
     /** Listed in the Discover directory. NOT "is the active company". */
     isActive?: boolean;

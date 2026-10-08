@@ -125,10 +125,10 @@ export default function PaymentSuccess() {
     const memberId = String(profile?.membershipNumber || profile?.memberCode || formatApplicationRef(application).short || '');
     const kind = String(order?.planAudience || profile?.memberType || application?.memberType || '').toLowerCase();
     const kindLabel = kind === 'student' ? 'Student' : kind === 'aspirant' ? 'Aspirant' : kind === 'business' ? 'Business' : '';
-    const platinum = order ? kind === 'platinum' : String(profile?.membershipTier || '').toLowerCase() === 'platinum';
+    const platinum = order ? kind === 'platinum' || String(order.planId || '').toLowerCase() === 'platinum' : String(profile?.membershipTier || '').toLowerCase() === 'platinum';
     const typeRaw = String(order?.membershipType || profile?.membershipType || '').toLowerCase();
     const lifetime = typeRaw === 'lifetime' || platinum;
-    const planName = platinum ? 'Lifetime membership' : order?.planName || profile?.paidMembership?.planName || [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership';
+    const planName = platinum ? 'Lifetime Membership' : order?.planName || profile?.paidMembership?.planName || [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership';
     const period = lifetime ? 'Lifetime' : typeRaw === 'annual' ? 'Annual' : '';
     const paidAt = order?.paidAt || profile?.lastPaymentDate || profile?.membershipActivatedAt || null;
     const amount = order?.amount ?? profile?.lastPaymentAmount ?? profile?.paymentAmount;

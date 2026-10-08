@@ -140,7 +140,7 @@ function GrantForm({ member, price, onDone, onCancel }: {
             const updated = await grantPlatinum(member.id, {
                 amount: value, paymentMode: mode, receiptNumber: receipt.trim(), receivedOn, note: note.trim(), manualAdmission,
             });
-            toast.success(`${member.fullName || 'The member'} is now a Lifetime membership member`);
+            toast.success(`${member.fullName || 'The member'} is now a Lifetime Member`);
             onDone(updated);
         } catch (err) {
             toast.error(errorMessage(err, 'Could not grant Lifetime'));
@@ -317,7 +317,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                                 </a>
                                             ) : null}
                                             {r.email ? (
-                                                <a href={`mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Lifetime membership request')}`}
+                                                <a href={`mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Lifetime Membership request')}`}
                                                     className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 text-[1rem] font-semibold text-slate-700 hover:bg-slate-100">
                                                     <Mail className="h-4 w-4 shrink-0" /> <span className="truncate">{r.email}</span>
                                                 </a>
@@ -461,7 +461,7 @@ export default function PlatinumMembers() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                         <p className="flex items-center gap-2 text-[1rem] font-semibold uppercase tracking-[0.18em] text-[#f8e7b0]">
-                            <Crown className="h-4 w-4" /> Lifetime membership
+                            <Crown className="h-4 w-4" /> Lifetime Membership
                         </p>
                         <p className="mt-1 font-display text-[2rem] sm:text-[2.5rem] font-bold">{rupees(price)}</p>
                         <p className="text-[1.125rem] text-white/75">One payment at the office · never renews · granted here</p>

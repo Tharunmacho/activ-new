@@ -50,8 +50,9 @@ const paid = await run({ replies: [
 assert.equal(paid.calls.length, 2, 'pending membership keeps asking the gateway-aware endpoint');
 assert.equal(paid.states[0], 'paid', 'verified membership displays the success screen');
 assert.equal(paid.states[1], 10);
-assert.equal(paid.states[2].planName, 'Student');
-assert.equal(paid.states[2].paymentId, 'MOJO-verified', 'receipt uses the server-verified payment reference');
+assert.equal(paid.states[2], false);
+assert.equal(paid.states[3].planName, 'Student');
+assert.equal(paid.states[3].paymentId, 'MOJO-verified', 'receipt uses the server-verified payment reference');
 assert.deepEqual(paid.events, ['paymentCompleted'], 'dashboard and sidebar refresh');
 assert.equal(paid.protectedReads, 0, 'no auth-dependent read after public verification');
 assert.equal(paid.navigations.length, 0, 'membership success screen stays visible');
@@ -63,3 +64,6 @@ assert.equal(fallback.states[0], 'paid'); assert.equal(fallback.protectedReads, 
 const booking = await run({ replies: [{ orderType: 'event_booking', status: 'paid', eventSlug: 'conference', bookingRef: 'REF-1', amount: 1000 }] });
 assert.equal(booking.navigations[0][0], '/member/events/conference/book?ref=REF-1');
 console.log('Return-page polling, verified success screen, dashboard refresh, guest access and event routing passed.');
+const company = await run({ replies: [{ orderType: 'company_listing', status: 'paid', amount: 5000, companyId: 'fixture-company', paymentId: 'MOJO-company' }] });
+assert.equal(company.states[0], 'paid'); assert.equal(company.states[2], true);
+assert.equal(company.navigations.length, 0, 'company payment stays on its own confirmation and never opens a membership receipt');

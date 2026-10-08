@@ -7,13 +7,15 @@ const dynamic = new RegExp(`^/(?:(?:events/[^/]+(?:/book)?)|(?:gallery/[^/]+(?:/
 export const isPublicPreviewPath = raw => {
     if (typeof raw !== 'string' || raw.length > 400 || /[\\<>\x00-\x20]/.test(raw) || raw.includes('//') || raw.split('/').some(part => ['.', '..', '__proto__', 'constructor', 'prototype'].includes(part))) return false;
     const path = raw.replace(/\/+$/, '') || '/';
-    return fixed.has(path) || dynamic.test(path);
+    return fixed.has(path) || dynamic.test(path) || /^\/network\/company\/[a-f0-9]{24}$/i.test(path);
 };
 
 export const fetchPagePreview = async(api, route) => {
     if (!api || !isPublicPreviewPath(route)) return null;
     try {
-        const response = await fetch(`${api.replace(/\/+$/, '')}/share/page?path=${encodeURIComponent(route)}`, { signal: AbortSignal.timeout(4500) });
+        const company = route.match(/^\/network\/company\/([a-f0-9]{24})\/?$/i);
+        const endpoint = company ? `/share/companies/${company[1]}` : `/share/page?path=${encodeURIComponent(route)}`;
+        const response = await fetch(`${api.replace(/\/+$/, '')}${endpoint}`, { signal: AbortSignal.timeout(4500) });
         if (!response.ok || !/text\/html/i.test(response.headers.get('content-type') || '')) return null;
         const html = await response.text();
         return html.length < 100000 && /property="og:title"/.test(html) ? html : null;

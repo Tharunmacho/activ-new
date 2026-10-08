@@ -433,10 +433,10 @@ export default function MemberInbox() {
                     {conversations.length === 0 ? (
                         <PaneWelcome
                             title="No conversations yet"
-                            detail="Open a member's profile in the directory and choose Message to start one."
+                            detail="Open a member's profile in ACTIV Network and choose Message to start one."
                         >
                             <Link to="/member/directory" className={`${FIND_MEMBER} mt-5`}>
-                                <Search className="h-4 w-4" /> Browse the directory
+                                <Search className="h-4 w-4" /> Browse ACTIV Network
                             </Link>
                         </PaneWelcome>
                     ) : (
@@ -504,7 +504,7 @@ export default function MemberInbox() {
                                 title={conversations.length ? 'Pick a conversation' : 'Talk business with a member'}
                                 detail={conversations.length
                                     ? 'Choose one on the left to read it and reply.'
-                                    : 'Find a member in the directory, open their profile and choose Message. A first message usually starts with one of these:'}
+                                    : 'Find a member in ACTIV Network, open their profile and choose Message. A first message usually starts with one of these:'}
                             >
                                 <ul className="mt-6 grid gap-2.5 text-left sm:grid-cols-3">
                                     {OPENERS.map((opener, i) => {

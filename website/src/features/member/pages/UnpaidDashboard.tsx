@@ -110,7 +110,7 @@ const MEMBERSHIP_BENEFITS = [
     {
         icon: Users,
         tone: 'text-teal-600 bg-teal-50',
-        title: 'Listed in the directory',
+        title: 'Listed in ACTIV Network',
         detail: 'Your name and business visible to the whole association.',
     },
     {

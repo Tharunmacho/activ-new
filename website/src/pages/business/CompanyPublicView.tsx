@@ -1,4 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { governmentSchemes } from '@/lib/governmentSchemes';
+import { publicUrl, shareLink } from '@/lib/share';
+import { isMemberSession } from '@/lib/session';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Building2, MapPin, Phone, Mail, Package, ShieldCheck, ShieldPlus, Users, ArrowLeft, Pencil, Tag, CalendarDays, Eye, Loader2, Landmark, Briefcase, Link2, Check, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -206,6 +209,7 @@ export default function CompanyPublicView() {
     }, [load]);
 
     const toggleTrust = async () => {
+        if (!isMemberSession()) { navigate('/login'); return; }
         if (!company?._id || trusting) return;
         setTrusting(true);
         // Optimistic, and reverted on failure. The button is the whole
@@ -240,7 +244,7 @@ export default function CompanyPublicView() {
 
     const copyLink = async () => {
         try {
-            await navigator.clipboard.writeText(window.location.href);
+            await shareLink({ title: company?.businessName, text: company?.description, url: publicUrl(`/network/company/${encodeURIComponent(id || '')}`) });
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch {
@@ -257,6 +261,7 @@ export default function CompanyPublicView() {
         (products || []).forEach((p) => viewProduct(String(p?._id || '')));
     }, [tab, products, company?.isOwner, viewProduct]);
     const categories = useMemo(() => company?.productCategories || [], [company]);
+    const { schemes, explicitlyNone } = governmentSchemes(company?.govtSchemes);
 
     if (loading) {
         return (
@@ -273,10 +278,10 @@ export default function CompanyPublicView() {
                     <EmptyState
                         icon={Building2}
                         title="This company is not available"
-                        hint="It may have been removed, or taken out of the member directory by its owner."
+                        hint="It may have been removed, or taken out of the ACTIV Network by its owner."
                         action={
                             <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate('/business/discover')}>
-                                Back to Discover
+                                Back to ACTIV Network
                             </Button>
                         }
                     />
@@ -292,7 +297,9 @@ export default function CompanyPublicView() {
     return (
         <BusinessPageShell
             title={company.businessName || 'Company'}
-            subtitle="How this company appears to other members"
+            subtitle="ACTIV Network · company profile"
+            sidebar={isMemberSession()}
+            disableNavigation={!isMemberSession()}
             width="standard"
             actions={
                 <Button
@@ -346,7 +353,7 @@ export default function CompanyPublicView() {
                             src={resolveMediaUrl(company.banner)}
                             alt=""
                             onError={() => setBannerFailed(true)}
-                            className={`w-full h-28 sm:h-44 object-cover ${bannerFailed ? 'hidden' : ''}`}
+                            className={`w-full max-h-80 object-contain bg-white ${bannerFailed ? 'hidden' : ''}`}
                         />
                     ) : null}
 
@@ -635,18 +642,18 @@ export default function CompanyPublicView() {
                                             </div>
                                         )}
 
-                                        {(company.govtSchemes || []).length > 0 && (
+                                        {(schemes.length > 0 || explicitlyNone) && (
                                             <div>
                                                 <p className="text-[1.1875rem] font-semibold uppercase tracking-wider text-slate-400 mb-3">
                                                     Schemes availed
                                                 </p>
-                                                <ul className="flex flex-wrap gap-2">
-                                                    {(company.govtSchemes || []).map((scheme) => (
+                                                {schemes.length > 0 ? <ul className="flex flex-wrap gap-2">
+                                                    {schemes.map((scheme) => (
                                                         <li key={scheme}>
                                                             <Chip tone="green">{scheme}</Chip>
                                                         </li>
                                                     ))}
-                                                </ul>
+                                                </ul> : <p className="text-base text-slate-600">No government schemes availed.</p>}
                                             </div>
                                         )}
                                     </div>
@@ -761,14 +768,14 @@ export default function CompanyPublicView() {
                         <Card>
                             <SectionTitle>At a glance</SectionTitle>
                             <dl className="space-y-4">
-                                <div className="flex items-start gap-3">
+                                {company.businessType ? <div className="flex items-start gap-3">
                                     <Briefcase className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
                                     <Detail label="Type" value={company.businessType} />
-                                </div>
-                                <div className="flex items-start gap-3">
+                                </div> : null}
+                                {company.constitutionType ? <div className="flex items-start gap-3">
                                     <Landmark className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
                                     <Detail label="Constitution" value={company.constitutionType} />
-                                </div>
+                                </div> : null}
                                 <div className="flex items-start gap-3">
                                     <Users className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
                                     <Detail
@@ -776,10 +783,10 @@ export default function CompanyPublicView() {
                                         value={`${trustedBy} ${trustedBy === 1 ? 'member' : 'members'}`}
                                     />
                                 </div>
-                                <div className="flex items-start gap-3">
+                                {monthYear(company.createdAt) ? <div className="flex items-start gap-3">
                                     <CalendarDays className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
                                     <Detail label="On ACTIV since" value={monthYear(company.createdAt)} />
-                                </div>
+                                </div> : null}
                             </dl>
                         </Card>
                     </div>
