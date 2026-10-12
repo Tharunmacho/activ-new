@@ -31,7 +31,7 @@ export default function EventsPage() {
 
         // Both in flight together: the copy and the list are independent, and
         // waiting for one before asking for the other doubles the delay.
-        Promise.all([getCmsEvents('all'), getEventsSettings()])
+        Promise.all([getCmsEvents(), getEventsSettings()])
             .then(([list, config]) => {
                 if (cancelled) return;
                 setEvents(list);

@@ -51,7 +51,7 @@ const hasTargets = (e: CmsEvent) =>
 
 /** The server's `isOnboardingContent`, plus the two gates its callers add. */
 const whyNotPublic = (e: CmsEvent): string => {
-    if (isPastEvent(e)) return 'completed (available in Past Events)';
+    if (isPastEvent(e)) return 'completed (hidden from public pages)';
     if (e?.status !== 'published') return 'a draft';
     if (e?.audience === 'paid') return 'members-only';
     const onSite = e?.showOnOnboarding === true

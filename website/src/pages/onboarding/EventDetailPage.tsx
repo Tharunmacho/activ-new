@@ -15,6 +15,7 @@ import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import EventPriceTiers from '@/components/shared/EventPriceTiers';
 import EventActions from '@/components/shared/EventActions';
 import { countdownLabel, eventPhase } from '@/lib/eventCalendar';
+import { isUpcomingEvent } from '@/lib/eventLifecycle';
 import { getBookableEvent, type BookableEvent } from '@/services/eventBookingApi';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { SECTION_HEADING, SECTION_LEDE, MICRO_LABEL } from '@/components/layout/typography';
@@ -246,7 +247,7 @@ export default function EventDetailPage() {
         );
     }
 
-    if (missing || !event) {
+    if (missing || !event || !isUpcomingEvent(event, now)) {
         return (
             <div className="flex flex-col min-h-screen font-sans dot-band">
                 <HeaderSection />

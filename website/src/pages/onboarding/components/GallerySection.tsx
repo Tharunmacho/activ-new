@@ -1,6 +1,7 @@
 import { galleryPath } from '@/lib/eventPath';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { PUBLIC_FILTER_CHIP } from '@/components/layout/publicFilters';
 import { Images, Calendar, MapPin, Grid3x3, ArrowRight } from 'lucide-react';
 import {
     getGallery, getGallerySettings,
@@ -314,20 +315,17 @@ export function GallerySection() {
 
                 {/* ---- filter chips ---- */}
                 {categories.length > 0 && (
-                    /* One swipeable row on a phone (the chips stacked one per line
-                       there); wrapped and centred from `sm`. */
-                    <div className="-mx-5 mb-7 flex snap-x items-center gap-2.5 overflow-x-auto px-5 pb-1
-                                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
-                                    sm:mx-0 sm:mb-12 sm:flex-wrap sm:justify-center sm:gap-3 sm:overflow-visible sm:px-0">
+                    <div className="mb-7 sm:mb-10 flex flex-wrap items-center justify-start sm:justify-center gap-2"
+                        role="group" aria-label="Gallery categories">
                         {[{ label: 'All', icon: '' }, ...categories].map((filter, index) => (
                             <button
                                 key={index}
+                                type="button"
+                                aria-pressed={activeFilter === filter.label}
                                 onClick={() => { setActiveFilter(filter.label); setExpanded(false); }}
-                                className={`flex shrink-0 snap-start items-center space-x-2 sm:space-x-2.5 px-4 sm:px-7 py-2.5 sm:py-3
-                                            rounded-full text-[1.05rem] sm:text-[1.25rem] font-semibold whitespace-nowrap
-                                            transition-all duration-200 border active:scale-95 ${
+                                className={`${PUBLIC_FILTER_CHIP} ${
                                     activeFilter === filter.label
-                                        ? 'bg-brand-800 border-brand-800 text-white shadow-md'
+                                        ? 'bg-brand-800 border-brand-800 text-white'
                                         : 'bg-white border-gray-200 text-brand-800 hover:border-brand-800 hover:bg-brand-50'
                                 }`}
                             >

@@ -108,7 +108,10 @@ export const cancelEventBooking = async (eventId: string, ref: string, reason = 
    ================================================================== */
 
 /** One row of the Booking Events table. */
+export type BookingHistoryCategory = 'current' | 'past' | 'deleted';
 export interface BookingOverviewRow {
+    historyCategory: BookingHistoryCategory;
+    bookingHistoryOnly?: boolean;
     archivedAt?: string | null;
     id: string;
     title: string;
@@ -146,6 +149,7 @@ export interface BookingOverviewRow {
 
 export interface BookingOverview {
     events: BookingOverviewRow[];
+    historyTotals?: Record<BookingHistoryCategory, BookingOverview['totals']>;
     totals: {
         events: number; seats: number; capacity: number;
         bookings: number; collected: number; pending: number;

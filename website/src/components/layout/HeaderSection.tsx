@@ -49,6 +49,14 @@ export function HeaderSection() {
     // Collapse the drawer on navigation, or it stays open over the new page.
     useEffect(() => { setMenuOpen(false); }, [pathname]);
 
+    // Release the drawer's scroll lock when a resized window uses desktop navigation.
+    useEffect(() => {
+        const desktop = window.matchMedia('(min-width: 1280px)');
+        const closeOnDesktop = () => { if (desktop.matches) setMenuOpen(false); };
+        desktop.addEventListener('change', closeOnDesktop);
+        return () => desktop.removeEventListener('change', closeOnDesktop);
+    }, []);
+
     /*
      * While the phone menu is open the page behind it must not scroll, and
      * Escape closes it. Restored on close, and on unmount.
@@ -157,19 +165,19 @@ export function HeaderSection() {
                   where it was — the one strip on the page that ignored the zoom
                   fix. Everything here is now rem-based and scales with the rest.
                 */}
-                <div className="flex h-[4.5rem] sm:h-[5.5rem] items-center gap-3 sm:gap-5 lg:gap-9">
+                <div className="flex h-[4.5rem] sm:h-[5.5rem] items-center gap-3 sm:gap-5 xl:gap-9">
 
                     {/*
                       * THE MENU BUTTON — on the LEFT, before the mark, the way
                       * phone sites are read: menu, brand, action. Three bars in
                       * a soft tile that fold into a cross when the menu opens.
-                      * Below `lg` this is the only way to the nav.
+                      * Keep the drawer through tablet widths so the full navigation fits.
                       */}
                     {navLinks.length > 0 && (
                         <button
                             type="button"
-                            className="lg:hidden relative inline-flex shrink-0 items-center justify-center
-                                       h-10 w-10 sm:h-11 sm:w-11 rounded-2xl border
+                            className="xl:hidden relative inline-flex shrink-0 items-center justify-center
+                                       h-10 w-10 min-h-[44px] min-w-[44px] sm:h-11 sm:w-11 rounded-2xl border
                                        transition-all duration-200 active:scale-90"
                             style={{
                                 color: accent,
@@ -229,7 +237,7 @@ export function HeaderSection() {
                                 /* The same widths as the name it divides —
                                    see the threshold note below. A rule with
                                    nothing on its right is a stray line. */
-                                className="hidden md:block lg:hidden min-[1700px]:block h-8 lg:h-9 w-px shrink-0"
+                                className="hidden md:block xl:hidden min-[1700px]:block h-8 lg:h-9 w-px shrink-0"
                                 style={{ backgroundColor: `${accent}33` }}
                             />
                         )}
@@ -312,7 +320,7 @@ export function HeaderSection() {
                                  * rename and sit in the middle of the wrong
                                  * word; a measure just wraps the new words.
                                  */
-                                className="hidden md:block lg:hidden min-[1700px]:block shrink-0
+                                className="hidden md:block xl:hidden min-[1700px]:block shrink-0
                                            text-[1rem] lg:text-[1.0625rem] font-bold uppercase
                                            leading-[1.35] tracking-[0.06em] max-w-[21.6em]"
                                 style={{ color: accent }}
@@ -326,9 +334,9 @@ export function HeaderSection() {
                         One right-hand group, so the spacing between the last
                         link and the button is set here and not left to whatever
                         `justify-between` happened to produce at a given width. */}
-                    <div className="ml-auto flex items-center gap-5 lg:gap-8">
+                    <div className="ml-auto flex items-center gap-5 xl:gap-8">
                         {navLinks.length > 0 && (
-                            <nav className="hidden lg:flex shrink-0 items-center gap-5 xl:gap-7 2xl:gap-8" aria-label="Main">
+                            <nav className="hidden xl:flex shrink-0 items-center gap-5 xl:gap-7 2xl:gap-8" aria-label="Main">
                                 {navLinks.map((item, i) => isSchemes(item.href) ? (
                                     /* The CMS's "Schemes" link opens a dropdown like
                                        Regions — Central, then each region's states. */
@@ -389,7 +397,7 @@ export function HeaderSection() {
                                 <Link
                                     to={ctaHref}
                                     className="btn-shine group relative inline-flex items-center justify-center gap-2
-                                               h-10 sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
+                                               h-10 min-h-[44px] sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
                                                text-white text-[0.95rem] sm:text-[1.0625rem] font-semibold whitespace-nowrap
                                                shadow-[0_8px_20px_-8px_rgb(28_46_104/0.7)]
                                                transition-transform duration-200 active:scale-95 hover:-translate-y-0.5"
@@ -414,7 +422,7 @@ export function HeaderSection() {
               * the actions a phone visitor came for are a thumb away.
               */}
             {menuOpen && navLinks.length > 0 && (
-                <div className="lg:hidden fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Menu">
+                <div className="xl:hidden fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Menu">
                     <button
                         type="button"
                         aria-label="Close menu"

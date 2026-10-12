@@ -5,18 +5,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getRegionTree } from '@/services/activApi';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video } from 'lucide-react';
+import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { eventWhere } from '@/lib/eventWhere';
 import type { CmsEvent, EventsSettings } from '@/services/cmsApi';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { Reveal } from '@/components/shared/Reveal';
-import { sectionHidden, sectionFields } from '@/components/shared/cmsSections';
+import { sectionHidden } from '@/components/shared/cmsSections';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
 import { SectionFields } from '@/components/shared/SectionFields';
 import { Tilt3D } from '@/components/shared/Tilt3D';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
-import { CARD_TITLE, CARD_BODY, MICRO_LABEL } from '@/components/layout/typography';
+import { CARD_BODY, MICRO_LABEL } from '@/components/layout/typography';
 import { eventPath } from '@/lib/eventPath';
+import { PUBLIC_FILTER_CONTROL, PUBLIC_FILTER_LABEL, PUBLIC_FILTER_BUTTON, PUBLIC_FILTER_CHIP } from '@/components/layout/publicFilters';
 
 /**
  * The Events page's search, filters and grid.
@@ -39,9 +40,8 @@ import { eventPath } from '@/lib/eventPath';
  */
 
 /**
- * The default programme contains upcoming and ongoing events only. Completed
- * events are accessible through the explicit Past Events tab; gallery albums
- * remain independent editorial content. All event surfaces share one clock rule.
+ * The public programme contains upcoming and ongoing events only. Completed
+ * and deleted events keep their booking details in the admin history.
  */
 
 /**
@@ -58,7 +58,7 @@ import { eventPath } from '@/lib/eventPath';
  * dropdowns.
  */
 const HOW = [
-    { value: 'all', label: 'Online and in person' },
+    { value: 'all', label: 'All formats' },
     { value: 'offline', label: 'In person' },
     { value: 'online', label: 'Online' },
 ] as const;
@@ -228,7 +228,7 @@ export function EventsExplorer({ events, settings }: Props) {
     const [params, setParams] = useSearchParams();
     const initial = (key: string) => params.get(key) || '';
     const [query, setQuery] = useState(initial('q'));
-    const [period, setPeriod] = useState<'upcoming' | 'past'>(initial('period') === 'past' ? 'past' : 'upcoming');
+    const [filtersOpen, setFiltersOpen] = useState(() => ['category', 'state', 'district', 'city', 'language', 'mode'].some(key => params.has(key)));
     const [category, setCategory] = useState<string>(initial('category') || ALL);
     const [location, setLocation] = useState<string>(ALL);
 
@@ -275,7 +275,6 @@ export function EventsExplorer({ events, settings }: Props) {
     useEffect(() => {
         const next = new URLSearchParams();
         const put = (key: string, value: string) => { if (value && value !== ALL && value !== 'all') next.set(key, value); };
-        if (period === 'past') next.set('period', 'past');
         put('q', query.trim());
         put('category', category);
         put('state', state);
@@ -286,7 +285,7 @@ export function EventsExplorer({ events, settings }: Props) {
         if (next.toString() !== params.toString()) setParams(next, { replace: true });
         // `params` is read to compare only; including it would loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, category, state, district, block, language, how, period]);
+    }, [query, category, state, district, block, language, how]);
 
     /* The Search-and-chips card can be removed — see `cmsSections`. It takes
        the chips with it; the search box is not authored and stays. */
@@ -477,7 +476,7 @@ export function EventsExplorer({ events, settings }: Props) {
              * conclave read as past from its second morning, because this
              * asked when it STARTED. An event is over when it is over.
              */
-            if (event.archivedAt || (period === 'past' ? !isPastEvent(event, now) : isPastEvent(event, now))) return false;
+            if (event.archivedAt || isPastEvent(event, now)) return false;
 
             if (needle) {
                 const haystack = [event?.title, event?.description, event?.location, event?.category]
@@ -496,7 +495,7 @@ export function EventsExplorer({ events, settings }: Props) {
          * when something in this list changes, so a value used inside and
          * missing from it is a control wired to nothing.
          */
-    }, [events, query, category, location, how, state, district, block, language, tree, period, now]);
+    }, [events, query, category, location, how, state, district, block, language, tree, now]);
 
     const isFiltered = !!(query.trim()) || category !== ALL || location !== ALL
         || how !== 'all' || state !== ALL || district !== ALL || block !== ALL || language !== ALL;
@@ -546,7 +545,6 @@ export function EventsExplorer({ events, settings }: Props) {
 
 
     /* The editor's own rows, per card, then the page's own list. */
-    const key = (k: string) => (sectionHidden(settings?.sections, k) ? [] : sectionFields(settings?.sections, k));
     /*
      * Each card's rows are drawn WITH that card now — see `SectionFields`.
      * They were pooled here and printed once under the grid, so a field added
@@ -555,13 +553,7 @@ export function EventsExplorer({ events, settings }: Props) {
      */
     const ownRows = settings?.extraFields || [];
 
-    const selectClass =
-        /* Smaller type and padding on a phone, where two sit side by side and
-           "All categories" / "Online and in person" were cut off. */
-        'h-11 sm:h-12 min-w-0 rounded-xl border border-brand-100 bg-white px-2.5 sm:px-4 '
-        + 'text-[1rem] sm:text-[1.25rem] font-semibold '
-        + 'text-brand-800 outline-none transition-colors hover:border-brand-300 '
-        + 'focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15';
+    const selectClass = PUBLIC_FILTER_CONTROL;
 
     return (
         <section className="w-full dot-band font-sans">
@@ -575,9 +567,9 @@ export function EventsExplorer({ events, settings }: Props) {
                   recognisable difference from the gallery, whose chips simply
                   start the content column.
                 */}
-                <div className="-mt-10 relative z-20 rounded-2xl bg-white p-3 md:p-4
+                <div className="-mt-7 sm:-mt-10 relative z-20 rounded-2xl bg-white p-4 sm:p-5
                                 shadow-[0_24px_60px_-24px_rgb(28_46_104/0.45)] ring-1 ring-brand-100">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="flex flex-col gap-3">
 
                         <label className="relative flex-1 min-w-0">
                             <span className="sr-only">Search events</span>
@@ -590,18 +582,21 @@ export function EventsExplorer({ events, settings }: Props) {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder={settings?.searchPlaceholder || 'Search events...'}
-                                className="h-12 w-full rounded-xl border border-brand-100 bg-white pl-11 pr-3.5
-                                           text-[1.25rem] font-medium text-brand-800 placeholder:text-gray-400
-                                           outline-none transition-colors hover:border-brand-300
-                                           focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15"
+                                className={`${PUBLIC_FILTER_CONTROL} pl-11`}
                             />
                         </label>
 
-                        {/* Two-up from the smallest phone: four full-width dropdowns
-                            stacked were a screen of controls before any event. */}
-                        <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:flex lg:items-center">
+                        <button type="button" aria-expanded={filtersOpen} aria-controls="event-filter-fields"
+                            onClick={() => setFiltersOpen(open => !open)}
+                            className={`${PUBLIC_FILTER_BUTTON} justify-between sm:hidden`}>
+                            <span className="inline-flex items-center gap-2"><SlidersHorizontal size={17} />Filters{isFiltered ? ' · Active' : ''}</span>
+                            <ChevronDown size={17} className={filtersOpen ? 'rotate-180' : ''} />
+                        </button>
+                        <div id="event-filter-fields" className={`${filtersOpen ? 'grid' : 'hidden'} grid-cols-1 gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}>
                             {/* Offered only when the CMS has chips to offer. */}
                             {chips.length > 0 && (
+                                <label>
+                                <span className={PUBLIC_FILTER_LABEL}>Category</span>
                                 <select
                                     aria-label="Category"
                                     value={category}
@@ -613,6 +608,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                         <option key={i} value={c.label}>{c.label}</option>
                                     ))}
                                 </select>
+                                </label>
                             )}
 
 
@@ -637,6 +633,8 @@ export function EventsExplorer({ events, settings }: Props) {
                               seeing one with a single option in it.
                             */}
                             {stateOptions.length > 0 && (
+                                <label>
+                                <span className={PUBLIC_FILTER_LABEL}>State</span>
                                 <select
                                     aria-label="State"
                                     value={state}
@@ -648,9 +646,12 @@ export function EventsExplorer({ events, settings }: Props) {
                                         <option key={i} value={s}>{s}</option>
                                     ))}
                                 </select>
+                                </label>
                             )}
 
                             {districtOptions.length > 0 && (
+                                <label>
+                                <span className={PUBLIC_FILTER_LABEL}>District</span>
                                 <select
                                     aria-label="District"
                                     value={district}
@@ -662,9 +663,12 @@ export function EventsExplorer({ events, settings }: Props) {
                                         <option key={i} value={d}>{d}</option>
                                     ))}
                                 </select>
+                                </label>
                             )}
 
                             {blockOptions.length > 0 && (
+                                <label>
+                                <span className={PUBLIC_FILTER_LABEL}>City</span>
                                 <select
                                     aria-label="City"
                                     value={block}
@@ -676,12 +680,15 @@ export function EventsExplorer({ events, settings }: Props) {
                                         <option key={i} value={b}>{b}</option>
                                     ))}
                                 </select>
+                                </label>
                             )}
 
                             {/* The date window used to sit here. See the note at
                                 the top of this file: this page is upcoming events,
                                 so there is no window left to choose. */}
                             {languageOptions.length > 0 && (
+                                <label>
+                                <span className={PUBLIC_FILTER_LABEL}>Language</span>
                                 <select
                                     aria-label="Language"
                                     value={language}
@@ -693,8 +700,11 @@ export function EventsExplorer({ events, settings }: Props) {
                                         <option key={i} value={l}>{l}</option>
                                     ))}
                                 </select>
+                                </label>
                             )}
 
+                            <label>
+                            <span className={PUBLIC_FILTER_LABEL}>Format</span>
                             <select
                                 aria-label="Online or in person"
                                 value={how}
@@ -705,15 +715,14 @@ export function EventsExplorer({ events, settings }: Props) {
                                     <option key={h.value} value={h.value}>{h.label}</option>
                                 ))}
                             </select>
+                            </label>
 
                             {/* Only offered once there is something to undo. */}
                             {isFiltered && (
                                 <button
                                     type="button"
                                     onClick={reset}
-                                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl
-                                               border border-brand-100 px-5 text-[1.25rem] font-bold text-brand-700
-                                               transition-colors hover:border-brand-600 hover:bg-brand-50"
+                                    className={`${PUBLIC_FILTER_BUTTON} self-end h-12`}
                                 >
                                     <X size={17} />
                                     Reset
@@ -728,34 +737,28 @@ export function EventsExplorer({ events, settings }: Props) {
 
                 {/* ------------------------------------------------ chip rail */}
                 {chips.length > 0 && (
-                    <div className="mt-8 -mx-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
-                        {/*
-                          A segmented rail — one inset track with the active chip
-                          raised out of it in white. The gallery's chips are
-                          free-standing outlined pills that fill solid when
-                          active; this is the inverse, so the two filter rows do
-                          not read as the same control.
-                        */}
-                        <div className="inline-flex min-w-full gap-1 rounded-2xl bg-brand-50 p-1.5 md:min-w-0">
+                    <div className="mt-6 hidden md:block">
+                        {/* Desktop shortcuts wrap; phones use the category dropdown. */}
+                        <div className="flex flex-wrap gap-2" role="group" aria-label="Event categories">
                             {[{ label: ALL, icon: '' }, ...chips].map((chip, i) => {
                                 const active = category === chip.label;
                                 return (
                                     <button
                                         key={i}
                                         type="button"
+                                        aria-pressed={active}
                                         onClick={() => setCategory(chip.label)}
-                                        className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl
-                                                    px-5 py-3 text-[1.25rem] font-bold transition-all duration-200 ${
+                                        className={`${PUBLIC_FILTER_CHIP} ${
                                             active
-                                                ? 'bg-white text-brand-800 shadow-[0_6px_16px_-6px_rgb(28_46_104/0.5)]'
-                                                : 'text-brand-600/80 hover:text-brand-800'
+                                                ? 'border-brand-800 bg-brand-800 text-white'
+                                                : 'border-brand-100 bg-white text-brand-700 hover:border-brand-300 hover:bg-brand-50'
                                         }`}
                                     >
                                         {chip.icon && (
                                             <CmsIcon
                                                 name={chip.icon}
                                                 size={18}
-                                                className={active ? 'text-brand-600' : 'text-brand-400'}
+                                                className="shrink-0"
                                                 fallback="calendar-days"
                                             />
                                         )}
@@ -767,19 +770,10 @@ export function EventsExplorer({ events, settings }: Props) {
                     </div>
                 )}
 
-                <div className="mt-8 flex flex-wrap gap-3" aria-label="Event period">
-                    {(['upcoming', 'past'] as const).map(value => (
-                        <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)}
-                            className={'rounded-xl border px-5 py-3 text-lg font-bold transition-colors ' + (period === value ? 'border-brand-700 bg-brand-700 text-white' : 'border-brand-200 bg-white text-brand-800 hover:bg-brand-50')}>
-                            {value === 'past' ? 'Past Events' : 'Upcoming Events'}
-                        </button>
-                    ))}
-                </div>
-                {period === 'past' && <p className="mt-4 text-base text-slate-600">Completed events are kept here for reference. Registration is closed.</p>}
                 {/* ----------------------------------------------------- grid */}
                 {filtered.length === 0 ? (
                     <p className="py-20 text-center text-[1.375rem] font-semibold text-gray-500">
-                        {isFiltered ? emptyFiltered : (period === 'past' ? 'No past events to show yet.' : (settings?.emptyText || 'No upcoming events to show yet.'))}
+                        {isFiltered ? emptyFiltered : (settings?.emptyText || 'No upcoming events to show yet.')}
                     </p>
                 ) : (
                     /*
@@ -794,7 +788,7 @@ export function EventsExplorer({ events, settings }: Props) {
                       * a 1600px page. Same rule, same reasons, as the leadership
                       * benches; see `rowClass` in `LeadershipSections`.
                       */
-                    <div className={`mt-10 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
+                    <div className={`mt-6 sm:mt-8 grid gap-5 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
                                      ${EVENT_GRID[Math.min(5, Math.max(1, filtered.length))]
                                         || EVENT_GRID[5]}`}>
                         {filtered.map((event, i) => {
@@ -977,9 +971,9 @@ export function EventsExplorer({ events, settings }: Props) {
                                                       * space and buys the whole row one set
                                                       * of baselines.
                                                       */}
-                                                    <h3 className={`${CARD_TITLE} text-[1.25rem] leading-snug
-                                                                    min-h-[5.1rem] text-brand-800 line-clamp-3
-                                                                    transition-colors group-hover:text-brand-600`}>
+                                                    <h3 className="text-[1.5rem] sm:text-[1.625rem] font-bold leading-snug
+                                                                    sm:min-h-[6.7rem] text-brand-800 line-clamp-3
+                                                                    transition-colors group-hover:text-brand-600">
                                                         {/* No field on the event form is
                                                             required, so a published event
                                                             can genuinely have no title.
@@ -990,9 +984,8 @@ export function EventsExplorer({ events, settings }: Props) {
                                                     </h3>
 
                                                     {event?.description && (
-                                                        <p className={`${CARD_BODY} mt-2.5 line-clamp-2
-                                                                       min-h-[3.4rem] text-[1.25rem]
-                                                                       font-medium text-gray-500`}>
+                                                        <p className="mt-2.5 line-clamp-2 sm:min-h-[3.25rem]
+                                                                       text-[1.125rem] leading-relaxed font-normal text-gray-600">
                                                             {event.description}
                                                         </p>
                                                     )}
@@ -1222,10 +1215,6 @@ export function EventsExplorer({ events, settings }: Props) {
                     here, so a field added to the filters landed under the grid. */}
                 {fieldsFor('events.grid')}
                 {fieldsFor('events.banner')}
-                {/* The "past events link" card offered the control and had
-                    nothing drawing the answer. It belongs to this page's foot,
-                    which is where that link sits. */}
-                {fieldsFor('events.pastLink')}
                 <div className={`${CARD_BODY} text-gray-600`}>
                     <CmsExtraFields fields={ownRows} className="mt-16" />
                 </div>

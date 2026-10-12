@@ -1,20 +1,20 @@
 import { useCardTable } from '@/lib/useCardTable';
+import './booking-list.css';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     Search, Users, IndianRupee, Ticket, Clock, X, CheckCircle2, Loader2,
     ChevronLeft, ChevronRight, Ban, RefreshCw, FileSpreadsheet, ArrowLeft,
-    ListChecks, BadgePercent, UserCheck,
+    ListChecks, BadgePercent, UserCheck, Eye,
 } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import {
     AdminPageHeader, AdminStat, ADMIN_BG, ADMIN_CARD, ADMIN_PAGE,
     ADMIN_INPUT, ADMIN_PRIMARY_BTN, ADMIN_SECONDARY_BTN, rupees,
 } from '@/features/admin/components/AdminUI';
-import { listEvents } from '@/services/activApi';
 import {
-    listEventBookings, recordBookingPayment, cancelEventBooking, deleteEventBooking,
-    listEventAttendees, exportBookingsCsv,
+    listEventBookings, recordBookingPayment, cancelEventBooking,
+    listEventAttendees, exportBookingsCsv, listBookingOverview,
     type BookingPage, type EventAttendee,
 } from '@/services/eventBookingAdminApi';
 import { AdminTable, AdminChip, type AdminColumn }
@@ -57,6 +57,9 @@ import { adminBasePath } from '@/features/admin/components/tierConfig';
  */
 
 interface EventOption {
+    historyCategory?: 'current' | 'past' | 'deleted';
+    bookingHistoryOnly?: boolean;
+    archivedAt?: string | null;
     id: string;
     title: string;
     startAt: string | null;
@@ -99,8 +102,8 @@ function PaymentChip({ status }: { status: string }) {
     if (!chip) return <span className="text-slate-300">—</span>;
 
     return (
-        <span className={`inline-flex items-center rounded-full border px-2.5 py-1
-                          text-[1.1875rem] font-semibold ${chip.className}`}>
+        <span className={`inline-flex items-center rounded-full border px-2 py-0.5
+                          text-sm font-semibold ${chip.className}`}>
             {chip.label}
         </span>
     );
@@ -111,15 +114,13 @@ function ModeChip({ mode }: { mode: string }) {
 
     const label = mode === 'bank_transfer' ? 'Bank' : mode.charAt(0).toUpperCase() + mode.slice(1);
     return (
-        <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50
-                         px-2.5 py-1 text-[1.1875rem] font-semibold text-blue-700">
+        <span className="text-sm text-slate-500">
             {label}
         </span>
     );
 }
 
 export default function SuperAdminBookings() {
-    const cardTableRef2 = useCardTable();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -189,19 +190,20 @@ export default function SuperAdminBookings() {
     useEffect(() => {
         let cancelled = false;
 
-        listEvents({ limit: 200, includeArchived: true })
+        listBookingOverview(true)
             .then((response: any) => {
                 if (cancelled) return;
-                // `/events` answers `{ events, total }`; an older build answered
-                // a bare array. Both are read rather than assumed, because a
-                // mismatch here renders an empty picker with no error.
+                // Use booking history so physically deleted events remain selectable.
                 const rows: any[] = Array.isArray(response) ? response : (response?.events || []);
                 setEvents(rows.map((e) => ({
                     id: String(e.id || e._id || ''),
                     title: e.title || 'Untitled event',
                     startAt: e.startAt || null,
-                    registrationFee: Number(e.registrationFee || 0),
-                    capacity: Number(e.capacity || 0),
+                    bookingHistoryOnly: !!e.bookingHistoryOnly,
+                    historyCategory: e.historyCategory,
+                    archivedAt: e.archivedAt || null,
+                    registrationFee: Number(e.price || 0),
+                    capacity: Number(e.totalSeats || 0),
                 })).filter((e) => e.id));
                 setEventsLoading(false);
             })
@@ -348,6 +350,7 @@ export default function SuperAdminBookings() {
         () => events.find((e) => e.id === eventId) || null,
         [events, eventId],
     );
+    const historyPath = `${adminBasePath()}/bookings?history=${selected?.historyCategory || 'current'}`;
 
     const summary = data?.summary;
     const pagination = data?.pagination;
@@ -396,14 +399,6 @@ export default function SuperAdminBookings() {
         }
     };
 
-    const remove = async (booking: EventBooking) => {
-        if (!window.confirm(`Delete booking ${booking.bookingRef}? Its seats will be released and it will leave the booking list. Payment records are retained; this does not refund payments.`)) return;
-        setActing(booking.bookingRef);
-        try { await deleteEventBooking(eventId, booking.bookingRef); setOpen(null); load(); invalidateAttendees(); }
-        catch (err) { setError(errorMessage(err, 'The booking could not be deleted')); }
-        finally { setActing(''); }
-    };
-
     /* -------------------------------------------------------------- render */
 
     return (
@@ -415,25 +410,25 @@ export default function SuperAdminBookings() {
                     title="Event Bookings"
                     subtitle="Seats booked through the public Book Now page, and what has been paid"
                     onMenu={() => setSidebarOpen(true)}
-                    backTo={`${adminBasePath()}/bookings`}
+                    backTo={historyPath}
                     actions={
                         <>
                             <button
                                 type="button"
-                                onClick={() => navigate(`${adminBasePath()}/bookings`)}
+                                onClick={() => navigate(historyPath)}
                                 className={ADMIN_SECONDARY_BTN}
                             >
                                 <ArrowLeft className="w-4 h-4" /> All events
                             </button>
                             {/* Who has been let in at the door (QR check-in). */}
-                            <button
+                            {!selected?.bookingHistoryOnly && <button
                                 type="button"
                                 onClick={() => navigate(`${adminBasePath()}/attendance/${eventId}`)}
                                 className={ADMIN_SECONDARY_BTN}
                                 disabled={!eventId}
                             >
                                 <UserCheck className="w-4 h-4" /> Attendance
-                            </button>
+                            </button>}
                             {/*
                               * The spreadsheet.
                               *
@@ -459,7 +454,8 @@ export default function SuperAdminBookings() {
                     }
                 />
 
-                <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
+                <div className="flex-1 overflow-y-auto">
+                  <div className={ADMIN_PAGE}>
 
                     {/* ---------------------------------------------- picker */}
                     <div className={`${ADMIN_CARD} p-4 sm:p-5`}>
@@ -483,12 +479,16 @@ export default function SuperAdminBookings() {
                         >
                             {eventsLoading && <option>Loading events…</option>}
                             {!eventsLoading && !events.length && <option>No events yet</option>}
-                            {events.map((e) => (
+                            {(['current', 'past', 'deleted'] as const).map(category => (
+                              <optgroup key={category} label={category === 'current' ? 'Current events' : category === 'past' ? 'Past events' : 'Deleted events'}>
+                              {events.filter(e => e.historyCategory === category).map((e) => (
                                 <option key={e.id} value={e.id}>
                                     {e.title}
                                     {e.startAt ? ` — ${formatDay(e.startAt)}` : ''}
-                                    {e.registrationFee > 0 ? ` — ${rupees(e.registrationFee)}` : ' — Free'}
+                                    {e.bookingHistoryOnly || e.archivedAt ? ' — Deleted event · bookings retained' : e.registrationFee > 0 ? ` — ${rupees(e.registrationFee)}` : ' — Free'}
                                 </option>
+                              ))}
+                              </optgroup>
                             ))}
                         </select>
                     </div>
@@ -509,7 +509,7 @@ export default function SuperAdminBookings() {
                             value={String(summary?.seats ?? 0)}
                             hint={selected && selected.capacity > 0
                                 ? `of ${selected.capacity}`
-                                : 'no seat limit set'}
+                                : selected?.bookingHistoryOnly ? 'retained booking history' : 'no seat limit set'}
                             tone="violet"
                         />
                         <AdminStat
@@ -620,146 +620,76 @@ export default function SuperAdminBookings() {
                     )}
 
                     {/* ----------------------------------------------- table */}
-                    <div className={`${ADMIN_CARD} overflow-hidden`}>
-                        <div ref={cardTableRef2} className="overflow-x-auto card-table">
-                            {/*
-                              `min-w-[76rem]`, not 60. Nine columns including an
-                              email address and a "View Booking Details" button do
-                              not fit in 960px: the table compressed to the
-                              container instead of overflowing, which crushed
-                              tharunroobika@gmail.com into four stacked lines and
-                              clipped the action button to "View Booking Det".
-                              Wide enough to overflow is what makes the scroll bar
-                              appear and every column readable.
-                            */}
-                            <table className="w-full text-left border-collapse min-w-[88rem]">
+                    <div className={ADMIN_CARD + ' booking-records'}>
+                        <div className="booking-records-layout">
+                            <table className="booking-records-table" aria-label="Event bookings">
+                                <colgroup>
+                                    <col className="booking-records-number-column" />
+                                    <col className="booking-records-person-column" />
+                                    <col />
+                                    <col className="booking-records-payment-column" />
+                                    <col className="booking-records-seats-column" />
+                                    <col className="booking-records-action-column" />
+                                </colgroup>
                                 <thead>
-                                    <tr className="bg-slate-50">
-                                        {[
-                                            'S.No', 'Name', 'Email', 'Mobile', 'Payment Mode',
-                                            'Payment Status', 'No Of Participants', 'Total Amount', 'Messages', 'Action',
-                                        ].map((head) => (
-                                            <th
-                                                key={head}
-                                                /* Matched to `AdminTable`'s head cell — 13px bold
-                                                   capitals on a 16px table. This screen and the
-                                                   overview above it are one section and must not
-                                                   set the same heading two different ways. */
-                                                className="px-5 py-4 text-[1.0625rem] font-semibold
-                                                           uppercase tracking-wider text-slate-500
-                                                           border-b border-slate-200 whitespace-nowrap"
-                                            >
-                                                {head}
-                                            </th>
+                                    <tr>
+                                        {['No.', 'Booked by', 'Contact', 'Payment', 'Seats', 'Action'].map((head) => (
+                                            <th key={head} scope="col">{head}</th>
                                         ))}
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     {loading && (
-                                        <tr>
-                                            <td colSpan={10} className="px-4 py-16 text-center text-slate-400">
-                                                <Loader2 className="w-5 h-5 animate-spin inline" />
-                                            </td>
-                                        </tr>
+                                        <tr><td colSpan={6} className="px-4 py-16 text-center text-slate-400">
+                                            <Loader2 className="w-5 h-5 animate-spin inline" />
+                                        </td></tr>
                                     )}
-
                                     {!loading && !rows.length && (
-                                        <tr>
-                                            <td colSpan={10} className="px-4 py-16 text-center">
-                                                <p className="text-[1.25rem] font-semibold text-slate-500">
-                                                    {search || paymentStatus
-                                                        ? 'No bookings match that filter.'
-                                                        : 'No bookings for this event yet.'}
-                                                </p>
-                                            </td>
-                                        </tr>
+                                        <tr><td colSpan={6} className="px-4 py-16 text-center">
+                                            <p className="text-base font-medium text-slate-500">
+                                                {search || paymentStatus ? 'No bookings match that filter.' : 'No bookings for this event yet.'}
+                                            </p>
+                                        </td></tr>
                                     )}
-
                                     {!loading && rows.map((booking, i) => (
-                                        <tr
-                                            key={booking.bookingRef}
-                                            className={
-                                                'border-b border-slate-100 last:border-0 hover:bg-slate-50/70 '
-                                                + (booking.status === 'cancelled' ? 'opacity-50' : '')
-                                            }
-                                        >
-                                            {/*
-                                              The running number continues across pages — row 11 on
-                                              page 2 is "11", as the reference screen shows. A
-                                              per-page 1-10 would make two different bookings both
-                                              "row 3" in the same conversation.
-                                            */}
-                                            <td className="px-5 py-4 text-[1.25rem] text-slate-400 font-semibold tabular-nums">
+                                        <tr key={booking.bookingRef} className="booking-records-row">
+                                            <td data-label="Booking" className="booking-records-number">
                                                 {((pagination?.page || 1) - 1) * (pagination?.limit || 10) + i + 1}
                                             </td>
-                                            <td className="px-5 py-4 text-[1.25rem] font-semibold tracking-tight
-                                                           text-slate-900 whitespace-nowrap">
-                                                {booking.bookedBy.name || '—'}
-                                                {booking.status === 'cancelled' && (
-                                                    <span className="ml-2 text-[1.1875rem] font-semibold text-rose-600">
-                                                        Cancelled
-                                                    </span>
-                                                )}
+                                            <td data-label="Booked by" className="booking-records-person">
+                                                <p className="booking-records-name">{booking.bookedBy.name || '—'}</p>
+                                                {booking.status === 'cancelled' && <span className="text-sm font-semibold text-rose-600">Cancelled</span>}
+                                                <div className="booking-records-delivery">
+                                                    <DeliveryChips summary={delivery[booking.bookingRef]}
+                                                        loading={deliveryLoading && !delivery[booking.bookingRef]}
+                                                        onOpen={() => setMessagesFor(booking)} />
+                                                </div>
                                             </td>
-                                            <td className="px-5 py-4 text-[1.25rem] text-slate-600 whitespace-nowrap">
-                                                {booking.bookedBy.email || '—'}
+                                            <td data-label="Contact" className="booking-records-contact">
+                                                <div>{booking.bookedBy.email || '—'}</div>
+                                                <div className="booking-records-phone">{booking.bookedBy.phone || '—'}</div>
                                             </td>
-                                            <td className="px-5 py-4 text-[1.25rem] text-slate-600 tabular-nums">
-                                                {booking.bookedBy.phone || '—'}
-                                            </td>
-                                            <td className="px-5 py-4"><ModeChip mode={booking.payment.mode} /></td>
-                                            <td className="px-5 py-4">
-                                                <PaymentChip status={booking.payment.status} />
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <span className="inline-flex items-center justify-center min-w-[3rem]
-                                                                 rounded-xl bg-blue-600/90 px-3 py-1.5 text-[1.25rem]
-                                                                 font-semibold text-white tabular-nums">
-                                                    {booking.noOfPersons}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-4 text-[1.25rem] font-semibold text-slate-900 tabular-nums">
-                                                {booking.totalAmount > 0 ? rupees(booking.totalAmount) : 'Free'}
-                                                {/*
-                                                  * WHICH RATE THIS WAS TAKEN AT,
-                                                  * read off the booking.
-                                                  *
-                                                  * Without it an organiser
-                                                  * reconciling a column of totals
-                                                  * finds two different amounts for
-                                                  * the same number of seats and
-                                                  * nothing on screen explaining
-                                                  * why. It is never recomputed from
-                                                  * the booker's membership today —
-                                                  * that answer changes on its own.
-                                                  */}
+                                            <td data-label="Payment" className="booking-records-payment">
+                                                <div className="booking-records-amount">{rupees(booking.totalAmount)}</div>
+                                                <div className="booking-records-payment-state">
+                                                    <PaymentChip status={booking.payment.status} />
+                                                    <ModeChip mode={booking.payment.mode} />
+                                                </div>
                                                 {booking.memberRateApplied && (
-                                                    <div className="mt-1.5 inline-flex items-center gap-1
-                                                                    text-[1.1875rem] font-semibold text-emerald-600">
-                                                        <BadgePercent className="w-3.5 h-3.5" />
+                                                    <div className="mt-1 text-sm font-medium text-emerald-600">
                                                         Member rate
-                                                        {booking.memberSaving > 0
-                                                            && ` · saved ${rupees(booking.memberSaving)}`}
+                                                        {booking.memberSaving > 0 && ' · saved ' + rupees(booking.memberSaving)}
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-5 py-4">
-                                                <DeliveryChips
-                                                    summary={delivery[booking.bookingRef]}
-                                                    loading={deliveryLoading && !delivery[booking.bookingRef]}
-                                                    onOpen={() => setMessagesFor(booking)}
-                                                />
+                                            <td data-label="Seats" className="booking-records-seats">
+                                                <span className="booking-records-seat-count">{booking.noOfPersons}</span>
                                             </td>
-                                            <td className="px-5 py-4">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setOpen(booking)}
-                                                    className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600
-                                                               h-11 px-4 text-[1.1875rem] font-semibold text-white
-                                                               hover:bg-blue-700 transition-colors whitespace-nowrap"
-                                                >
-                                                    View Booking Details
+                                            <td className="booking-records-actions">
+                                                <button type="button" onClick={() => setOpen(booking)}
+                                                    className="booking-records-details bg-blue-600 hover:bg-blue-700"
+                                                    aria-label={'View booking details for ' + (booking.bookedBy.name || booking.bookingRef)}>
+                                                    <Eye size={16} aria-hidden="true" /> Details
                                                 </button>
                                             </td>
                                         </tr>
@@ -769,9 +699,9 @@ export default function SuperAdminBookings() {
                         </div>
 
                         {/* -------------------------------------------- pager */}
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3
-                                        border-t border-slate-200 px-4 py-3.5">
-                            <p className="text-[1.0625rem] sm:text-[1.25rem] text-slate-500">{showingLine}</p>
+                        <div className="booking-records-footer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3
+                                        border-t border-slate-200 px-4 py-3">
+                            <p className="text-base text-slate-500">{showingLine}</p>
 
                             {!!pagination && pagination.pages > 1 && (
                                 <div className="flex flex-wrap items-center gap-1">
@@ -833,6 +763,7 @@ export default function SuperAdminBookings() {
                         </div>
                     </div>
                     </>)}
+                  </div>
                 </div>
             </div>
 
@@ -855,7 +786,6 @@ export default function SuperAdminBookings() {
                     onClose={() => setOpen(null)}
                     onMarkPaid={(mode) => markPaid(open, mode)}
                     onCancel={(reason) => cancel(open, reason)}
-                    onDelete={localStorage.getItem('role') === 'super_admin' ? () => remove(open) : undefined}
                 />
             )}
         </div>
@@ -1067,10 +997,9 @@ function BookingDetail(props: {
     onClose: () => void;
     onMarkPaid: (mode: string) => void;
     onCancel: (reason: string) => void;
-    onDelete?: () => void;
 }) {
     const cardTableRef1 = useCardTable();
-    const { booking, event, acting, onClose, onMarkPaid, onCancel, onDelete } = props;
+    const { booking, event, acting, onClose, onMarkPaid, onCancel } = props;
 
     /*
      * The two actions open INLINE in the footer rather than as a second
@@ -1201,7 +1130,6 @@ function BookingDetail(props: {
                             {booking.bookingRef}
                         </p>
                     </div>
-                    {onDelete && <button type="button" onClick={onDelete} disabled={acting} className={`${ADMIN_SECONDARY_BTN} !text-rose-600`}>Delete booking</button>}
                     <button
                         type="button"
                         onClick={onClose}

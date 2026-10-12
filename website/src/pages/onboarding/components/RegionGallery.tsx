@@ -9,6 +9,7 @@ import {
     listRegionGallery, getGalleryFilters, type GalleryPhoto,
 } from '@/services/cmsRegionsApi';
 import { CARD, ROW_LABEL } from './RegionUI';
+import { PUBLIC_FILTER_CONTROL, PUBLIC_FILTER_LABEL, PUBLIC_FILTER_BUTTON } from '@/components/layout/publicFilters';
 
 /**
  * The photo gallery, filtered and paged.
@@ -112,9 +113,7 @@ export function RegionGallery() {
     const from = total ? offset + 1 : 0;
     const to = offset + photos.length;
 
-    const select = 'h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-[1.0625rem] '
-        + 'font-semibold text-brand-900 hover:border-gray-400 focus:outline-none focus:ring-2 '
-        + 'focus:ring-brand-600 focus:border-transparent transition-colors';
+    const select = PUBLIC_FILTER_CONTROL;
 
     return (
         <main className="flex-grow">
@@ -128,7 +127,7 @@ export function RegionGallery() {
                 <div className={`${CARD} p-4 sm:p-6 mb-5 sm:mb-8`}>
                     <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
                         <div>
-                            <label htmlFor="g-category" className={`${ROW_LABEL} block mb-1.5`}>
+                            <label htmlFor="g-category" className={PUBLIC_FILTER_LABEL}>
                                 Category
                             </label>
                             <select
@@ -145,7 +144,7 @@ export function RegionGallery() {
                         </div>
 
                         <div>
-                            <label htmlFor="g-sector" className={`${ROW_LABEL} block mb-1.5`}>
+                            <label htmlFor="g-sector" className={PUBLIC_FILTER_LABEL}>
                                 Sector
                             </label>
                             <select
@@ -161,8 +160,8 @@ export function RegionGallery() {
                             </select>
                         </div>
 
-                        <div>
-                            <label htmlFor="g-search" className={`${ROW_LABEL} block mb-1.5`}>
+                        <div className="sm:col-span-2 lg:col-span-1">
+                            <label htmlFor="g-search" className={PUBLIC_FILTER_LABEL}>
                                 Title or description
                             </label>
                             <form
@@ -171,20 +170,15 @@ export function RegionGallery() {
                             >
                                 <input
                                     id="g-search"
+                                    type="search"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search the photographs"
-                                    className="h-12 flex-1 min-w-0 rounded-xl border border-gray-300 bg-white px-4
-                                               text-[1.0625rem] font-semibold text-brand-900 hover:border-gray-400
-                                               focus:outline-none focus:ring-2 focus:ring-brand-600
-                                               focus:border-transparent transition-colors
-                                               placeholder:font-medium placeholder:text-gray-500"
+                                    placeholder="Search photos"
+                                    className={`${PUBLIC_FILTER_CONTROL} flex-1`}
                                 />
                                 <button
                                     type="submit"
-                                    className="inline-flex h-12 shrink-0 items-center gap-2 rounded-xl bg-brand-800 px-4 sm:px-5
-                                               text-[1.0625rem] font-bold uppercase tracking-[0.1em] text-white
-                                               transition-colors hover:bg-brand-700"
+                                    className={`${PUBLIC_FILTER_BUTTON} h-12 shrink-0`}
                                 >
                                     <Search size={15} /> Search
                                 </button>

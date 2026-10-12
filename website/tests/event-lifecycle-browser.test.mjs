@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdtemp, rm, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import postcss from 'postcss';
+import tailwind from 'tailwindcss';
+import loadConfig from 'tailwindcss/loadConfig.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-event-lifecycle-'));
@@ -18,10 +21,9 @@ const server = http.createServer((req, res) => {
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
-    try {
-        const assets = await readdir(path.join(root, 'dist/assets'));
-        css = await readFile(path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
-    } catch { /* Functional verification does not require an existing build. */ }
+    // Compile only test styles so responsive assertions use the current classes.
+    css = (await postcss([tailwind(loadConfig(path.join(root, 'tailwind.config.ts')))])
+        .process(await readFile(path.join(root, 'src/index.css'), 'utf8'), { from: path.join(root, 'src/index.css') })).css;
     const fixtures = { name: 'fixture-api', setup(b) {
         b.onResolve({ filter: /^@\/services\/(cmsApi|activApi)$/ }, args => ({ path: args.path, namespace: 'fixture' }));
         b.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ loader: 'js', contents: args.path.endsWith('activApi')
@@ -37,7 +39,7 @@ try {
         const event=(id,title,startAt,endAt)=>({id,slug:id,title,startAt,endAt,status:'published',category:'Conference',showInBanner:true,registrationEnabled:true,bannerHeadline:title,media:{url:image,type:'image',fit:'contain'},imageUrl:image});
         window.events=[event('ended','Already ended fixture','2026-10-10T09:00:00+05:30','2026-10-10T17:00:00+05:30'),event('live','Running fixture','2026-10-12T09:00:00+05:30','2026-10-12T11:00:00+05:30'),event('future','Future fixture','2026-10-23T09:00:00+05:30','2026-10-23T17:00:00+05:30')];
         window.home={carousel:{slides:[],galleryPosters:{enabled:false},highlightCard:{enabled:false}},sections:[]};
-        createRoot(document.getElementById('root')).render(<MemoryRouter><div id="hero"><CarouselSection/></div><div id="explorer"><EventsExplorer events={window.events} settings={{categories:[]}}/></div></MemoryRouter>);
+        createRoot(document.getElementById('root')).render(<MemoryRouter initialEntries={['/events?period=past']}><div id="hero"><CarouselSection/></div><div id="explorer"><EventsExplorer events={window.events} settings={{categories:['Conference','Workshops','Networking','Exhibitions','Training','Webinars','Medical','Food Processing'].map(label=>({label,icon:''}))}}/></div></MemoryRouter>);
     ` } });
     bundle = built.outputFiles[0].text;
     chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
@@ -58,10 +60,12 @@ try {
     await until('document.querySelector("#hero")?.textContent.includes("Running fixture")');
     assert.equal(await evaluate('document.body.textContent.includes("Already ended fixture")'), false, 'stale cached completed event never appears in hero or upcoming list');
     assert(await evaluate('document.querySelector("#explorer").textContent.includes("Running fixture")'), 'ongoing event stays visible');
-    await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Past Events").click()');
-    await until('document.querySelector("#explorer").textContent.includes("Already ended fixture")');
-    assert.equal(await evaluate('document.querySelector("#explorer").textContent.includes("Future fixture")'), false);
-    await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Upcoming Events").click()');
+    assert.equal(await evaluate('document.querySelector("#explorer").textContent.includes("Past Events")'), false, 'no public past-events control, even with an old period=past link');
+    await evaluate('document.querySelector("button[aria-controls=event-filter-fields]").click()');
+    await until('document.querySelector("button[aria-controls=event-filter-fields]").getAttribute("aria-expanded")==="true"');
+    await evaluate('document.querySelector("select[aria-label=\\"Online or in person\\"]").value="online";document.querySelector("select[aria-label=\\"Online or in person\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
+    await until('!document.querySelector("#explorer").textContent.includes("Future fixture")');
+    await evaluate('[...document.querySelectorAll("#explorer button")].find(b=>b.textContent.trim()==="Reset").click()');
     await until('document.querySelector("#explorer").textContent.includes("Future fixture")');
     await evaluate('window.clock=Date.parse("2026-10-12T11:00:00+05:30");window.dispatchEvent(new Event("focus"))');
     await until('!document.querySelector("#hero").textContent.includes("Running fixture")');
@@ -69,9 +73,17 @@ try {
     assert(await evaluate('document.querySelector("#hero").textContent.includes("Future fixture")'));
     if (css) assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'mobile fits viewport');
     if (process.env.TEST_ARTIFACTS) { const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true }); await writeFile(path.join(process.env.TEST_ARTIFACTS, 'event-lifecycle-mobile.png'), Buffer.from(shot.result.data, 'base64')); }
-    await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    for (const width of [320, 360, 390, 768, 1024, 1440]) {
+        await send('Emulation.setDeviceMetricsOverride', { width, height: 844, deviceScaleFactor: 1, mobile: width < 640 });
+        await pause(100);
+        assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'no horizontal page overflow at ' + width);
+        const controls = await evaluate('[...document.querySelectorAll("#explorer select,#explorer input,#explorer button")].filter(e=>e.offsetWidth&&e.closest("#event-filter-fields, [role=group]")||e.matches("input[type=search]")).map(e=>({font:getComputedStyle(e).fontSize,height:e.getBoundingClientRect().height}))');
+        assert(controls.length >= 3);
+        assert(controls.every(c => c.font === '16px' && c.height >= 44), 'consistent readable controls and tap targets at ' + width + ': ' + JSON.stringify(controls));
+        assert(await evaluate('document.querySelector("#explorer input").clientWidth>200'), 'search never squeezed by dropdowns');
+    }
     assert.deepEqual(errors, []);
-    console.log('PASS: cached completed banner hidden, ongoing shown, explicit Past Events only, and clock-based expiry on an open mobile/desktop page.');
+    console.log('PASS: completed events hidden including old past-event links, ongoing events shown, clock expiry, working filters/reset, and matching controls without overflow at 320/360/390/768/1024/1440px.');
     await send('Browser.close');
 } finally {
     ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

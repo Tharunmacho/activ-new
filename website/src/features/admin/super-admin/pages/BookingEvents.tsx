@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Ticket, Users, IndianRupee, Clock, RefreshCw, CalendarDays,
     MapPin, ArrowRight, Eye, BadgePercent, Loader2, CalendarRange, Contact,
@@ -11,7 +11,7 @@ import {
 import { AdminTable, AdminChip, AdminCount, type AdminColumn }
     from '@/features/admin/components/AdminTable';
 import {
-    listBookingOverview, type BookingOverviewRow,
+    listBookingOverview, type BookingOverviewRow, type BookingOverview, type BookingHistoryCategory,
 } from '@/services/eventBookingAdminApi';
 import { errorMessage } from '@/services/api';
 import BookingPeople from './BookingPeople';
@@ -69,9 +69,12 @@ const fullness = (row: BookingOverviewRow) =>
 export default function SuperAdminBookingEvents() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const history: BookingHistoryCategory = searchParams.get('history') === 'past' ? 'past'
+        : searchParams.get('history') === 'deleted' ? 'deleted' : 'current';
 
     const [data, setData] = useState<BookingOverviewRow[]>([]);
-    const [totals, setTotals] = useState({
+    const [allTotals, setTotals] = useState({
         events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0,
     });
     const [includeDrafts, setIncludeDrafts] = useState(false);
@@ -85,15 +88,20 @@ export default function SuperAdminBookingEvents() {
      * that send you looking for it.
      */
     const [tab, setTab] = useState<'events' | 'people'>('events');
+    const [historyTotals, setHistoryTotals] = useState<BookingOverview['historyTotals']>();
+    const totals = tab === 'people' ? allTotals : historyTotals?.[history]
+        || { events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0 };
+    const visible = useMemo(() => data.filter(row => row.historyCategory === history), [data, history]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const load = useCallback(async () => {
-        setLoading(true);
+    const load = useCallback(async (quiet = false) => {
+        if (!quiet) setLoading(true);
         setError('');
         try {
             const response = await listBookingOverview(includeDrafts);
             setData(Array.isArray(response?.events) ? response.events : []);
+            setHistoryTotals(response.historyTotals);
             // Merged over the zeros, so a response without `totals` leaves the
             // tiles at 0 instead of crashing the page on `totals.seats`.
             setTotals((t) => ({ ...t, events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0, ...(response?.totals || {}) }));
@@ -104,7 +112,18 @@ export default function SuperAdminBookingEvents() {
         }
     }, [includeDrafts]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        load();
+        const refresh = () => { if (document.visibilityState === 'visible') load(true); };
+        const timer = window.setInterval(refresh, 30000);
+        window.addEventListener('focus', refresh);
+        document.addEventListener('visibilitychange', refresh);
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refresh);
+            document.removeEventListener('visibilitychange', refresh);
+        };
+    }, [load]);
 
     const open = (row: BookingOverviewRow) => navigate(`${adminBasePath()}/bookings/${row.id}`);
 
@@ -145,7 +164,9 @@ export default function SuperAdminBookingEvents() {
                             </span>
                         )}
                         {!!row.category && <AdminChip tone="violet">{row.category}</AdminChip>}
-                        {row.archivedAt ? <AdminChip tone="slate">Archived · records retained</AdminChip> : row.status !== 'published' && <AdminChip tone="slate">Draft</AdminChip>}
+                        {row.historyCategory === 'deleted' ? <AdminChip tone="slate">Deleted event · bookings retained</AdminChip>
+                            : row.historyCategory === 'past' ? <AdminChip tone="slate">Completed</AdminChip>
+                            : row.status !== 'published' && <AdminChip tone="slate">Draft</AdminChip>}
                         {!row.registrationEnabled && (
                             <AdminChip
                                 tone="amber"
@@ -167,7 +188,7 @@ export default function SuperAdminBookingEvents() {
             render: (row) => (
                 <div className="text-right">
                     <div className="text-[1.25rem] font-semibold text-slate-900 tabular-nums">
-                        {row.price > 0 ? rupees(row.price) : 'Free'}
+                        {row.bookingHistoryOnly ? '—' : row.price > 0 ? rupees(row.price) : 'Free'}
                     </div>
                     {row.hasMemberRate && (
                         /* The member rate, where the money is. An event carrying
@@ -190,7 +211,7 @@ export default function SuperAdminBookingEvents() {
             sortValue: (row) => row.totalSeats,
             render: (row) => (row.totalSeats > 0
                 ? <AdminCount tone="rose">{row.totalSeats}</AdminCount>
-                : <span className="text-[1.1875rem] font-semibold text-slate-400">Unlimited</span>),
+                : <span className="text-[1.1875rem] font-semibold text-slate-400">{row.bookingHistoryOnly ? '—' : 'Unlimited'}</span>),
         },
         {
             key: 'booked',
@@ -289,12 +310,12 @@ export default function SuperAdminBookingEvents() {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <AdminPageHeader
                     title="Booking Details"
-                    subtitle="Every event, how full it is, and what has been taken. Open one to see who is coming."
+                    subtitle="Bookings and contact details are retained here even after an event is deleted. Open Booking Details to view or download them."
                     onMenu={() => setSidebarOpen(true)}
                     actions={
                         <button
                             type="button"
-                            onClick={load}
+                            onClick={() => load()}
                             className={ADMIN_SECONDARY_BTN}
                             disabled={loading}
                         >
@@ -374,20 +395,31 @@ export default function SuperAdminBookingEvents() {
                     {tab === 'people' && <BookingPeople />}
 
                     {tab === 'events' && (<>
+                    <div className="flex flex-wrap gap-2" aria-label="Booking history views">
+                        {(['current', 'past', 'deleted'] as const).map(value => (
+                            <button key={value} type="button" aria-pressed={history === value}
+                                onClick={() => setSearchParams({ history: value }, { replace: true })}
+                                className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-base font-semibold ${history === value
+                                    ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
+                                {value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Deleted'}
+                                <span className="tabular-nums">{historyTotals?.[value]?.events || 0}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-base text-slate-500">Current shows upcoming and ongoing events. Completed events appear in Past. Manually removed events appear in Deleted. Booking and contact details are retained in every view.</p>
                     <AdminTable
-                        rows={data}
+                        key={history}
+                        rows={visible}
                         columns={columns}
                         rowKey={(row) => row.id}
                         loading={loading}
                         onRowClick={open}
                         searchable
                         searchPlaceholder="Search an event by name, venue or category"
-                        cardBreakpoint={760}
-                        minWidth="1100px"
+                        cardBreakpoint={1280}
+                        minWidth="1280px"
                         empty={<>
-                            No published events yet. Create one under{' '}
-                            <strong className="font-semibold text-slate-700">Events</strong>{' '}
-                            and it appears here the moment it is saved.
+                            No {history} events in booking history.
                         </>}
                         toolbar={
                             <label className="inline-flex items-center gap-2.5 h-12 px-4 rounded-xl
@@ -399,11 +431,8 @@ export default function SuperAdminBookingEvents() {
                                     onChange={(e) => setIncludeDrafts(e.target.checked)}
                                     className="w-[1.125rem] h-[1.125rem] rounded border-slate-300 text-blue-600"
                                 />
-                                {/* Drafts are off by default: an unpublished event
-                                    has no public booking page, so a row for it
-                                    reads as an event taking bookings nobody can
-                                    reach. */}
-                                Include drafts
+                                {/* Drafts with existing bookings are always included. */}
+                                Include empty drafts
                             </label>
                         }
                     />

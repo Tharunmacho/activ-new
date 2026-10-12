@@ -7,7 +7,7 @@ import { HeaderSection } from '../../components/layout/HeaderSection';
 import { FooterSection } from '../../components/layout/FooterSection';
 import { CmsExtraFields } from '@/components/shared/CmsExtraFields';
 import { Reveal } from '@/components/shared/Reveal';
-import { sizedMediaUrl } from '@/config/api.config';
+import { NewsImage } from '@/components/shared/NewsImage';
 import { CARD_BODY, META_TEXT } from '@/components/layout/appTypography';
 import { getArticle, type NewsArticle } from '@/services/cmsNewsApi';
 
@@ -200,10 +200,9 @@ export default function NewsDetailPage() {
                                 {article.image?.url && (
                                     <Reveal>
                                         <div className="mt-6 sm:mt-8 overflow-hidden rounded-2xl bg-brand-900/5">
-                                            <img
-                                                src={sizedMediaUrl(article.image.url, 1400)}
+                                            <NewsImage
+                                                url={article.image.url}
                                                 alt={article.image.alt || article.title}
-                                                className="h-auto max-h-[75vh] w-full object-contain sm:aspect-[16/9] sm:h-auto sm:max-h-none sm:object-cover"
                                             />
                                         </div>
                                     </Reveal>
@@ -251,14 +250,13 @@ export default function NewsDetailPage() {
                                 </div>
 
                                 {article.photos?.length > 0 && (
-                                    <div className="mt-8 sm:mt-12 grid gap-4 sm:gap-5 sm:grid-cols-2">
+                                    <div className="mt-8 sm:mt-12 grid gap-4 sm:gap-5">
                                         {article.photos.map((photo, i) => (
                                             <Reveal key={i} delay={Math.min(i, 4) * 60}>
-                                                <img
-                                                    src={sizedMediaUrl(photo.url, 900)}
+                                                <NewsImage
+                                                    url={photo.url}
                                                     alt={photo.alt || `${article.title} — ${i + 1}`}
-                                                    loading="lazy"
-                                                    className="h-auto w-full rounded-xl bg-brand-900/5 object-contain sm:aspect-[4/3] sm:object-cover"
+                                                    lazy
                                                 />
                                             </Reveal>
                                         ))}

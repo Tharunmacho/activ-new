@@ -1,4 +1,5 @@
 import { BAND_MEASURE } from '@/components/layout/typography';
+import { PUBLIC_FILTER_CHIP } from '@/components/layout/publicFilters';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { HeaderSection } from '../../components/layout/HeaderSection';
@@ -191,10 +192,10 @@ export default function NewsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setFilter('category', '')}
-                                    className={`rounded-full px-4 py-2 text-[1.0625rem] font-bold
-                                                transition-colors ${!category
-                                        ? 'bg-brand-800 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                    aria-pressed={!category}
+                                    className={`${PUBLIC_FILTER_CHIP} ${!category
+                                        ? 'border-brand-800 bg-brand-800 text-white'
+                                        : 'border-brand-100 bg-white text-brand-700 hover:bg-brand-50'}`}
                                 >
                                     All news
                                 </button>
@@ -203,10 +204,10 @@ export default function NewsPage() {
                                         key={name}
                                         type="button"
                                         onClick={() => setFilter('category', name)}
-                                        className={`rounded-full px-4 py-2 text-[1.0625rem] font-bold
-                                                    transition-colors ${category === name
-                                            ? 'bg-brand-800 text-white'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        aria-pressed={category === name}
+                                        className={`${PUBLIC_FILTER_CHIP} ${category === name
+                                            ? 'border-brand-800 bg-brand-800 text-white'
+                                            : 'border-brand-100 bg-white text-brand-700 hover:bg-brand-50'}`}
                                     >
                                         {name}
                                     </button>

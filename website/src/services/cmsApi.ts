@@ -1,4 +1,4 @@
-import { isUpcomingEvent, isPastEvent } from '@/lib/eventLifecycle';
+import { isUpcomingEvent } from '@/lib/eventLifecycle';
 /**
  * The CMS service layer.
  *
@@ -1444,13 +1444,10 @@ const getCmsEventsUncached = async (): Promise<CmsEvent[]> => {
 };
 
 /** The public list. Cached; see `cached()` above. */
-export const getCmsEvents = async (period: 'upcoming' | 'past' | 'all' = 'upcoming') => {
-    const rows = period === 'upcoming'
-        ? await cached('events', getCmsEventsUncached)
-        : await cached('events:' + period, async () => resolveEvents(unwrap<CmsEvent[]>(
-            await api.get('/cms/events', { params: { scope: 'public', period } }), [])));
+export const getCmsEvents = async () => {
+    const rows = await cached('events', getCmsEventsUncached);
     // Cached data must obey the clock as well as a fresh server response.
-    return rows.filter(event => !event.archivedAt && (period === 'all' || (period === 'past' ? isPastEvent(event) : isUpcomingEvent(event))));
+    return rows.filter(event => isUpcomingEvent(event));
 };
 
 /**
@@ -1472,8 +1469,8 @@ export const getCmsEventsForEditor = async (): Promise<CmsEvent[]> =>
  * an empty page that looks broken.
  */
 export const getCmsEvent = async (id: string): Promise<CmsEvent> => {
-    const data = unwrap<CmsEvent | null>(await api.get(`/cms/events/${id}`), null);
-    if (!data || !data.id) throw new Error('Event not found');
+    const data = unwrap<CmsEvent | null>(await api.get(`/cms/events/${id}`, { params: { scope: 'public' } }), null);
+    if (!data || !data.id || !isUpcomingEvent(data)) throw new Error('Event not found');
     return { ...data, imageUrl: resolveMediaUrl(data.imageUrl), media: withResolvedUrl(data.media) };
 };
 

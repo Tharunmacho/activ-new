@@ -98,13 +98,7 @@ function Picture({ article, tall = false }: { article: NewsArticle; tall?: boole
                     alt={article.image.alt || article.title || 'News'}
                     loading="lazy"
                     decoding="async"
-                    /* `cover` and not `contain`, unlike a portrait: a news
-                       photograph is a scene, it is cropped in every newspaper
-                       that has ever printed one, and letterboxing a landscape
-                       shot into a 16:10 card leaves two grey bars per card
-                       down the whole page. */
-                    className="h-full w-full object-cover transition-transform duration-500
-                               group-hover:scale-[1.03]"
+                    className="h-full w-full object-contain"
                 />
             ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br
