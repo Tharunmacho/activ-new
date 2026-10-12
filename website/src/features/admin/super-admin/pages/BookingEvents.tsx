@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Ticket, Users, IndianRupee, Clock, RefreshCw, CalendarDays,
@@ -16,6 +16,8 @@ import {
 import { errorMessage } from '@/services/api';
 import BookingPeople from './BookingPeople';
 import { adminBasePath } from '@/features/admin/components/tierConfig';
+import BookingFilters, { BOOKING_FILTER_KEYS, type BookingFiltersValue, type BookingFilterOptions } from '@/features/admin/components/BookingFilters';
+import { downloadSpreadsheet } from '@/services/spreadsheetDownload';
 
 /**
  * Booking Events — every event, and how full it is.
@@ -74,10 +76,13 @@ export default function SuperAdminBookingEvents() {
         : searchParams.get('history') === 'deleted' ? 'deleted' : 'current';
 
     const [data, setData] = useState<BookingOverviewRow[]>([]);
-    const [allTotals, setTotals] = useState({
-        events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0,
-    });
     const [includeDrafts, setIncludeDrafts] = useState(false);
+    const filters = useMemo(() => Object.fromEntries([...searchParams].filter(([key, value]) => BOOKING_FILTER_KEYS.includes(key) && value)) as BookingFiltersValue, [searchParams]);
+    const setFilters = (next: BookingFiltersValue) => setSearchParams({ ...Object.fromEntries(Object.entries(next).filter(([, value]) => value)), history }, { replace: true });
+    const [options, setOptions] = useState<BookingFilterOptions>({});
+    const criteria = useMemo(() => ({ ...filters, history }), [filters, history]);
+    const sequence = useRef(0);
+    const [exporting, setExporting] = useState(false);
     /**
      * Events, or the people who booked them.
      *
@@ -89,28 +94,29 @@ export default function SuperAdminBookingEvents() {
      */
     const [tab, setTab] = useState<'events' | 'people'>('events');
     const [historyTotals, setHistoryTotals] = useState<BookingOverview['historyTotals']>();
-    const totals = tab === 'people' ? allTotals : historyTotals?.[history]
+    const totals = historyTotals?.[history]
         || { events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0 };
     const visible = useMemo(() => data.filter(row => row.historyCategory === history), [data, history]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     const load = useCallback(async (quiet = false) => {
+        const request = ++sequence.current;
         if (!quiet) setLoading(true);
         setError('');
         try {
-            const response = await listBookingOverview(includeDrafts);
+            const response = await listBookingOverview(includeDrafts, criteria);
+            if (request !== sequence.current) return;
             setData(Array.isArray(response?.events) ? response.events : []);
+            setOptions(response.filterOptions || {});
             setHistoryTotals(response.historyTotals);
-            // Merged over the zeros, so a response without `totals` leaves the
-            // tiles at 0 instead of crashing the page on `totals.seats`.
-            setTotals((t) => ({ ...t, events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0, ...(response?.totals || {}) }));
         } catch (err) {
+            if (request !== sequence.current) return;
             setError(errorMessage(err, 'The events could not be loaded'));
         } finally {
-            setLoading(false);
+            if (request === sequence.current) setLoading(false);
         }
-    }, [includeDrafts]);
+    }, [includeDrafts, criteria]);
 
     useEffect(() => {
         load();
@@ -125,7 +131,13 @@ export default function SuperAdminBookingEvents() {
         };
     }, [load]);
 
-    const open = (row: BookingOverviewRow) => navigate(`${adminBasePath()}/bookings/${row.id}`);
+    const open = (row: BookingOverviewRow) => navigate(`${adminBasePath()}/bookings/${row.id}?${new URLSearchParams(criteria)}`);
+    const exportRows = async () => {
+        setExporting(true); setError('');
+        try { await downloadSpreadsheet('/events/bookings/export', `activ-${history}-bookings.xlsx`, criteria); }
+        catch (err) { setError(errorMessage(err, 'The report could not be downloaded')); }
+        finally { setExporting(false); }
+    };
 
     const columns: AdminColumn<BookingOverviewRow>[] = useMemo(() => [
         {
@@ -301,7 +313,7 @@ export default function SuperAdminBookingEvents() {
                 </button>
             ),
         },
-    ], []);
+    ], [criteria, navigate]);
 
     return (
         <div className={`flex h-screen ${ADMIN_BG}`}>
@@ -392,13 +404,10 @@ export default function SuperAdminBookingEvents() {
                         ))}
                     </div>
 
-                    {tab === 'people' && <BookingPeople />}
-
-                    {tab === 'events' && (<>
                     <div className="flex flex-wrap gap-2" aria-label="Booking history views">
                         {(['current', 'past', 'deleted'] as const).map(value => (
                             <button key={value} type="button" aria-pressed={history === value}
-                                onClick={() => setSearchParams({ history: value }, { replace: true })}
+                                onClick={() => setSearchParams({ ...filters, history: value }, { replace: true })}
                                 className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-base font-semibold ${history === value
                                     ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
                                 {value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Deleted'}
@@ -407,6 +416,16 @@ export default function SuperAdminBookingEvents() {
                         ))}
                     </div>
                     <p className="text-base text-slate-500">Current shows upcoming and ongoing events. Completed events appear in Past. Manually removed events appear in Deleted. Booking and contact details are retained in every view.</p>
+                    <BookingFilters value={filters} options={options} onChange={setFilters} />
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-sm text-slate-500">Event totals show all bookings for matching events. People and Excel use the selected registration filters.</p>
+                        <button type="button" onClick={exportRows} disabled={exporting || loading}
+                            className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-50">
+                            {exporting ? 'Preparing report…' : 'Download filtered Excel'}
+                        </button>
+                    </div>
+                    {tab === 'people' && <BookingPeople key={JSON.stringify(criteria)} filters={criteria} />}
+                    {tab === 'events' && (<>
                     <AdminTable
                         key={history}
                         rows={visible}
@@ -414,8 +433,6 @@ export default function SuperAdminBookingEvents() {
                         rowKey={(row) => row.id}
                         loading={loading}
                         onRowClick={open}
-                        searchable
-                        searchPlaceholder="Search an event by name, venue or category"
                         cardBreakpoint={1280}
                         minWidth="1280px"
                         empty={<>

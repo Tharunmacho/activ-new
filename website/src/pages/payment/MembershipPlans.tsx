@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import MemberPageShell from '../member/MemberPageShell';
 
 interface Plan {
+  commencementYears?: string[];
+  commencementYearLabel?: string;
   audience: string;
   minYears?: number;
   maxYears?: number | null;
@@ -84,6 +86,7 @@ export default function MembershipPlans() {
   const [params] = useSearchParams();
   const upgrading = params.get('upgrade') === '1';
   const [upgradeReason, setUpgradeReason] = useState('');
+  const [canPurchaseUpgrade, setCanPurchaseUpgrade] = useState(true);
   const [commencementYear, setCommencementYear] = useState('');
   /**
    * Which plans this member is offered, and which is preselected.
@@ -120,8 +123,9 @@ export default function MembershipPlans() {
     try {
       if (upgrading) {
         const result = unwrap<any>(await api.get('/payment/upgrade/plans'), {});
+        if (typeof result.canPurchase !== 'boolean') throw new Error('Membership upgrade options are temporarily unavailable. Please try again later.');
         const offered = (result.plans || []).map((p: any) => decorate({ ...p, id: p.key }));
-        setPlans(offered); setSelectedPlan(offered[0] || null); setPlanLocked(false);
+        setPlans(offered); setSelectedPlan(offered[0] || null); setPlanLocked(true); setCanPurchaseUpgrade(result.canPurchase !== false);
         setCommencementYear(String(result.commencementYear || ''));
         setUpgradeReason(result.reason || 'The full plan fee is charged. Your upgraded annual membership starts after successful payment and is valid for one year.');
         setUserData({ memberType: KIND_LABEL[result.kind], experience: result.currentPlan, applicationId: '' });
@@ -184,6 +188,7 @@ export default function MembershipPlans() {
    * `/payment/complete`. This is that same step.
    */
   const handlePayment = async () => {
+    if (upgrading && !canPurchaseUpgrade) return;
     /*
      * No plan, no payment.
      *
@@ -297,6 +302,18 @@ export default function MembershipPlans() {
   const fmt = (n: number) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
   const JOURNEY = upgrading ? ['Profile', 'Plan', 'Payment', 'Active'] : ['Application', 'Approved', 'Payment', 'Active'];
 
+  if (upgrading && !canPurchaseUpgrade) return (
+    <MemberPageShell title="Your membership progression" subtitle="Your plan grows with your business" sidebar={false}>
+      <section className="mx-auto max-w-2xl rounded-3xl border border-blue-100 bg-white p-6 shadow-lg sm:p-8">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><CheckCircle className="h-7 w-7" /></div>
+        <h2 className="text-2xl font-bold text-slate-900">{selectedPlan.name}</h2>
+        <p role="status" className="mt-3 text-lg leading-relaxed text-slate-600">{upgradeReason}</p>
+        <div className="mt-6 rounded-2xl bg-blue-50 p-4"><p className="text-sm font-semibold text-blue-700">Fee at your next renewal</p><p className="mt-1 text-2xl font-bold text-blue-950">{fmt(selectedPlan.price)}</p></div>
+        <Button className="mt-6 w-full sm:w-auto" onClick={() => navigate('/member/dashboard')}>Back to dashboard</Button>
+      </section>
+    </MemberPageShell>
+  );
+
   return (
     <MemberPageShell
       title={upgrading ? 'Upgrade membership' : 'Membership'}
@@ -310,7 +327,7 @@ export default function MembershipPlans() {
         </div>
       }
     >
-      {upgrading && <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><p className="text-[1.25rem]">{upgradeReason}</p><p className="mt-2 text-slate-600">Your email, password, mobile number and previous receipts stay with this account.</p>{selectedPlan.audience === 'business' && <label className="mt-4 block max-w-md font-semibold text-slate-700">Business commencement year<input aria-label="Business commencement year" inputMode="numeric" maxLength={4} value={commencementYear} onChange={e => setCommencementYear(e.target.value.replace(/\D/g, ''))} placeholder="Year your business started" className="mt-2 h-12 w-full rounded-xl border border-blue-200 bg-white px-4 font-normal" /><span className="mt-2 block text-base font-normal">Choose the business plan matching this year. Your profile updates after payment succeeds.</span></label>}</div>}
+      {upgrading && <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><p className="text-[1.25rem]">{upgradeReason}</p><p className="mt-2 text-slate-600">Your email, password, mobile number and previous receipts stay with this account.</p>{canPurchaseUpgrade && selectedPlan.audience === 'business' && <label className="mt-4 block max-w-md font-semibold text-slate-700">Business commencement year<select aria-label="Business commencement year" value={commencementYear} onChange={e => setCommencementYear(e.target.value)} className="mt-2 h-12 w-full rounded-xl border border-blue-200 bg-white px-4 font-normal"><option value="">Choose commencement year</option>{(selectedPlan.commencementYears || []).map(year => <option key={year} value={year}>{year}</option>)}</select><span className="mt-2 block text-base font-normal">Started {selectedPlan.commencementYearLabel}. Your profile updates after payment succeeds.</span></label>}</div>}
       <div className="pb-28 lg:pb-6">
         {/* ============================================================ hero */}
         <section className="relative mb-6 overflow-hidden rounded-3xl px-5 py-7 text-white sm:mb-8 sm:px-10 sm:py-10"
@@ -486,7 +503,7 @@ export default function MembershipPlans() {
                 <button
                   type="button"
                   onClick={handlePayment}
-                  disabled={processing}
+                  disabled={processing || (upgrading && !canPurchaseUpgrade)}
                   className="btn-shine relative mt-5 flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl text-[1.05rem] font-bold text-white
                              shadow-[0_14px_30px_-12px_rgb(37_99_235/0.7)] transition active:scale-[0.98] disabled:opacity-60"
                   style={{ backgroundImage: 'linear-gradient(135deg, #1c2e68 0%, #2563eb 100%)' }}
@@ -518,7 +535,7 @@ export default function MembershipPlans() {
           <button
             type="button"
             onClick={handlePayment}
-            disabled={processing}
+            disabled={processing || (upgrading && !canPurchaseUpgrade)}
             className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-[1rem] font-bold text-white
                        shadow-[0_10px_24px_-10px_rgb(37_99_235/0.8)] active:scale-95 disabled:opacity-60"
             style={{ backgroundImage: 'linear-gradient(135deg, #1c2e68 0%, #2563eb 100%)' }}

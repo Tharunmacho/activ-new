@@ -1,11 +1,12 @@
 import { useSearchParams } from 'react-router-dom';
 
 /** The app verifies this order again; neither a URL nor this link grants access. */
-export function nativePaymentReturnHref(params: URLSearchParams, kind: 'payment' | 'donation'): string | null {
+export function nativePaymentReturnHref(params: URLSearchParams, kind: 'payment' | 'donation', dashboard = false): string | null {
     if (params.get('client') !== 'app') return null;
     const orderId = params.get('orderId') || '';
     if (!/^[a-z0-9_-]{1,160}$/i.test(orderId)) return null;
     const query = new URLSearchParams({ orderId });
+    if (kind === 'payment' && dashboard) query.set('next', 'dashboard');
     for (const key of ['payment_id', 'payment_status']) {
         const value = params.get(key);
         if (value && value.length <= 256 && !/[\u0000-\u001f]/.test(value)) query.set(key, value);

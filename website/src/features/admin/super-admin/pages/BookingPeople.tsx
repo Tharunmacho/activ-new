@@ -15,6 +15,8 @@ import type { EventBooking } from '@/services/eventBookingApi';
 import { errorMessage } from '@/services/api';
 
 import { CARD_TITLE } from '@/components/layout/appTypography';
+import type { BookingFiltersValue } from '@/features/admin/components/BookingFilters';
+const NO_FILTERS = {};
 /**
  * Everyone who has booked anything — the association's contact book.
  *
@@ -78,7 +80,7 @@ function Initials({ name, email }: { name: string; email: string }) {
     );
 }
 
-export default function BookingPeople() {
+export default function BookingPeople({ filters = NO_FILTERS }: { filters?: BookingFiltersValue & { history?: 'current' | 'past' | 'deleted' } }) {
     const [people, setPeople] = useState<BookingPerson[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -92,14 +94,14 @@ export default function BookingPeople() {
         setLoading(true);
         setError('');
         try {
-            const data = await listBookingPeople();
+            const data = await listBookingPeople('', filters);
             setPeople(data.people || []);
         } catch (err) {
             setError(errorMessage(err, 'The list could not be loaded'));
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [filters]);
 
     useEffect(() => { load(); }, [load]);
 
@@ -114,7 +116,7 @@ export default function BookingPeople() {
         setHistory(null);
         setHistoryLoading(true);
         try {
-            const data = await getBookingPerson(person.email);
+            const data = await getBookingPerson(person.email, filters);
             setHistory(data.bookings || []);
         } catch (err) {
             setError(errorMessage(err, 'That history could not be loaded'));
@@ -272,7 +274,7 @@ export default function BookingPeople() {
                 rowKey={(row) => row.email}
                 loading={loading}
                 onRowClick={openPerson}
-                searchable
+                searchable={!filters.history}
                 searchPlaceholder="Search a name, email address or mobile number"
                 pageSize={25}
                 minWidth="70rem"
@@ -394,8 +396,8 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                     {/* ------------------------------------------ history */}
                     <AdminCard
                         icon={<Ticket className="w-5 h-5" />}
-                        title="Every booking"
-                        subtitle="Newest first, across every event."
+                        title="Booking history"
+                        subtitle="Newest first."
                         flush
                     >
                         {loading && (

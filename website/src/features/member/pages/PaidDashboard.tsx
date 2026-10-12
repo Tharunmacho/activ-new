@@ -1,3 +1,4 @@
+import { membershipValidityLabel } from '@/lib/membershipDates';
 import { useEventClock } from '@/lib/useEventClock';
 import PlatinumWelcome from '../components/PlatinumWelcome';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -204,6 +205,20 @@ export default function PaidDashboard() {
 
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
+    useEffect(() => {
+        let closed = false, checking = false;
+        const syncIdentity = async () => {
+            if (document.visibilityState === 'hidden' || checking) return;
+            checking = true;
+            try { const latest = await getMyProfile(); if (!closed) setProfile(latest); }
+            catch { /* Keep the last known card while offline. */ }
+            finally { checking = false; }
+        };
+        const timer = window.setInterval(syncIdentity, 30000);
+        window.addEventListener('focus', syncIdentity);
+        document.addEventListener('visibilitychange', syncIdentity);
+        return () => { closed = true; clearInterval(timer); window.removeEventListener('focus', syncIdentity); document.removeEventListener('visibilitychange', syncIdentity); };
+    }, []);
     // From the profile this screen already loads — the server's renewal answer.
     const renewal = useMemo(() => readRenewal(profile), [profile]);
     const [application, setApplication] = useState<any>(null);
@@ -382,7 +397,7 @@ export default function PaidDashboard() {
     /* Platinum is the lifetime tier the Super Admin grants — always lifetime. */
     const platinum = isPlatinumProfile(profile);
     const lifetime = platinum || membershipType.toLowerCase() === 'lifetime';
-    const planTitle = platinum ? 'Lifetime Membership' : (profile?.paidMembership?.planName || planLabel(plan) || 'Member');
+    const planTitle = platinum ? 'Lifetime Membership' : (profile?.currentMembership?.planName || profile?.paidMembership?.planName || planLabel(plan) || 'Member');
     const expiresAt = useMemo(() => {
         if (lifetime) return '';
         if (profile?.membershipExpiresAt) return profile.membershipExpiresAt;
@@ -396,11 +411,7 @@ export default function PaidDashboard() {
         return '';
     }, [lifetime, profile?.membershipExpiresAt, membershipType, memberSince]);
 
-    const validUntilLabel = expiresAt
-        ? new Date(expiresAt).toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'long', year: 'numeric',
-        })
-        : '';
+    const validUntilLabel = membershipValidityLabel(expiresAt);
 
 
     // ---------------------------------------------------------------- derived
@@ -511,6 +522,7 @@ export default function PaidDashboard() {
                     the status, the facts and the button. What has gone is the
                     duplicate frame, the duplicate background and the gap
                     between them. */}
+                {profile?.currentMembership?.message && <div role="status" className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"><p className="font-bold">Membership progression</p><p className="mt-1">{profile.currentMembership.message}</p></div>}
                 {platinum ? <PlatinumWelcome name={name} greeting={greeting} memberId={memberId} memberSince={cardDate(memberSince)} region={abroad ? [place, country].filter(Boolean).join(', ') : [block, district, state].filter(Boolean).join(', ')} active={activeNow} onPlan={() => navigate('/member/plan')} onBusiness={() => navigate('/business/dashboard')} onDocuments={() => navigate('/member/documents')} onReceipt={() => navigate('/member/payment-success?view=receipt')} /> : <section className="relative overflow-hidden rounded-[1.75rem]
                                     bg-gradient-to-br from-brand-900 via-blue-700 to-sky-500
                                     shadow-[0_1px_2px_rgba(16,24,40,0.06),0_18px_44px_-20px_rgba(28,46,104,0.55)]">
@@ -740,7 +752,7 @@ export default function PaidDashboard() {
                                 <CardFact label="Member since" value={cardDate(memberSince)} className="" />
                                 <CardFact
                                     label={lifetime ? 'Validity' : 'Valid until'}
-                                    value={lifetime ? 'Lifetime' : cardDate(expiresAt)}
+                                    value={lifetime ? 'Lifetime' : validUntilLabel}
                                     className=""
                                 />
                             </div>

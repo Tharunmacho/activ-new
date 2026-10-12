@@ -31,7 +31,7 @@ async function run({ replies, member = true, fallback, query = '' } = {}) {
   };
   const context = vm.createContext({ fixture, module: { exports: {} },
     window: { dispatchEvent: event => events.push(event.type) }, Event,
-    sessionStorage: { removeItem() {} }, Date,
+    sessionStorage: { removeItem() {} }, Date, URLSearchParams,
     setTimeout: cb => { timers.push(cb); return timers.length; }, clearTimeout() {},
   });
   vm.runInContext(bundle.outputFiles[0].text, context);

@@ -1,7 +1,8 @@
 import { useCardTable } from '@/lib/useCardTable';
 import './booking-list.css';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import type { BookingFiltersValue } from '@/features/admin/components/BookingFilters';
 import {
     Search, Users, IndianRupee, Ticket, Clock, X, CheckCircle2, Loader2,
     ChevronLeft, ChevronRight, Ban, RefreshCw, FileSpreadsheet, ArrowLeft,
@@ -135,6 +136,8 @@ export default function SuperAdminBookings() {
      * is two answers to disagree about.
      */
     const { eventId: routeEventId } = useParams<{ eventId?: string }>();
+    const [searchParams] = useSearchParams();
+    const inheritedFilters = useMemo(() => Object.fromEntries(searchParams) as BookingFiltersValue, [searchParams]);
 
     const [events, setEvents] = useState<EventOption[]>([]);
     const [eventId, setEventId] = useState(routeEventId || '');
@@ -179,8 +182,8 @@ export default function SuperAdminBookings() {
     const [error, setError] = useState('');
 
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState('');
-    const [paymentStatus, setPaymentStatus] = useState<'' | 'paid' | 'pending'>('');
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [paymentStatus, setPaymentStatus] = useState<'' | 'paid' | 'pending' | 'not_required' | 'failed'>((searchParams.get('paymentStatus') || '') as any);
 
     const [open, setOpen] = useState<EventBooking | null>(null);
     const [acting, setActing] = useState('');
@@ -249,7 +252,7 @@ export default function SuperAdminBookings() {
         setLoading(true);
         setError('');
 
-        listEventBookings(eventId, { page, limit: 10, search, paymentStatus })
+        listEventBookings(eventId, { ...inheritedFilters, page, limit: 10, search, paymentStatus })
             .then((response) => {
                 setData(response);
                 setLoading(false);
@@ -258,7 +261,7 @@ export default function SuperAdminBookings() {
                 setError(errorMessage(err, 'The bookings could not be loaded'));
                 setLoading(false);
             });
-    }, [eventId, page, search, paymentStatus]);
+    }, [eventId, page, search, paymentStatus, inheritedFilters]);
 
     useEffect(() => { load(); }, [load]);
 
@@ -328,7 +331,7 @@ export default function SuperAdminBookings() {
         setExporting(true);
         setError('');
         try {
-            await exportBookingsCsv(eventId, selected?.title || 'event');
+            await exportBookingsCsv(eventId, selected?.title || 'event', { ...inheritedFilters, search, paymentStatus });
         } catch (err) {
             setError(errorMessage(err, 'The report could not be downloaded'));
         } finally {
@@ -350,7 +353,7 @@ export default function SuperAdminBookings() {
         () => events.find((e) => e.id === eventId) || null,
         [events, eventId],
     );
-    const historyPath = `${adminBasePath()}/bookings?history=${selected?.historyCategory || 'current'}`;
+    const historyPath = `${adminBasePath()}/bookings?${new URLSearchParams({ ...inheritedFilters, history: selected?.historyCategory || searchParams.get('history') || 'current' })}`;
 
     const summary = data?.summary;
     const pagination = data?.pagination;

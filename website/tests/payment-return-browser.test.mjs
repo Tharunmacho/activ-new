@@ -65,8 +65,8 @@ try {
   const tabs = await fetch(`http://127.0.0.1:${port}/json/list`).then(response => response.json());
   ws = new WebSocket(tabs.find(tab => tab.type === 'page').webSocketDebuggerUrl);
   await new Promise(resolve => ws.addEventListener('open', resolve));
-  let seq = 0; const pending = new Map(), errors = [];
-  ws.addEventListener('message', event => { const message = JSON.parse(event.data); if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails.text); pending.get(message.id)?.(message); pending.delete(message.id); });
+  let seq = 0; const pending = new Map(), errors = [], requested = [];
+  ws.addEventListener('message', event => { const message = JSON.parse(event.data); if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails.text); if (message.method === 'Page.frameRequestedNavigation') requested.push(message.params.url); pending.get(message.id)?.(message); pending.delete(message.id); });
   const send = (method, params = {}) => new Promise((resolve, reject) => { const id = ++seq, timer = setTimeout(() => reject(Error(method)), method === 'Page.captureScreenshot' ? 45000 : 15000); pending.set(id, result => { clearTimeout(timer); resolve(result); }); ws.send(JSON.stringify({ id, method, params })); });
   const evaluate = async expression => { const response = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (response.result?.exceptionDetails) throw Error(response.result.exceptionDetails.exception?.description); return response.result?.result?.value; };
   const until = async expression => { for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(60); } throw Error(expression + ': ' + (await evaluate('document.body.innerText')).slice(0, 600) + ' ' + errors.join(';')); };
@@ -74,7 +74,9 @@ try {
   const load = async (pathname, query) => {
     const url = origin + pathname + '?' + new URLSearchParams({ orderId: 'ord_fixture', ...query });
     await send('Page.navigate', { url });
-    await until(`location.href===${JSON.stringify(url)} && document.readyState==='complete' && Array.isArray(window.fixtureRequests)`);
+    const bookingTarget = query.type === 'event_booking' && query.client !== 'app'
+      ? `${query.session === 'member' ? '/member' : ''}/events/conference/book?ref=BOOK-1` : '';
+    await until(`(location.href===${JSON.stringify(url)} || ${bookingTarget ? `document.querySelector('[data-target]')?.textContent===${JSON.stringify(bookingTarget)}` : 'false'}) && document.readyState==='complete' && Array.isArray(window.fixtureRequests)`);
   };
   const fits = async width => {
     await send('Emulation.setDeviceMetricsOverride', { width, height: width === 1440 ? 1000 : 844, deviceScaleFactor: 1, mobile: width < 600 });
@@ -85,7 +87,7 @@ try {
   };
   const link = () => evaluate(`document.querySelector('a[href^="activ:"]')?.getAttribute('href')`);
   const click = label => evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.trim()===${JSON.stringify(label)}).click()`);
-  await send('Runtime.enable'); await send('Network.enable');
+  await send('Runtime.enable'); await send('Network.enable'); await send('Page.enable');
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
   for (const width of [1440, 390, 320]) {
     await load('/payment-success', { client: 'app', type: 'membership', session: 'member', payment_id: 'UNTRUSTED-HINT', payment_status: 'Failed' });
@@ -93,27 +95,36 @@ try {
     assert(await evaluate('document.body.innerText.includes("Business Annual") && document.body.innerText.includes("BANK-VERIFIED") && document.body.innerText.includes("11:30")'), 'membership receipt uses server amount/plan/reference and IST');
     assert(!(await evaluate('document.querySelector("dl").innerText.includes("UNTRUSTED-HINT")')), 'URL payment ID is not printed as verified');
     assert.equal(await link(), 'activ://payment-success?orderId=ord_fixture&payment_id=UNTRUSTED-HINT&payment_status=Failed');
+    await click('Go to my dashboard'); await pause(100);
+    assert(requested.at(-1).startsWith('activ://payment-success?orderId=ord_fixture&next=dashboard'), 'primary Dashboard action resumes the native paid dashboard');
+    assert(!(await evaluate('location.pathname.includes("login")')), 'app checkout never goes to website login');
     if (process.env.TEST_ARTIFACTS && width !== 320) { const shot = await send('Page.captureScreenshot', { format: 'jpeg', quality: 75, captureBeyondViewport: false }); await writeFile(path.join(process.env.TEST_ARTIFACTS, `payment-return-${width}.jpg`), Buffer.from(shot.result.data, 'base64')); }
   }
   await load('/payment-success', { client: 'app', type: 'company_listing', session: 'member', publicError: '1' });
   await until('document.body.innerText.includes("Company settings")'); await fits(390);
   assert(await evaluate('document.body.innerText.includes("additional company publishing payment is confirmed")'));
-  await click('Company settings'); await until('document.querySelector("[data-target]")?.textContent==="/business/settings"');
+  await click('Company settings'); await pause(100);
+  assert.equal(requested.at(-1), 'activ://payment-success?orderId=ord_fixture');
   for (const session of ['guest', 'member']) {
     await load('/payment-success', { client: 'app', type: 'event_booking', session });
     await until('document.body.innerText.includes("Your event booking is confirmed")'); await fits(390);
     assert(await link(), 'app booking keeps app-return action');
     if (session === 'guest') assert(await evaluate('!window.fixtureRequests.some(request=>request.url.includes("/payment/order/"))'), 'guest does not trigger protected order reads');
     await click('View my booking');
-    const target = `${session === 'member' ? '/member' : ''}/events/conference/book?ref=BOOK-1`;
-    await until(`document.querySelector('[data-target]')?.textContent===${JSON.stringify(target)}`);
+    await pause(100); assert.equal(requested.at(-1), 'activ://payment-success?orderId=ord_fixture');
   }
   await load('/payment-success', { client: 'app', type: 'company_listing', status: 'created', payment_status: 'Failed' });
   await until('document.body.innerText.includes("We are still confirming")'); await fits(320);
   assert(!(await evaluate('document.body.innerText.includes("The payment did not go through")')), 'pending server result beats failed query hint');
   assert(await link(), 'unconfirmed result retains app return');
-  await load('/payment-success', { type: 'membership' }); await until('document.body.innerText.includes("Payment received")');
+  await load('/payment-success', { type: 'membership', session: 'member' }); await until('document.body.innerText.includes("Payment received")');
   assert.equal(await link(), undefined, 'website-only payment has no app handoff');
+  await click('Go to my dashboard'); await until('document.querySelector("[data-target]")?.textContent==="/payment/member-dashboard"');
+  for (const session of ['guest', 'member']) {
+    await load('/payment-success', { type: 'event_booking', session });
+    const target = `${session === 'member' ? '/member' : ''}/events/conference/book?ref=BOOK-1`;
+    await until(`document.querySelector('[data-target]')?.textContent===${JSON.stringify(target)}`);
+  }
   await load('/donate/thank-you', { client: 'app', payment_id: 'GIFT-HINT', payment_status: 'Credit' });
   await until('document.body.innerText.includes("Thank you, Test Donor")');
   for (const width of [1440, 390, 320]) await fits(width);

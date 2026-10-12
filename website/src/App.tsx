@@ -227,6 +227,7 @@ const SuperManageAdmins = lazy(() => import("./features/admin/super-admin/pages/
 const SuperEvents = lazy(() => import("./features/admin/super-admin/pages/Events"));
 const SuperMembership = lazy(() => import("./features/admin/super-admin/pages/Membership"));
 const SuperMembershipRegistrations = lazy(() => import("./features/admin/super-admin/pages/MembershipRegistrations"));
+const SuperMembershipIds = lazy(() => import("./features/admin/super-admin/pages/MembershipIds"));
 const SuperDonations = lazy(() => import("./features/admin/super-admin/pages/Donations"));
 const SuperDonorDetail = lazy(() => import("./features/admin/super-admin/pages/DonorDetail"));
 /* Who is coming to which event, and who has paid. The organiser end of the
@@ -615,6 +616,7 @@ const App = () => (
               <Route path="/super-admin/attendance/:eventId" element={<SuperAttendance />} />
               <Route path="/super-admin/membership" element={<SuperMembership />} />
               <Route path="/super-admin/membership-registrations" element={<SuperMembershipRegistrations />} />
+              <Route path="/super-admin/membership-ids" element={<SuperMembershipIds />} />
               <Route path="/super-admin/donations" element={<SuperDonations />} />
               <Route path="/super-admin/donations/:id" element={<SuperDonorDetail />} />
               {/* Association Updates (MEM-001) — authored here, delivered to the

@@ -1,3 +1,4 @@
+import { membershipValidityLabel } from '@/lib/membershipDates';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -200,7 +201,7 @@ export default function MembershipPlanDetails() {
                                     Your membership
                                 </p>
                                 <h2 className={`${PAGE_TITLE} mt-1`}>
-                                    {platinum ? 'Lifetime Membership' : profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
+                                    {platinum ? 'Lifetime Membership' : profile?.currentMembership?.planName || profile?.paidMembership?.planName || plan?.name || planLabel(kind) || 'Membership'}
                                 </h2>
                                 {membershipType && (
                                     <p className={`mt-1 text-base ${platinum ? 'text-[#674c1b]' : 'text-white/80'}`}>
@@ -229,7 +230,7 @@ export default function MembershipPlanDetails() {
                         <Fact
                             icon={RefreshCw}
                             label={lifetime ? 'Renewal' : 'Valid until'}
-                            value={lifetime ? 'No renewal needed' : (formatDate(expiresAt) || 'Not recorded')}
+                            value={lifetime ? 'No renewal needed' : (membershipValidityLabel(expiresAt) || 'Not recorded')}
                         />
                         {region && <Fact icon={MapPin} label="Region" value={region} />}
                     </div>
@@ -403,7 +404,7 @@ export default function MembershipPlanDetails() {
                                         : renewal?.canRenew
                                             ? renewalMessage(renewal)
                                             : expiresAt
-                                                ? `Your plan runs to ${formatDate(expiresAt)}.${renewal?.opensAt ? ` Renewal opens on ${renewalDate(renewal.opensAt)}.` : ''}`
+                                                ? `Your plan runs to ${membershipValidityLabel(expiresAt)}.${renewal?.opensAt ? ` Renewal opens on ${renewalDate(renewal.opensAt)}.` : ''}`
                                                 : 'Your renewal date is not recorded yet.'}
                                 </p>
                             </div>

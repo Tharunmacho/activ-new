@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { MapPin, Phone, Mail, Clock, Loader2, MessageSquare, User, FileText, Send, Navigation, ExternalLink, Building2 } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Loader2, MessageSquare, User, FileText, Send, Navigation, ExternalLink, ChevronDown } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { getContactInfo, sendContactMessage, errorMessage, EMPTY_OFFICE, type ContactInfo, type ContactOffice } from '@/services/cmsApi';
 import SocialLinks from '@/components/shared/SocialLinks';
@@ -445,14 +445,15 @@ export function ContactFormSection() {
 
                             {offices.length > 1 && (
                                 <div className="mb-6 sm:mb-8">
-                                    {/* Phones: a select — seven pills do not fit 360px. */}
-                                    <label className="sm:hidden block">
-                                        <span className="mb-1.5 block text-[0.9375rem] font-bold text-gray-500">Choose an office</span>
+                                    <label className="block max-w-lg">
+                                        <span className="mb-2 block text-sm font-semibold text-gray-600">Choose an office</span>
+                                        <span className="relative block">
+                                        <MapPin size={19} aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand-600" />
                                         <select
                                             value={office?.id || ''}
                                             onChange={(e) => { const o = offices.find((x) => x.id === e.target.value); if (o) chooseOffice(o); }}
-                                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-semibold text-[#111827]
-                                                       focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                            className="min-h-14 w-full appearance-none rounded-2xl border border-brand-100 bg-white py-3 pl-12 pr-11 text-base font-semibold text-brand-900 shadow-sm transition-shadow
+                                                       hover:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
                                         >
                                             {offices.map((o) => (
                                                 <option key={o.id} value={o.id}>
@@ -460,28 +461,9 @@ export function ContactFormSection() {
                                                 </option>
                                             ))}
                                         </select>
+                                        <ChevronDown size={20} aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-brand-600" />
+                                        </span>
                                     </label>
-                                    <div role="tablist" aria-label="Offices" className="hidden sm:flex flex-wrap gap-2">
-                                        {offices.map((o) => {
-                                            const on = o.id === office?.id;
-                                            return (
-                                                <button
-                                                    key={o.id}
-                                                    type="button"
-                                                    role="tab"
-                                                    aria-selected={on}
-                                                    onClick={() => chooseOffice(o)}
-                                                    className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[1rem] font-semibold transition-colors ${on
-                                                        ? 'bg-brand-900 text-white shadow-md'
-                                                        : 'bg-brand-50 text-brand-700 hover:bg-brand-100'}`}
-                                                >
-                                                    {o.isHeadOffice ? <Building2 size={15} /> : <MapPin size={15} />}
-                                                    {officeName(o)}
-                                                    {o.isHeadOffice && o.state ? <span className={on ? 'text-white/70' : 'text-brand-500'}>· {o.state}</span> : null}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
                                 </div>
                             )}
 

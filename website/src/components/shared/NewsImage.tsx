@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, ZoomIn, ZoomOut } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { resolveMediaUrl, sizedMediaUrl } from '@/config/api.config';
+import { resolveMediaUrl } from '@/config/api.config';
 
 /** Letters keep their page proportions; the viewer loads the original upload. */
 export function NewsImage({ url, alt, lazy = false }: { url: string; alt: string; lazy?: boolean }) {
@@ -13,8 +13,8 @@ export function NewsImage({ url, alt, lazy = false }: { url: string; alt: string
             <DialogTrigger asChild>
                 <button type="button" className="block w-full overflow-hidden rounded-2xl border border-slate-200 bg-white text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-700"
                     aria-label={`Enlarge image: ${alt}`}>
-                    <img src={sizedMediaUrl(url, 1600)} alt={alt} loading={lazy ? 'lazy' : 'eager'}
-                        className="block h-auto w-full object-contain" />
+                    <img src={original} alt={alt} loading={lazy ? 'lazy' : 'eager'}
+                        className="block h-auto w-full object-contain" style={{ height: 'auto', maxHeight: 'none', objectFit: 'contain' }} />
                     <span className="flex items-center justify-center gap-2 border-t border-slate-100 px-3 py-3 text-base font-semibold text-brand-700">
                         <ZoomIn size={18} /> Tap to enlarge and zoom
                     </span>

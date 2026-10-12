@@ -2,6 +2,7 @@ import { downloadSpreadsheet } from './spreadsheetDownload';
 import api, { unwrap } from './api';
 import { ENDPOINTS } from '@/config/api.config';
 import type { EventBooking } from './eventBookingApi';
+import type { BookingFiltersValue, BookingFilterOptions } from '@/features/admin/components/BookingFilters';
 
 /**
  * The organiser's side of the public "Book Now" bookings.
@@ -50,17 +51,15 @@ const EMPTY_PAGE: BookingPage = {
 /** One page of an event's bookings, plus the whole event's totals. */
 export const listEventBookings = async (
     eventId: string,
-    params: {
+    params: BookingFiltersValue & {
         page?: number;
         limit?: number;
-        search?: string;
-        paymentStatus?: '' | 'paid' | 'pending' | 'not_required' | 'failed';
-        status?: '' | 'active' | 'cancelled';
     } = {},
 ) =>
     unwrap<BookingPage>(
         await api.get(ENDPOINTS.EVENTS.BOOKINGS(eventId), {
             params: {
+                ...params,
                 page: params.page || 1,
                 limit: params.limit || 10,
                 // Empty strings are dropped rather than sent. The server reads
@@ -148,6 +147,7 @@ export interface BookingOverviewRow {
 }
 
 export interface BookingOverview {
+    filterOptions?: BookingFilterOptions;
     events: BookingOverviewRow[];
     historyTotals?: Record<BookingHistoryCategory, BookingOverview['totals']>;
     totals: {
@@ -169,10 +169,10 @@ const EMPTY_OVERVIEW: BookingOverview = {
  * therefore the same ones the individual event screen shows, which they would
  * not be if this page did its own arithmetic over a list of events.
  */
-export const listBookingOverview = async (includeDrafts = false) =>
+export const listBookingOverview = async (includeDrafts = false, filters: BookingFiltersValue & { history?: BookingHistoryCategory } = {}) =>
     unwrap<BookingOverview>(
         await api.get(ENDPOINTS.EVENTS.BOOKING_OVERVIEW, {
-            params: includeDrafts ? { includeDrafts: 1 } : {},
+            params: { ...filters, ...(includeDrafts ? { includeDrafts: 1 } : {}) },
         }),
         EMPTY_OVERVIEW,
     );
@@ -226,8 +226,8 @@ export const listEventAttendees = async (
    ================================================================== */
 
 /** Download the formatted Excel report through the authenticated API. */
-export const exportBookingsCsv = async (eventId: string, title = 'event') =>
-    downloadSpreadsheet(ENDPOINTS.EVENTS.EXPORT_BOOKINGS(eventId), title + '-bookings.xlsx');
+export const exportBookingsCsv = async (eventId: string, title = 'event', filters: BookingFiltersValue = {}) =>
+    downloadSpreadsheet(ENDPOINTS.EVENTS.EXPORT_BOOKINGS(eventId), title + '-bookings.xlsx', filters);
 
 
 
@@ -277,10 +277,10 @@ export interface BookingPerson {
 }
 
 /** Everyone who has booked, newest booker first. */
-export const listBookingPeople = async (search = '') =>
+export const listBookingPeople = async (search = '', filters: BookingFiltersValue & { history?: BookingHistoryCategory } = {}) =>
     unwrap<{ people: BookingPerson[]; total: number }>(
         await api.get(ENDPOINTS.EVENTS.BOOKING_PEOPLE, {
-            params: search ? { search } : {},
+            params: { ...filters, ...(search ? { search } : {}) },
         }),
         { people: [], total: 0 },
     );
@@ -291,9 +291,9 @@ export const listBookingPeople = async (search = '') =>
  * The address goes as a query parameter, which axios escapes. See the note on
  * the endpoint for why it is not a path segment.
  */
-export const getBookingPerson = async (email: string) =>
+export const getBookingPerson = async (email: string, filters: BookingFiltersValue & { history?: 'current' | 'past' | 'deleted' } = {}) =>
     unwrap<{ person: BookingPerson; bookings: EventBooking[] }>(
-        await api.get(ENDPOINTS.EVENTS.BOOKING_PERSON, { params: { email } }),
+        await api.get(ENDPOINTS.EVENTS.BOOKING_PERSON, { params: { ...filters, email } }),
         { person: {} as BookingPerson, bookings: [] },
     );
 

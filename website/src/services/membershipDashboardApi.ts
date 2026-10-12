@@ -3,7 +3,7 @@ import { downloadSpreadsheet } from './spreadsheetDownload';
 
 export interface MembershipRegistration {
     id: string; name: string; email: string; phone: string; kind: string; region: string;
-    registeredAt: string; memberNumber: string; applicationId: string; applicationStatus: string;
+    registeredAt: string; memberNumber: string; assignedMemberNumber?: string; applicationId: string; applicationStatus: string;
     submittedAt: string | null; status: string; membershipType: string; planName: string;
     activatedAt: string | null; expiresAt: string | null; lifetime: boolean; collected: number;
     confirmation: string; canConfirm: boolean; requiresManualAdmission?: boolean; blockedReason: string;
@@ -19,8 +19,9 @@ export interface MembershipDashboard {
     plans: { id: string; name: string; price: number; membershipType: string }[];
     summary: { registered: number; submitted: number; active: number; awaiting: number; pendingReview: number; expired: number; collected: number; waived: number; openOrders: number };
 }
-export interface MembershipDetail { member: MembershipRegistration; payments: MembershipPayment[] }
-export interface MembershipConfirmation { planId: string; mode: string; amount: number; note: string; receiptNumber: string; manualAdmission?: boolean }
+export interface ConfirmationPlan { id: string; key: string; name: string; price: number; audience: string; commencementYears: string[]; commencementYearLabel: string }
+export interface MembershipDetail { member: MembershipRegistration; payments: MembershipPayment[]; confirmation?: { kind: string; commencementYear: string; plans: ConfirmationPlan[]; requiresCommencementYear: boolean } }
+export interface MembershipConfirmation { planId: string; mode: string; amount: number; note: string; receiptNumber: string; membershipNumber?: string; commencementYear?: string; manualAdmission?: boolean }
 const base = '/admin/super/membership/registrations';
 export const exportMembershipReport = (tab: 'members' | 'payments' | 'archived', filter: string) =>
     downloadSpreadsheet(base + '/export', 'membership-' + tab + '.xlsx', { tab, filter });

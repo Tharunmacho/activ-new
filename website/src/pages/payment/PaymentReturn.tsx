@@ -6,7 +6,7 @@ import { Loader2, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { getPaymentOrder, resolvePaymentReturn } from '@/services/paymentApi';
 import { isMemberSession } from '@/lib/session';
 import MemberPageShell from '../member/MemberPageShell';
-import NativePaymentReturnLink from '@/components/NativePaymentReturnLink';
+import NativePaymentReturnLink, { nativePaymentReturnHref } from '@/components/NativePaymentReturnLink';
 
 /**
  * Instamojo returns here with browser-supplied payment identifiers. The server
@@ -153,6 +153,12 @@ export default function PaymentReturn() {
         : '';
     const destination = bookingDestination || (companyPayment ? '/business/settings' : '/payment/member-dashboard');
     const destinationLabel = bookingDestination ? 'View my booking' : companyPayment ? 'Company settings' : 'Go to my dashboard';
+    // A browser does not share the app's login. Resume the retained native order.
+    const appReturn = nativePaymentReturnHref(params, 'payment', outcome === 'paid' && !booking && !companyPayment);
+    const continuePayment = () => {
+        if (appReturn) window.location.assign(appReturn);
+        else navigate(destination);
+    };
 
     return (
         <MemberPageShell title="Payment" sidebar={false}>
@@ -191,7 +197,7 @@ export default function PaymentReturn() {
                                 </dl>
                                 <Button
                                     className="mt-6 bg-green-600 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem] hover:bg-green-700"
-                                    onClick={() => navigate(destination)}
+                                    onClick={continuePayment}
                                 >
                                     {destinationLabel}
                                 </Button>
@@ -225,7 +231,7 @@ export default function PaymentReturn() {
                                 <Button
                                     variant="outline"
                                     className="mt-6 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem]"
-                                    onClick={() => navigate(destination)}
+                                    onClick={continuePayment}
                                 >
                                     {destinationLabel}
                                 </Button>
@@ -244,9 +250,9 @@ export default function PaymentReturn() {
                                 </p>
                                 <Button
                                     className="mt-6 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem]"
-                                    onClick={() => navigate(bookingDestination || (companyPayment ? '/business/settings' : '/payment/membership-plans'))}
+                                    onClick={() => appReturn ? window.location.assign(appReturn) : navigate(bookingDestination || (companyPayment ? '/business/settings' : '/payment/membership-plans'))}
                                 >
-                                    {booking ? 'Back to booking' : companyPayment ? 'Company settings' : 'Choose a plan'}
+                                    {appReturn ? 'Return to ACTIV app' : booking ? 'Back to booking' : companyPayment ? 'Company settings' : 'Choose a plan'}
                                 </Button>
                             </>
                         )}

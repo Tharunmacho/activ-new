@@ -13,7 +13,7 @@ import { ADMIN_PAGE, ADMIN_PRIMARY_BTN, AdminPageHeader, rupees,
 } from '@/features/admin/components/AdminUI';
 import {
     listMembershipPlans, createMembershipPlan, updateMembershipPlan,
-    retireMembershipPlan, deleteMembershipPlan, updateMembershipSettings, alignMembershipBands, errorMessage,
+    retireMembershipPlan, deleteMembershipPlan,  alignMembershipBands, errorMessage,
     type MembershipPlanRow, type PlanAudience,
 } from '@/services/activApi';
 
@@ -151,7 +151,6 @@ export default function SuperAdminMembership() {
     const cardTableRef = useCardTable();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
-    const [showAll, setShowAll] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [aligning, setAligning] = useState(false);
@@ -177,7 +176,7 @@ export default function SuperAdminMembership() {
         try {
             const data = await listMembershipPlans();
             setPlans(data.plans || []);
-            setShowAll(!!data.settings?.showAllPlans);
+
         } catch (err) {
             toast.error(errorMessage(err, 'Could not load the membership plans'));
         } finally {
@@ -283,19 +282,6 @@ export default function SuperAdminMembership() {
             }
 
             toast.error(message);
-        }
-    };
-
-    const toggleShowAll = async (next: boolean) => {
-        setShowAll(next);   // optimistic: the switch must feel immediate
-        try {
-            await updateMembershipSettings({ showAllPlans: next });
-            toast.success(next
-                ? 'Applicants now see every plan'
-                : 'Applicants now see only the plan their commencement year earns');
-        } catch (err) {
-            setShowAll(!next);
-            toast.error(errorMessage(err, 'Could not save that setting'));
         }
     };
 
@@ -418,8 +404,8 @@ export default function SuperAdminMembership() {
         const active = business.filter(p => p.active);
         const matched = active.find(p => inBand(p, years)) || null;
 
-        return { years, matched, showAll };
-    }, [previewYear, business, showAll]);
+        return { years, matched };
+    }, [previewYear, business]);
 
     const editingPlan = editingKey ? plans.find(p => p.key === editingKey) : null;
 
@@ -448,53 +434,7 @@ export default function SuperAdminMembership() {
                 <main className={ADMIN_PAGE}>
                     {/* ------------------------------------------------ the rule */}
                     <section className="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)] p-4 sm:p-6">
-                        <div
-                            role="checkbox"
-                            aria-checked={showAll}
-                            tabIndex={0}
-                            onClick={() => toggleShowAll(!showAll)}
-                            onKeyDown={(e) => {
-                                if (e.key !== ' ' && e.key !== 'Enter') return;
-                                e.preventDefault();
-                                toggleShowAll(!showAll);
-                            }}
-                            className={`cursor-pointer flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                                showAll
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-slate-200 hover:border-slate-300'
-                            }`}
-                        >
-                            <span
-                                aria-hidden="true"
-                                className={`mt-0.5 w-4 h-4 shrink-0 rounded border-2 flex items-center
-                                            justify-center transition-colors ${
-                                    showAll ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'
-                                }`}
-                            >
-                                {showAll && <Check className="w-3 h-3" strokeWidth={3} />}
-                            </span>
-                            <span className="min-w-0">
-                                <span className={`block text-[1.25rem] font-semibold ${
-                                    showAll ? 'text-blue-700' : 'text-slate-800'
-                                }`}>
-                                    Show every plan to every applicant
-                                </span>
-                                {/* The copy names the OTHER state as well as this
-                                    one. A switch that only describes where it
-                                    currently stands leaves the reader guessing what
-                                    pressing it does — which is the question they
-                                    have. */}
-                                <span className="block text-[1.1875rem] text-slate-500 mt-1 leading-snug">
-                                    {showAll
-                                        ? 'On — every applicant picks from all three company plans, whatever '
-                                          + 'their commencement year. Turn this off to show each applicant only '
-                                          + 'the one plan their year earns, the way the aspirant plan works.'
-                                        : 'Off — each applicant sees only the one plan their commencement year '
-                                          + 'earns them, at the price set below, exactly as an aspirant sees only '
-                                          + 'the aspirant plan. Turn this on to let them choose from all three.'}
-                                </span>
-                            </span>
-                        </div>
+                        <p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-slate-700">Members see the plan matching their category and business commencement year. Business plans advance automatically at the configured year boundaries; the new fee applies at renewal. Students and aspirants start with the first business plan.</p>
                     </section>
 
                     {/* --------------------------------------------- band health */}
@@ -513,9 +453,7 @@ export default function SuperAdminMembership() {
                                 {bandProblems.map((problem, i) => <li key={i}>{problem}</li>)}
                             </ul>
                             <p className="mt-2 text-[1.1875rem] text-amber-700">
-                                An applicant no band covers is shown every plan instead, and where two
-                                bands overlap the cheaper one silently wins — which reads as the rule not
-                                working.
+                                A missing range leaves members without an eligible payment plan. Keep the ranges continuous and without overlap so each business matches one plan.
                             </p>
 
                             {/*
@@ -937,12 +875,7 @@ export default function SuperAdminMembership() {
 
                             {preview && (
                                 <p className="text-[1.25rem] text-slate-700">
-                                    {preview.showAll ? (
-                                        <>
-                                            <strong>{preview.years} years trading</strong> — and every plan is
-                                            shown, because the switch at the top of this page is on.
-                                        </>
-                                    ) : preview.matched ? (
+                                    {preview.matched ? (
                                         <>
                                             <strong>{preview.years} years trading</strong> → they see{' '}
                                             <strong className="text-blue-700">{preview.matched.name}</strong>{' '}
@@ -953,7 +886,7 @@ export default function SuperAdminMembership() {
                                     ) : (
                                         <span className="text-amber-700">
                                             <strong>{preview.years} years trading</strong> — no band covers this,
-                                            so they would be shown every plan. Fix the bands above.
+                                            so membership payment is unavailable until this range is configured. Fix the bands above.
                                         </span>
                                     )}
                                 </p>

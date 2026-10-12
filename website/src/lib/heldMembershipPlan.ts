@@ -13,7 +13,7 @@ export function selectHeldMembershipPlan<T extends { key?: string; id?: string; 
   if (isLifetimeTier(profile)) {
     return rows.find(row => keyOf(row) === 'platinum' || normalized(row.audience) === 'platinum') || null;
   }
-  const key = normalized(profile.paidMembership?.planId);
+  const key = normalized(profile.currentMembership?.planId || profile.paidMembership?.planId);
   if (key) return rows.find(row => keyOf(row) === key) || null;
   // Older records have no order key. Use only the server's explicit match and
   // only if its term agrees; a generic lifetime flag is not proof of this tier.
