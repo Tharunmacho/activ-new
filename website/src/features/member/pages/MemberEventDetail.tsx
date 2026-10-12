@@ -1,3 +1,4 @@
+import { useEventClock } from '@/lib/useEventClock';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { EventQrFeature } from '@/components/shared/EventQr';
@@ -38,6 +39,7 @@ import { eventKey, memberEventPath } from '@/lib/eventPath';
  * registered at once.
  */
 export default function MemberEventDetail() {
+    const eventNow = useEventClock();
     const { id = '' } = useParams();
     const navigate = useNavigate();
 
@@ -160,9 +162,9 @@ export default function MemberEventDetail() {
         );
     }
 
-    const past = isPast(event);
+    const past = isPast(event, eventNow);
     const reminders = formatReminders(event.reminderOffsetsHours || []);
-    const phase = eventPhase(event as CalendarEventLike);
+    const phase = eventPhase(event as CalendarEventLike, eventNow);
     const countdown = !past && phase === 'upcoming' ? countdownLabel(event.startAt) : null;
     const fillingFast = left !== null && left > 0 && event.capacity > 0 && left <= Math.max(5, Math.round(event.capacity * 0.1));
     const region = [event.block, event.district, event.state].filter(Boolean).join(', ');

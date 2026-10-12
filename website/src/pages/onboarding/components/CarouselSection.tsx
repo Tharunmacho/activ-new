@@ -1,3 +1,5 @@
+import { isUpcomingEvent } from '@/lib/eventLifecycle';
+import { useEventClock } from '@/lib/useEventClock';
 import { galleryPath } from '@/lib/eventPath';
 import { eventPath } from '@/lib/eventPath';
 import { useEffect, useMemo, useState, useCallback } from 'react';
@@ -102,9 +104,10 @@ interface BannerSlide {
 /* `=== true`, not `!== false`: the server ALWAYS sends the switch (On by
    default, see the event model). A missing value means a backend too old to
    know it, and an event the CMS cannot account for must not ride the banner. */
-const inBanner = (events: CmsEvent[] | null) => (events || []).filter((e) => e?.showInBanner === true);
+const inBanner = (events: CmsEvent[] | null) => (events || []).filter((e) => e?.showInBanner === true && isUpcomingEvent(e));
 
 export function CarouselSection() {
+    const now = useEventClock();
     /*
      * THE FIRST FRAME IS THE LAST COPY THIS BROWSER SAW (`peekCmsCache`), so a
      * returning visitor gets the banner at once instead of a grey block while
@@ -209,7 +212,7 @@ export function CarouselSection() {
          * gallery's images; an event has its own switch, on the event.
          */
         const fromEvents: BannerSlide[] = bannerEvents
-            .filter(e => e?.media?.url || e?.imageUrl)
+            .filter(e => isUpcomingEvent(e, now) && (e?.media?.url || e?.imageUrl))
             .map(e => {
                 const summary = String(e.description || '').replace(/<[^>]*>/g, ' ')
                     .replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
@@ -293,7 +296,7 @@ export function CarouselSection() {
             }));
 
         return place([...fromEvents, ...fromGallery]);
-    }, [carousel, posters, bannerEvents, sections]);
+    }, [carousel, posters, bannerEvents, sections, now]);
 
     // Embla caches slide measurements; without this the arrows do nothing on a
     // list that arrived after mount.

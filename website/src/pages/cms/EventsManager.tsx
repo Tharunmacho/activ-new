@@ -1,3 +1,4 @@
+import { isPastEvent as hasBeenHeld } from '@/lib/eventLifecycle';
 import EventFilesEditor from './components/EventFilesEditor';
 import type { EventAttachment } from '@/services/cmsApi';
 import { useCardTable } from '@/lib/useCardTable';
@@ -263,14 +264,7 @@ const toInstant = (date: string, time: string): string => {
  * for a date, and filing it under “already held” would archive something
  * that has not happened.
  */
-const hasBeenHeld = (e: CmsEvent) => {
-    /* The END, falling back to the start. A three-day conclave is not a past
-       event on its second morning, and reading `startAt` alone said it was. */
-    const when = e?.endAt || e?.startAt;
-    if (!when) return false;
-    const t = new Date(when).getTime();
-    return !Number.isNaN(t) && t < Date.now();
-};
+
 
 export default function EventsManager({
     defaultAudience = 'all',
@@ -833,7 +827,7 @@ export default function EventsManager({
     const isPastEvent = hasBeenHeld;
 
     const handleDelete = async (e: CmsEvent) => {
-        if (!window.confirm(`Delete "${e.title || 'Untitled event'}"? This removes it from the public site and from the member app.`)) return;
+        if (!window.confirm(`Delete "${e.title || 'Untitled event'}"? This removes it from public view. All bookings, payments, registrations and attendance remain available to the Super Admin in Event Bookings.`)) return;
         try {
             await deleteCmsEvent(e.id);
             cmsDeleted(e.title || 'Event');

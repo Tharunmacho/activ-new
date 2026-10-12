@@ -1,3 +1,4 @@
+import { useEventClock } from '@/lib/useEventClock';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, Ticket } from 'lucide-react';
@@ -25,6 +26,7 @@ import { errorMessage } from '@/services/activApi';
 type Tab = 'upcoming' | 'past' | 'mine';
 
 export default function MemberEvents() {
+    const now = useEventClock();
     const [events, setEvents] = useState<MemberEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -46,13 +48,13 @@ export default function MemberEvents() {
     const at = (event: MemberEvent) => (event.startAt ? new Date(event.startAt).getTime() : 0);
 
     const upcoming = useMemo(
-        () => (events || []).filter((event) => !isPast(event)).sort((a, b) => at(a) - at(b)),
-        [events],
+        () => (events || []).filter((event) => !isPast(event, now)).sort((a, b) => at(a) - at(b)),
+        [events, now],
     );
 
     const past = useMemo(
-        () => (events || []).filter(isPast).sort((a, b) => at(b) - at(a)),
-        [events],
+        () => (events || []).filter(event => isPast(event, now)).sort((a, b) => at(b) - at(a)),
+        [events, now],
     );
 
     /**
@@ -67,7 +69,7 @@ export default function MemberEvents() {
         () => (events || [])
             .filter((event) => event.myRegistration && event.myRegistration.status !== 'cancelled')
             .sort((a, b) => at(a) - at(b)),
-        [events],
+        [events, now],
     );
 
     const TABS: { key: Tab; label: string; count: number }[] = [

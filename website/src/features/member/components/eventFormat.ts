@@ -1,3 +1,4 @@
+import { isPastEvent } from '@/lib/eventLifecycle';
 import type { MemberEvent } from '@/services/memberHubApi';
 
 /**
@@ -82,12 +83,7 @@ export const calendarTile = (value?: string | null): { day: string; month: strin
     };
 };
 
-export const isPast = (event: Pick<MemberEvent, 'startAt' | 'endAt'>): boolean => {
-    // An event is over when it ENDS, not when it starts — an all-day conference
-    // would otherwise move into "past" over its own morning coffee.
-    const end = parse(event.endAt) || parse(event.startAt);
-    return !!end && end.getTime() < Date.now();
-};
+export const isPast = isPastEvent;
 
 /**
  * Whether a member can still take a seat, and why not when they cannot.

@@ -1,3 +1,4 @@
+import { isPastEvent } from '@/lib/eventLifecycle';
 import { useEffect, useState } from 'react';
 import {
     Loader2, ExternalLink, CalendarDays, Eye, EyeOff, Pencil, Type, Check, X, MapPin,
@@ -50,6 +51,7 @@ const hasTargets = (e: CmsEvent) =>
 
 /** The server's `isOnboardingContent`, plus the two gates its callers add. */
 const whyNotPublic = (e: CmsEvent): string => {
+    if (isPastEvent(e)) return 'completed (available in Past Events)';
     if (e?.status !== 'published') return 'a draft';
     if (e?.audience === 'paid') return 'members-only';
     const onSite = e?.showOnOnboarding === true

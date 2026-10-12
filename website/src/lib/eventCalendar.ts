@@ -325,39 +325,7 @@ export const shareLine = (event: CalendarEventLike): string => {
         .join(' · ');
 };
 
-/**
- * Twelve hours, the point after a start time at which an event with no end time
- * is assumed to be over.
- *
- * Generous on purpose. The cost of calling a finished event "happening now" is
- * a stale chip; the cost of the reverse is telling somebody standing in the
- * hall that they have missed it.
- */
-const ASSUMED_LENGTH_MS = 12 * 60 * 60 * 1000;
-
-/**
- * WHETHER THE EVENT IS AHEAD, ON, OR OVER.
- *
- * The page used to decide this from the start time alone, so an event that
- * began an hour ago read as "This event has taken place" while the room was
- * still full - and a Book Now button sat underneath that sentence.
- *
- * An undated event is `upcoming`. Nothing on the event form is required, so a
- * missing date means "not announced yet", which is emphatically not "over".
- */
-export const eventPhase = (
-    event: CalendarEventLike,
-    now: Date = new Date(),
-): 'upcoming' | 'live' | 'past' => {
-    const start = parse(event.startAt);
-    if (!start) return 'upcoming';
-    if (now.getTime() < start.getTime()) return 'upcoming';
-    const declaredEnd = parse(event.endAt);
-    const end = declaredEnd && declaredEnd.getTime() > start.getTime()
-        ? declaredEnd
-        : new Date(start.getTime() + ASSUMED_LENGTH_MS);
-    return now.getTime() <= end.getTime() ? 'live' : 'past';
-};
+export { eventPhase } from './eventLifecycle';
 
 /**
  * HOW LONG UNTIL IT STARTS, in words.

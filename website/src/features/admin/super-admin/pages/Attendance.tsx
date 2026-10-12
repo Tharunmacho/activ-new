@@ -31,7 +31,7 @@ import { adminBasePath } from '@/features/admin/components/tierConfig';
  * button on a desk screen would be attendance nobody witnessed.
  *
  * Shared by both portals through `adminBasePath()`. The server decides what
- * each sees: the super admin's rows and CSV carry email and mobile; the events
+ * each sees: the super admin's rows and Excel report carry email and mobile; the events
  * admin gets names and a masked number only (event.routes, ATTENDANCE_VIEWERS).
  */
 
@@ -371,7 +371,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             <div className="flex">
                 <button type="button" onClick={onExport} disabled={exporting || loading} className={ADMIN_SECONDARY_BTN}>
                     {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
-                    Export CSV
+                    Export Excel
                 </button>
             </div>
         </>

@@ -1,3 +1,4 @@
+import { useEventClock } from '@/lib/useEventClock';
 import PlatinumWelcome from '../components/PlatinumWelcome';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -212,6 +213,7 @@ export default function PaidDashboard() {
     const [businessType, setBusinessType] = useState('');
 
     const [updates, setUpdates] = useState<Announcement[]>([]);
+    const eventNow = useEventClock();
     const [events, setEvents] = useState<MemberEvent[]>([]);
     const [activity, setActivity] = useState<MemberActivity[]>([]);
     const [sectionsLoading, setSectionsLoading] = useState(true);
@@ -406,14 +408,14 @@ export default function PaidDashboard() {
     const at = (event: MemberEvent) => (event.startAt ? new Date(event.startAt).getTime() : 0);
 
     const upcomingEvents = useMemo(
-        () => (events || []).filter((event) => !isPast(event)).sort((a, b) => at(a) - at(b)),
-        [events],
+        () => (events || []).filter((event) => !isPast(event, eventNow)).sort((a, b) => at(a) - at(b)),
+        [events, eventNow],
     );
 
     const myEventCount = useMemo(
         () => (events || []).filter((event) =>
-            event.myRegistration && event.myRegistration.status !== 'cancelled' && !isPast(event)).length,
-        [events],
+            event.myRegistration && event.myRegistration.status !== 'cancelled' && !isPast(event, eventNow)).length,
+        [events, eventNow],
     );
 
     const pinnedFirst = useMemo(

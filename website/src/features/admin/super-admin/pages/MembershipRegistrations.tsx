@@ -6,7 +6,7 @@ import { AdminPageHeader, AdminStat, ADMIN_BG, ADMIN_PAGE, ADMIN_CARD, ADMIN_INP
 import { SECTION_TITLE } from '@/components/layout/appTypography';
 import { AdminTable, type AdminColumn } from '@/features/admin/components/AdminTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { loadMembershipDashboard, loadMembershipDetail, confirmMembership, deleteMembershipRegistration, type MembershipDashboard, type MembershipRegistration, type MembershipPayment, type MembershipDetail } from '@/services/membershipDashboardApi';
+import { loadMembershipDashboard, exportMembershipReport, loadMembershipDetail, confirmMembership, deleteMembershipRegistration, type MembershipDashboard, type MembershipRegistration, type MembershipPayment, type MembershipDetail } from '@/services/membershipDashboardApi';
 import { errorMessage } from '@/services/activApi';
 
 const date = (v: string | null) => v ? new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -19,6 +19,7 @@ export default function MembershipRegistrations() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [data, setData] = useState<MembershipDashboard | null>(null);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
     const [error, setError] = useState('');
     const [tab, setTab] = useState<'members' | 'payments' | 'archived'>('members');
     const [filter, setFilter] = useState('all');
@@ -87,20 +88,19 @@ export default function MembershipRegistrations() {
         } catch (e) { toast.error(errorMessage(e, 'Could not confirm membership.')); }
         finally { setSaving(false); }
     };
-    const exportReport = () => {
-        const rows: (string | number)[][] = tab === 'members'
-            ? [['Name', 'Email', 'Mobile', 'Registered', 'Application', 'Membership', 'Plan', 'Member number', 'Collected', 'Valid until', 'Confirmation'], ...members.map(r => [r.name, r.email, r.phone, date(r.registeredAt), r.applicationStatus, r.status, r.planName, r.memberNumber, r.collected, r.lifetime ? 'Lifetime' : date(r.expiresAt), r.confirmation])]
-            : [['Name', 'Email', 'Order', 'Payment ID', 'Plan', 'Status', 'Mode', 'Order amount', 'Amount received', 'Date', 'Confirmed by', 'Note'], ...payments.map(r => [r.name, r.email, r.orderId, r.paymentId, r.planName, r.status, r.mode, r.amount, r.status === 'paid' ? r.amount : 0, date(r.paidAt || r.createdAt), r.manual?.byName || '', r.manual?.note || ''])];
-        // Formula-like user text must stay text when the report is opened in Excel.
-        const csv = rows.map(row => row.map(v => { let s = String(v ?? ''); if (/^[=+@\-\t\r]/.test(s)) s = `'${s}`; return `"${s.replace(/"/g, '""')}"`; }).join(',')).join('\r\n');
-        const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' }));
-        const a = document.createElement('a'); a.href = url; a.download = `membership-${tab}-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url);
+    const exportReport = async () => {
+        if (exporting || loading || !data) return;
+        setExporting(true);
+        try { await exportMembershipReport(tab, filter); }
+        catch (e) { toast.error(errorMessage(e, 'Could not download the Excel report.')); }
+        finally { setExporting(false); }
     };
+
     const summary = data?.summary;
     return <div className={`flex h-screen ${ADMIN_BG}`}>
         <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <AdminPageHeader title="Membership registrations" subtitle="Registered accounts, applications and membership payments. Open a member to review or confirm their membership." onMenu={() => setSidebarOpen(true)} actions={<><button className={ADMIN_SECONDARY_BTN} disabled={!data || loading} onClick={exportReport}><Download className="w-4 h-4" /> Export report</button><button className={ADMIN_SECONDARY_BTN} onClick={() => void load()} disabled={loading}><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh</button></>} />
+            <AdminPageHeader title="Membership registrations" subtitle="Registered accounts, applications and membership payments. Open a member to review or confirm their membership." onMenu={() => setSidebarOpen(true)} actions={<><button className={ADMIN_SECONDARY_BTN} disabled={!data || loading || exporting} onClick={() => void exportReport()}><Download className="w-4 h-4" /> {exporting ? 'Preparing Excel...' : 'Export Excel'}</button><button className={ADMIN_SECONDARY_BTN} onClick={() => void load()} disabled={loading}><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh</button></>} />
             <main className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
                 {error && <div role="alert" className="mb-4 rounded-xl bg-rose-50 p-4 text-rose-700">{error} <button className="underline" onClick={() => void load()}>Retry</button></div>}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

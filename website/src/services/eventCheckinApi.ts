@@ -1,3 +1,4 @@
+import { downloadSpreadsheet } from './spreadsheetDownload';
 import api, { unwrap } from './api';
 import { API_BASE_URL } from '@/config/api.config';
 
@@ -90,19 +91,6 @@ export const getAttendance = async (eventId: string, params: { q?: string; statu
         EMPTY_ATTENDANCE,
     );
 
-/** The attendance CSV — fetched with the admin token, saved through an object URL (see exportBookingsCsv). */
-export const exportAttendanceCsv = async (eventId: string, title = 'event') => {
-    const response = await api.get(`/events/${encodeURIComponent(eventId)}/attendance/export`, { responseType: 'blob' });
-    const url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${String(title || 'event')
-        .replace(/[^a-zA-Z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60)
-        .toLowerCase() || 'event'}-attendance.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-};
+/** Download the role-filtered attendance workbook. */
+export const exportAttendanceCsv = async (eventId: string, title = 'event') =>
+    downloadSpreadsheet('/events/' + encodeURIComponent(eventId) + '/attendance/export', title + '-attendance.xlsx');

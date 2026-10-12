@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/shared/components/ui/sonner";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import NativePublicAppGate from "./components/NativePublicAppGate";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import PublicSharePreview from "@/components/shared/PublicSharePreview";
 import RoleGate from "@/components/layout/RoleGate";
@@ -302,6 +303,7 @@ const App = () => (
               silences the upgrade warnings and means the eventual move to v7
               changes nothing about how this app routes. */}
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <NativePublicAppGate>
             {/* A routed page opens at its top. Without this the window keeps
                 the offset it had, so pressing a link from the foot of one page
                 lands on the footer of the next — see the component. */}
@@ -688,6 +690,7 @@ const App = () => (
               </Routes>
             </Suspense>
             </PublicSharePreview>
+            </NativePublicAppGate>
           </BrowserRouter>
         </TooltipProvider>
         </ActiveCompanyProvider>

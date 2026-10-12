@@ -145,7 +145,7 @@ export default function SuperAdminBookingEvents() {
                             </span>
                         )}
                         {!!row.category && <AdminChip tone="violet">{row.category}</AdminChip>}
-                        {row.status !== 'published' && <AdminChip tone="slate">Draft</AdminChip>}
+                        {row.archivedAt ? <AdminChip tone="slate">Archived · records retained</AdminChip> : row.status !== 'published' && <AdminChip tone="slate">Draft</AdminChip>}
                         {!row.registrationEnabled && (
                             <AdminChip
                                 tone="amber"

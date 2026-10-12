@@ -1658,8 +1658,8 @@ export const getSuperApplications = async (params: Record<string, any> = {}) =>
     unwrap<any>(await api.get(ENDPOINTS.ADMIN.SUPER_APPLICATIONS, { params }), {});
 export const getDirectory = async (params: Record<string, any> = {}) =>
     unwrap<any>(await api.get(ENDPOINTS.ADMIN.SUPER_DIRECTORY, { params }), {});
-export const listAdmins = async (params: Record<string, any> = {}) =>
-    unwrap<any>(await api.get(ENDPOINTS.ADMIN.SUPER_ADMINS, { params }), {});
+export const listAdmins = async (params: Record<string, any> = {}, signal?: AbortSignal) =>
+    unwrap<any>(await api.get(ENDPOINTS.ADMIN.SUPER_ADMINS, { params, signal }), {});
 export const createAdmin = async (payload: Record<string, any>) =>
     unwrap<any>(await api.post(ENDPOINTS.ADMIN.SUPER_ADMINS, payload), {});
 export const updateAdmin = async (id: string, payload: Record<string, any>) =>

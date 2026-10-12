@@ -1,3 +1,5 @@
+import { isUpcomingEvent } from '@/lib/eventLifecycle';
+import { useEventClock } from '@/lib/useEventClock';
 import { PosterFrame } from '@/components/shared/PosterFrame';
 import { eventPath } from '@/lib/eventPath';
 import { useEffect, useState } from 'react';
@@ -40,6 +42,7 @@ const formatDate = (iso: string | null) => {
 };
 
 export function EventsGrid({ limit, showViewAll = false }: Props) {
+    const now = useEventClock();
     const [events, setEvents] = useState<CmsEvent[] | null>(null);
     const [settings, setSettings] = useState<EventsSettings | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -111,14 +114,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
      * The list is already the public one: `getCmsEvents` returns only
      * published events the onboarding site may show.
      */
-    const now = Date.now();
-    const forHome = events.filter((e) => {
-        /* The END, where one was given: a multi-day event belongs on the home
-           page until its last day is over, not until its first is. */
-        const finish = e?.endAt || e?.startAt;
-        const start = finish ? new Date(finish).getTime() : NaN;
-        return Number.isNaN(start) || start >= now;
-    });
+    const forHome = events.filter(e => isUpcomingEvent(e, now));
 
     /*
      * EVERY ONE THAT IS SWITCHED ON, however many that is.

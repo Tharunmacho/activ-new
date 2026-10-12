@@ -1,3 +1,5 @@
+import { isPastEvent } from '@/lib/eventLifecycle';
+import { useEventClock } from '@/lib/useEventClock';
 import { PosterFrame } from '@/components/shared/PosterFrame';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -37,28 +39,9 @@ import { eventPath } from '@/lib/eventPath';
  */
 
 /**
- * ==========================================================================
- * THIS PAGE IS UPCOMING EVENTS.
- * ==========================================================================
- *
- * There was a date-window filter here — Upcoming / Past / All dates — and a
- * past event reached this page whenever it was set to one of the last two.
- * Both are gone, and the removal is the FILTER and the EVENTS together:
- * leaving the filter while hiding the rows would be a control that can only
- * ever return nothing.
- *
- * The association's reasoning, and it is worth keeping: an events page is
- * something a visitor reads to decide what to attend. The home page's events
- * band shows exactly this same list (`EventsGrid`), so the two never disagree.
- *
- * EVENTS AND THE GALLERY ARE SEPARATE. There used to be a strip here sending
- * visitors to the gallery for past events, and a CMS button copying an event
- * into the gallery. Both are gone: the gallery holds photographs the editor
- * posts after an event, as albums of its own, and nothing links the two.
- *
- * So `upcomingOnly` below is not a default an editor can change — it is
- * what this page IS. An event with no date at all still shows: an unset
- * date is missing information, not a statement that it already happened.
+ * The default programme contains upcoming and ongoing events only. Completed
+ * events are accessible through the explicit Past Events tab; gallery albums
+ * remain independent editorial content. All event surfaces share one clock rule.
  */
 
 /**
@@ -234,6 +217,7 @@ const EVENT_GRID: Record<number, string> = {
 };
 
 export function EventsExplorer({ events, settings }: Props) {
+    const now = useEventClock();
     /*
      * EVERY FILTER LIVES IN THE ADDRESS: /events?state=Tamil+Nadu&district=
      * Dharmapuri&city=…&language=Tamil&category=…&mode=online&q=…
@@ -244,6 +228,7 @@ export function EventsExplorer({ events, settings }: Props) {
     const [params, setParams] = useSearchParams();
     const initial = (key: string) => params.get(key) || '';
     const [query, setQuery] = useState(initial('q'));
+    const [period, setPeriod] = useState<'upcoming' | 'past'>(initial('period') === 'past' ? 'past' : 'upcoming');
     const [category, setCategory] = useState<string>(initial('category') || ALL);
     const [location, setLocation] = useState<string>(ALL);
 
@@ -290,6 +275,7 @@ export function EventsExplorer({ events, settings }: Props) {
     useEffect(() => {
         const next = new URLSearchParams();
         const put = (key: string, value: string) => { if (value && value !== ALL && value !== 'all') next.set(key, value); };
+        if (period === 'past') next.set('period', 'past');
         put('q', query.trim());
         put('category', category);
         put('state', state);
@@ -300,7 +286,7 @@ export function EventsExplorer({ events, settings }: Props) {
         if (next.toString() !== params.toString()) setParams(next, { replace: true });
         // `params` is read to compare only; including it would loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, category, state, district, block, language, how]);
+    }, [query, category, state, district, block, language, how, period]);
 
     /* The Search-and-chips card can be removed — see `cmsSections`. It takes
        the chips with it; the search box is not authored and stays. */
@@ -430,7 +416,6 @@ export function EventsExplorer({ events, settings }: Props) {
 
     const filtered = useMemo(() => {
         const needle = (query || '').trim().toLowerCase();
-        const now = Date.now();
         const regionPicked = state !== ALL || district !== ALL || block !== ALL;
         const selection: Region = {
             state: state === ALL ? '' : state,
@@ -492,9 +477,7 @@ export function EventsExplorer({ events, settings }: Props) {
              * conclave read as past from its second morning, because this
              * asked when it STARTED. An event is over when it is over.
              */
-            const finish = event?.endAt || event?.startAt;
-            const start = finish ? new Date(finish).getTime() : NaN;
-            if (!Number.isNaN(start) && start < now) return false;
+            if (event.archivedAt || (period === 'past' ? !isPastEvent(event, now) : isPastEvent(event, now))) return false;
 
             if (needle) {
                 const haystack = [event?.title, event?.description, event?.location, event?.category]
@@ -513,7 +496,7 @@ export function EventsExplorer({ events, settings }: Props) {
          * when something in this list changes, so a value used inside and
          * missing from it is a control wired to nothing.
          */
-    }, [events, query, category, location, how, state, district, block, language, tree]);
+    }, [events, query, category, location, how, state, district, block, language, tree, period, now]);
 
     const isFiltered = !!(query.trim()) || category !== ALL || location !== ALL
         || how !== 'all' || state !== ALL || district !== ALL || block !== ALL || language !== ALL;
@@ -784,10 +767,19 @@ export function EventsExplorer({ events, settings }: Props) {
                     </div>
                 )}
 
+                <div className="mt-8 flex flex-wrap gap-3" aria-label="Event period">
+                    {(['upcoming', 'past'] as const).map(value => (
+                        <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)}
+                            className={'rounded-xl border px-5 py-3 text-lg font-bold transition-colors ' + (period === value ? 'border-brand-700 bg-brand-700 text-white' : 'border-brand-200 bg-white text-brand-800 hover:bg-brand-50')}>
+                            {value === 'past' ? 'Past Events' : 'Upcoming Events'}
+                        </button>
+                    ))}
+                </div>
+                {period === 'past' && <p className="mt-4 text-base text-slate-600">Completed events are kept here for reference. Registration is closed.</p>}
                 {/* ----------------------------------------------------- grid */}
                 {filtered.length === 0 ? (
                     <p className="py-20 text-center text-[1.375rem] font-semibold text-gray-500">
-                        {isFiltered ? emptyFiltered : (settings?.emptyText || '')}
+                        {isFiltered ? emptyFiltered : (period === 'past' ? 'No past events to show yet.' : (settings?.emptyText || 'No upcoming events to show yet.'))}
                     </p>
                 ) : (
                     /*

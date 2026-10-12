@@ -35,7 +35,9 @@ type Draft = {
     password: string; confirmPassword: string;
 };
 
-export default function SiteStaffAccounts() {
+export default function SiteStaffAccounts({ query = '', hidden = false, onCountChange }: {
+    query?: string; hidden?: boolean; onCountChange?: (count: number) => void;
+}) {
     const [accounts, setAccounts] = useState<StaffAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -58,6 +60,10 @@ export default function SiteStaffAccounts() {
     };
 
     useEffect(() => { load(); }, []);
+    const needle = query.trim().toLowerCase();
+    const visibleAccounts = accounts.filter(account => needle.length < 2 ||
+        `${account.fullName} ${account.email} ${account.roleLabel}`.toLowerCase().includes(needle));
+    useEffect(() => { onCountChange?.(accounts.length); }, [accounts.length, onCountChange]);
 
     const openEdit = (a: StaffAccount) => {
         setEditingId(a.id);
@@ -204,6 +210,7 @@ export default function SiteStaffAccounts() {
         );
     };
 
+    if (hidden) return null;
     return (
         <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4" aria-labelledby="staff-accounts-title">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -232,11 +239,11 @@ export default function SiteStaffAccounts() {
                     <span>Could not load the staff accounts.</span>
                     <button type="button" onClick={load} className="font-semibold underline">Try again</button>
                 </div>
-            ) : accounts.length === 0 ? (
-                <p className="py-4 text-[1.25rem] text-slate-500">No CMS, events or attendance staff account exists yet.</p>
+            ) : visibleAccounts.length === 0 ? (
+                <p className="py-4 text-[1.25rem] text-slate-500">{needle.length >= 2 ? 'No staff accounts match this search.' : 'No CMS, events or attendance staff account exists yet.'}</p>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
-                    {accounts.map((a) => {
+                    {visibleAccounts.map((a) => {
                         const editing = editingId === a.id;
                         return (
                             <article key={a.id} className={`rounded-xl border p-4 sm:p-5 ${editing ? 'border-blue-300 ring-4 ring-blue-500/10' : 'border-slate-200'}`}>

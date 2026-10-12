@@ -1,3 +1,4 @@
+import { downloadSpreadsheet } from './spreadsheetDownload';
 import api, { unwrap } from './api';
 import { ENDPOINTS } from '@/config/api.config';
 import type { EventBooking } from './eventBookingApi';
@@ -108,6 +109,7 @@ export const cancelEventBooking = async (eventId: string, ref: string, reason = 
 
 /** One row of the Booking Events table. */
 export interface BookingOverviewRow {
+    archivedAt?: string | null;
     id: string;
     title: string;
     startAt: string | null;
@@ -219,44 +221,10 @@ export const listEventAttendees = async (
    Export
    ================================================================== */
 
-/**
- * Download this event's bookings as a CSV.
- *
- * FETCHED, NOT LINKED. The route is behind the admin token, and a plain
- * `<a href>` sends no Authorization header — the browser would leave the admin
- * screen for a 401 JSON body. So the axios instance that holds the token
- * fetches it as a blob and an object URL stands in for the file.
- *
- * The object URL is revoked immediately after the click. It is a reference into
- * the page's memory that holds the whole file alive until the document unloads,
- * and an admin exporting a dozen events in a sitting would accumulate all of
- * them. Revoking after the synchronous `click()` is safe: the download has
- * already been handed to the browser by then.
- */
-export const exportBookingsCsv = async (eventId: string, title = 'event') => {
-    const response = await api.get(ENDPOINTS.EVENTS.EXPORT_BOOKINGS(eventId), {
-        responseType: 'blob',
-    });
+/** Download the formatted Excel report through the authenticated API. */
+export const exportBookingsCsv = async (eventId: string, title = 'event') =>
+    downloadSpreadsheet(ENDPOINTS.EVENTS.EXPORT_BOOKINGS(eventId), title + '-bookings.xlsx');
 
-    const url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
-    const link = document.createElement('a');
-    link.href = url;
-    /*
-     * The server sets a filename in `Content-Disposition`, and a blob download
-     * ignores it — the name comes from this attribute. Derived from the title
-     * the same way the server derives it, so the two agree.
-     */
-    link.download = `${String(title || 'event')
-        .replace(/[^a-zA-Z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60)
-        .toLowerCase() || 'event'}-bookings.csv`;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-};
 
 
 /* ==================================================================

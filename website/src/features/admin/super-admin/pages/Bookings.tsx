@@ -189,7 +189,7 @@ export default function SuperAdminBookings() {
     useEffect(() => {
         let cancelled = false;
 
-        listEvents({ limit: 200 })
+        listEvents({ limit: 200, includeArchived: true })
             .then((response: any) => {
                 if (cancelled) return;
                 // `/events` answers `{ events, total }`; an older build answered
@@ -437,12 +437,7 @@ export default function SuperAdminBookings() {
                             {/*
                               * The spreadsheet.
                               *
-                              * A CSV, and the button says Excel because that is
-                              * what it will be opened in — see the server's note
-                              * on why a real workbook was not worth a binary
-                              * dependency. It is FETCHED rather than linked: the
-                              * route is behind the admin token and a plain link
-                              * carries no Authorization header.
+                              * A formatted workbook with separate booking and participant sheets.
                               */}
                             <button
                                 type="button"

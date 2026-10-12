@@ -1,4 +1,5 @@
 import api, { unwrap } from './api';
+import { downloadSpreadsheet } from './spreadsheetDownload';
 
 export interface MembershipRegistration {
     id: string; name: string; email: string; phone: string; kind: string; region: string;
@@ -21,6 +22,8 @@ export interface MembershipDashboard {
 export interface MembershipDetail { member: MembershipRegistration; payments: MembershipPayment[] }
 export interface MembershipConfirmation { planId: string; mode: string; amount: number; note: string; receiptNumber: string; manualAdmission?: boolean }
 const base = '/admin/super/membership/registrations';
+export const exportMembershipReport = (tab: 'members' | 'payments' | 'archived', filter: string) =>
+    downloadSpreadsheet(base + '/export', 'membership-' + tab + '.xlsx', { tab, filter });
 export const loadMembershipDashboard = async () => unwrap<MembershipDashboard>(await api.get(base), null as unknown as MembershipDashboard);
 export const loadMembershipDetail = async (id: string) => unwrap<MembershipDetail>(await api.get(`${base}/${encodeURIComponent(id)}`), null as unknown as MembershipDetail);
 export const confirmMembership = async (id: string, body: MembershipConfirmation) => unwrap<MembershipDetail>(await api.post(`${base}/${encodeURIComponent(id)}/confirm`, body), null as unknown as MembershipDetail);

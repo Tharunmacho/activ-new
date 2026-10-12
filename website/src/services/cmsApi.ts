@@ -1,3 +1,4 @@
+import { isUpcomingEvent, isPastEvent } from '@/lib/eventLifecycle';
 /**
  * The CMS service layer.
  *
@@ -564,6 +565,7 @@ export interface ContactInfo {
 }
 
 export interface CmsEvent {
+    archivedAt?: string | null;
     id: string;
     /** The readable public address (`/events/<slug>`); see lib/eventPath. */
     slug?: string;
@@ -1442,7 +1444,14 @@ const getCmsEventsUncached = async (): Promise<CmsEvent[]> => {
 };
 
 /** The public list. Cached; see `cached()` above. */
-export const getCmsEvents = () => cached('events', getCmsEventsUncached);
+export const getCmsEvents = async (period: 'upcoming' | 'past' | 'all' = 'upcoming') => {
+    const rows = period === 'upcoming'
+        ? await cached('events', getCmsEventsUncached)
+        : await cached('events:' + period, async () => resolveEvents(unwrap<CmsEvent[]>(
+            await api.get('/cms/events', { params: { scope: 'public', period } }), [])));
+    // Cached data must obey the clock as well as a fresh server response.
+    return rows.filter(event => !event.archivedAt && (period === 'all' || (period === 'past' ? isPastEvent(event) : isUpcomingEvent(event))));
+};
 
 /**
  * EVERY event, for the editor screens: drafts, members-only, targeted.
