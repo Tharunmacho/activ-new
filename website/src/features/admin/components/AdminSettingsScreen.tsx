@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import {
 import { toast } from "sonner";
 import { apiFetch, getAdminProfile, logout, errorMessage } from "@/services/activApi";
 import { TIERS } from "./tierConfig";
+import { uploadAdminProfilePhoto } from '@/services/adminProfilePhoto';
+import { resolveMediaUrl } from '@/config/api.config';
 
 import { PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
 /**
@@ -141,6 +143,10 @@ export default function AdminSettingsScreen({
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [editing, setEditing] = useState(false);
+    const [photo, setPhoto] = useState('');
+    const [photoBusy, setPhotoBusy] = useState(false);
+    const photoInput = useRef<HTMLInputElement>(null);
+    const uploading = useRef(false);
 
     /** What the server last told us — the baseline "did anything change" compares against. */
     const [saved, setSaved] = useState({ fullName: "", email: "", phoneNumber: "", region: "" });
@@ -169,6 +175,7 @@ export default function AdminSettingsScreen({
                 setEmailInput(next.email);
                 setPhoneInput(next.phoneNumber);
                 setRegionInput(next.region);
+                setPhoto(profile?.profilePhoto || '');
             } catch (error) {
                 if (!cancelled) toast.error(errorMessage(error, "Could not load your profile"));
             } finally {
@@ -177,6 +184,21 @@ export default function AdminSettingsScreen({
         })();
         return () => { cancelled = true; };
     }, [tier]);
+
+    const savePhoto = async (file?: File) => {
+        if (!file || !hasRegion || uploading.current) return;
+        uploading.current = true;
+        setPhotoBusy(true);
+        try {
+            setPhoto(await uploadAdminProfilePhoto(file));
+            toast.success('Profile photo saved');
+        } catch (error) {
+            toast.error(errorMessage(error, 'Could not save your photo'));
+        } finally {
+            uploading.current = false;
+            setPhotoBusy(false);
+        }
+    };
 
     /**
      * One Save, doing both jobs — mobile's `handleSave`.
@@ -333,14 +355,21 @@ export default function AdminSettingsScreen({
                             <div className="flex flex-row items-center gap-4 sm:gap-5">
                                 <button
                                     type="button"
-                                    onClick={() => toast.info("Photo upload is not available yet")}
+                                    onClick={() => photoInput.current?.click()}
+                                    disabled={!hasRegion || photoBusy}
+                                    aria-label={photoBusy ? 'Saving profile photo' : hasRegion ? 'Change profile photo' : 'Profile photo'}
                                     className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 text-white text-[1.5rem] sm:text-[1.75rem] font-bold flex items-center justify-center shrink-0 group"
                                 >
-                                    {initials}
-                                    <span className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center">
-                                        <Camera className="w-3.5 h-3.5 text-slate-600" />
-                                    </span>
+                                    {photo ? <img src={resolveMediaUrl(photo)} alt="Your profile photo" className="w-full h-full rounded-full object-cover" /> : initials}
+                                    {hasRegion && <span className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                                        {photoBusy ? <Loader2 className="w-3.5 h-3.5 text-slate-600 animate-spin" /> : <Camera className="w-3.5 h-3.5 text-slate-600" />}
+                                    </span>}
                                 </button>
+                                {hasRegion && <input ref={photoInput} type="file" accept="image/*" className="sr-only" aria-label="Choose profile photo" disabled={photoBusy} onChange={event => {
+                                    const file = event.currentTarget.files?.[0];
+                                    event.currentTarget.value = '';
+                                    void savePhoto(file);
+                                }} />}
 
                                 <div className="min-w-0 flex-1">
                                     <h2 className={`${CARD_TITLE} text-slate-900 truncate`}>

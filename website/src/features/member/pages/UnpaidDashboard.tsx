@@ -1375,18 +1375,8 @@ const UnpaidDashboard = () => {
                                     )}
                                 </div>
 
-                                {/*
-                                  * A mail link, not a route to `/contact`.
-                                  *
-                                  * That page belongs to the marketing site: public
-                                  * header, onboarding navigation, and a "Register"
-                                  * call to action aimed at someone who does not have
-                                  * an account. Sending a signed-in member there drops
-                                  * them out of the member area to be invited to sign
-                                  * up again. `mailto:` reaches the same team without
-                                  * leaving the app.
-                                  */}
-                                {supportEmail ? (
+                                <div className="flex flex-wrap gap-3">
+                                {supportEmail && (
                                     <Button
                                         asChild
                                         className="bg-blue-600 hover:bg-blue-700 text-white font-bold w-full sm:w-auto"
@@ -1399,11 +1389,12 @@ const UnpaidDashboard = () => {
                                             <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                                         </a>
                                     </Button>
-                                ) : (
-                                    <p className={`${ITEM_BODY} text-slate-500`}>
-                                        In-app support is coming soon.
-                                    </p>
                                 )}
+                                <Button size="sm" variant="outline" className="font-bold w-full sm:w-auto" onClick={() => navigate('/member/help')}>
+                                    Help &amp; Support
+                                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                                </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

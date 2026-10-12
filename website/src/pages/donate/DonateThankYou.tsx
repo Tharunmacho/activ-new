@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Clock, XCircle, Loader2, FileCheck2, CalendarRange, RotateCw } from 'lucide-react';
 import { HeaderSection } from '@/components/layout/HeaderSection';
 import { FooterSection } from '@/components/layout/FooterSection';
+import NativePaymentReturnLink from '@/components/NativePaymentReturnLink';
 import {
     getDonationReturn, inr, fyLabel, receiptPath, statementPath, type DonationReturn,
 } from '@/services/donationsApi';
@@ -26,6 +27,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             <main className="flex flex-1 items-center justify-center px-4 py-10 sm:py-16">
                 <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-[0_18px_40px_-20px_rgba(14,31,77,0.35)] sm:p-9">
                     {children}
+                    <NativePaymentReturnLink kind="donation" />
                 </div>
             </main>
             <FooterSection />
@@ -41,34 +43,34 @@ export default function DonateThankYou() {
 
     const [result, setResult] = useState<DonationReturn | null>(null);
     const [phase, setPhase] = useState<'checking' | 'done' | 'stuck' | 'error'>('checking');
-    const tries = useRef(0);
-    const timer = useRef<number | null>(null);
-
-    const check = useCallback(async () => {
-        if (!orderId) { setPhase('error'); return; }
-        try {
-            const r = await getDonationReturn(orderId, { payment_id: paymentId, payment_status: gatewayStatus });
-            setResult(r);
-            const status = String(r?.status || '').toLowerCase();
-            if (status === 'paid' || status === 'failed') { setPhase('done'); return; }
-        } catch {
-            /* treated like pending; the retry below covers a blip */
-        }
-        tries.current += 1;
-        if (tries.current >= POLLS) { setPhase('stuck'); return; }
-        timer.current = window.setTimeout(() => { void check(); }, EVERY_MS);
-    }, [orderId, paymentId, gatewayStatus]);
+    const [revision, setRevision] = useState(0);
 
     useEffect(() => {
-        void check();
-        return () => { if (timer.current) window.clearTimeout(timer.current); };
-    }, [check]);
-
-    const retry = () => {
-        tries.current = 0;
+        let active = true;
+        let tries = 0;
+        let timer: number | undefined;
+        setResult(null);
         setPhase('checking');
+        const check = async () => {
+            if (!active) return;
+            if (!orderId) { setPhase('error'); return; }
+            try {
+                const r = await getDonationReturn(orderId, { payment_id: paymentId, payment_status: gatewayStatus });
+                if (!active) return;
+                setResult(r);
+                const status = String(r?.status || '').toLowerCase();
+                if (status === 'paid' || status === 'failed') { setPhase('done'); return; }
+            } catch { /* A failed read is not a failed payment. */ }
+            if (!active) return;
+            tries += 1;
+            if (tries >= POLLS) { setPhase('stuck'); return; }
+            timer = window.setTimeout(() => { void check(); }, EVERY_MS);
+        };
         void check();
-    };
+        return () => { active = false; if (timer !== undefined) window.clearTimeout(timer); };
+    }, [orderId, paymentId, gatewayStatus, revision]);
+
+    const retry = () => setRevision(value => value + 1);
 
     if (!orderId || phase === 'error') {
         return (
@@ -146,7 +148,7 @@ export default function DonateThankYou() {
             <Shell>
                 <XCircle className="mx-auto h-14 w-14 text-red-500" />
                 <h1 className="mt-4 text-[1.625rem] font-bold text-slate-900">The payment did not go through</h1>
-                <p className="mt-2 text-[1.0625rem] text-slate-600">No money was taken. You can try again.</p>
+                <p className="mt-2 text-[1.0625rem] text-slate-600">The gateway reported an unsuccessful payment. If money was deducted, check with your bank or contact ACTIV before trying again.</p>
                 <Link to="/donate" className="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-blue-600 px-6 font-bold text-white hover:bg-blue-700">
                     Try again
                 </Link>

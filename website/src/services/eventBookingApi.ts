@@ -3,6 +3,7 @@ import { ENDPOINTS } from '@/config/api.config';
 /* Which checkout is live, and how to start a hosted one — one implementation,
    shared with the membership flow so the two cannot disagree. */
 import { getPaymentConfig, startHostedBookingPayment } from './paymentApi';
+import type { RegistrationField, RegistrationAnswers } from '@/lib/eventRegistrationFields';
 
 /**
  * "Book Now" — seats at an event, bought by a guest or by a signed-in member.
@@ -69,6 +70,8 @@ export interface BookableEvent {
     contactEmail: string;
     registrationNote: string;
     registrationClosesAt: string | null;
+    registrationFields?: RegistrationField[];
+    days?: { date?: string | null; startTime?: string; endTime?: string }[];
 
     /**
      * The COMMON price per seat — what a visitor and a member without an active
@@ -118,6 +121,16 @@ export interface BookableEvent {
 }
 
 export interface EventBooking {
+    responses?: { key: string; label: string; value: string }[];
+    expiresAt?: string | null;
+    eventEndAt?: string | null;
+    eventArchived?: boolean;
+    passes?: { index: number; name: string; registrationNo: string; url: string }[];
+    attachments?: { name: string; url: string; type?: string }[];
+    whatsappChannelUrl?: string;
+    contactName?: string;
+    contactPhone?: string;
+    contactEmail?: string;
     bookingRef: string;
     eventId: string;
     eventTitle: string;
@@ -203,6 +216,7 @@ export interface BookingRequest {
     noOfPersons: number;
     participants: BookingParticipant[];
     note?: string;
+    responses?: RegistrationAnswers;
 }
 
 /** The event, priced and counted. Throws for an event the public may not book. */
@@ -227,6 +241,7 @@ export const createEventBooking = async (eventId: string, input: BookingRequest)
             phone: input.phone,
             noOfPersons: input.noOfPersons,
             participants: input.participants,
+            ...(input.responses ? { responses: input.responses } : {}),
             ...(input.note ? { note: input.note } : {}),
         }),
         {} as EventBooking,
@@ -296,6 +311,23 @@ export const bookAndPay = async (
     if (!booking?.bookingRef) throw new Error('The booking could not be started');
 
     if (booking.payment.status !== 'pending') return booking;
+
+    try {
+        return await resumeEventBookingPayment(booking.bookingRef);
+    } catch (error) {
+        // A checkout failure must keep its existing booking, never create another.
+        if (error && typeof error === 'object') Object.assign(error, { booking });
+        throw error;
+    }
+};
+
+/** Continue payment on the existing reference; never creates a booking. */
+export const resumeEventBookingPayment = async (ref: string): Promise<EventBooking | null> => {
+    const booking = await getEventBooking(ref);
+    if (booking.payment.status !== 'pending') return booking;
+    if (booking.status !== 'active' || booking.eventArchived || (booking.expiresAt && Date.parse(booking.expiresAt) <= Date.now())) {
+        throw new Error('This payment hold has expired or is no longer active. Refresh your booking status.');
+    }
 
     const config = await getPaymentConfig();
 

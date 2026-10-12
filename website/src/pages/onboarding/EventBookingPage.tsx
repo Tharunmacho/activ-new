@@ -10,6 +10,13 @@ import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { sizedMediaUrl } from '@/config/api.config';
 import { SECTION_HEADING, MICRO_LABEL } from '@/components/layout/typography';
 import { BIZ_CARD_TITLE, BIZ_BADGE, BIZ_FIELD_LABEL } from '@/components/layout/surface';
+import { validateRegistrationAnswers, type RegistrationAnswers } from '@/lib/eventRegistrationFields';
+import BookingQuestions from './components/BookingQuestions';
+import { passQrImageUrl } from '@/services/eventCheckinApi';
+import { resolveMediaUrl } from '@/config/api.config';
+import { isPastEvent } from '@/lib/eventLifecycle';
+import { useEventClock } from '@/lib/useEventClock';
+import { resumeEventBookingPayment } from '@/services/eventBookingApi';
 
 /**
  * ============================================================================
@@ -339,6 +346,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * not given, presented as one they had. The rows appear with the number.
      */
     const [participants, setParticipants] = useState<BookingParticipant[]>([]);
+    const [answers, setAnswers] = useState<RegistrationAnswers>({});
+    const eventNow = useEventClock();
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // ---- the sign-in panel
@@ -405,7 +414,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                     setStep('done');
                 }
             })
-            .catch(() => { /* an unknown reference just opens the normal booking form */ })
+            .catch(() => { if (!cancelled) setLoadError('This booking could not be loaded. Check your reference and refresh before starting another booking.'); })
             .finally(() => { if (!cancelled) setLoadingRef(false); });
 
         return () => { cancelled = true; };
@@ -425,14 +434,29 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 setEvent(found);
                 setLoading(false);
             })
-            .catch((error) => {
+            .catch(async (error) => {
                 if (cancelled) return;
+                if (refFromUrl) {
+                    try {
+                        const saved = await getEventBooking(refFromUrl);
+                        if (cancelled) return;
+                        if (saved?.bookingRef) {
+                            setEvent({ id: saved.eventId, title: saved.eventTitle, startAt: saved.eventStartAt, endAt: saved.eventEndAt || null,
+                                venue: saved.eventVenue, venueMapUrl: saved.eventMapUrl, mode: saved.mode, onlinePlatform: saved.onlinePlatform,
+                                description: '', venueAddress: '', bannerUrl: '', contactName: saved.contactName || '', contactPhone: saved.contactPhone || '', contactEmail: saved.contactEmail || '',
+                                registrationNote: '', registrationClosesAt: null, price: saved.unitAmount, memberPrice: saved.unitAmount, amount: saved.unitAmount,
+                                hasMemberRate: false, memberRateApplied: saved.memberRateApplied, memberSaving: 0, memberSavingPercent: 0, isMember: !saved.isGuest,
+                                capacity: 0, seatsTaken: 0, seatsLeft: 0, maxPerBooking: 1, closed: true });
+                            setBooking(saved); setStep('done'); setLoadError(''); setLoading(false); return;
+                        }
+                    } catch { /* show the original read failure without creating a new booking */ }
+                }
                 setLoadError(errorMessage(error, 'This event is not available for booking.'));
                 setLoading(false);
             });
 
         return () => { cancelled = true; };
-    }, [id]);
+    }, [id, refFromUrl]);
 
     /**
      * =====================================================================
@@ -537,7 +561,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * manager booking colleagues may not have their email addresses.
      */
     const validate = useCallback((): Record<string, string> => {
-        const found: Record<string, string> = {};
+        const found: Record<string, string> = validateRegistrationAnswers(event?.registrationFields, answers);
 
         if (!booker.name.trim()) found.name = 'Please enter your name';
         if (!booker.email.trim()) found.email = 'Please enter your email address';
@@ -581,7 +605,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         });
 
         return found;
-    }, [booker, count, participants, maxPerBooking]);
+    }, [booker, count, participants, maxPerBooking, event?.registrationFields, answers]);
 
     const [checking, setChecking] = useState(false);
 
@@ -728,11 +752,19 @@ export default function EventBookingPage({ chrome = 'public' }: {
         setPayError('');
 
         try {
+            const fresh = await getBookableEvent(id);
+            setEvent(fresh);
+            const fieldErrors = validateRegistrationAnswers(fresh.registrationFields, answers);
+            if (Object.keys(fieldErrors).length) { setErrors(fieldErrors); setStep('form'); setPaying(false); return; }
+            if (fresh.closed || isPastEvent(fresh) || (fresh.registrationClosesAt && Date.parse(fresh.registrationClosesAt) <= Date.now())) throw new Error('Bookings for this event have closed.');
+            if (Number(fresh.capacity) > 0 && Number(fresh.seatsLeft) < count) throw new Error('The available seats have changed. Please review your booking.');
+            if (Number(fresh.amount ?? fresh.price ?? 0) !== price) { setPayError('The event price has changed. Review the updated total before continuing.'); setPaying(false); return; }
             const result = await bookAndPay(id, {
                 name: booker.name.trim(),
                 email: booker.email.trim(),
                 phone: nationalMobile(booker.phone),
                 noOfPersons: count,
+                responses: answers,
                 participants: participants.map((p) => ({
                     name: p.name.trim(),
                     email: p.email.trim(),
@@ -757,8 +789,16 @@ export default function EventBookingPage({ chrome = 'public' }: {
 
             setBooking(result);
             setStep('done');
+            setPaying(false);
+            getEventBooking(result.bookingRef).then(setBooking).catch(() => {});
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
+            const held = (error as { booking?: EventBooking })?.booking;
+            if (held?.bookingRef) {
+                setBooking(held); setStep('done'); setPaying(false);
+                setPayError(errorMessage(error, 'Checkout could not be started. Your booking reference is saved below.'));
+                return;
+            }
             /*
              * Stay on the review step. The draft is still in memory and the
              * visitor can correct whatever the server objected to — sending them
@@ -1051,7 +1091,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         );
     }
 
-    if (event.closed && step !== 'done') {
+    if ((event.closed || isPastEvent(event, eventNow) || (event.registrationClosesAt && Date.parse(event.registrationClosesAt) <= eventNow)) && step !== 'done') {
         return shell(
             <>
                 {crumb}
@@ -1591,6 +1631,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 </div>
                             </div>
 
+                            <BookingQuestions fields={event.registrationFields || []} answers={answers} errors={errors} onChange={(key, value) => { setAnswers(previous => ({ ...previous, [key]: value })); setErrors(previous => ({ ...previous, ['responses.' + key]: '' })); }} />
                             {/* ---- total + go ---- */}
                             {/* The card that carries the money, drawn like one
                                 — the border was `brand-100` on a 40%-opacity
@@ -1877,6 +1918,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
                     </section>
                     )}
 
+                    {(event.registrationFields || []).length > 0 && <DetailTable title="Registration details" icon={<Ticket size={16} />} rows={(event.registrationFields || []).map(field => [field.label || field.key, field.type === 'checkbox' ? answers[field.key] === true ? 'Yes' : 'No' : String(answers[field.key] || '—')])} />}
+
                     {payError && (
                         <p className="flex items-start gap-2 mb-5 rounded-xl bg-red-50 border border-red-100
                                       px-4 py-3 text-[1.0625rem] font-bold text-red-700">
@@ -1931,9 +1974,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * (or no longer) confirmed — an unfinished checkout, or one the organiser
      * cancelled. The heading must say so rather than print "confirmed".
      */
-    const settled = !!confirmed && confirmed.status === 'active'
+    const settled = !!confirmed && (confirmed.status === 'active' || (confirmed.status === 'expired' && confirmed.payment?.status === 'paid'))
         && (confirmed.payment?.status === 'paid' || confirmed.payment?.status === 'not_required');
-    const headline = !confirmed || settled ? 'Booking confirmed'
+    const headline = settled ? 'Booking confirmed'
+        : !confirmed ? 'Booking unavailable'
         : confirmed.status === 'cancelled' ? 'Booking cancelled'
             : confirmed.status === 'waitlist' ? 'You are on the waitlist'
                 : 'Payment not completed';
@@ -1963,14 +2007,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 </span>
                 <h1 className={`${SECTION_HEADING} text-brand-800 mb-3`}>{headline}</h1>
                 <p className="text-[1.25rem] sm:text-[1.0625rem] text-gray-600 font-semibold">
-                    {!confirmed || settled ? (
+                    {settled ? (
                         <>
-                            We have emailed the details to {confirmed?.bookedBy?.email || booker.email}
-                            {confirmed?.bookedBy?.phone ? ' and sent a WhatsApp confirmation.' : '.'}
+                            Your seats are confirmed. Keep your booking reference and entry pass for the event.
                         </>
-                    ) : confirmed.status === 'cancelled'
+                    ) : confirmed?.status === 'cancelled'
                         ? 'This booking was cancelled by the organiser. Contact them if you have a question.'
-                        : confirmed.status === 'waitlist'
+                        : confirmed?.status === 'waitlist'
                             ? 'The event is full. No seat is held and nothing has been charged.'
                             : 'We have not received the payment for this booking, so no seat is held. '
                                 + 'You can book again, or pay the organiser directly.'}
@@ -2017,7 +2060,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                   * say "it is coming by email" rather than look like an
                   * in-person event missing its address.
                   */}
-                {confirmed?.mode === 'online' && (
+                {settled && confirmed?.mode === 'online' && (
                     <div className="mt-7 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-4 sm:px-5 sm:py-5 text-left">
                         <p className="text-[1.0625rem] font-extrabold uppercase tracking-widest text-emerald-700">
                             Register for this webinar
@@ -2110,7 +2153,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         'Payment Status',
                         confirmed?.payment.status === 'paid' ? 'Paid'
                             : confirmed?.payment.status === 'not_required' ? 'Not required'
-                                : 'Pending',
+                                : confirmed?.payment.status === 'failed' ? 'Failed' : 'Pending',
                     ],
                     /*
                      * LAST, because `emphasiseLast` sets the big figure — and
@@ -2132,6 +2175,31 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 emphasiseLast
             />
 
+            {settled && (confirmed?.passes || []).length > 0 ? <section className="my-7 space-y-4">
+                <h2 className="text-xl font-extrabold text-brand-800">Entry passes</h2>
+                {(confirmed?.passes || []).map(pass => {
+                    const token = pass.url.match(/\/checkin\/([A-Za-z0-9_-]{40})(?:[/?#]|$)/)?.[1];
+                    return token ? <div key={pass.registrationNo} className="flex flex-wrap items-center gap-5 rounded-2xl border border-slate-200 p-5">
+                        <img src={passQrImageUrl(token)} alt={`Entry pass for ${pass.name || pass.registrationNo}`} width={144} height={144} />
+                        <div className="min-w-0 flex-1"><p className="text-lg font-bold">{pass.name || 'Participant ' + (pass.index + 1)}</p><p className="break-all font-semibold">{pass.registrationNo}</p><p className="mt-2 text-slate-600">Show this pass and your ID at the entrance.</p><a href={pass.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-bold text-blue-700">Open entry pass</a></div>
+                    </div> : null;
+                })}
+            </section> : null}
+            {settled && confirmed?.whatsappChannelUrl ? <a href={confirmed.whatsappChannelUrl} target="_blank" rel="noopener noreferrer" className={GHOST_BUTTON}>Join the event WhatsApp group or channel</a> : null}
+            {settled && (confirmed?.attachments || []).length > 0 ? <section className="my-6 space-y-3"><h2 className="text-xl font-bold">Event documents</h2>{(confirmed?.attachments || []).map((file, index) => <a key={index} href={resolveMediaUrl(file.url)} target="_blank" rel="noopener noreferrer" className="block font-bold text-blue-700">{file.name || `Event document ${index + 1}`}</a>)}</section> : null}
+            {(confirmed?.responses || []).length > 0 ? <DetailTable title="Registration details" icon={<Ticket size={16} />} rows={(confirmed?.responses || []).map(answer => [answer.label || answer.key, answer.value || '—'])} /> : null}
+            {payError ? <p role="alert" className="my-4 font-semibold text-red-700">{payError}</p> : null}
+            {confirmed?.payment.status === 'pending' && confirmed.status === 'active' && !confirmed.eventArchived && (!confirmed.expiresAt || Date.parse(confirmed.expiresAt) > eventNow) && !isPastEvent(event, eventNow) ? <button type="button" className={PRIMARY_BUTTON} disabled={paying} onClick={async () => {
+                setPaying(true); setPayError('');
+                try { const result = await resumeEventBookingPayment(confirmed.bookingRef); if (result) { setBooking(result); setPaying(false); } }
+                catch (error) { setPayError(errorMessage(error, 'Could not start payment. Refresh before retrying.')); setPaying(false); }
+            }}>{paying ? 'Opening checkout…' : `Complete payment ${rupees(confirmed.totalAmount)}`}</button> : null}
+            {confirmed?.bookingRef ? <button type="button" className={`${GHOST_BUTTON} mt-4`} disabled={paying} onClick={async () => {
+                setPaying(true); setPayError('');
+                try { setBooking(await getEventBooking(confirmed.bookingRef)); }
+                catch (error) { setPayError(errorMessage(error, 'Could not refresh the booking.')); }
+                finally { setPaying(false); }
+            }}>Refresh booking status</button> : null}
             <div className="flex flex-col sm:flex-row gap-3 mt-7 sm:mt-9">
                 <Link to={eventsHref} className={GHOST_BUTTON}>See other events</Link>
                 {!signedIn && (

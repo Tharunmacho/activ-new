@@ -20,10 +20,10 @@ const bundle = await build({ entryPoints: ['src/pages/payment/PaymentReturn.tsx'
     b.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ contents: sources[args.path], loader: 'js' }));
   } }] });
 
-async function run({ replies, member = true, fallback } = {}) {
+async function run({ replies, member = true, fallback, query = '' } = {}) {
   const timers = [], calls = [], events = [], navigations = [], states = [], effects = [];
   let protectedReads = 0;
-  const fixture = { states, effects, member, params: new URLSearchParams('orderId=ord_test&payment_id=MOJO-test'),
+  const fixture = { states, effects, member, params: new URLSearchParams('orderId=ord_test&payment_id=MOJO-test' + query),
     navigate: (...args) => navigations.push(args),
     resolve: async (...args) => { calls.push(args); const reply = replies.shift(); if (reply instanceof Error) throw reply;
       return reply || { orderType: 'membership', status: 'created', amount: 10 }; },
@@ -54,7 +54,7 @@ assert.equal(paid.states[2], false);
 assert.equal(paid.states[3].planName, 'Student');
 assert.equal(paid.states[3].paymentId, 'MOJO-verified', 'receipt uses the server-verified payment reference');
 assert.deepEqual(paid.events, ['paymentCompleted'], 'dashboard and sidebar refresh');
-assert.equal(paid.protectedReads, 0, 'no auth-dependent read after public verification');
+assert.equal(paid.protectedReads, 1, 'pending may use authenticated fallback, paid stops further reads');
 assert.equal(paid.navigations.length, 0, 'membership success screen stays visible');
 
 const guest = await run({ replies: [{ orderType: 'membership', status: 'paid', amount: 10 }], member: false });
@@ -67,3 +67,18 @@ console.log('Return-page polling, verified success screen, dashboard refresh, gu
 const company = await run({ replies: [{ orderType: 'company_listing', status: 'paid', amount: 5000, companyId: 'fixture-company', paymentId: 'MOJO-company' }] });
 assert.equal(company.states[0], 'paid'); assert.equal(company.states[2], true);
 assert.equal(company.navigations.length, 0, 'company payment stays on its own confirmation and never opens a membership receipt');
+
+const nativeBooking = await run({ member: false, query: '&client=app', replies: [{ orderType: 'event_booking', status: 'paid', eventSlug: 'conference', bookingRef: 'REF-1', amount: 1000 }] });
+assert.equal(nativeBooking.states[0], 'paid');
+assert.equal(nativeBooking.navigations.length, 0, 'browser fallback retains the app-return link on the verified booking result');
+const staleFailed = await run({ member: false, query: '&payment_status=Failed', replies: [
+  { orderType: 'event_booking', status: 'created', eventSlug: 'conference', bookingRef: 'REF-1' },
+  { orderType: 'event_booking', status: 'paid', eventSlug: 'conference', bookingRef: 'REF-1' },
+] });
+assert.equal(staleFailed.calls.length, 2, 'failed query hint does not stop server verification');
+assert.equal(staleFailed.navigations[0][0], '/events/conference/book?ref=REF-1');
+const fallbackCompany = await run({ replies: [new Error('Unavailable')], fallback: { orderType: 'company_listing', status: 'paid', amount: 5000, planName: 'Business', gatewayPaymentId: 'MOJO-fallback', paidAt: '2026-10-12T06:00:00Z' } });
+assert.equal(fallbackCompany.states[2], true, 'authenticated fallback retains company context');
+assert.equal(fallbackCompany.states[3].paymentId, 'MOJO-fallback');
+assert.equal(fallbackCompany.states[3].paidAt, '2026-10-12T06:00:00Z');
+console.log('App return, stale gateway hints, verified fallback receipt and company context passed.');

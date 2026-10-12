@@ -6,6 +6,7 @@ import { Loader2, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { getPaymentOrder, resolvePaymentReturn } from '@/services/paymentApi';
 import { isMemberSession } from '@/lib/session';
 import MemberPageShell from '../member/MemberPageShell';
+import NativePaymentReturnLink from '@/components/NativePaymentReturnLink';
 
 /**
  * Instamojo returns here with browser-supplied payment identifiers. The server
@@ -42,11 +43,10 @@ export default function PaymentReturn() {
             try { return sessionStorage.getItem('activ:lastOrderId') || ''; } catch { return ''; }
         })();
 
-    /* Instamojo's own verdict. Used ONLY to tell a cancelled payment from one
-       that is still settling — never to decide that a payment succeeded. */
+    // Callback hints go to the server for verification; they are not an outcome.
     const gatewayStatus = params.get('payment_status') || '';
-    const gatewaySaysFailed = gatewayStatus.toLowerCase() === 'failed';
     const gatewayPaymentId = params.get('payment_id') || '';
+    const nativeClient = params.get('client') === 'app';
 
     /*
      * WHICH PURCHASE THIS WAS — a membership, or seats at an event.
@@ -61,6 +61,8 @@ export default function PaymentReturn() {
     const [booking, setBooking] = useState<{ eventId: string; eventSlug: string; bookingRef: string } | null>(null);
 
     useEffect(() => {
+        setOutcome(orderId ? 'checking' : 'unknown');
+        setAmount(null); setCompanyPayment(false); setReceipt(null); setBooking(null);
         if (!orderId) { setOutcome('unknown'); return; }
 
         let cancelled = false;
@@ -80,13 +82,21 @@ export default function PaymentReturn() {
 
         const ask = async () => {
             if (cancelled || stopped.current) return;
+            let found: Awaited<ReturnType<typeof resolvePaymentReturn>> | null = null;
             try {
-                const found = await resolvePaymentReturn(orderId, {
+                found = await resolvePaymentReturn(orderId, {
                     paymentId: gatewayPaymentId,
                     paymentStatus: gatewayStatus,
                 });
-                if (cancelled) return;
-
+            } catch { /* A failed read is not an answer about the payment. */ }
+            if ((!found || !['paid', 'failed'].includes(found.status)) && isMemberSession()) {
+                try {
+                    const order = await getPaymentOrder(orderId);
+                    if (order?.status) found = { ...found, ...order, paymentId: order.paymentId || order.gatewayPaymentId || found?.paymentId || '' };
+                } catch { /* Keep the public response and retry until the deadline. */ }
+            }
+            if (cancelled) return;
+            if (found) {
                 isBooking = found?.orderType === 'event_booking';
                 setCompanyPayment(found?.orderType === 'company_listing');
                 if (typeof found?.amount === 'number') setAmount(found.amount);
@@ -96,38 +106,20 @@ export default function PaymentReturn() {
                     if ((found.eventSlug || found.eventId) && found.bookingRef) {
                         target = { event: found.eventSlug || found.eventId, ref: found.bookingRef };
                     }
-                    if (found.status === 'paid' && (found.eventSlug || found.eventId) && found.bookingRef) {
+                    if (found.status === 'paid' && target && !nativeClient) {
                         try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
                         navigate(bookingHref(found.eventSlug || found.eventId, found.bookingRef), { replace: true });
                         return;
                     }
-                    if (found.status === 'failed' || gatewaySaysFailed) { setOutcome('failed'); return; }
-                } else {
-                    if (found.status === 'paid') {
-                        setReceipt({ planName: found.planName || '', paymentId: found.paymentId || '', paidAt: found.paidAt || null });
-                        try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
-                        window.dispatchEvent(new Event('paymentCompleted'));
-                        setOutcome('paid');
-                        return;
-                    }
-                    if (found.status === 'failed') { setOutcome('failed'); return; }
                 }
-            } catch {
-                /* A failed read is not an answer about the payment. Keep
-                   asking; the deadline below is what ends it. An older server
-                   without the public route falls back to the membership read. */
-                if (isMemberSession() && isBooking !== true) {
-                    try {
-                        const order = await getPaymentOrder(orderId);
-                        if (cancelled) return;
-                        if (typeof order?.amount === 'number') setAmount(order.amount);
-                        if (order?.status === 'paid') {
-                            window.dispatchEvent(new Event('paymentCompleted'));
-                            setOutcome('paid'); return;
-                        }
-                        if (order?.status === 'failed') { setOutcome('failed'); return; }
-                    } catch { /* Keep waiting for a verified answer. */ }
+                if (found.status === 'paid') {
+                    setReceipt({ planName: found.planName || '', paymentId: found.paymentId || '', paidAt: found.paidAt || null });
+                    try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
+                    if (!isBooking) window.dispatchEvent(new Event('paymentCompleted'));
+                    setOutcome('paid');
+                    return;
                 }
+                if (found.status === 'failed') { setOutcome('failed'); return; }
             }
 
             if (Date.now() - startedAt >= GIVE_UP_AFTER_MS) {
@@ -137,12 +129,11 @@ export default function PaymentReturn() {
                  * buyer is never left on a "still confirming" card or sent to a
                  * dashboard — the one screen they came back for is their booking.
                  */
-                if (isBooking && target && !gatewaySaysFailed) {
-                    try { sessionStorage.removeItem('activ:lastOrderId'); } catch { /* private mode */ }
+                if (isBooking && target && !nativeClient) {
                     navigate(bookingHref(target.event, target.ref), { replace: true });
                     return;
                 }
-                setOutcome(gatewaySaysFailed ? 'failed' : 'unconfirmed');
+                setOutcome('unconfirmed');
                 return;
             }
             timer = setTimeout(ask, POLL_EVERY_MS);
@@ -150,12 +141,18 @@ export default function PaymentReturn() {
 
         ask();
         return () => { cancelled = true; clearTimeout(timer); };
-    }, [orderId, gatewaySaysFailed, gatewayStatus, gatewayPaymentId, navigate]);
+    }, [orderId, gatewayStatus, gatewayPaymentId, nativeClient, navigate]);
 
     const money = (value: number | null) =>
         (typeof value === 'number' && Number.isFinite(value)
             ? `₹${value.toLocaleString('en-IN')}`
             : '');
+
+    const bookingDestination = (booking?.eventSlug || booking?.eventId) && booking?.bookingRef
+        ? `${isMemberSession() ? '/member' : ''}/events/${encodeURIComponent(booking.eventSlug || booking.eventId)}/book?ref=${encodeURIComponent(booking.bookingRef)}`
+        : '';
+    const destination = bookingDestination || (companyPayment ? '/business/settings' : '/payment/member-dashboard');
+    const destinationLabel = bookingDestination ? 'View my booking' : companyPayment ? 'Company settings' : 'Go to my dashboard';
 
     return (
         <MemberPageShell title="Payment" sidebar={false}>
@@ -184,19 +181,19 @@ export default function PaymentReturn() {
                                 </h1>
                                 <p className="mt-2 text-[1.125rem] text-slate-600">
                                     {money(amount) ? `We have received ${money(amount)}. ` : ''}
-                                    {companyPayment ? 'Your additional company publishing payment is confirmed. Open company settings to view its status.' : 'Your ACTIV membership is active.'}
+                                    {booking ? 'Your event booking is confirmed.' : companyPayment ? 'Your additional company publishing payment is confirmed. Open company settings to view its status.' : 'Your ACTIV membership is active.'}
                                 </p>
                                 <dl className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left space-y-3">
-                                    {receipt?.planName && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Membership plan</dt><dd className="mt-1 font-semibold text-slate-900">{receipt.planName}</dd></div>}
+                                    {receipt?.planName && <div><dt className="text-xs uppercase tracking-wide text-slate-500">{companyPayment ? 'Company payment' : 'Membership plan'}</dt><dd className="mt-1 font-semibold text-slate-900">{receipt.planName}</dd></div>}
                                     <div><dt className="text-xs uppercase tracking-wide text-slate-500">Order reference</dt><dd className="mt-1 font-semibold text-slate-900 break-all">{orderId}</dd></div>
                                     {receipt?.paymentId && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Payment reference</dt><dd className="mt-1 font-semibold text-slate-900 break-all">{receipt.paymentId}</dd></div>}
-                                    {receipt?.paidAt && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Payment confirmed</dt><dd className="mt-1 font-semibold text-slate-900">{new Date(receipt.paidAt).toLocaleString('en-IN')}</dd></div>}
+                                    {receipt?.paidAt && !Number.isNaN(Date.parse(receipt.paidAt)) && <div><dt className="text-xs uppercase tracking-wide text-slate-500">Payment confirmed (IST)</dt><dd className="mt-1 font-semibold text-slate-900">{new Date(receipt.paidAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })}</dd></div>}
                                 </dl>
                                 <Button
                                     className="mt-6 bg-green-600 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem] hover:bg-green-700"
-                                    onClick={() => navigate(companyPayment ? '/business/settings' : '/payment/member-dashboard')}
+                                    onClick={() => navigate(destination)}
                                 >
-                                    {companyPayment ? 'Company settings' : 'Go to my dashboard'}
+                                    {destinationLabel}
                                 </Button>
                             </>
                         )}
@@ -216,12 +213,9 @@ export default function PaymentReturn() {
                                     We are still confirming your payment
                                 </h1>
                                 <p className="mt-2 text-[1.125rem] text-slate-600">
-                                    If money has left your account it has reached us and your
-                                    {booking ? ' booking will be confirmed' : ' membership will go live'}
-                                    {' '}shortly — <strong>please do not pay again</strong>.
-                                    {booking
-                                        ? ' You will receive the confirmation by email and WhatsApp.'
-                                        : ' Check your dashboard in a few minutes, or contact us with your payment reference.'}
+                                    The gateway has not confirmed this payment yet. If money was
+                                    deducted, <strong>please do not pay again</strong>.
+                                    {' '}Check the status again or contact ACTIV with your order reference.
                                 </p>
                                 {booking?.bookingRef && (
                                     <p className="mt-2 text-[1.125rem] font-semibold text-slate-700">
@@ -231,11 +225,9 @@ export default function PaymentReturn() {
                                 <Button
                                     variant="outline"
                                     className="mt-6 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem]"
-                                    onClick={() => navigate((booking?.eventSlug || booking?.eventId) && booking?.bookingRef
-                                        ? `/events/${encodeURIComponent(booking.eventSlug || booking.eventId)}/book?ref=${encodeURIComponent(booking.bookingRef)}`
-                                        : '/payment/member-dashboard')}
+                                    onClick={() => navigate(destination)}
                                 >
-                                    {booking ? 'View my booking' : 'Go to my dashboard'}
+                                    {destinationLabel}
                                 </Button>
                             </>
                         )}
@@ -252,11 +244,9 @@ export default function PaymentReturn() {
                                 </p>
                                 <Button
                                     className="mt-6 w-full sm:w-auto py-5 sm:py-6 text-[1.125rem]"
-                                    onClick={() => navigate((booking?.eventSlug || booking?.eventId)
-                                        ? `/events/${encodeURIComponent(booking.eventSlug || booking.eventId)}/book`
-                                        : '/payment/membership-plans')}
+                                    onClick={() => navigate(bookingDestination || (companyPayment ? '/business/settings' : '/payment/membership-plans'))}
                                 >
-                                    {booking ? 'Book again' : 'Choose a plan'}
+                                    {booking ? 'Back to booking' : companyPayment ? 'Company settings' : 'Choose a plan'}
                                 </Button>
                             </>
                         )}
@@ -282,6 +272,7 @@ export default function PaymentReturn() {
                             </>
                         )}
 
+                        <NativePaymentReturnLink />
                     </CardContent>
                 </Card>
             </div>
