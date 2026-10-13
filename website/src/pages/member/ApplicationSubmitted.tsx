@@ -370,12 +370,12 @@ export default function ApplicationSubmitted() {
                         <Notice icon={<Mail className="w-4 h-4" />} tone={PALETTE.muted} soft="#F8FAFC">
                             Questions? Write to{' '}
                             <a
-                                href={`mailto:support@activ.org.in?subject=${
+                                href={`mailto:member@activ.org.in?subject=${
                                     encodeURIComponent(`Application ${appRef.short || ''}`)}`}
                                 className="font-semibold underline"
                                 style={{ color: PALETTE.primary }}
                             >
-                                support@activ.org.in
+                                member@activ.org.in
                             </a>
                             {appRef.short ? ` and quote ${appRef.short}.` : '.'}
                         </Notice>
