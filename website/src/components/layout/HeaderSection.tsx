@@ -148,7 +148,6 @@ export function HeaderSection() {
             className="w-full font-sans sticky top-0 z-50 border-b shadow-sm"
             style={{ backgroundColor: background, borderColor: `${accent}1A` }}
         >
-            <AppDownloadStrip />
             <div className={BAR_CONTAINER}>
                 {/*
                   A fixed bar height rather than `py-4`, so the bar does not
@@ -560,4 +559,3 @@ export function HeaderSection() {
         </header>
     );
 }
-import { AppDownloadStrip } from '@/components/shared/AppDownloadPromotion';

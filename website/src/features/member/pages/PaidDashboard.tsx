@@ -1,6 +1,6 @@
 import { membershipValidityLabel } from '@/lib/membershipDates';
 import { useEventClock } from '@/lib/useEventClock';
-import DashboardMembership from '../components/DashboardMembership';
+import DashboardMembership, { DashboardMembershipReview } from '../components/DashboardMembership';
 import DashboardWelcome from '../components/DashboardWelcome';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -482,10 +482,22 @@ export default function PaidDashboard() {
         <MemberPageShell title={platinum ? 'Lifetime Membership' : 'Dashboard'} subtitle={platinum ? 'Your connection to the ACTIV community' : 'Your membership at a glance'} width="wide" appearance={platinum ? 'gold' : 'default'}>
             <div className={`space-y-4 sm:space-y-6 ${platinum ? 'platinum-dashboard' : ''}`}>
 
-                <DashboardWelcome name={name} greeting={greeting} date={today.date} day={today.day}
-                    plan={planTitle} lifetime={lifetime} applicationRef={applicationRef} memberSince={memberSinceLabel}
-                    region={(abroad ? [place, country] : [district, state]).filter((value, i, all) => !!value && all.indexOf(value) === i).join(', ')}
-                    avatar={<MemberAvatar name={name} className="h-16 w-16 shrink-0 rounded-full bg-white/15 shadow-lg ring-4 ring-white/30 sm:h-20 sm:w-20" initialsClassName="text-2xl font-bold text-white" />} />
+                <div className="dashboard-overview"><div className="dashboard-overview__cards">
+                    <DashboardWelcome name={name} greeting={greeting} date={today.date} day={today.day}
+                        plan={planTitle} lifetime={lifetime} applicationRef={applicationRef} memberSince={memberSinceLabel}
+                        region={(abroad ? [place, country] : [district, state]).filter((value, i, all) => !!value && all.indexOf(value) === i).join(', ')}
+                        avatar={<MemberAvatar name={name} className="h-16 w-16 shrink-0 rounded-full bg-white/15 shadow-lg ring-4 ring-white/30 sm:h-20 sm:w-20" initialsClassName="text-2xl font-bold text-white" />} />
+                    <DashboardMembership name={name} plan={planTitle} memberId={memberId}
+                        membershipLabel={membershipType ? `${membershipType} membership` : 'Membership'}
+                        since={cardDate(memberSince)} validUntil={validUntilLabel} lifetime={lifetime}
+                        active={activeNow} status={activeNow ? 'Active' : statusLabel}
+                        details={[
+                            ...(abroad ? [{ label: 'Place', value: place }, { label: 'Country', value: country }]
+                                : [{ label: 'State', value: state }, { label: 'District', value: district }, { label: 'Block', value: block }]),
+                            { label: 'Business type', value: businessType }, { label: 'Application ID', value: applicationRef },
+                        ]}
+                        onPlan={() => navigate('/member/plan')} />
+                </div></div>
                 {profile?.currentMembership?.message && <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"><p className="font-semibold">Membership progression</p><p className="mt-1">{profile.currentMembership.message}</p></div>}
 
                 {/* ============================ quick actions · documents */}
@@ -908,15 +920,7 @@ export default function PaidDashboard() {
                     </SectionCard>
                 </div>
 
-                <DashboardMembership name={name} plan={planTitle} memberId={memberId}
-                    membershipLabel={membershipType ? `${membershipType} membership` : 'Membership'}
-                    since={cardDate(memberSince)} validUntil={validUntilLabel} lifetime={lifetime}
-                    active={activeNow} status={activeNow ? 'Active' : statusLabel}
-                    details={[
-                        ...(abroad ? [{ label: 'Place', value: place }, { label: 'Country', value: country }]
-                            : [{ label: 'State', value: state }, { label: 'District', value: district }, { label: 'Block', value: block }]),
-                        { label: 'Business type', value: businessType }, { label: 'Application ID', value: applicationRef },
-                    ]}
+                <DashboardMembershipReview lifetime={lifetime}
                     onPlan={() => navigate('/member/plan')}
                     onUpgrade={() => navigate('/payment/membership-plans?upgrade=1')} />
                 <RenewalBanner renewal={renewal} />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { ADMIN_INPUT, ADMIN_PRIMARY_BTN, ADMIN_SECONDARY_BTN } from './AdminUI';
 
 export type BookingFiltersValue = Partial<Record<'category' | 'language' | 'mode' | 'state' | 'district' | 'city' | 'attendeeState'
     | 'eventFrom' | 'eventTo' | 'bookedFrom' | 'bookedTo' | 'paymentStatus' | 'status' | 'registrationType'
@@ -19,9 +20,9 @@ export default function BookingFilters({ value, options = {}, onChange }: {
     const count = Object.values(value).filter(Boolean).length;
     const update = (key: keyof BookingFiltersValue, v: string) => setDraft(old => ({ ...old, [key]: v,
         ...(key === 'state' ? { district: '' } : {}), ...(key === 'responseKey' ? { responseValue: '' } : {}) }));
-    const control = 'w-full min-w-0 h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100';
+    const control = `${ADMIN_INPUT} min-w-0 font-sans font-medium`;
     const select = (key: keyof BookingFiltersValue, label: string, items: (string | { value: string; label: string })[]) => (
-        <label className="min-w-0 text-sm font-medium text-slate-600" key={key}>{label}
+        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-600" key={key}>{label}
             <select aria-label={label} className={control + ' mt-1.5'} value={draft[key] || ''} onChange={e => update(key, e.target.value)}>
                 <option value="">All</option>{items.map(item => {
                     const v = typeof item === 'string' ? item : item.value;
@@ -31,19 +32,19 @@ export default function BookingFilters({ value, options = {}, onChange }: {
         </label>
     );
     const input = (key: keyof BookingFiltersValue, label: string, type = 'text') => (
-        <label className="min-w-0 text-sm font-medium text-slate-600" key={key}>{label}
+        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-600" key={key}>{label}
             <input aria-label={label} type={type} value={draft[key] || ''} onChange={e => update(key, e.target.value)}
                 className={control + ' mt-1.5'} maxLength={200} />
         </label>
     );
     return <details className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-2 px-4 py-3 text-base font-semibold text-slate-800">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-2 px-4 py-3 text-[1.25rem] font-bold text-slate-800">
             <SlidersHorizontal className="h-4 w-4 text-blue-600" /> Filters
-            {!!count && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-sm text-blue-700">{count} active</span>}
+            {!!count && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[1.0625rem] text-blue-700">{count} active</span>}
             <ChevronDown className="ml-auto h-4 w-4" />
         </summary>
         <form className="space-y-5 border-t border-slate-100 p-4" onSubmit={e => { e.preventDefault(); onChange(draft); }}>
-            <fieldset><legend className="mb-3 text-sm font-semibold text-slate-900">Event details · dates in IST</legend>
+            <fieldset><legend className="mb-3 text-[1.0625rem] font-semibold text-slate-900">Event details · dates in IST</legend>
                 <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {input('eventSearch', 'Event name or venue')}
                     {select('category', 'Category', options.categories || [])}
@@ -54,7 +55,7 @@ export default function BookingFilters({ value, options = {}, onChange }: {
                     {input('eventFrom', 'Event date from', 'date')}{input('eventTo', 'Event date to', 'date')}
                 </div>
             </fieldset>
-            <fieldset><legend className="mb-3 text-sm font-semibold text-slate-900">Registration details</legend>
+            <fieldset><legend className="mb-3 text-[1.0625rem] font-semibold text-slate-900">Registration details</legend>
                 <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {input('search', 'Name, email, phone or booking reference')}
                     {select('city', 'City / town (registration)', options.cities || [])}
@@ -66,11 +67,11 @@ export default function BookingFilters({ value, options = {}, onChange }: {
                     {select('responseKey', 'Other registration question', (options.questions || []).map(q => ({ value: q.key, label: q.label })))}
                     {draft.responseKey && input('responseValue', 'Answer contains')}
                 </div>
-                <p className="mt-3 text-xs leading-5 text-slate-500">City, state and other answers use information saved on the registration form. Missing details are never guessed.</p>
+                <p className="mt-3 text-[1.0625rem] leading-relaxed text-slate-500">City, state and other answers use information saved on the registration form. Missing details are never guessed.</p>
             </fieldset>
             <div className="flex flex-wrap items-center justify-end gap-2">
-                <button type="button" onClick={() => { setDraft({}); onChange({}); }} className="min-h-11 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600">Clear filters</button>
-                <button type="submit" className="min-h-11 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700">Apply filters</button>
+                <button type="button" onClick={() => { setDraft({}); onChange({}); }} className={ADMIN_SECONDARY_BTN}>Clear filters</button>
+                <button type="submit" className={ADMIN_PRIMARY_BTN}>Apply filters</button>
             </div>
         </form>
     </details>;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { MessageCircle, X, GripVertical, HeartHandshake } from 'lucide-react';
+import { MessageCircle, X, GripVertical, HeartHandshake, Smartphone } from 'lucide-react';
+import { ACTIV_PLAY_STORE_URL, insideActivApp } from '@/components/shared/AppDownloadPromotion';
 import { FaWhatsapp } from 'react-icons/fa';
 
 /**
@@ -151,6 +152,7 @@ export default function FloatingLaunchers() {
     const [chatClosed, setChatClosed] = useState(() => readClosed('activ-chat-closed'));
     const [waClosed, setWaClosed] = useState(() => readClosed('activ-whatsapp-closed'));
     const [donateClosed, setDonateClosed] = useState(() => readClosed('activ-donate-closed'));
+    const [appClosed, setAppClosed] = useState(() => readClosed('activ-app-download-closed'));
 
     const support = useFloatingDrag(SUPPORT_SPOT_KEY, { side: 'right', y: 0.82 });
     const donate = useFloatingDrag(DONATE_SPOT_KEY, { side: 'left', y: 0.82 });
@@ -158,13 +160,23 @@ export default function FloatingLaunchers() {
     if (HIDDEN_ON.test(pathname)) return null;
     const showSupport = !(chatClosed && waClosed);
     const showDonate = !donateClosed && !DONATE_HIDDEN_ON.test(pathname);
+    const showApp = !appClosed && !insideActivApp();
 
     return (
         <>
-            {showDonate ? (
+            {showDonate || showApp ? (
                 <div ref={donate.box} style={donate.style} {...donate.handlers} className={donate.className}>
                     <Grip />
-                    <div className="relative">
+                    {showApp && <div className="relative">
+                        <a href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
+                            aria-label="Get ACTIV on Google Play" draggable={false}
+                            className={PILL} style={{ backgroundImage: 'linear-gradient(135deg, #183878, #2563eb)' }}>
+                            <Smartphone className="h-6 w-6" aria-hidden="true" />
+                            <span className="hidden text-[0.95rem] font-semibold sm:inline">Get app</span>
+                        </a>
+                        <CloseDot label="Close app download button" onClose={() => { setAppClosed(true); writeClosed('activ-app-download-closed'); }} />
+                    </div>}
+                    {showDonate && <div className="relative">
                         <Link
                             to="/donate"
                             aria-label="Donate to ACTIV"
@@ -176,7 +188,7 @@ export default function FloatingLaunchers() {
                             <span className="hidden text-[1.0625rem] font-bold tracking-wide sm:inline">Donate</span>
                         </Link>
                         <CloseDot label="Close donate button" onClose={() => { setDonateClosed(true); writeClosed('activ-donate-closed'); }} />
-                    </div>
+                    </div>}
                 </div>
             ) : null}
 

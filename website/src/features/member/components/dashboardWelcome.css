@@ -15,3 +15,9 @@
 .dashboard-welcome__facts svg { flex-shrink: 0; }
 .dashboard-welcome.is-lifetime { background: radial-gradient(ellipse at 100% 0, #8c8054, transparent 65%), linear-gradient(125deg, #17233e, #303743); }
 @media (max-width: 480px) { .dashboard-welcome { padding: 20px; border-radius: 20px; } .dashboard-welcome__intro { flex-wrap: wrap; gap: 12px; } .dashboard-welcome__greeting { font-size: 17px; } .dashboard-welcome__message { font-size: 16px; } }
+.dashboard-overview { container-type: inline-size; min-width: 0; }
+.dashboard-overview__cards { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 24px; }
+.dashboard-overview__cards > .dashboard-welcome { display: flex; align-items: center; min-width: 0; }
+.dashboard-overview__cards > .dashboard-membership__identity { display: flex; flex-direction: column; }
+.dashboard-overview__cards .dashboard-membership__details { margin-top: auto; }
+@container (min-width: 880px) { .dashboard-overview__cards { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); } }

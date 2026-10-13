@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import './appDownloadPromotion.css';
 
 export const ACTIV_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=in.activ.membership';
-const insideApp = () => typeof window !== 'undefined' && (
+export const insideActivApp = () => typeof window !== 'undefined' && (
     !!(window as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView ||
     new URLSearchParams(window.location.search).has('activApp')
 );
@@ -18,19 +18,9 @@ function PlayMark() {
     </svg>;
 }
 
-/** A small discovery link; never interrupts sign-in, booking or payment. */
-export function AppDownloadStrip() {
-    if (insideApp()) return null;
-    return <a className="activ-app-strip" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
-        aria-label="Download the ACTIV Android app on Google Play">
-        <Smartphone size={16} aria-hidden="true" />
-        <span>ACTIV is now on Android</span><strong>Get the app <ArrowUpRight size={15} /></strong>
-    </a>;
-}
-
 export default function AppDownloadPromotion({ member = false }: { member?: boolean }) {
     const [qr, setQr] = useState('');
-    const hidden = insideApp();
+    const hidden = insideActivApp();
     useEffect(() => {
         if (hidden) return;
         let active = true;
@@ -58,8 +48,8 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
         </div>
         <div className="activ-app-promo__visual">
             <figure className="activ-app-promo__screen">
-                <div className="activ-app-phone"><img src="/app/activ-android-home.png" width="945" height="2048" loading="lazy" decoding="async"
-                    alt="ACTIV Android app home screen with upcoming event banners and Home, Events, Gallery, News and Zones navigation" /></div>
+                <div className="activ-app-phone"><img src="/app/activ-android-gallery.png" width="945" height="2048" loading="lazy" decoding="async"
+                    alt="ACTIV Android app Gallery screen with community moments and the blue navigation bar" /></div>
                 <figcaption>A look inside the ACTIV app</figcaption>
             </figure>
             {qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">

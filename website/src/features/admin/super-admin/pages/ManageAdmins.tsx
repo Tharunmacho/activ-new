@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
 import RegionInput from '../components/RegionInput';
 import SiteStaffAccounts from '../components/SiteStaffAccounts';
-import { AdminBackButton, ADMIN_PAGE } from '@/features/admin/components/AdminUI';
+import { AdminBackButton, ADMIN_PAGE, ADMIN_INPUT } from '@/features/admin/components/AdminUI';
 import { PAGE_SUBTITLE, PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
 import {
     listAdmins, createAdmin, updateAdmin, deleteAdmin, getRegionTree, type RegionTree,
@@ -467,28 +467,28 @@ export default function ManageAdmins() {
 
                 <main className={ADMIN_PAGE}>
                     <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5">
-                    <p className="mb-4 flex items-center gap-2 font-bold text-blue-950"><Search className="h-5 w-5" /> Find an admin</p>
+                    <p className="mb-4 flex items-center gap-2 text-[1.25rem] font-bold text-blue-950"><Search className="h-5 w-5" /> Find an admin</p>
                     {role !== 'staff' && <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                        <label className="min-w-0 font-bold text-slate-900">State
-                            <select aria-label="Filter by state" value={filterState} onChange={e => { setPage(1); setFilterState(e.target.value); setFilterDistrict(''); setFilterBlock(''); }} className="mt-2 h-12 w-full rounded-xl border-2 border-blue-200 bg-white px-3 font-bold text-slate-900 shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50">
-                                <option value="">All states and union territories</option>
+                        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-900">State
+                            <select aria-label="Filter by state" value={filterState} onChange={e => { setPage(1); setFilterState(e.target.value); setFilterDistrict(''); setFilterBlock(''); }} className={`${ADMIN_INPUT} mt-2 font-sans font-bold`}>
+                                <option value="">All states / UTs</option>
                                 {regionTree.states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                             </select>
                         </label>
-                        <label className="min-w-0 font-bold text-slate-900">District
-                            <select aria-label="Filter by district" disabled={!filterState} value={filterDistrict} onChange={e => { setPage(1); setFilterDistrict(e.target.value); setFilterBlock(''); }} className="mt-2 h-12 w-full rounded-xl border-2 border-blue-200 bg-white px-3 font-bold text-slate-900 shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50">
+                        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-900">District
+                            <select aria-label="Filter by district" disabled={!filterState} value={filterDistrict} onChange={e => { setPage(1); setFilterDistrict(e.target.value); setFilterBlock(''); }} className={`${ADMIN_INPUT} mt-2 font-sans font-bold`}>
                                 <option value="">All districts</option>
                                 {districts.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
                             </select>
                         </label>
-                        <label className="min-w-0 font-bold text-slate-900">Block
-                            <select aria-label="Filter by block" disabled={!filterDistrict} value={filterBlock} onChange={e => { setPage(1); setFilterBlock(e.target.value); }} className="mt-2 h-12 w-full rounded-xl border-2 border-blue-200 bg-white px-3 font-bold text-slate-900 shadow-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50">
+                        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-900">Block
+                            <select aria-label="Filter by block" disabled={!filterDistrict} value={filterBlock} onChange={e => { setPage(1); setFilterBlock(e.target.value); }} className={`${ADMIN_INPUT} mt-2 font-sans font-bold`}>
                                 <option value="">All blocks</option>
                                 {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
                             </select>
                         </label>
                     </div>}
-                    {role === 'staff' && <p className="text-sm font-semibold text-blue-900">Staff accounts work across all regions. Search by name, email or staff role.</p>}
+                    {role === 'staff' && <p className="text-[1.0625rem] font-medium text-blue-900">Staff accounts work across all regions. Search by name, email or staff role.</p>}
                     </div>
                     {/* Filters */}
                     <div className="flex flex-wrap items-center gap-3">
