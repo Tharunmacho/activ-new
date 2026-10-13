@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Menu, Pencil, RefreshCw, Search } from 'lucide-react';
+import { BadgeCheck, Menu, Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
 import { ADMIN_BG, ADMIN_PAGE, ADMIN_CARD, ADMIN_INPUT, ADMIN_PRIMARY_BTN, ADMIN_SECONDARY_BTN } from '@/features/admin/components/AdminUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { correctionForm, listMembershipIds, getMembershipId, updateMembershipId, type MembershipIdRecord, type MembershipIdPage, type MembershipIdCorrection } from '@/services/membershipIdApi';
+import { correctionForm, listMembershipIds, getMembershipId, updateMembershipId, deleteMembershipId, visibleMembershipIds, type MembershipIdRecord, type MembershipIdPage, type MembershipIdCorrection } from '@/services/membershipIdApi';
 import { PAGE_TITLE, PAGE_SUBTITLE, SECTION_TITLE } from '@/components/layout/appTypography';
 import { errorMessage } from '@/services/activApi';
 
@@ -23,10 +23,12 @@ export default function MembershipIds() {
     const [selected, setSelected] = useState<MembershipIdRecord | null>(null);
     const [form, setForm] = useState<MembershipIdCorrection | null>(null);
     const [saving, setSaving] = useState(false), [formError, setFormError] = useState('');
+    const [deleteTarget, setDeleteTarget] = useState<MembershipIdRecord | null>(null);
+    const [deleting, setDeleting] = useState(false), [deleteError, setDeleteError] = useState('');
     const request = useRef(0);
     const load = useCallback(async () => {
         const current = ++request.current; setLoading(true); setError('');
-        try { const result = await listMembershipIds(search, page); if (current === request.current) setData(result); }
+        try { const result = await listMembershipIds(search, page); if (current === request.current) setData(visibleMembershipIds(result)); }
         catch (e) { if (current === request.current) setError(errorMessage(e, 'Could not load membership IDs.')); }
         finally { if (current === request.current) setLoading(false); }
     }, [search, page]);
@@ -44,6 +46,19 @@ export default function MembershipIds() {
         finally { setSaving(false); }
     };
     const set = (key: keyof MembershipIdCorrection, value: string | boolean) => setForm(f => f && ({ ...f, [key]: value }));
+    const remove = async () => {
+        if (!deleteTarget || deleting) return;
+        setDeleting(true); setDeleteError('');
+        try {
+            await deleteMembershipId(deleteTarget.id);
+            setData(current => current && ({ ...current, rows: current.rows.filter(row => row.id !== deleteTarget.id), total: Math.max(0, current.total - 1) }));
+            setDeleteTarget(null); setSelected(null); setForm(null);
+            toast.success('Account deleted. This person must register again to sign in.');
+            if (page > 1 && data?.rows.length === 1) setPage(value => value - 1);
+            else await load();
+        } catch (e) { setDeleteError(errorMessage(e, 'Could not delete this account. Please retry.')); }
+        finally { setDeleting(false); }
+    };
     return <div className={`flex h-screen font-sans text-[1.1875rem] ${ADMIN_BG}`}><AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} /><main className={`min-w-0 flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div><button className="mb-3 inline-flex items-center gap-2 text-[1.1875rem] font-semibold text-blue-700 lg:hidden" onClick={() => setSidebarOpen(true)}><Menu size={20} />Menu</button><h1 className={`flex items-center gap-3 ${PAGE_TITLE} text-slate-950`}><BadgeCheck className="text-blue-600" />Membership IDs</h1><p className={`mt-2 ${PAGE_SUBTITLE} text-slate-600`}>Every member, their identity and their membership record.</p></div>
@@ -61,7 +76,10 @@ export default function MembershipIds() {
                 <div className="min-w-0"><p className="break-all text-[1.25rem] font-bold text-blue-800">{row.membershipNumber || 'ID pending'}</p><h2 className="mt-1 text-[1.25rem] font-semibold text-slate-950">{row.fullName}</h2><p className="mt-1 text-[1.0625rem] text-slate-500">{row.planName || 'Member'} · <span className="capitalize">{row.status}</span></p></div>
                 <div className="min-w-0 text-[1.1875rem] leading-relaxed text-slate-600"><p className="break-all">{row.email}</p><p className="mt-1">{row.phoneNumber}</p><p className="mt-1">{[row.city || row.district, row.state].filter(Boolean).join(', ') || row.place}</p></div>
                 <div className="grid grid-cols-2 gap-3 text-[1.1875rem] lg:block"><p><span className="block text-[1.0625rem] text-slate-500">Member since</span><span className="font-semibold">{date(row.memberSince)}</span></p><p className="lg:mt-2"><span className="block text-[1.0625rem] text-slate-500">Valid until</span><span className="font-semibold">{row.lifetime ? 'Lifetime' : date(row.validUntil)}</span></p></div>
-                <button className={ADMIN_SECONDARY_BTN} onClick={() => void open(row)}><Pencil size={16} />{row.editable ? 'Edit record' : 'View record'}</button>
+                <div className="membership-id-actions grid min-w-0 grid-cols-1 gap-2 min-[480px]:grid-cols-2 lg:w-56 lg:grid-cols-1">
+                    <button className={`${ADMIN_SECONDARY_BTN} w-full min-h-12 !h-auto !whitespace-normal !px-3 py-2 [&>svg]:shrink-0`} onClick={() => void open(row)}><Pencil size={18} />Edit record</button>
+                    <button className={`${ADMIN_SECONDARY_BTN} w-full min-h-12 !h-auto !whitespace-normal !px-3 py-2 !text-red-700 hover:!border-red-200 hover:!bg-red-50 [&>svg]:shrink-0`} onClick={() => { setDeleteError(''); setDeleteTarget(row); }}><Trash2 size={18} />Delete account</button>
+                </div>
             </article>) : <p className="p-8 text-center text-slate-500">No membership records match your search.</p>}
         </section>
         <div className="mt-4 flex items-center justify-between gap-3 text-[1.0625rem]"><button className={ADMIN_SECONDARY_BTN} disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)}>Previous</button><span>Page {page} of {Math.max(1, Math.ceil((data?.total || 0) / (data?.limit || 20)))}</span><button className={ADMIN_SECONDARY_BTN} disabled={loading || page * (data?.limit || 20) >= (data?.total || 0)} onClick={() => setPage(p => p + 1)}>Next</button></div>
@@ -84,6 +102,15 @@ export default function MembershipIds() {
                 </div>
                 <div className="shrink-0 border-t bg-white p-4">{formError && <p role="alert" className="mb-3 rounded-xl bg-red-50 p-3 text-[1.0625rem] text-red-700">{formError}</p>}<div className="flex justify-end gap-3"><button type="button" className={ADMIN_SECONDARY_BTN} disabled={saving} onClick={() => { setSelected(null); setForm(null); }}>Close</button>{selected.editable && <button type="submit" className={ADMIN_PRIMARY_BTN} disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button>}</div></div>
             </form>}
+        </DialogContent>
+    </Dialog>
+    <Dialog open={!!deleteTarget} onOpenChange={open => { if (!open && !deleting) setDeleteTarget(null); }}>
+        <DialogContent className="font-sans sm:max-w-lg" onEscapeKeyDown={e => { if (deleting) e.preventDefault(); }} onPointerDownOutside={e => { if (deleting) e.preventDefault(); }}>
+            <DialogHeader><DialogTitle className={SECTION_TITLE}>Delete this member's account?</DialogTitle><DialogDescription className="text-base leading-relaxed">{deleteTarget?.fullName} · {deleteTarget?.membershipNumber}</DialogDescription></DialogHeader>
+            <p className="text-base leading-relaxed text-slate-700">Membership access and existing sign-ins will end. The old password will no longer work. This person can use the same email only after registering again as a new member.</p>
+            <p className="text-sm leading-relaxed text-slate-500">The account, registration, business profile and membership payment records will be permanently removed from the database. This cannot be undone and does not issue a refund.</p>
+            {deleteError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-red-700">{deleteError}</p>}
+            <div className="flex flex-wrap justify-end gap-3"><button className={ADMIN_SECONDARY_BTN} disabled={deleting} onClick={() => setDeleteTarget(null)}>Keep account</button><button className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-base font-semibold text-white hover:bg-red-700 disabled:opacity-50" disabled={deleting} onClick={() => void remove()}><Trash2 size={18} />{deleting ? 'Deleting…' : 'Delete account'}</button></div>
         </DialogContent>
     </Dialog></div>;
 }

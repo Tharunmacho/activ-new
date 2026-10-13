@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { completeSocialLogin, errorMessage, getMyProfile, getPaymentStatus } from '@/services/activApi';
+import { completeSocialLogin, errorMessage, getMyProfile, getPaymentStatus, socialStartUrl } from '@/services/activApi';
 import AuthSplitLayout from '@/shared/components/AuthSplitLayout';
 
 /**
@@ -22,6 +22,8 @@ const REASONS: Record<string, string> = {
     expired: 'That sign-in took too long or was started in another window. Please try again.',
     failed: 'We could not complete the sign-in with that provider. Please try again.',
     no_email: 'That account did not share a verified email address with us, so we cannot match it to an ACTIV account.',
+    email_permission: 'Facebook did not give ACTIV permission to read your email. Try again and allow email access. Use the same email as your ACTIV account.',
+    facebook_no_email: 'Facebook allowed email access but did not return an email address. Confirm your ACTIV login email in Facebook, then try again. You can also sign in with your ACTIV email and password.',
     admin: 'Administrators sign in with their email and password on the admin login page.',
     not_configured: 'That sign-in option is not available yet. Please use your email and password.',
     unavailable: 'That sign-in option is not available yet. Please use your email and password.',
@@ -33,6 +35,7 @@ export default function SocialSignIn() {
     const navigate = useNavigate();
     const started = useRef(false);
     const [error, setError] = useState('');
+    const [facebookRecovery, setFacebookRecovery] = useState(false);
     const [noAccount, setNoAccount] = useState<{ email: string; name: string; provider: string } | null>(null);
 
     useEffect(() => {
@@ -52,7 +55,11 @@ export default function SocialSignIn() {
             return;
         }
         if (!code) {
-            setError((REASONS[reason] || REASONS.failed).replace('{provider}', PROVIDER_NAME[provider] || 'Sign-in provider'));
+            setFacebookRecovery(provider === 'facebook' && ['no_email', 'email_permission', 'facebook_no_email', 'cancelled', 'expired'].includes(reason));
+            const message = provider === 'facebook' && reason === 'no_email'
+                ? 'Facebook did not share your email. Try again and allow email access. If your Facebook account uses only a phone number, confirm your ACTIV email there or sign in with your ACTIV email and password.'
+                : REASONS[reason] || REASONS.failed;
+            setError(message.replace('{provider}', PROVIDER_NAME[provider] || 'Sign-in provider'));
             return;
         }
 
@@ -113,10 +120,15 @@ export default function SocialSignIn() {
                         <AlertCircle className="h-8 w-8" />
                     </div>
                     <p className="text-[1.0625rem] leading-relaxed text-slate-600">{error}</p>
+                    {facebookRecovery && <a href={socialStartUrl('facebook')}
+                        className="mt-7 flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-[1.0625rem] font-semibold text-white hover:bg-blue-700">
+                        Try Facebook again
+                    </a>}
                     <Link to="/login"
-                        className="mt-7 flex h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 text-[1.0625rem]
-                                   font-semibold text-white transition-colors hover:bg-blue-700">
-                        Back to sign in
+                        className={facebookRecovery
+                            ? 'mt-4 flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border border-blue-200 px-4 py-3 text-[1.0625rem] font-semibold text-blue-700 hover:bg-blue-50'
+                            : 'mt-7 flex h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 text-[1.0625rem] font-semibold text-white transition-colors hover:bg-blue-700'}>
+                        {facebookRecovery ? 'Use email and password' : 'Back to sign in'}
                     </Link>
                 </div>
             ) : (

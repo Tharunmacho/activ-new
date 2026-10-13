@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import RenewalBanner from '@/features/member/components/RenewalBanner';
 import { readRenewal } from '@/features/member/useRenewal';
 import {
-    ArrowRight, BadgeCheck, Briefcase, CalendarDays, CalendarPlus, ChevronRight, Clock, CreditCard, Crown, FileText, FolderOpen, History, MapPin, Megaphone, Package, ReceiptText, ShieldCheck, Sparkles, Sun, User, UserCircle, UserCog, Users, Zap,
+    ArrowRight, BadgeCheck, Briefcase, CalendarDays, CalendarPlus, ChevronRight, Clock, CreditCard, Crown, FileText, FolderOpen, MapPin, Megaphone, Package, ReceiptText, ShieldCheck, Sparkles, Sun, User, UserCircle, UserCog, Users, Zap,
 } from 'lucide-react';
 import MemberPageShell from '@/pages/member/MemberPageShell';
 import {
@@ -15,8 +15,7 @@ import {
 } from '@/features/member/components/MemberUI';
 import { isPast } from '@/features/member/components/eventFormat';
 import {
-    getRecentActivity, getMyProfile, getBusinessInfo, getMyApplication, getMyCompanies,
-    type MemberActivity,
+    getMyProfile, getBusinessInfo, getMyApplication, getMyCompanies,
 } from '@/services/activApi';
 import { resolveMediaUrl } from '@/config/api.config';
 /* One formatter for the application reference, so this card and the
@@ -49,7 +48,6 @@ import { memberEventPath } from '@/lib/eventPath';
  *   Quick actions        — the four places a member goes most
  *   Business suite       — how their catalogue is doing (BUS-001…004)
  *   Official documents   — certificate and receipts
- *   Recent Activity      — what has happened on the account
  *
  * WHAT WAS TAKEN OFF IT: the four "at a glance" tiles and the Upcoming Events
  * card.
@@ -163,37 +161,6 @@ const shortDate = (iso?: string | null) => {
         : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-/**
- * "2 hours ago".
- *
- * A timestamp printed in full — "17/09/2026, 09:24:11" — answers a question
- * nobody asked of an activity feed; what a reader wants is how recent it is.
- */
-const timeAgo = (iso?: string | null): string => {
-    if (!iso) return '';
-    const then = new Date(iso).getTime();
-    if (Number.isNaN(then)) return '';
-    const mins = Math.max(0, Math.round((Date.now() - then) / 60000));
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`;
-    const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-    const days = Math.round(hours / 24);
-    if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
-    return shortDate(iso);
-};
-
-/** The feed's rows carry a `type`; it decides the mark beside the sentence. */
-const activityIcon = (type: string) => {
-    const key = String(type || '').toLowerCase();
-    if (key.includes('event') || key.includes('register')) return CalendarDays;
-    if (key.includes('payment') || key.includes('paid')) return CreditCard;
-    if (key.includes('document') || key.includes('certificate')) return FileText;
-    if (key.includes('profile')) return UserCog;
-    return History;
-};
-
-
 export default function PaidDashboard() {
     const navigate = useNavigate();
 
@@ -224,7 +191,6 @@ export default function PaidDashboard() {
     const [updates, setUpdates] = useState<Announcement[]>([]);
     const eventNow = useEventClock();
     const [events, setEvents] = useState<MemberEvent[]>([]);
-    const [activity, setActivity] = useState<MemberActivity[]>([]);
     const [sectionsLoading, setSectionsLoading] = useState(true);
 
     /**
@@ -325,7 +291,6 @@ export default function PaidDashboard() {
         });
 
 
-        getRecentActivity(6).then((rows) => { if (!cancelled) setActivity(rows || []); });
 
         return () => { cancelled = true; };
     }, [loadIdentity]);
@@ -642,7 +607,7 @@ export default function PaidDashboard() {
                 </div>
 
 
-                {/* ================= events · updates · activity */}
+                {/* ================= events and updates */}
                 {/*
                   EVENTS GETS A ROW OF ITS OWN.
 
@@ -781,8 +746,8 @@ export default function PaidDashboard() {
 
                 </div>
 
-                {/* ------------------------- updates · activity, side by side */}
-                <div className="grid items-stretch gap-4 sm:gap-6 lg:grid-cols-2">
+                {/* Association updates span the available width. */}
+                <div>
 
                     {/* --------------------------------------- updates ---- */}
                     <SectionCard
@@ -873,51 +838,6 @@ export default function PaidDashboard() {
                         )}
                     </SectionCard>
 
-                    {/* -------------------------------------- activity ---- */}
-                    <SectionCard
-                        title="Recent Activity"
-                        subtitle="Your latest actions"
-                        icon={<History className="w-5 h-5" />}
-                        className="h-full"
-                    >
-                        {activity.length === 0 ? (
-                            <EmptyState
-                                icon={<History className="w-6 h-6" />}
-                                title="Nothing yet"
-                                detail="Activity appears here as your account changes."
-                            />
-                        ) : (
-                            <div className="space-y-3">
-                                {activity.slice(0, 5).map((row, i) => {
-                                    const Icon = activityIcon(row.type);
-                                    return (
-                                        <div
-                                            key={row.id || i}
-                                            className="flex items-start gap-3 rounded-xl px-1 py-1.5"
-                                        >
-                                            <span className="flex h-10 w-10 shrink-0 items-center justify-center
-                                                             rounded-xl bg-blue-50 text-blue-600">
-                                                <Icon className="h-5 w-5" />
-                                            </span>
-                                            <span className="min-w-0 flex-1">
-                                                {/* Two lines reserved here too, so a
-                                                    long sentence and a short one keep
-                                                    their "2 hours ago" on the same
-                                                    line down the column. */}
-                                                <span className="line-clamp-2 block min-h-[2.6em] text-[1.25rem]
-                                                                 font-bold leading-snug text-slate-900">
-                                                    {row.description || row.type}
-                                                </span>
-                                                <span className="mt-0.5 block text-[1.25rem] font-semibold text-slate-400">
-                                                    {timeAgo(row.at)}
-                                                </span>
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </SectionCard>
                 </div>
 
                 <DashboardMembershipReview lifetime={lifetime}

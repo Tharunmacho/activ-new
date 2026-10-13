@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { MessageCircle, X, GripVertical, HeartHandshake, Smartphone } from 'lucide-react';
-import { ACTIV_PLAY_STORE_URL, insideActivApp } from '@/components/shared/AppDownloadPromotion';
+import { MessageCircle, X, GripVertical, HeartHandshake } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 
 /**
@@ -29,7 +28,7 @@ const CHAT_NUMBER = String(import.meta.env.VITE_CHAT_WHATSAPP || '918220112188')
 const WHATSAPP_URL = `https://wa.me/${CHAT_NUMBER}?text=${encodeURIComponent('Hi ACTIV')}`;
 const SUPPORT_SPOT_KEY = 'activ-launchers-spot';
 const DONATE_SPOT_KEY = 'activ-donate-spot';
-const HIDDEN_ON = /^\/(cms|super-admin|state-admin|district-admin|block-admin|events-admin|admin|payment|member\/payment|donate\/receipt|donate\/statement)(\/|$)/;
+const HIDDEN_ON = /^\/(cms|super-admin|state-admin|district-admin|block-admin|events-admin|admin|payment|member\/payment|donate\/receipt|donate\/statement|auth|login|register|forgot-password|reset-password)(\/|$)/;
 /** Donate is a PUBLIC-site call to action: not on the donation pages themselves,
     and not over the signed-in member / business work screens, where it covered
     their own primary buttons. */
@@ -152,7 +151,6 @@ export default function FloatingLaunchers() {
     const [chatClosed, setChatClosed] = useState(() => readClosed('activ-chat-closed'));
     const [waClosed, setWaClosed] = useState(() => readClosed('activ-whatsapp-closed'));
     const [donateClosed, setDonateClosed] = useState(() => readClosed('activ-donate-closed'));
-    const [appClosed, setAppClosed] = useState(() => readClosed('activ-app-download-closed'));
 
     const support = useFloatingDrag(SUPPORT_SPOT_KEY, { side: 'right', y: 0.82 });
     const donate = useFloatingDrag(DONATE_SPOT_KEY, { side: 'left', y: 0.82 });
@@ -160,22 +158,12 @@ export default function FloatingLaunchers() {
     if (HIDDEN_ON.test(pathname)) return null;
     const showSupport = !(chatClosed && waClosed);
     const showDonate = !donateClosed && !DONATE_HIDDEN_ON.test(pathname);
-    const showApp = !appClosed && !insideActivApp();
 
     return (
         <>
-            {showDonate || showApp ? (
+            {showDonate ? (
                 <div ref={donate.box} style={donate.style} {...donate.handlers} className={donate.className}>
                     <Grip />
-                    {showApp && <div className="relative">
-                        <a href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
-                            aria-label="Get ACTIV on Google Play" draggable={false}
-                            className={PILL} style={{ backgroundImage: 'linear-gradient(135deg, #183878, #2563eb)' }}>
-                            <Smartphone className="h-6 w-6" aria-hidden="true" />
-                            <span className="hidden text-[0.95rem] font-semibold sm:inline">Get app</span>
-                        </a>
-                        <CloseDot label="Close app download button" onClose={() => { setAppClosed(true); writeClosed('activ-app-download-closed'); }} />
-                    </div>}
                     {showDonate && <div className="relative">
                         <Link
                             to="/donate"

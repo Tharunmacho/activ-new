@@ -41,9 +41,9 @@ export default function MembershipRegistrations() {
     const [ack, setAck] = useState(false);
     const chooseSummary = (nextTab: 'members' | 'payments', nextFilter: string) => { setTab(nextTab); setFilter(nextFilter); };
     const remove = async () => {
-        if (!detail || !window.confirm(`Delete ${detail.member.name}'s registration? Their login and membership access will be disabled. Payment history stays available in the report. This does not refund payments.`)) return;
+        if (!detail || !window.confirm(`Permanently delete ${detail.member.name}'s account and registration from the database? Their login, application, business profile and membership payments will be removed. This cannot be undone or refund payments. They must register again to sign in.`)) return;
         setSaving(true);
-        try { await deleteMembershipRegistration(detail.member.id); setModalOpen(false); setDetail(null); await load(); toast.success('Registration deleted. Payment history retained.'); }
+        try { await deleteMembershipRegistration(detail.member.id); setModalOpen(false); setDetail(null); await load(); toast.success('Member account and registration permanently deleted.'); }
         catch (e) { toast.error(errorMessage(e, 'Could not delete registration.')); }
         finally { setSaving(false); }
     };

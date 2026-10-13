@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, CalendarDays, CreditCard, Megaphone, Smartphone } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, CreditCard, Images, Megaphone, Smartphone } from 'lucide-react';
 import QRCode from 'qrcode';
 import './appDownloadPromotion.css';
 
@@ -20,6 +20,11 @@ function PlayMark() {
 
 export default function AppDownloadPromotion({ member = false }: { member?: boolean }) {
     const [qr, setQr] = useState('');
+    const [preview, setPreview] = useState(0);
+    const screens = [
+        { label: 'Discover & book', icon: CalendarDays, src: '/app/activ-android-home.png', alt: 'ACTIV Android Home screen with upcoming event banners and community highlights', caption: 'Find your next event. Book from the app.' },
+        { label: 'Community gallery', icon: Images, src: '/app/activ-android-gallery.png', alt: 'ACTIV Android Gallery screen showing photographs from community events', caption: 'Explore moments from across the ACTIV community.' },
+    ];
     const hidden = insideActivApp();
     useEffect(() => {
         if (hidden) return;
@@ -39,6 +44,9 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
                 <li><CreditCard size={17} /> Membership in your pocket</li>
                 <li><Megaphone size={17} /> Association updates</li>
             </ul>
+            <div className="activ-app-promo__switcher" aria-label="Preview the ACTIV app">
+                {screens.map((screen, index) => <button key={screen.src} type="button" aria-pressed={preview === index} onClick={() => setPreview(index)}><screen.icon size={18} />{screen.label}</button>)}
+            </div>
             <div className="activ-app-promo__actions">
                 <a className="activ-play-button" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Get ACTIV on Google Play">
                     <PlayMark /><span><small>GET IT ON</small><strong>Google Play</strong></span><ArrowUpRight size={20} />
@@ -48,9 +56,8 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
         </div>
         <div className="activ-app-promo__visual">
             <figure className="activ-app-promo__screen">
-                <div className="activ-app-phone"><img src="/app/activ-android-gallery.png" width="945" height="2048" loading="lazy" decoding="async"
-                    alt="ACTIV Android app Gallery screen with community moments and the blue navigation bar" /></div>
-                <figcaption>A look inside the ACTIV app</figcaption>
+                <div className="activ-app-phone">{screens.map((screen, index) => <img key={screen.src} hidden={preview !== index} src={screen.src} width="945" height="2048" loading="lazy" decoding="async" alt={screen.alt} />)}</div>
+                <figcaption aria-live="polite">{screens[preview].caption}</figcaption>
             </figure>
             {qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">
                 <img src={qr} width="208" height="208" alt="QR code linking to ACTIV on Google Play" />

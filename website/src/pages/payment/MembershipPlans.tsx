@@ -124,11 +124,12 @@ export default function MembershipPlans() {
       if (upgrading) {
         const result = unwrap<any>(await api.get('/payment/upgrade/plans'), {});
         if (typeof result.canPurchase !== 'boolean') throw new Error('Membership upgrade options are temporarily unavailable. Please try again later.');
-        const offered = (result.plans || []).map((p: any) => decorate({ ...p, id: p.key }));
+        const offered = (result.canPurchase === false && result.currentPlanDetails
+          ? [result.currentPlanDetails] : result.plans || []).map((p: any) => decorate({ ...p, id: p.key }));
         setPlans(offered); setSelectedPlan(offered[0] || null); setPlanLocked(true); setCanPurchaseUpgrade(result.canPurchase !== false);
         setCommencementYear(String(result.commencementYear || ''));
         setUpgradeReason(result.reason || 'The full plan fee is charged. Your upgraded annual membership starts after successful payment and is valid for one year.');
-        setUserData({ memberType: KIND_LABEL[result.kind], experience: result.currentPlan, applicationId: '' });
+        setUserData({ kind: result.kind, memberType: KIND_LABEL[result.kind], experience: result.currentPlan, applicationId: '' });
         return;
       }
       const eligibility = await resolvePlanEligibility();
@@ -202,9 +203,7 @@ export default function MembershipPlans() {
       return;
     }
     if (upgrading && selectedPlan.audience === 'business') {
-      const year = Number(commencementYear), age = new Date().getFullYear() - year;
-      if (!/^\d{4}$/.test(commencementYear) || year < 1800 || age < 0) { toast.error('Enter a valid business commencement year.'); return; }
-      if (age < Number(selectedPlan.minYears || 0) || (selectedPlan.maxYears != null && age >= selectedPlan.maxYears)) { toast.error('Choose the plan matching your business commencement year.'); return; }
+      if (!selectedPlan.commencementYears?.includes(commencementYear)) { toast.error('Choose the year your business started from the available plan range.'); return; }
     }
 
     setProcessing(true);
@@ -307,7 +306,9 @@ export default function MembershipPlans() {
       <section className="mx-auto max-w-2xl rounded-3xl border border-blue-100 bg-white p-6 shadow-lg sm:p-8">
         <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><CheckCircle className="h-7 w-7" /></div>
         <h2 className="text-2xl font-bold text-slate-900">{selectedPlan.name}</h2>
+        {userData?.kind === 'business' && <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-5"><p className="font-semibold text-blue-800">Business commencement year</p><p aria-label="Business commencement year" className="mt-1 text-2xl font-bold text-slate-950">{commencementYear || 'Not recorded'}</p><p className="mt-2 text-lg text-slate-600">{selectedPlan.commencementYearLabel ? `${selectedPlan.name}: businesses started ${selectedPlan.commencementYearLabel}.` : 'Your plan follows your saved business commencement year.'}</p></div>}
         <p role="status" className="mt-3 text-lg leading-relaxed text-slate-600">{upgradeReason}</p>
+        {!!selectedPlan.features?.length && <div className="mt-6"><h3 className="text-xl font-bold text-slate-950">Included in your plan</h3><ul className="mt-3 space-y-3">{selectedPlan.features.map((feature, index) => <li key={index} className="flex gap-3 text-lg text-slate-700"><CheckCircle className="mt-1 h-5 w-5 shrink-0 text-blue-600" />{feature}</li>)}</ul></div>}
         <div className="mt-6 rounded-2xl bg-blue-50 p-4"><p className="text-sm font-semibold text-blue-700">Fee at your next renewal</p><p className="mt-1 text-2xl font-bold text-blue-950">{fmt(selectedPlan.price)}</p></div>
         <Button className="mt-6 w-full sm:w-auto" onClick={() => navigate('/member/dashboard')}>Back to dashboard</Button>
       </section>

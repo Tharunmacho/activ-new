@@ -20,6 +20,12 @@
 .activ-app-promo__screen { margin: 0; width: 180px; max-width: 100%; flex-shrink: 0; }
 .activ-app-phone { overflow: hidden; border: 5px solid #adc7f7; border-radius: 25px; background: #0e1c47; box-shadow: 0 18px 38px #06113273, 0 0 0 1px #ffffff3d; }
 .activ-app-phone img { display: block; width: 100%; height: auto; }
+.activ-app-phone img[hidden] { display: none; }
+.activ-app-promo__switcher { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.activ-app-promo__switcher button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 14px; border-radius: 12px; border: 1px solid #8aace780; background: #ffffff0d; color: #e3ecff; font-family: inherit; font-size: 15px; line-height: 1.4; font-weight: 600; transition: background .2s; }
+.activ-app-promo__switcher button[aria-pressed="true"] { background: #eaf2ff; color: #173778; border-color: #eaf2ff; }
+.activ-app-promo__switcher button:hover { border-color: #fff; }
+.activ-app-promo__switcher button:focus-visible { outline: 3px solid #67c6ff; outline-offset: 3px; }
 .activ-app-promo__screen figcaption { color: #d1e2ff; font-size: 14px; line-height: 1.5; margin-top: 10px; text-align: center; }
 .activ-app-promo__qr { display: flex; flex-direction: column; align-items: center; text-align: center; flex-shrink: 0; width: 208px; max-width: 100%; color: #d5e5ff; text-decoration: none; border-radius: 18px; }
 .activ-app-promo__qr img { display: block; border-radius: 16px; width: 208px; height: 208px; max-width: 100%; box-shadow: 0 8px 24px #07122633; }
