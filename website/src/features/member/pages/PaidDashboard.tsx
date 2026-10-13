@@ -1,11 +1,10 @@
 import { membershipValidityLabel } from '@/lib/membershipDates';
 import { useEventClock } from '@/lib/useEventClock';
-import PlatinumWelcome from '../components/PlatinumWelcome';
+import DashboardMembership from '../components/DashboardMembership';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw } from 'lucide-react';
 import RenewalBanner from '@/features/member/components/RenewalBanner';
-import { RENEW_PATH, readRenewal, renewalDate } from '@/features/member/useRenewal';
+import { readRenewal } from '@/features/member/useRenewal';
 import {
     ArrowRight, BadgeCheck, Briefcase, CalendarDays, CalendarPlus, ChevronRight, Clock, CreditCard, Crown, FileText, FolderOpen, History, MapPin, Megaphone, Package, ReceiptText, ShieldCheck, Sparkles, Sun, User, UserCircle, UserCog, Users, Zap,
 } from 'lucide-react';
@@ -22,15 +21,9 @@ import { resolveMediaUrl } from '@/config/api.config';
 /* One formatter for the application reference, so this card and the
    Application Status screen cannot print different numbers. */
 import { formatApplicationRef } from '@/lib/applicationRef';
-import { BIZ_DETAIL_LABEL } from '@/components/layout/surface';
-import cardBackdrop from '@/assets/membership-card-bg.svg';
-import { PlatinumBadge, isPlatinumProfile } from '@/components/shared/Platinum';
+import { isPlatinumProfile } from '@/components/shared/Platinum';
 import { MemberAvatar } from '@/features/member/memberPhoto';
-import greetingBubbles from '@/assets/greeting-bubbles.svg';
 
-import { CARD_TITLE, PAGE_TITLE } from '@/components/layout/appTypography';
-/** The mark, as a watermark on the greeting card. */
-const ACTIV_MARK = '/logo_ACTIVian-removebg-preview.png';
 import {
     listAnnouncements, listMemberEvents,
     type Announcement, type MemberEvent,
@@ -488,323 +481,17 @@ export default function PaidDashboard() {
         <MemberPageShell title={platinum ? 'Lifetime Membership' : 'Dashboard'} subtitle={platinum ? 'Your connection to the ACTIV community' : 'Your membership at a glance'} width="wide" appearance={platinum ? 'gold' : 'default'}>
             <div className={`space-y-4 sm:space-y-6 ${platinum ? 'platinum-dashboard' : ''}`}>
 
-                {/* The last 30 days of the year: renewal is open, and said first. */}
-                <RenewalBanner renewal={renewal} />
-                {!lifetime && <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><h2 className="text-[1.5rem] font-semibold">Upgrade your membership</h2><p className="mt-2 text-[1.25rem]">Moving from student to aspirant or starting a business? Choose your new plan and enter a commencement year for business membership. Your email, password and payment history stay with this account.</p><button className="mt-3 rounded-xl bg-blue-600 px-5 py-3 text-[1.25rem] font-semibold text-white" onClick={() => navigate('/payment/membership-plans?upgrade=1')}>Review membership upgrade</button></div>}
-
-                {/* ============================= greeting · membership card
-                    TWO CARDS, NOT ONE BAND.
-
-                    The design puts the welcome and the membership side by
-                    side as separate objects, and that is the right split:
-                    the greeting is a message that changes with the hour, the
-                    membership card is a credential. Inside one band they
-                    read as one thing, and the card — which is what a member
-                    actually came to check — has no edge of its own.
-
-                    The GREETING keeps the site's weather (dot field, orbit
-                    rings, brand blooms) on the tinted card; the MEMBERSHIP
-                    CARD carries the navy, so it is the darkest object on the
-                    screen and therefore the first one seen. */}
-                {/* ================================================== hero
-                    ONE CARD, NOT TWO.
-
-                    The greeting and the membership card were two sections
-                    side by side on the same gradient with the same bubbles —
-                    so the row already read as one object with a seam down the
-                    middle, and the seam was the only thing the split bought.
-                    The approved design puts both on a single band: the
-                    greeting at the left, the membership as a white panel
-                    inset in it.
-
-                    Everything the pair carried is here — the sunrise ripples,
-                    the bubbles, the waves inside the white panel, the date,
-                    the status, the facts and the button. What has gone is the
-                    duplicate frame, the duplicate background and the gap
-                    between them. */}
-                {profile?.currentMembership?.message && <div role="status" className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"><p className="font-bold">Membership progression</p><p className="mt-1">{profile.currentMembership.message}</p></div>}
-                {platinum ? <PlatinumWelcome name={name} greeting={greeting} memberId={memberId} memberSince={cardDate(memberSince)} region={abroad ? [place, country].filter(Boolean).join(', ') : [block, district, state].filter(Boolean).join(', ')} active={activeNow} onPlan={() => navigate('/member/plan')} onBusiness={() => navigate('/business/dashboard')} onDocuments={() => navigate('/member/documents')} onReceipt={() => navigate('/member/payment-success?view=receipt')} /> : <section className="relative overflow-hidden rounded-[1.75rem]
-                                    bg-gradient-to-br from-brand-900 via-blue-700 to-sky-500
-                                    shadow-[0_1px_2px_rgba(16,24,40,0.06),0_18px_44px_-20px_rgba(28,46,104,0.55)]">
-
-                    {/* ---- the field: sunrise, ripples, bubbles, mark ---- */}
-                    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-                        <svg className="absolute inset-0 h-full w-full"
-                             viewBox="0 0 1200 380" preserveAspectRatio="none">
-                            <defs>
-                                <radialGradient id="heroSun" cx="1" cy="0" r="0.75">
-                                    {/* White at the centre, warm only at the rim:
-                                        amber over navy makes olive. */}
-                                    <stop offset="0" stopColor="#ffffff" stopOpacity={0.38} />
-                                    <stop offset="0.3" stopColor="#fde68a" stopOpacity={0.18} />
-                                    <stop offset="0.65" stopColor="#7dd3fc" stopOpacity={0.12} />
-                                    <stop offset="1" stopColor="#38bdf8" stopOpacity={0} />
-                                </radialGradient>
-                            </defs>
-                            <rect x="0" y="0" width="1200" height="380" fill="url(#heroSun)" />
-                            {/* the rings from the sun, top right */}
-                            <g fill="none" stroke="#ffffff">
-                                <circle cx="1200" cy="0" r="150" strokeWidth="2" opacity="0.20" />
-                                <circle cx="1200" cy="0" r="240" strokeWidth="1.6" opacity="0.15" />
-                                <circle cx="1200" cy="0" r="350" strokeWidth="1.3" opacity="0.11" />
-                                <circle cx="1200" cy="0" r="480" strokeWidth="1" opacity="0.08" />
-                            </g>
-
-                            {/*
-                              AND A SET FROM THE BOTTOM LEFT.
-
-                              The band's left half carried the greeting and
-                              nothing else — the ACTIV watermark had been
-                              filling it, and with that gone the corner was
-                              flat. A second source of ripples, quieter than
-                              the sun's and rising from the opposite corner,
-                              gives the whole card weather instead of a lit
-                              side and a dead one. Wider spacing and half the
-                              opacity, so it never competes with the copy
-                              sitting on it.
-                            */}
-                            <g fill="none" stroke="#ffffff">
-                                <circle cx="0" cy="380" r="130" strokeWidth="1.8" opacity="0.12" />
-                                <circle cx="0" cy="380" r="225" strokeWidth="1.5" opacity="0.09" />
-                                <circle cx="0" cy="380" r="340" strokeWidth="1.2" opacity="0.07" />
-                                <circle cx="0" cy="380" r="470" strokeWidth="1" opacity="0.05" />
-                            </g>
-                        </svg>
-
-                        <img
-                            src={greetingBubbles}
-                            alt=""
-                            className="absolute inset-0 h-full w-full object-cover"
-                        />
-
-                    </div>
-
-                    {/*
-                      THE PANEL STOPS SHORT OF THE RIGHT EDGE.
-
-                      It ran to within 32px of it, which put the white card
-                      over the corner the sunrise rings radiate from — the
-                      effect was drawn and then covered by the one element
-                      large enough to hide it. A wider right gutter at `lg`
-                      gives the rings their corner back and gives the card
-                      something to sit in front of.
-                    */}
-                    {/*
-                      THE LEFT COLUMN SIZES TO ITS CONTENT, and the slack goes
-                      to the right of the panel.
-
-                      It was `1fr`, so the greeting's column took every pixel
-                      the panel did not and the two ended up at opposite ends
-                      of the band with a lake between them. `auto` + a fixed
-                      panel means the pair sit together at the left, and the
-                      space that is left over lands where the rings are —
-                      which is the only part of the field worth showing.
-                    */}
-                    {/*
-                      `justify-between`, not `justify-start`.
-
-                      With `start` the spare width all landed to the RIGHT of
-                      the panel, over the decorative rings, and the card sat
-                      further left than the field it is inset in. Between the
-                      two columns instead: the greeting stays put and the panel
-                      moves right by whatever the window has to give — at every
-                      width, rather than at one.
-                    */}
-                    {/*
-                      `lg:pr-32` is the two inches asked for.
-
-                      `justify-between` alone put the panel hard against the
-                      field's right edge, over the rings rather than beside
-                      them. The padding insets the right column and leaves the
-                      decoration visible behind it.
-                    */}
-                    <div className="relative grid items-center justify-between gap-5 sm:gap-6 p-4 sm:p-8
-                                    2xl:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]">
-
-                        {/* ------------------------------------ the greeting */}
-                        <div>
-                            <div className="mb-4 sm:mb-6 inline-flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-1 rounded-full bg-white/15 px-4 py-2 sm:py-2.5
-                                            ring-1 ring-white/25 backdrop-blur-sm">
-                                <Sun className="h-5 w-5 text-amber-300" />
-                                {/* Up a step throughout this block: it was all set
-                                    smaller than the white card beside it, on a band
-                                    four times its height. */}
-                                <span className="whitespace-nowrap text-[1.2rem] sm:text-[1.5625rem] font-extrabold text-white">{today.date}</span>
-                                <span className="whitespace-nowrap text-[1.05rem] sm:text-[1.25rem] font-semibold text-white/70">· {today.day}</span>
-                            </div>
-
-                            <div className="flex flex-col items-start gap-4 sm:flex-row sm:gap-5">
-                                {/* THE MEMBER'S PHOTO, from the one shared store
-                                    (`memberPhoto.tsx`) — resolved on the API host,
-                                    initials if it fails. Tap it to see it full size
-                                    and change it. */}
-                                <MemberAvatar
-                                    name={name}
-                                    className="h-16 w-16 sm:h-[5.5rem] sm:w-[5.5rem] rounded-full bg-white/15 shadow-lg ring-4 ring-white/30"
-                                    initialsClassName="text-[1.625rem] sm:text-[2.125rem] font-extrabold text-white"
-                                />
-
-                                <div className="min-w-0">
-                                    <p className="text-[1.2rem] sm:text-[1.5625rem] font-bold text-white/70">{greeting},</p>
-                                    <h2 className={`${PAGE_TITLE} mt-1 text-white`}>
-                                        {name} <span aria-hidden="true">👋</span>
-                                    </h2>
-                                    <p className="mt-3 text-[1.15rem] sm:text-[1.5625rem] font-semibold leading-relaxed text-white/85">
-                                        Your journey with ACTIV is making a difference.
-                                    </p>
-                                    <p className="text-[1.15rem] sm:text-[1.5625rem] font-semibold leading-relaxed text-white/85">
-                                        Together we build a stronger community.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/*
-                              THE SAME FACTS THE UNPAID HEADER CARRIES.
-
-                              A member walking from the unpaid dashboard to this
-                              one lost the membership type and the application
-                              reference from the header — both are on the panel to
-                              the right, but that is a card somebody reads
-                              deliberately, and these pills are what the eye takes
-                              in without stopping.
-                            */}
-                            <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-2.5">
-                                {platinum ? (
-                                    <PlatinumBadge size="lg" label="Lifetime Member" />
-                                ) : plan && (
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 sm:py-2.5
-                                                     text-base sm:text-[1.375rem] font-bold text-white ring-1 ring-white/25
-                                                     backdrop-blur-sm">
-                                        <BadgeCheck className="h-4 w-4" /> {planLabel(plan) || 'Member'}
-                                    </span>
-                                )}
-                                {applicationRef && (
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 sm:py-2.5
-                                                     text-base sm:text-[1.375rem] font-bold text-white ring-1 ring-white/25
-                                                     backdrop-blur-sm">
-                                        <FileText className="h-4 w-4" /> {applicationRef}
-                                    </span>
-                                )}
-                                {memberSinceLabel && (
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 sm:py-2.5
-                                                     text-base sm:text-[1.375rem] font-bold text-white ring-1 ring-white/25
-                                                     backdrop-blur-sm">
-                                        <CalendarDays className="h-4 w-4" /> Member since {memberSinceLabel}
-                                    </span>
-                                )}
-                                {(abroad ? (place || country) : (district || state)) && (
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 sm:py-2.5
-                                                     text-base sm:text-[1.375rem] font-bold text-white ring-1 ring-white/25
-                                                     backdrop-blur-sm">
-                                        <MapPin className="h-4 w-4" />
-                                        {(abroad ? [place, country] : [district, state])
-                                            .filter((v, i, all) => !!v && all.indexOf(v) === i).join(', ')}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* ------------------------- the membership panel ----
-                            White, inset in the field — the same relationship
-                            the approved design has, and the same one the
-                            separate card had with its own frame. The waves
-                            (`membership-card-bg.svg`) stay inside it. */}
-                        {/* 26rem and 20px of padding, down from 30rem and 24.
-                            Eight facts and a button in a half-metre-wide card
-                            read as a page of its own beside the greeting. */}
-                        <div className="relative overflow-hidden rounded-[1.25rem] bg-white p-4 sm:p-5
-                                        shadow-[0_18px_40px_-18px_rgba(0,0,0,0.45)]">
-                            <img
-                                src={cardBackdrop}
-                                alt=""
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-                            />
-
-                            <div className="relative flex flex-wrap items-start justify-between gap-3">
-                                <div className="flex !min-w-[12rem] flex-1 items-center gap-3 sm:gap-4">
-                                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-md ${platinum
-                                        ? 'bg-gradient-to-br from-[#1e293b] to-[#64748b] text-[#f8e7b0] ring-1 ring-[#d4b35f]/60'
-                                        : 'bg-gradient-to-br from-blue-600 to-sky-400'}`}>
-                                        {platinum ? <Crown className="h-6 w-6" strokeWidth={2.2} /> : <User className="h-6 w-6" strokeWidth={2.4} />}
-                                    </span>
-                                    <div className="min-w-0">
-                                        <p className="text-[1.375rem] font-extrabold tracking-tight text-slate-900">
-                                            {planTitle}
-                                        </p>
-                                        <p className="text-[1.25rem] font-semibold text-blue-600">
-                                            {platinum ? 'Lifetime · never renews' : membershipType ? `${membershipType} membership` : 'Membership'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1
-                                                  text-[1.0625rem] font-extrabold ${activeNow
-                                        ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200'
-                                        : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'}`}>
-                                    <BadgeCheck className="h-4 w-4" /> {activeNow ? 'Active' : statusLabel}
-                                </span>
-                            </div>
-
-                            <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 divide-slate-200 border-t
-                                            border-slate-200 pt-4">
-                                <CardFact label="Member ID" value={memberId} className="sm:col-span-2" />
-                                <CardFact label="Member since" value={cardDate(memberSince)} className="" />
-                                <CardFact
-                                    label={lifetime ? 'Validity' : 'Valid until'}
-                                    value={lifetime ? 'Lifetime' : validUntilLabel}
-                                    className=""
-                                />
-                            </div>
-
-                            {abroad ? (
-                                /* Outside India: the place and the country, not three empty region cells. */
-                                <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-0 sm:divide-x divide-slate-200 border-t
-                                                border-slate-200 pt-4">
-                                    <CardFact icon={MapPin} label="Place" value={place} />
-                                    <CardFact icon={MapPin} label="Country" value={country} className="" />
-                                </div>
-                            ) : (
-                                <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 divide-slate-200 border-t
-                                                border-slate-200 pt-4">
-                                    <CardFact icon={MapPin} label="State" value={state} />
-                                    <CardFact icon={MapPin} label="District" value={district} className="" />
-                                    <CardFact icon={MapPin} label="Block" value={block} className="" />
-                                </div>
-                            )}
-
-                            {/*
-                              THE TWO FACTS A MEMBER IS ASKED TO QUOTE.
-
-                              Both were a screen away: the business type on the
-                              Business Account page, the application reference on
-                              Application Status. They belong on the card that is
-                              open when somebody rings and asks for them.
-
-                              Two columns, not three — an application reference is
-                              long, and a third divider would leave it truncated to
-                              the point of being useless to read down a telephone.
-                            */}
-                            {(businessType || applicationRef) && (
-                                <div className="relative mt-4 grid grid-cols-2 divide-x divide-slate-200
-                                                border-t border-slate-200 pt-4">
-                                    <CardFact icon={Briefcase} label="Business type" value={businessType} />
-                                    <CardFact label="Application ID" value={applicationRef} className="" />
-                                </div>
-                            )}
-
-                            <button
-                                type="button"
-                                onClick={() => navigate('/member/plan')}
-                                className="relative mt-4 inline-flex w-full items-center justify-center gap-2
-                                           rounded-xl bg-blue-600 px-5 py-3 text-[1.1875rem] font-bold text-white
-                                           transition-colors hover:bg-blue-700"
-                            >
-                                View plan details <ArrowRight className="h-5 w-5" />
-                            </button>
+                <section className="relative overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-br from-[#142657] via-[#223d7d] to-[#2b63c8] p-5 text-white sm:p-8" aria-label="Member welcome">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full border-[35px] border-white/5" />
+                    <div className="relative flex items-start gap-4 sm:items-center sm:gap-5">
+                        <MemberAvatar name={name} className="h-14 w-14 shrink-0 rounded-full bg-white/15 ring-2 ring-white/30 sm:h-20 sm:w-20" initialsClassName="text-xl font-bold text-white" />
+                        <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-blue-100">{greeting}</p>
+                            <h2 className="mt-1 break-words text-2xl font-extrabold tracking-tight text-white sm:text-3xl">{name}</h2>
+                            <p className="mt-2 text-sm leading-relaxed text-blue-100 sm:text-base">Discover opportunities. Stay connected to your community.</p>
+                            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold"><span className="rounded-full bg-white/15 px-3 py-1.5">{planTitle}</span><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5"><CalendarDays className="h-3.5 w-3.5" />{today.date}</span></div>
                         </div>
                     </div>
-                </section>}
+                </section>
 
                 {/* ============================ quick actions · documents */}
                 {/* 1.6 / 1, not 1.05 / 1. Five tiles in half a 1280px
@@ -1226,119 +913,19 @@ export default function PaidDashboard() {
                     </SectionCard>
                 </div>
 
-                {/* ================================================= footer */}
-                <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white
-                                    shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_30px_-12px_rgba(16,24,40,0.28)]">
-                    <div className="flex flex-col gap-5 bg-gradient-to-r from-blue-50 via-white to-blue-50
-                                    p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-7">
-                        <div className="flex items-center gap-4">
-                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl
-                                             bg-blue-600 text-white">
-                                <Sparkles className="h-6 w-6" />
-                            </span>
-                            <div className="min-w-0">
-                                <p className="text-[1.25rem] sm:text-[1.5625rem] font-extrabold tracking-tight text-slate-900">
-                                    More opportunities await
-                                </p>
-                                <p className="text-[1.25rem] font-semibold text-slate-500">
-                                    Your membership is what opens them.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-x-6 sm:gap-x-10 gap-y-4">
-                            <div>
-                                <p className={BIZ_DETAIL_LABEL}>Your membership plan</p>
-                                <p className="mt-1 flex flex-wrap items-center gap-2 text-[1.25rem] font-bold text-slate-900">
-                                    {planTitle}
-                                    {platinum ? <PlatinumBadge size="sm" /> : null}
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50
-                                                     px-2.5 py-0.5 text-[1.0625rem] font-bold text-emerald-700">
-                                        <BadgeCheck className="h-4 w-4" /> {statusLabel}
-                                    </span>
-                                </p>
-                            </div>
-
-                            {(validUntilLabel || lifetime) && (
-                                <div>
-                                    <p className={BIZ_DETAIL_LABEL}>Next renewal</p>
-                                    <p className="mt-1 text-[1.25rem] font-bold text-slate-900">
-                                        {lifetime ? 'No renewal needed' : validUntilLabel}
-                                    </p>
-                                    {!lifetime && renewal?.canRenew ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => navigate(RENEW_PATH)}
-                                            className="mt-2 inline-flex items-center gap-2 rounded-xl border-2 border-blue-600 bg-white px-4 py-2
-                                                       text-[1.0625rem] font-bold text-blue-700 transition-colors hover:bg-blue-50"
-                                        >
-                                            <RefreshCw className="h-4 w-4" /> Renew now
-                                        </button>
-                                    ) : !lifetime && renewal?.opensAt ? (
-                                        <p className="mt-1 text-[0.9375rem] font-medium text-slate-500">
-                                            Renewal opens on {renewalDate(renewal.opensAt)}
-                                        </p>
-                                    ) : null}
-                                </div>
-                            )}
-
-                            <button
-                                type="button"
-                                onClick={() => navigate('/member/plan')}
-                                className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5
-                                           text-[1.25rem] font-bold text-white transition-colors
-                                           hover:bg-blue-700"
-                            >
-                                View plan details <ArrowRight className="h-5 w-5" />
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                <DashboardMembership name={name} plan={planTitle} memberId={memberId}
+                    membershipLabel={membershipType ? `${membershipType} membership` : 'Membership'}
+                    since={cardDate(memberSince)} validUntil={validUntilLabel} lifetime={lifetime}
+                    active={activeNow} status={activeNow ? 'Active' : statusLabel}
+                    details={[
+                        ...(abroad ? [{ label: 'Place', value: place }, { label: 'Country', value: country }]
+                            : [{ label: 'State', value: state }, { label: 'District', value: district }, { label: 'Block', value: block }]),
+                        { label: 'Business type', value: businessType }, { label: 'Application ID', value: applicationRef },
+                    ]}
+                    onPlan={() => navigate('/member/plan')}
+                    onUpgrade={() => navigate('/payment/membership-plans?upgrade=1')} />
+                <RenewalBanner renewal={renewal} />
             </div>
         </MemberPageShell>
-    );
-}
-
-/* ------------------------------------------------------------------ pieces */
-
-/**
- * A fact on the membership card — the same `BIZ_DETAIL_*` pair the rest of
- * the product uses, in the card's own ink.
- *
- * An absent value renders a dash rather than an empty cell: on a credential
- * the three columns have to keep their places, and a blank where "Block"
- * should be reads as a card that failed to render rather than as a member
- * whose block was never recorded.
- */
-function CardFact({ icon: Icon, label, value, className = '' }: {
-    icon?: typeof MapPin; label: string; value: string; className?: string;
-}) {
-    return (
-        <div className={`min-w-0 ${className}`}>
-            {/* `whitespace-nowrap` and a tighter track: inset in the blue
-                frame the panel lost 24px, and "MEMBER SINCE" was wrapping to
-                two lines in its column while its neighbours stayed on one —
-                which pushed that one value down a line. */}
-            <p className="flex min-w-0 items-center gap-1.5 text-[1rem] font-extrabold
-                          uppercase tracking-[0.06em] text-slate-400">
-                {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" /> : null}
-                <span className="break-words" title={label}>{label}</span>
-            </p>
-            <p className="mt-1 break-words text-[1.25rem] font-bold text-slate-900" title={value || '—'}>
-                {value || '—'}
-            </p>
-        </div>
-    );
-}
-
-/** A label over its value inside the hero card — `BIZ_DETAIL_*`, as elsewhere. */
-function HeroFact({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="min-w-0 rounded-xl bg-slate-50 px-3.5 py-3">
-            <p className={BIZ_DETAIL_LABEL}>{label}</p>
-            <p className="mt-1 break-words text-[1.25rem] font-bold text-slate-900" title={value}>
-                {value}
-            </p>
-        </div>
     );
 }

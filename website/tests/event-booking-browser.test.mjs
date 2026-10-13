@@ -57,11 +57,25 @@ try {
     await until('document.querySelector("#registration-meal")');
     const fill = async (index, value) => evaluate(`(()=>{const input=document.querySelectorAll('input')[${index}];Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     await fill(0, 'Booker'); await fill(1, 'booker@example.test'); await fill(2, '9000000001');
+    assert.equal(await evaluate("document.querySelectorAll('input')[4].value"), 'Booker', 'Participant 1 visibly mirrors booking contact');
+    await fill(0, 'Updated Booker');
+    assert.equal(await evaluate("document.querySelectorAll('input')[4].value"), 'Updated Booker');
+    await fill(0, 'Booker');
     const click = text => evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.trim().startsWith(${JSON.stringify(text)})).click()`);
     await click('Continue');
     await until('document.body.textContent.includes("Meal preference is required")');
     assert.equal(await evaluate('window.savedBody'), undefined, 'required questions prevent booking');
     await evaluate(`(()=>{const select=document.querySelector('#registration-meal');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(select,'Vegetarian');select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('#registration-consent').click();})()`);
+    await fill(3, '10');
+    await until("document.querySelectorAll('input[type=email]').length===11");
+    await click('Continue');
+    await until("document.querySelectorAll('[data-invalid=true]').length>=27");
+    assert.equal(await evaluate('window.savedBody'), undefined, 'nine missing attendees block continuation');
+    for (let index = 1; index < 10; index++) {
+        await fill(4 + index * 3, 'Delegate ' + index);
+        await fill(5 + index * 3, `delegate${index}@example.test`);
+        await fill(6 + index * 3, '91736524' + String(index).padStart(2, '0'));
+    }
     await click('Continue');
     await until('document.body.textContent.includes("Review your booking")');
     assert.equal(await evaluate('window.savedBody'), undefined, 'review does not create or charge');
@@ -71,6 +85,9 @@ try {
     await click('Confirm booking'); await until('document.body.textContent.includes("Entry passes")');
     assert.deepEqual(await evaluate('window.savedBody.responses'), { meal: 'Vegetarian', consent: true });
     assert.equal(await evaluate('window.savedBody.amount'), undefined);
+    assert.equal(await evaluate('window.savedBody.noOfPersons'), 10);
+    assert.equal(await evaluate('window.savedBody.participants.length'), 10);
+    assert(await evaluate('window.savedBody.participants.every(p=>p.name&&p.email&&p.phone)'));
     assert(await evaluate('document.body.textContent.includes("FIXTURE-REF-P1")'));
     if (css) assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'mobile ticket fits viewport');
     assert.deepEqual(errors, []);

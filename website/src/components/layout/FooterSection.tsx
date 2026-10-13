@@ -220,6 +220,8 @@ export function FooterSection() {
     );
 
     return (
+        <>
+        <div className={`${SCREEN_CONTAINER} py-8 sm:py-12`}><AppDownloadPromotion /></div>
         <footer className="relative w-full overflow-hidden bg-brand-900 text-white font-sans">
             {/*
               Depth, not decoration for its own sake: a flat fill this large
@@ -504,6 +506,7 @@ export function FooterSection() {
                 )}
             </div>
         </footer>
+        </>
     );
 }
 
@@ -531,3 +534,4 @@ function IconPlate({ children }: { children: React.ReactNode }) {
         </span>
     );
 }
+import AppDownloadPromotion from '@/components/shared/AppDownloadPromotion';

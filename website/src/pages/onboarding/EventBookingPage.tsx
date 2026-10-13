@@ -337,15 +337,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * field currently shows and may be empty or half-typed. Binding the input
      * to `count` is what made the box unclearable.
      */
-    const [countText, setCountText] = useState('');
-    /*
-     * NO ROWS UNTIL A NUMBER IS GIVEN.
-     *
-     * This started as one row for one seat, so the form opened with a
-     * Participant 1 box and a total already priced — an answer the member had
-     * not given, presented as one they had. The rows appear with the number.
-     */
-    const [participants, setParticipants] = useState<BookingParticipant[]>([]);
+    const [countText, setCountText] = useState('1');
+    // Start with the booking contact as the first attendee.
+    const [participantDetails, setParticipants] = useState<BookingParticipant[]>([emptyPerson()]);
+    const [firstUsesBooker, setFirstUsesBooker] = useState(true);
+    const participants = useMemo(() => Array.from({ length: count }, (_, index) =>
+        index === 0 && firstUsesBooker ? booker : participantDetails[index] || emptyPerson()
+    ), [count, firstUsesBooker, booker, participantDetails]);
     const [answers, setAnswers] = useState<RegistrationAnswers>({});
     const eventNow = useEventClock();
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -546,7 +544,9 @@ export default function EventBookingPage({ chrome = 'public' }: {
     }, [maxPerBooking]);
 
     const setParticipant = (index: number, field: keyof BookingParticipant, value: string) => {
-        setParticipants((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+        setParticipants(participants.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+        if (index === 0) setFirstUsesBooker(false);
+        setErrors(previous => ({ ...previous, [`p${index}.${field}`]: '' }));
     };
 
     /* ----------------------------------------------------------- validation */
@@ -555,10 +555,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * The same rules the server applies, so the form refuses what the server
      * would refuse and accepts what it would accept.
      *
-     * Deliberately NOT stricter. A client-side rule the server does not have is
-     * a field somebody cannot get past for a reason nobody can explain — and the
-     * participant rows are optional on the server precisely because an office
-     * manager booking colleagues may not have their email addresses.
+     * Every seat requires a complete participant, including guest bookings.
      */
     const validate = useCallback((): Record<string, string> => {
         const found: Record<string, string> = validateRegistrationAnswers(event?.registrationFields, answers);
@@ -571,15 +568,18 @@ export default function EventBookingPage({ chrome = 'public' }: {
         if (!mobile) found.phone = 'Please enter your mobile number';
         else if (!MOBILE_RE.test(mobile)) found.phone = 'Enter a valid 10-digit mobile number';
 
-        if (!Number.isFinite(count) || count < 1) found.count = 'Enter how many people are attending';
+        if (!countText.trim() || !Number.isInteger(count) || count < 1) found.count = 'Enter how many people are attending';
         else if (count > maxPerBooking) found.count = `At most ${maxPerBooking} per booking`;
 
         participants.forEach((person, i) => {
-            if (person.email.trim() && !EMAIL_RE.test(person.email.trim())) {
+            if (!person.name.trim()) found[`p${i}.name`] = 'Please enter the participant’s name';
+            if (!person.email.trim()) found[`p${i}.email`] = 'Please enter the participant’s email address';
+            else if (!EMAIL_RE.test(person.email.trim())) {
                 found[`p${i}.email`] = 'Enter a valid email address';
             }
             const digitsOnly = nationalMobile(person.phone);
-            if (digitsOnly && !MOBILE_RE.test(digitsOnly)) {
+            if (!digitsOnly) found[`p${i}.phone`] = 'Please enter the participant’s mobile number';
+            else if (!MOBILE_RE.test(digitsOnly)) {
                 found[`p${i}.phone`] = 'Enter a valid 10-digit mobile number';
             }
         });
@@ -605,7 +605,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         });
 
         return found;
-    }, [booker, count, participants, maxPerBooking, event?.registrationFields, answers]);
+    }, [booker, count, countText, participants, maxPerBooking, event?.registrationFields, answers]);
 
     const [checking, setChecking] = useState(false);
 
@@ -622,7 +622,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
             const fields = (error as { response?: { data?: { fields?: Record<string, string> } } })?.response?.data?.fields || {};
             const mapped: Record<string, string> = {};
             Object.entries(fields).forEach(([key, message]) => {
-                const m = key.match(/^participants\.(\d+)\.(email|phone)$/);
+                const m = key.match(/^participants\.(\d+)\.(name|email|phone)$/);
                 mapped[m ? `p${m[1]}.${m[2]}` : key] = String(message);
             });
             return mapped; // a network failure returns {}; the booking itself re-checks
@@ -815,7 +815,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
             if (fields && typeof fields === 'object' && Object.keys(fields).length) {
                 const mapped: Record<string, string> = {};
                 Object.entries(fields).forEach(([key, message]) => {
-                    const m = key.match(/^participants\.(\d+)\.(email|phone)$/);
+                    const m = key.match(/^participants\.(\d+)\.(name|email|phone)$/);
                     mapped[m ? `p${m[1]}.${m[2]}` : key] = String(message);
                 });
                 setErrors(mapped);
@@ -1550,8 +1550,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                     Participants
                                 </h2>
                                 <p className="text-[1.0625rem] text-gray-600 font-semibold mb-5">
-                                    Who is attending. Leave a row blank if you do not have their
-                                    details yet — only your own are required.
+                                    Name, email and mobile are required for every participant.
+                                    Participant 1 is filled from your booking details; edit it if someone else is attending.
                                 </p>
 
                                 <div className="space-y-4">
@@ -1580,34 +1580,23 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                             <p className="text-[1.0625rem] font-extrabold uppercase
                                                           tracking-widest text-brand-800 mb-3">
                                                 Participant {i + 1}
-                                                {i === 0 && (
-                                                    <span className="text-gray-400"> — defaults to you</span>
+                                                {i === 0 && firstUsesBooker && (
+                                                    <span className="text-gray-500"> — your details</span>
                                                 )}
                                             </p>
                                             <div className="grid sm:grid-cols-3 gap-4 sm:gap-5">
                                                 <Field
                                                     label="Name"
+                                                    required
                                                     compact
+                                                    error={errors[`p${i}.name`]}
                                                     value={person.name}
                                                     onChange={(v) => setParticipant(i, 'name', v)}
-                                                    /*
-                                                     * PLAIN "Name", even on the
-                                                     * first row.
-                                                     *
-                                                     * It echoed the booker's own
-                                                     * details as the placeholder,
-                                                     * which reads as a value
-                                                     * already filled in: the box
-                                                     * looks answered and is
-                                                     * empty. The caption above
-                                                     * the card is what states the
-                                                     * default; a box shows what
-                                                     * is IN it, and nothing is.
-                                                     */
                                                     placeholder="Name"
                                                 />
                                                 <Field
                                                     label="Email"
+                                                    required
                                                     compact
                                                     type="email"
                                                     error={errors[`p${i}.email`]}
@@ -1617,6 +1606,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                                 />
                                                 <Field
                                                     label="Mobile"
+                                                    required
                                                     compact
                                                     type="tel"
                                                     inputMode="numeric"

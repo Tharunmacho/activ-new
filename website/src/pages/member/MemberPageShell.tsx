@@ -270,9 +270,11 @@ export default function MemberPageShell({
                       */}
                     <div className={`relative z-10 w-full mx-auto ${sidebar ? WIDTHS[width] : RAILLESS[width]}`}>
                         {children}
+                        {sidebar && <div className="mt-6 sm:mt-8"><AppDownloadPromotion member /></div>}
                     </div>
                 </main>
             </div>
         </div>
     );
 }
+import AppDownloadPromotion from '@/components/shared/AppDownloadPromotion';
