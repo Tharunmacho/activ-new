@@ -1,6 +1,7 @@
 import { membershipValidityLabel } from '@/lib/membershipDates';
 import { useEventClock } from '@/lib/useEventClock';
 import DashboardMembership from '../components/DashboardMembership';
+import DashboardWelcome from '../components/DashboardWelcome';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RenewalBanner from '@/features/member/components/RenewalBanner';
@@ -481,17 +482,11 @@ export default function PaidDashboard() {
         <MemberPageShell title={platinum ? 'Lifetime Membership' : 'Dashboard'} subtitle={platinum ? 'Your connection to the ACTIV community' : 'Your membership at a glance'} width="wide" appearance={platinum ? 'gold' : 'default'}>
             <div className={`space-y-4 sm:space-y-6 ${platinum ? 'platinum-dashboard' : ''}`}>
 
-                <section className="relative overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-br from-[#142657] via-[#223d7d] to-[#2b63c8] p-5 text-white sm:p-8" aria-label="Member welcome">
-                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full border-[35px] border-white/5" />
-                    <div className="relative flex items-start gap-4 sm:items-center sm:gap-5">
-                        <MemberAvatar name={name} className="h-14 w-14 shrink-0 rounded-full bg-white/15 ring-2 ring-white/30 sm:h-20 sm:w-20" initialsClassName="text-xl font-bold text-white" />
-                        <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-blue-100">{greeting}</p>
-                            <h2 className="mt-1 break-words text-2xl font-extrabold tracking-tight text-white sm:text-3xl">{name}</h2>
-                            <p className="mt-2 text-sm leading-relaxed text-blue-100 sm:text-base">Discover opportunities. Stay connected to your community.</p>
-                            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold"><span className="rounded-full bg-white/15 px-3 py-1.5">{planTitle}</span><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5"><CalendarDays className="h-3.5 w-3.5" />{today.date}</span></div>
-                        </div>
-                    </div>
-                </section>
+                <DashboardWelcome name={name} greeting={greeting} date={today.date} day={today.day}
+                    plan={planTitle} lifetime={lifetime} applicationRef={applicationRef} memberSince={memberSinceLabel}
+                    region={(abroad ? [place, country] : [district, state]).filter((value, i, all) => !!value && all.indexOf(value) === i).join(', ')}
+                    avatar={<MemberAvatar name={name} className="h-16 w-16 shrink-0 rounded-full bg-white/15 shadow-lg ring-4 ring-white/30 sm:h-20 sm:w-20" initialsClassName="text-2xl font-bold text-white" />} />
+                {profile?.currentMembership?.message && <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"><p className="font-semibold">Membership progression</p><p className="mt-1">{profile.currentMembership.message}</p></div>}
 
                 {/* ============================ quick actions · documents */}
                 {/* 1.6 / 1, not 1.05 / 1. Five tiles in half a 1280px

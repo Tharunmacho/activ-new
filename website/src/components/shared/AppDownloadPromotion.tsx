@@ -34,12 +34,12 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
     useEffect(() => {
         if (hidden) return;
         let active = true;
-        QRCode.toDataURL(ACTIV_PLAY_STORE_URL, { width: 160, margin: 2, errorCorrectionLevel: 'M', color: { dark: '#14265b', light: '#ffffff' } })
+        QRCode.toDataURL(ACTIV_PLAY_STORE_URL, { width: 416, margin: 4, errorCorrectionLevel: 'M', color: { dark: '#14265b', light: '#ffffff' } })
             .then(value => { if (active) setQr(value); }).catch(() => {});
         return () => { active = false; };
     }, [hidden]);
     if (hidden) return null;
-    return <section className="activ-app-promo" aria-label="Get the ACTIV mobile app">
+    return <section className="activ-app-promo-shell font-sans" aria-label="Get the ACTIV mobile app"><div className="activ-app-promo">
         <div className="activ-app-promo__copy">
             <span className="activ-app-promo__eyebrow"><Smartphone size={16} /> THE ACTIV APP</span>
             <h2>Your community.<br /><span>Always with you.</span></h2>
@@ -56,16 +56,16 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
                 <span className="activ-app-promo__hint">{member ? 'One account. Website and app.' : 'Explore first. Join when you’re ready.'}</span>
             </div>
         </div>
-        <div className="activ-app-promo__visual" aria-hidden="true">
-            <div className="activ-app-phone">
-                <div className="activ-app-phone__top"><img src="/logo_ACTIVian-removebg-preview.png" alt="" /><span>Welcome to ACTIV</span><strong>Discover. Connect. Grow.</strong></div>
-                <div className="activ-app-phone__body">
-                    <div className="activ-app-phone__event"><CalendarDays size={26} /><span><strong>Your next opportunity</strong><small>Explore upcoming events</small></span><ArrowUpRight size={18} /></div>
-                    <div className="activ-app-phone__tiles"><span><CreditCard />Membership</span><span><Megaphone />Updates</span></div>
-                    <div className="activ-app-phone__line" /><div className="activ-app-phone__line is-short" />
-                </div>
-            </div>
+        <div className="activ-app-promo__visual">
+            <figure className="activ-app-promo__screen">
+                <div className="activ-app-phone"><img src="/app/activ-android-home.png" width="945" height="2048" loading="lazy" decoding="async"
+                    alt="ACTIV Android app home screen with upcoming event banners and Home, Events, Gallery, News and Zones navigation" /></div>
+                <figcaption>A look inside the ACTIV app</figcaption>
+            </figure>
+            {qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">
+                <img src={qr} width="208" height="208" alt="QR code linking to ACTIV on Google Play" />
+                <span><strong>Scan to get ACTIV</strong><span>Open your phone’s camera to download the Android app.</span></span>
+            </a>}
         </div>
-        {qr && <div className="activ-app-promo__qr"><img src={qr} width="128" height="128" alt="QR code linking to ACTIV on Google Play" /><span>Scan to get the app</span></div>}
-    </section>;
+    </div></section>;
 }

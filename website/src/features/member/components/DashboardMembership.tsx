@@ -1,4 +1,5 @@
-import { ArrowRight, BadgeCheck, CalendarDays, Crown, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, CalendarDays, Crown, ShieldCheck, Sparkles, User } from 'lucide-react';
+import cardBackdrop from '@/assets/membership-card-bg.svg';
 import './dashboardMembership.css';
 
 type Props = {
@@ -12,17 +13,22 @@ export default function DashboardMembership(props: Props) {
     return <section className="dashboard-membership" aria-label="Your membership">
         <div className="dashboard-membership__heading"><ShieldCheck size={22} /><div><h2>Your membership</h2><p>Your card, details and next steps, together.</p></div></div>
         <div className="dashboard-membership__grid">
-            <div className="dashboard-membership__identity">
-                <div className={`dashboard-member-card ${props.lifetime ? 'is-lifetime' : ''}`}>
-                    <div className="dashboard-member-card__top"><img src="/logo_ACTIVian-removebg-preview.png" alt="ACTIV" /><span className={props.active ? 'is-active' : ''}><BadgeCheck size={15} />{props.status}</span></div>
-                    <p className="dashboard-member-card__name">{props.name}</p>
-                    <p className="dashboard-member-card__plan">{props.lifetime && <Crown size={16} />}{props.plan}<span>{props.lifetime ? 'Lifetime membership' : props.membershipLabel || 'Membership'}</span></p>
+            <article className={`dashboard-membership__identity ${props.lifetime ? 'is-lifetime' : ''}`} aria-label={`${props.name}'s membership card`}>
+                <img className="dashboard-member-card__backdrop" src={cardBackdrop} alt="" aria-hidden="true" />
+                <div className="dashboard-member-card">
+                    <div className="dashboard-member-card__top">
+                        <div className="dashboard-member-card__plan">
+                            <span className="dashboard-member-card__icon">{props.lifetime ? <Crown size={23} /> : <User size={23} />}</span>
+                            <div><h3>{props.plan}</h3><p>{props.lifetime ? 'Lifetime · never renews' : props.membershipLabel || 'Membership'}</p></div>
+                        </div>
+                        <span className={`dashboard-member-card__status ${props.active ? 'is-active' : ''}`}><BadgeCheck size={15} />{props.status}</span>
+                    </div>
                     <div className="dashboard-member-card__id"><span>MEMBER ID</span><strong>{props.memberId || 'Awaiting assignment'}</strong></div>
                     <div className="dashboard-member-card__dates"><div><span>MEMBER SINCE</span><strong>{props.since || '—'}</strong></div><div><span>{props.lifetime ? 'VALIDITY' : 'VALID UNTIL'}</span><strong>{props.lifetime ? 'Lifetime' : props.validUntil || '—'}</strong></div></div>
                 </div>
                 <dl className="dashboard-membership__facts">{props.details.filter(item => item.value).map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
                 <button type="button" className="dashboard-membership__details" onClick={props.onPlan}>View plan details <ArrowRight size={17} /></button>
-            </div>
+            </article>
             <div className="dashboard-membership__next">
                 <div className="dashboard-membership__icon">{props.lifetime ? <Crown size={25} /> : <Sparkles size={25} />}</div>
                 <span className="dashboard-membership__eyebrow">GROW WITH ACTIV</span>
