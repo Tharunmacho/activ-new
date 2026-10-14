@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { MessageCircle, X, GripVertical, HeartHandshake } from 'lucide-react';
+import { MessageCircle, X, GripVertical, HeartHandshake, Smartphone } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
+import { ACTIV_PLAY_STORE_URL, insideActivApp } from '@/components/shared/AppDownloadPromotion';
 
 /**
  * THE FLOATING BUTTONS — two independent, movable groups.
  *
  *   1. WhatsApp + "Chat with us" (BotBee webchat), one stack, right side by default.
- *   2. DONATE, on its own, left side by default — separate so it never crowds
- *      or covers the two support buttons.
+ *   2. GET THE APP + DONATE, separate buttons in a left-side group so they
+ *      stay apart from the two support buttons.
  *
  * - DRAG either group anywhere (mouse or finger, by its grip or its buttons).
  *   On release it snaps to the nearer side; each group's spot is remembered
@@ -151,6 +152,7 @@ export default function FloatingLaunchers() {
     const [chatClosed, setChatClosed] = useState(() => readClosed('activ-chat-closed'));
     const [waClosed, setWaClosed] = useState(() => readClosed('activ-whatsapp-closed'));
     const [donateClosed, setDonateClosed] = useState(() => readClosed('activ-donate-closed'));
+    const [appClosed, setAppClosed] = useState(() => readClosed('activ-download-closed'));
 
     const support = useFloatingDrag(SUPPORT_SPOT_KEY, { side: 'right', y: 0.82 });
     const donate = useFloatingDrag(DONATE_SPOT_KEY, { side: 'left', y: 0.82 });
@@ -158,12 +160,22 @@ export default function FloatingLaunchers() {
     if (HIDDEN_ON.test(pathname)) return null;
     const showSupport = !(chatClosed && waClosed);
     const showDonate = !donateClosed && !DONATE_HIDDEN_ON.test(pathname);
+    const showApp = !appClosed && !insideActivApp();
 
     return (
         <>
-            {showDonate ? (
+            {showDonate || showApp ? (
                 <div ref={donate.box} style={donate.style} {...donate.handlers} className={donate.className}>
                     <Grip />
+                    {showApp && <div className="relative">
+                        <a href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
+                            aria-label="Get the ACTIV app on Google Play" draggable={false}
+                            className="activ-app-launcher relative inline-flex h-12 select-none items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[#14265b] to-[#2563eb] px-4 text-white shadow-lg ring-1 ring-white/30 transition-transform hover:scale-105 active:scale-95 sm:px-5">
+                            <Smartphone className="h-5 w-5" aria-hidden="true" />
+                            <span className="text-sm font-bold sm:text-[0.95rem]">Get the app</span>
+                        </a>
+                        <CloseDot label="Close app download button" onClose={() => { setAppClosed(true); writeClosed('activ-download-closed'); }} />
+                    </div>}
                     {showDonate && <div className="relative">
                         <Link
                             to="/donate"

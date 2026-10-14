@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ArrowUpRight, CalendarDays, CreditCard, Images, Megaphone, Smartphone } from 'lucide-react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import { ArrowUpRight, CalendarDays, CreditCard, House, Images, MapPin, Megaphone, Newspaper, Smartphone } from 'lucide-react';
 import QRCode from 'qrcode';
 import './appDownloadPromotion.css';
 
@@ -22,8 +22,11 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
     const [qr, setQr] = useState('');
     const [preview, setPreview] = useState(0);
     const screens = [
-        { label: 'Discover & book', icon: CalendarDays, src: '/app/activ-android-home.png', alt: 'ACTIV Android Home screen with upcoming event banners and community highlights', caption: 'Find your next event. Book from the app.' },
-        { label: 'Community gallery', icon: Images, src: '/app/activ-android-gallery.png', alt: 'ACTIV Android Gallery screen showing photographs from community events', caption: 'Explore moments from across the ACTIV community.' },
+        { label: 'Home', icon: House, src: '/app/activ-android-home.png', alt: 'ACTIV Android Home screen with upcoming event banners and community highlights', caption: 'Your community, events and opportunities. All in one app.' },
+        { label: 'Events', icon: CalendarDays, src: '/app/activ-android-events.png', alt: 'ACTIV Android Events screen with upcoming programmes and event search', caption: 'Find your next opportunity. Discover and book ACTIV events.' },
+        { label: 'Gallery', icon: Images, src: '/app/activ-android-gallery.png', alt: 'ACTIV Android Gallery screen showing photographs from community events', caption: 'See the people, moments and connections that bring ACTIV together.' },
+        { label: 'News', icon: Newspaper, src: '/app/activ-android-news.png', alt: 'ACTIV Android News screen with association news and announcements', caption: 'Stay connected to the latest news from the ACTIV community.' },
+        { label: 'Zones', icon: MapPin, src: '/app/activ-android-zones.png', alt: 'ACTIV Android Zones screen with national and regional updates', caption: 'Explore your region. Connect with ACTIV closer to home.' },
     ];
     const hidden = insideActivApp();
     useEffect(() => {
@@ -36,7 +39,7 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
     if (hidden) return null;
     return <section className="activ-app-promo-shell font-sans" aria-label="Get the ACTIV mobile app"><div className="activ-app-promo">
         <div className="activ-app-promo__copy">
-            <span className="activ-app-promo__eyebrow"><Smartphone size={16} /> THE ACTIV APP</span>
+            <span className="activ-app-promo__eyebrow"><Smartphone size={16} /> ACTIV FOR ANDROID</span>
             <h2>Your community.<br /><span>Always with you.</span></h2>
             <p>{member ? 'Your ACTIV membership, ready when you need it. Sign in with the same account on the app.' : 'Discover ACTIV, find your next event and stay close to your community. Now on Android.'}</p>
             <ul className="activ-app-promo__features">
@@ -44,25 +47,32 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
                 <li><CreditCard size={17} /> Membership in your pocket</li>
                 <li><Megaphone size={17} /> Association updates</li>
             </ul>
-            <div className="activ-app-promo__switcher" aria-label="Preview the ACTIV app">
-                {screens.map((screen, index) => <button key={screen.src} type="button" aria-pressed={preview === index} onClick={() => setPreview(index)}><screen.icon size={18} />{screen.label}</button>)}
-            </div>
-            <div className="activ-app-promo__actions">
+            <div className="activ-app-promo__download"><div className="activ-app-promo__actions">
                 <a className="activ-play-button" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Get ACTIV on Google Play">
                     <PlayMark /><span><small>GET IT ON</small><strong>Google Play</strong></span><ArrowUpRight size={20} />
                 </a>
                 <span className="activ-app-promo__hint">{member ? 'One account. Website and app.' : 'Explore first. Join when you’re ready.'}</span>
-            </div>
+            </div>{qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">
+                <img src={qr} width="208" height="208" alt="QR code linking to ACTIV on Google Play" />
+                <span>Scan to download</span>
+            </a>}</div>
         </div>
         <div className="activ-app-promo__visual">
-            <figure className="activ-app-promo__screen">
-                <div className="activ-app-phone">{screens.map((screen, index) => <img key={screen.src} hidden={preview !== index} src={screen.src} width="945" height="2048" loading="lazy" decoding="async" alt={screen.alt} />)}</div>
-                <figcaption aria-live="polite">{screens[preview].caption}</figcaption>
-            </figure>
-            {qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">
-                <img src={qr} width="208" height="208" alt="QR code linking to ACTIV on Google Play" />
-                <span><strong>Scan to get ACTIV</strong><span>Open your phone’s camera to download the Android app.</span></span>
-            </a>}
+            <div className="activ-app-promo__screens" aria-label="A look inside the ACTIV app">
+                {screens.map((screen, index) => {
+                    const distance = (index - preview + screens.length) % screens.length;
+                    const position = distance > Math.floor(screens.length / 2) ? distance - screens.length : distance;
+                    return <button className="activ-app-promo__screen" key={screen.src} type="button"
+                        data-position={position} style={{ '--position': position } as CSSProperties}
+                        aria-label={`Preview ${screen.label}`} aria-pressed={preview === index} onClick={() => setPreview(index)}>
+                        <span className="activ-app-phone"><img src={screen.src} width="945" height="2048" loading="lazy" decoding="async" alt={screen.alt} /></span>
+                    </button>;
+                })}
+            </div>
+            <div className="activ-app-promo__switcher" aria-label="Choose an app screen">
+                {screens.map((screen, index) => <button type="button" key={screen.src} aria-pressed={preview === index} onClick={() => setPreview(index)}><screen.icon size={15} aria-hidden="true" />{screen.label}</button>)}
+            </div>
+            <p className="activ-app-promo__caption" aria-live="polite">{screens[preview].caption}</p>
         </div>
     </div></section>;
 }
