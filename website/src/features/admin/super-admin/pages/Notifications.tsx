@@ -45,7 +45,7 @@ const CHANNEL_META: Record<string, { label: string; icon: typeof Mail; tone: str
  * order a member meets them. Retired event names (still on a few old rows) are
  * left out — they made the list long and meant nothing to the reader.
  */
-const RETIRED = new Set(['EVENT_REGISTERED', 'EVENT_REMINDER', 'STAGE_CHANGED', 'PAYMENT_SUCCESS', 'ADMIN_QUEUE_ALERT']);
+const RETIRED = new Set(['STAGE_CHANGED', 'PAYMENT_SUCCESS', 'ADMIN_QUEUE_ALERT']);
 const EVENT_OPTIONS: [string, string][] = [
     ...MESSAGE_TYPES.filter(([value]) => !RETIRED.has(value)),
     ['CUSTOM', 'Test message'],
@@ -309,16 +309,15 @@ export default function Notifications() {
                                 ['Host', status?.email?.host || '—'],
                                 ['Account', status?.email?.user || '—'],
                                 ['From address', status?.email?.from || '—'],
-                                ['Regional From', status?.email?.regionalFrom ? 'On' : 'Off — region is in the display name'],
-                                ['Fallback Reply-To', status?.email?.supportAddress || '—'],
+                                ['Event queries', 'events@activ.org.in'],
+                                ['Membership queries', 'member@activ.org.in'],
                             ]}
-                            note="Application emails are sent from the verified address with the applicant's
-                                  region in the display name, and Reply-To set to their own Block, District or
-                                  State admin's registered address."
+                            note="Event messages use events@activ.org.in. Membership and business publishing
+                                  messages use member@activ.org.in. Replies go to the same relevant office."
                         />
                         <ChannelCard
                             icon={<MessageSquare className="w-5 h-5" />}
-                            title="WhatsApp (BotBee)"
+                            title={status?.whatsapp?.providerLabel || 'WhatsApp'}
                             configured={!!status?.whatsapp?.configured}
                             rows={[
                                 ['Base URL', status?.whatsapp?.baseUrl || '—'],
@@ -327,7 +326,7 @@ export default function Notifications() {
                                 ['Webhook secret', status?.whatsapp?.webhookConfigured ? 'Set' : 'Not set — inbound bot disabled'],
                             ]}
                             note={status?.whatsapp?.webhookUrl
-                                ? `Register this webhook URL on BotBee: ${status?.whatsapp?.webhookUrl}`
+                                ? `Delivery and reply webhook: ${status.whatsapp.webhookUrl}`
                                 : undefined}
                             noteIcon={<Webhook className="w-3.5 h-3.5" />}
                         />

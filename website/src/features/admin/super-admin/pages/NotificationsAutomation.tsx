@@ -40,7 +40,7 @@ const GROUPS: { key: Group; label: string; short: string; hint: string; icon: ty
 ];
 
 const ACCOUNT_TYPES = new Set(['PASSWORD_RESET', 'ADMIN_WELCOME', 'DONATION_RECEIPT', 'DONATION_STATEMENT']);
-const isBookingType = (event: string) => /^EVENT_(BOOKING|PARTICIPANT|DOCUMENT)_/.test(event);
+const isBookingType = (event: string) => event.startsWith('EVENT_');
 
 /** The message types that belong in the tab on screen, so the list is short and relevant. */
 const typesFor = (group: Group) => MESSAGE_TYPES.filter(([value]) => {

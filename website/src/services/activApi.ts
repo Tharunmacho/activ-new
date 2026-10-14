@@ -1618,6 +1618,7 @@ export interface DeliveryStatus {
         verification?: { ok: boolean; configured: boolean; error?: string };
     };
     whatsapp: {
+        provider?: 'meta' | 'botbee'; providerLabel?: string;
         configured: boolean; baseUrl: string; templateEndpoint: string;
         textEndpoint: string; authStyle: string;
         webhookConfigured: boolean; webhookUrl: string;
