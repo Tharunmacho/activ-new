@@ -3,29 +3,30 @@
 .activ-app-promo__screen:focus-visible,
 .activ-app-promo__switcher button:focus-visible { outline: 3px solid #83d5ff; outline-offset: 4px; }
 .activ-app-promo-shell { container-type: inline-size; min-width: 0; width: 100%; }
-.activ-app-promo { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 24px; padding: 28px; border: 1px solid #4969b3; border-radius: 28px; background: radial-gradient(ellipse at 85% 25%, #426fba 0, transparent 55%), linear-gradient(120deg, #12234f, #243f85); color: #fff; box-shadow: 0 20px 45px -30px #10234f; max-width: 100%; }
-.activ-app-promo__copy { position: relative; z-index: 1; min-width: 0; }
+.activ-app-promo { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'copy' 'visual' 'download'; align-items: center; gap: 20px; padding: 28px; border: 1px solid #4969b3; border-radius: 28px; background: radial-gradient(ellipse at 85% 25%, #426fba 0, transparent 55%), linear-gradient(120deg, #12234f, #243f85); color: #fff; box-shadow: 0 20px 45px -30px #10234f; width: 100%; max-width: 1200px; margin-inline: auto; }
+.activ-app-promo__copy { grid-area: copy; position: relative; z-index: 1; min-width: 0; width: 100%; max-width: 540px; justify-self: center; }
 .activ-app-promo__eyebrow { display: inline-flex; align-items: center; gap: 8px; color: #c3dcff; font-size: 14px; line-height: 1.5; font-weight: 700; letter-spacing: 1px; }
-.activ-app-promo h2 { color: #fff; font-family: inherit; font-size: clamp(28px, 3.3cqw, 40px); line-height: 1.18; font-weight: 800; letter-spacing: -.025em; margin: 12px 0 16px; }
+.activ-app-promo h2 { color: #fff; font-family: inherit; font-size: clamp(28px, 3.3cqw, 38px); line-height: 1.18; font-weight: 800; letter-spacing: -.025em; margin: 10px 0 14px; }
 .activ-app-promo h2 span { color: #b9d8ff; }
-.activ-app-promo p { max-width: 560px; color: #e3ecff; font-size: 17px; line-height: 1.65; margin: 0; }
-.activ-app-promo__features { display: flex; flex-wrap: wrap; gap: 10px 18px; list-style: none; padding: 0; margin: 18px 0 22px; font-size: 14px; line-height: 1.6; font-weight: 500; color: #eff5ff; }
+.activ-app-promo p { max-width: 520px; color: #e3ecff; font-size: 17px; line-height: 1.6; margin: 0; }
+.activ-app-promo__features { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 16px 0 0; font-size: 14px; line-height: 1.6; font-weight: 500; color: #eff5ff; }
 .activ-app-promo__features li { display: flex; align-items: center; gap: 8px; }
 .activ-app-promo__features svg { width: 19px; height: 19px; flex-shrink: 0; color: #a9d2ff; }
-.activ-app-promo__download { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; }
-.activ-app-promo__actions { display: flex; align-items: flex-start; flex-direction: column; gap: 12px; }
+.activ-app-promo__download { grid-area: download; display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 20px; width: 100%; max-width: 540px; justify-self: center; }
+.activ-app-promo__actions { display: flex; align-items: flex-start; flex-direction: column; gap: 10px; }
 .activ-play-button { display: inline-flex; align-items: center; justify-content: center; gap: 14px; min-height: 64px; padding: 12px 18px; border: 1px solid #c5d0e6; border-radius: 15px; background: #fff; color: #10234f; text-decoration: none; box-shadow: 0 8px 24px #07122633; transition: background .2s, box-shadow .2s; }
 .activ-play-button:hover { background: #eaf2ff; box-shadow: 0 8px 28px #07122666; }
 .activ-play-button span { display: flex; flex-direction: column; align-items: flex-start; }
+.activ-play-button svg { flex-shrink: 0; }
 .activ-play-button small { font-size: 11px; line-height: 1.4; font-weight: 600; letter-spacing: 1px; }
 .activ-play-button strong { font-size: 23px; line-height: 1.3; font-weight: 600; }
 .activ-app-promo__hint { color: #d1e2ff; font-size: 14px; line-height: 1.6; max-width: 240px; }
 .activ-app-promo__qr { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: #e3ecff; text-decoration: none; border-radius: 14px; font-size: 13px; line-height: 1.5; font-weight: 600; }
-.activ-app-promo__qr img { display: block; border-radius: 14px; width: 144px; height: auto; aspect-ratio: 1; box-shadow: 0 8px 24px #07122633; }
-.activ-app-promo__visual { --phone-width: clamp(124px, 16cqw, 166px); --phone-step: clamp(42px, 7cqw, 87px); display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; width: 100%; max-width: 640px; justify-self: center; }
-.activ-app-promo__screens { position: relative; isolation: isolate; width: 100%; height: calc(var(--phone-width) * 2.17 + 22px); }
+.activ-app-promo__qr img { display: block; border-radius: 14px; width: 132px; height: auto; aspect-ratio: 1; box-shadow: 0 8px 24px #07122633; }
+.activ-app-promo__visual { grid-area: visual; --phone-width: clamp(132px, 15cqw, 152px); --phone-step: clamp(52px, 6cqw, 78px); display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; width: 100%; max-width: 540px; justify-self: center; }
+.activ-app-promo__screens { position: relative; isolation: isolate; width: 100%; height: calc(var(--phone-width) * 2.17 + 12px); }
 .activ-app-promo__screens::before { content: ''; position: absolute; inset: 17% 7% 9%; z-index: -1; border: 1px solid #c3dcff30; border-radius: 50%; background: radial-gradient(ellipse, #76bfff42, transparent 70%); box-shadow: 0 0 0 20px #c3dcff08; }
-.activ-app-promo__screen { --tilt: 0deg; --scale: 1; --drop: 0px; position: absolute; top: 10px; left: 50%; display: block; width: var(--phone-width); padding: 0; border: 0; border-radius: 23px; background: transparent; cursor: pointer; z-index: 5; transform: translateX(calc(-50% + var(--position) * var(--phone-step))) translateY(var(--drop)) rotate(var(--tilt)) scale(var(--scale)); transform-origin: center center; transition: transform .4s ease, filter .4s ease; }
+.activ-app-promo__screen { --tilt: 0deg; --scale: 1; --drop: 0px; position: absolute; top: 6px; left: 50%; display: block; width: var(--phone-width); padding: 0; border: 0; border-radius: 23px; background: transparent; cursor: pointer; z-index: 5; transform: translateX(calc(-50% + var(--position) * var(--phone-step))) translateY(var(--drop)) rotate(var(--tilt)) scale(var(--scale)); transform-origin: center center; transition: transform .4s ease, filter .4s ease; }
 .activ-app-promo__screen[data-position='-1'] { --tilt: -7deg; --scale: .87; --drop: 12px; z-index: 3; }
 .activ-app-promo__screen[data-position='1'] { --tilt: 7deg; --scale: .87; --drop: 12px; z-index: 3; }
 .activ-app-promo__screen[data-position='-2'] { --tilt: -13deg; --scale: .73; --drop: 24px; z-index: 2; }
@@ -40,23 +41,37 @@
 .activ-app-promo__switcher button[aria-pressed='true'] { background: #e9f3ff; color: #14265b; border-color: #fff; }
 .activ-app-promo__switcher svg { flex-shrink: 0; }
 .activ-app-promo .activ-app-promo__caption { max-width: 400px; min-height: 44px; color: #d5e5ff; font-size: 14px; line-height: 1.55; text-align: center; }
-@container (min-width: 1000px) { .activ-app-promo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 30px; padding: 28px; } }
-@container (min-width: 600px) and (max-width: 999px) { .activ-app-promo__copy { max-width: 620px; justify-self: center; width: 100%; } }
-@container (max-width: 600px) {
-  .activ-app-promo { padding: 24px; border-radius: 22px; gap: 26px; }
-  .activ-app-promo__features { gap: 10px; flex-direction: column; margin: 20px 0; }
-  .activ-app-promo__visual { --phone-width: clamp(112px, 36cqw, 160px); --phone-step: clamp(23px, 8cqw, 47px); }
+@container (min-width: 880px) {
+  .activ-app-promo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); grid-template-areas: 'copy visual' 'download visual'; column-gap: clamp(24px, 3cqw, 40px); row-gap: 18px; padding: 24px 28px; }
+  .activ-app-promo__copy { align-self: end; }
+  .activ-app-promo__download { align-self: start; }
+  .activ-app-promo__visual { --phone-width: clamp(132px, 13cqw, 152px); --phone-step: clamp(52px, 5.5cqw, 78px); }
+}
+@container (min-width: 600px) and (max-width: 879px) {
+  .activ-app-promo { grid-template-columns: minmax(0, 1fr); }
+  .activ-app-promo__download { justify-content: space-between; }
+}
+@container (min-width: 880px) and (max-width: 1099px) {
+  .activ-app-promo__download { gap: 14px; }
+  .activ-app-promo__qr img { width: 112px; }
+}
+@container (max-width: 599px) {
+  .activ-app-promo { padding: 22px; border-radius: 22px; gap: 20px; }
+  .activ-app-promo__features { gap: 8px; flex-direction: column; margin: 16px 0 0; }
+  .activ-app-promo__visual { --phone-width: clamp(112px, 34cqw, 150px); --phone-step: clamp(23px, 8cqw, 47px); }
   .activ-app-phone { border-width: 3px; border-radius: 19px; }
   .activ-app-promo__switcher { gap: 6px; }
   .activ-app-promo__switcher button { font-size: 12px; padding: 8px 10px; }
-  .activ-app-promo__qr { flex-direction: row; text-align: left; gap: 16px; }
+  .activ-app-promo__download { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px 16px; }
+  .activ-app-promo__actions { display: contents; }
+  .activ-play-button { grid-column: 1 / -1; width: 100%; }
+  .activ-app-promo__hint { grid-column: 2; grid-row: 2; max-width: none; }
+  .activ-app-promo__qr { grid-column: 1; grid-row: 2; gap: 7px; font-size: 12px; flex-direction: column; text-align: center; }
   .activ-app-promo__qr img { width: 112px; border-radius: 12px; }
 }
 @container (max-width: 380px) {
   .activ-app-promo { padding: 20px; }
-  .activ-app-promo__download, .activ-app-promo__actions { width: 100%; }
   .activ-play-button { width: 100%; padding: 12px; gap: 10px; }
   .activ-play-button strong { font-size: 21px; }
-  .activ-app-promo__qr { font-size: 12px; gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .activ-app-promo__screen, .activ-app-promo__switcher button, .activ-play-button { transition: none; } }

@@ -9,6 +9,7 @@ import type { CmsExtraField, CmsSectionOverride } from '@/services/cmsApi';
 import { ICON_GROUPS } from '@/services/cmsApi';
 import { CmsIcon, hasIcon } from '@/components/shared/CmsIcon';
 import { CARD_TITLE } from '@/components/layout/appTypography';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 /**
  * Shared pieces for the CMS screens.
  *
@@ -327,6 +328,7 @@ interface ListProps<T> {
  */
 export function RepeatableList<T>({
     items, onChange, noun, blank, row, reorderable = true, max, summary, compact = false, collapseSignal,
+    editorPresentation = 'inline', editorDescription, editorBusy = false,
 }: ListProps<T> & {
     /**
      * What the CLOSED card says. Without it a row is "slide 3", which is the
@@ -365,6 +367,11 @@ export function RepeatableList<T>({
      * knows whether its rows are read in an order somebody cares about.
      */
     compact?: boolean;
+    /** Long photo forms stay visible without scrolling past the entire album. */
+    editorPresentation?: 'inline' | 'dialog';
+    editorDescription?: string;
+    /** Keep the editor mounted until an in-progress upload finishes. */
+    editorBusy?: boolean;
 }) {
     /*
      * Which row is open. One at a time — six open forms is the thing this
@@ -372,6 +379,7 @@ export function RepeatableList<T>({
      * adding one is always followed by filling it in.
      */
     const [openIndex, setOpenIndex] = useState<number | null>(null);
+    const editorActionRef = useRef<HTMLButtonElement | null>(null);
 
     /* Saved -> fold the open row away. Skips the first render. */
     const lastSignal = useRef(collapseSignal);
@@ -424,7 +432,7 @@ export function RepeatableList<T>({
     const addButton = (label: string, at: number, subtle = false) => (
         <button
             type="button"
-            onClick={() => insertAt(at)}
+            onClick={event => { editorActionRef.current = event.currentTarget; insertAt(at); }}
             disabled={atLimit}
             className={subtle
                 ? `inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5
@@ -510,7 +518,10 @@ export function RepeatableList<T>({
                             <div className="ml-auto flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
-                                    onClick={() => setOpenIndex(open ? null : index)}
+                                    onClick={event => {
+                                        editorActionRef.current = event.currentTarget;
+                                        setOpenIndex(open ? null : index);
+                                    }}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
                                                 text-[1.0625rem] font-semibold transition-colors ${open
                                         ? 'bg-blue-50 text-[#2563EB] dark:bg-blue-950/40'
@@ -584,7 +595,7 @@ export function RepeatableList<T>({
                         )}
 
                         {/* ---------------- open: the fields ---------------- */}
-                        {open && (
+                        {open && editorPresentation === 'inline' && (
                             <div className="border-t border-slate-100 p-4 dark:border-[#1f1f1f]">
                                 {row(item, (patch) => update(index, patch), index)}
 
@@ -611,6 +622,39 @@ export function RepeatableList<T>({
                     </div>
                 );
             })}
+            {editorPresentation === 'dialog' && (
+                <Dialog open={openIndex !== null && !!items[openIndex]} onOpenChange={next => {
+                    if (!next && !editorBusy) setOpenIndex(null);
+                }}>
+                    <DialogContent
+                        className={`flex max-h-[90dvh] w-[calc(100vw-2rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl p-0 ${editorBusy ? '[&>button:last-child]:hidden' : ''}`}
+                        aria-busy={editorBusy}
+                        onEscapeKeyDown={event => { if (editorBusy) event.preventDefault(); }}
+                        onInteractOutside={event => event.preventDefault()}
+                        onCloseAutoFocus={event => {
+                            event.preventDefault();
+                            editorActionRef.current?.focus({ preventScroll: true });
+                        }}
+                    >
+                        <DialogHeader className="shrink-0 border-b border-slate-200 px-4 py-5 pr-12 text-left sm:px-6 dark:border-[#2a2a2a]">
+                            <DialogTitle className="capitalize">{noun} {openIndex === null ? '' : openIndex + 1}</DialogTitle>
+                            <DialogDescription className="text-[1rem] leading-relaxed">
+                                {editorDescription || 'Edit the details, then choose Done to return to the list.'}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
+                            {openIndex !== null && items[openIndex] && row(items[openIndex], patch => update(openIndex, patch), openIndex)}
+                        </div>
+                        <div className="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-4 py-4 sm:px-6 dark:border-[#2a2a2a]">
+                            {editorBusy && <span role="status" className="text-[1rem] text-slate-500">Finishing upload…</span>}
+                            <button type="button" disabled={editorBusy} onClick={() => setOpenIndex(null)}
+                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2 text-[1.0625rem] font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+                                <Check className="h-4 w-4" /> Done
+                            </button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }

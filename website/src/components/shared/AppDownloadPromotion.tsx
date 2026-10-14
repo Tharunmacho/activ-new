@@ -47,15 +47,6 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
                 <li><CreditCard size={17} /> Membership in your pocket</li>
                 <li><Megaphone size={17} /> Association updates</li>
             </ul>
-            <div className="activ-app-promo__download"><div className="activ-app-promo__actions">
-                <a className="activ-play-button" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Get ACTIV on Google Play">
-                    <PlayMark /><span><small>GET IT ON</small><strong>Google Play</strong></span><ArrowUpRight size={20} />
-                </a>
-                <span className="activ-app-promo__hint">{member ? 'One account. Website and app.' : 'Explore first. Join when you’re ready.'}</span>
-            </div>{qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">
-                <img src={qr} width="208" height="208" alt="QR code linking to ACTIV on Google Play" />
-                <span>Scan to download</span>
-            </a>}</div>
         </div>
         <div className="activ-app-promo__visual">
             <div className="activ-app-promo__screens" aria-label="A look inside the ACTIV app">
@@ -73,6 +64,18 @@ export default function AppDownloadPromotion({ member = false }: { member?: bool
                 {screens.map((screen, index) => <button type="button" key={screen.src} aria-pressed={preview === index} onClick={() => setPreview(index)}><screen.icon size={15} aria-hidden="true" />{screen.label}</button>)}
             </div>
             <p className="activ-app-promo__caption" aria-live="polite">{screens[preview].caption}</p>
+        </div>
+        <div className="activ-app-promo__download">
+            <div className="activ-app-promo__actions">
+                <a className="activ-play-button" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Get ACTIV on Google Play">
+                    <PlayMark /><span><small>GET IT ON</small><strong>Google Play</strong></span><ArrowUpRight size={20} />
+                </a>
+                <span className="activ-app-promo__hint">{member ? 'One account. Website and app.' : 'Explore first. Join when you’re ready.'}</span>
+            </div>
+            {qr && <a className="activ-app-promo__qr" href={ACTIV_PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Scan or open ACTIV on Google Play">
+                <img src={qr} width="208" height="208" alt="QR code linking to ACTIV on Google Play" />
+                <span>Scan to download</span>
+            </a>}
         </div>
     </div></section>;
 }

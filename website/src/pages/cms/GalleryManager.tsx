@@ -212,6 +212,7 @@ function ItemFields({ value, onChange, categories }: {
     categories: { label: string; icon: string }[];
 }) {
     const set = (patch: Partial<ItemDraft>) => onChange({ ...value, ...patch });
+    const [photoUploading, setPhotoUploading] = useState(false);
 
     return (
         <div className="space-y-5">
@@ -451,6 +452,10 @@ function ItemFields({ value, onChange, categories }: {
                     items={value.photos}
                     onChange={photos => set({ photos })}
                     noun="photo"
+                    max={100}
+                    editorPresentation="dialog"
+                    editorDescription="Choose a photo and add its details. Choose Done to return, then save the album to publish your changes."
+                    editorBusy={photoUploading}
                     /*
                      * What the CLOSED row says, and the picture it is.
                      *
@@ -481,6 +486,7 @@ function ItemFields({ value, onChange, categories }: {
                                 label=""
                                 aspect="4 / 3"
                                 value={photo}
+                                onUploadStateChange={setPhotoUploading}
                                 /*
                                  * The picker returns MEDIA only, so everything
                                  * else on the row has to be carried across by

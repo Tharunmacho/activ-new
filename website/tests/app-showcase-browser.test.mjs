@@ -38,7 +38,8 @@ try {
   const evaluate = async expression => { const value = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (value.result?.exceptionDetails) throw Error(value.result.exceptionDetails.text); return value.result?.result?.value; };
   const until = async expression => { for (let i = 0; i < 150; i++) { if (await evaluate(expression)) return; await pause(100); } throw Error(expression); };
   await send('Runtime.enable');
-  for (const width of [320, 390, 768, 1024, 1440]) {
+  const layouts = [];
+  for (const width of [320, 390, 600, 768, 912, 1024, 1440, 1920]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 950, deviceScaleFactor: 1, mobile: width < 600 });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/` });
     await until(`document.querySelector('.activ-app-promo__qr img')?.complete`);
@@ -60,13 +61,31 @@ try {
       assert.equal(await evaluate(`document.querySelector('.activ-app-launcher').href`), 'https://play.google.com/store/apps/details?id=in.activ.membership');
       assert(await evaluate(`document.querySelector('.activ-app-launcher span').getBoundingClientRect().width>0`), 'Download label is visible on phones');
       assert(await evaluate(`(()=>{const a=document.querySelector('.activ-app-launcher').getBoundingClientRect(),b=document.querySelector('[aria-label="Chat on WhatsApp"]').getBoundingClientRect();return a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top})()`), 'Download and support buttons do not overlap');
-      if (width === 1440) assert(await evaluate(`document.querySelector('.activ-app-promo').getBoundingClientRect().height<580`), 'Desktop promotion remains compact');
-      if (process.env.TEST_ARTIFACTS && [390, 1440].includes(width)) {
+      const layout = await evaluate(`(()=>{
+        const rect=selector=>{const {left,right,top,bottom,width,height}=document.querySelector(selector).getBoundingClientRect();return {left,right,top,bottom,width,height}};
+        return {promo:rect('.activ-app-promo'),copy:rect('.activ-app-promo__copy'),visual:rect('.activ-app-promo__visual'),download:rect('.activ-app-promo__download')};
+      })()`);
+      layouts.push({ width, ...layout });
+      assert(layout.promo.width <= 1200, 'Wide layouts keep a compact content width');
+      assert(await evaluate(`(()=>{const p=document.querySelector('.activ-app-promo').getBoundingClientRect();return [...document.querySelectorAll('.activ-app-promo__screen')].every(screen=>{const r=screen.getBoundingClientRect();return r.left>=p.left&&r.right<=p.right})})()`), 'All five phones stay inside the promotion');
+      if (width >= 912) {
+        assert(layout.promo.height < 560, `Compact desktop/tablet height at ${width}px: ${layout.promo.height}px`);
+        assert(layout.visual.left >= layout.copy.right, 'Screens sit next to the copy');
+        assert(layout.visual.left - layout.copy.right <= 85, `No oversized empty middle at ${width}px: ${layout.visual.left - layout.copy.right}px`);
+        assert(Math.abs(layout.download.left - layout.copy.left) < 2, 'Store and QR block aligns with the copy');
+        assert(layout.download.top - layout.copy.bottom <= 20, 'Download block stays close to the feature list');
+      } else {
+        assert(layout.visual.top >= layout.copy.bottom && layout.visual.top - layout.copy.bottom <= 22, 'Mobile screens follow the copy without a large gap');
+        assert(layout.download.top >= layout.visual.bottom && layout.download.top - layout.visual.bottom <= 22, 'Mobile download controls follow the screens');
+      }
+      if (width >= 1440) assert(layout.promo.height < 520, 'Large desktop promotion remains compact');
+      if (process.env.TEST_ARTIFACTS && [390, 1024, 1440].includes(width)) {
         const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
         await writeFile(path.join(process.env.TEST_ARTIFACTS, `app-showcase-five-${width}.png`), Buffer.from(shot.result.data, 'base64'));
       }
     assert(await evaluate(`[...document.querySelectorAll('.activ-app-promo a')].every(a=>a.href==='https://play.google.com/store/apps/details?id=in.activ.membership')`));
   }
+  if (process.env.TEST_ARTIFACTS) await writeFile(path.join(process.env.TEST_ARTIFACTS, 'app-showcase-layouts.json'), JSON.stringify(layouts, null, 2));
   await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?member` });
   await until(`document.body.innerText.includes('Sign in with the same account')`);
   assert(await evaluate(`!!document.querySelector('.activ-app-launcher')&&!document.querySelector('[aria-label="Donate to ACTIV"]')`), 'Download button also available to members');
@@ -84,7 +103,7 @@ try {
   await until(`!!document.querySelector('[data-mounted]')`);
   assert(await evaluate(`!document.querySelector('.activ-app-promo')&&!document.querySelector('.activ-app-launcher')`), 'Never advertise the app inside itself');
   assert.deepEqual(errors, []);
-  console.log('PASS app showcase: five distinct interactive screens, QR/store links, 320/390/768/1024/1440px, separate download launcher, mobile label, member/public visibility, dismissal, checkout and WebView suppression.');
+  console.log('PASS app showcase: five distinct interactive screens, compact aligned copy/QR/store layout, 320/390/600/768/912/1024/1440/1920px, separate download launcher, mobile label, member/public visibility, dismissal, checkout and WebView suppression.');
   await send('Browser.close');
 } finally {
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
