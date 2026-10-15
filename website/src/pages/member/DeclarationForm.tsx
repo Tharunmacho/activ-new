@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Building2, FileCheck } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationFormShell, { FormCard, FormField } from "./RegistrationFormShell";
+import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
 import {
   getMyProfile,
   getBusinessInfo,
@@ -165,8 +166,7 @@ const DeclarationForm = () => {
       // The region gate refuses an application whose block has no active admin,
       // so an incomplete personal form has to be caught here with a message that
       // says what to do about it.
-      if (profile.personalDetailsComplete === false || !profile.religion || !profile.socialCategory || !profile.gender
-        || (profile.isInternational ? !profile.place : !profile.state || !profile.district)) {
+      if (profile.personalDetailsComplete === false || Object.keys(personalDetailsErrors(profile)).length > 0) {
         toast.error("Complete all required personal details, including religion, social category and gender, before submitting.");
         return;
       }

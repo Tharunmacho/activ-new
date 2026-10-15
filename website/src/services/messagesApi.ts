@@ -41,11 +41,22 @@ export interface DirectMessage {
      * test twice, and gets wrong once.
      */
     attachmentUrl: string;
+    attachment?: MessageAttachment | null;
     /** Whose side of the thread it belongs on. Decided by the SERVER. */
     mine: boolean;
     at: string;
     readAt: string | null;
 }
+
+export interface MessageAttachment {
+    id: string;
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    kind: 'image' | 'file';
+}
+export interface UploadedMessageAttachment extends MessageAttachment { token: string }
 
 export interface Thread {
     conversation: Conversation;
@@ -70,19 +81,18 @@ export const listMessages = async (conversationId: string, before?: string) =>
     );
 
 /**
- * Send. TEXT OR A PICTURE — the server refuses a message with neither.
- *
- * `attachmentUrl` is a url the upload below already returned, not a file: the
- * two are separate calls on purpose, so a send that is refused (a lapsed
- * membership on either side) cannot leave a file orphaned on the server.
+ * Send text, a photo or a document. New uploads carry a token so the server
+ * verifies the attachment rather than trusting client-supplied metadata.
  */
 export const sendMessage = async (
     conversationId: string,
     body: string,
     attachmentUrl = '',
+    attachment?: UploadedMessageAttachment,
 ) =>
     unwrap<DirectMessage>(
-        await api.post(`/messages/${conversationId}`, { body, attachmentUrl }),
+        await api.post(`/messages/${conversationId}`, { body, attachmentUrl,
+            ...(attachment ? { attachment: { token: attachment.token } } : {}) }),
         null as any,
     );
 
@@ -94,6 +104,27 @@ export const uploadMessageImage = async (file: File) => {
         await api.post('/messages/attachment', form),
         { url: '' },
     ).url;
+};
+
+/** Upload first; only Send makes the file part of a conversation. */
+export const uploadMessageAttachment = async (file: File, onProgress?: (percent: number) => void) => {
+    const form = new FormData();
+    form.append('file', file);
+    return unwrap<UploadedMessageAttachment>(await api.post('/messages/attachment', form, {
+        onUploadProgress: event => onProgress?.(event.total ? Math.min(100, Math.round(event.loaded / event.total * 100)) : 0),
+    }), null as any);
+};
+
+/** Documents are downloaded through the signed-in API, never a public upload link. */
+export const downloadMessageAttachment = async (attachment: MessageAttachment) => {
+    const response = await api.get(`/messages/attachments/${encodeURIComponent(attachment.id)}`, { responseType: 'blob' });
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = attachment.name.replace(/[\\/\u0000-\u001f]/g, '_') || 'attachment';
+    document.body.appendChild(link);
+    try { link.click(); }
+    finally { link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
 };
 
 export const markConversationRead = async (conversationId: string) =>

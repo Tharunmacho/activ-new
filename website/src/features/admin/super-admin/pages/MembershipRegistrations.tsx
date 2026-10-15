@@ -1,5 +1,5 @@
 import { membershipValidityLabel } from '@/lib/membershipDates';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Users, BadgeCheck, IndianRupee, Clock, RefreshCw, Download, Eye, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
@@ -7,7 +7,7 @@ import { AdminPageHeader, AdminStat, ADMIN_BG, ADMIN_PAGE, ADMIN_CARD, ADMIN_INP
 import { SECTION_TITLE } from '@/components/layout/appTypography';
 import { AdminTable, type AdminColumn } from '@/features/admin/components/AdminTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { loadMembershipDashboard, exportMembershipReport, loadMembershipDetail, confirmMembership, deleteMembershipRegistration, type MembershipDashboard, type MembershipRegistration, type MembershipPayment, type MembershipDetail } from '@/services/membershipDashboardApi';
+import { loadMembershipDashboard, exportMembershipReport, loadMembershipDetail, confirmMembership, deleteMembershipRegistration, deleteArchivedMembershipPayment, type MembershipDashboard, type MembershipRegistration, type MembershipPayment, type MembershipDetail } from '@/services/membershipDashboardApi';
 import { errorMessage } from '@/services/activApi';
 
 const date = (v: string | null) => v ? new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -28,6 +28,8 @@ export default function MembershipRegistrations() {
     const [opening, setOpening] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [deletingPayment, setDeletingPayment] = useState('');
+    const deleteInFlight = useRef(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [planId, setPlanId] = useState('');
     const [mode, setMode] = useState('cash');
@@ -54,6 +56,19 @@ export default function MembershipRegistrations() {
         finally { setLoading(false); }
     };
     useEffect(() => { void load(); }, []);
+    const removeArchivedPayment = async (payment: MembershipPayment) => {
+        if (!payment.registrationDeleted || !payment.id || deleteInFlight.current) return;
+        deleteInFlight.current = true;
+        try {
+            if (!window.confirm(`Permanently delete this archived membership payment?\n\n${payment.name || payment.email || 'Deleted account'}\n${payment.planName}\nOrder: ${payment.orderId || payment.id}\n\nOnly this payment record will be removed from the database and reports. This cannot be undone and does not refund any payment. Export a copy first if needed.`)) return;
+            setDeletingPayment(payment.id);
+            await deleteArchivedMembershipPayment(payment.id);
+            setData(current => current ? { ...current, payments: current.payments.filter(row => row.id !== payment.id) } : current);
+            toast.success('Archived payment permanently deleted.');
+            await load();
+        } catch (e) { toast.error(errorMessage(e, 'Could not delete archived payment.')); }
+        finally { deleteInFlight.current = false; setDeletingPayment(''); }
+    };
     const open = async (id: string) => {
         setAck(false); setModalOpen(true); setOpening(true); setDetail(null); setShowConfirm(false); setNote(''); setReceiptNumber(''); setMembershipNumber(''); setMode('cash'); setPlanId(''); setAmount('');
         setCommencementYear('');
@@ -87,7 +102,9 @@ export default function MembershipRegistrations() {
         { key: 'status', header: 'Status', sortValue: r => r.status, render: r => <Status value={r.status} /> },
         { key: 'amount', header: 'Amount received', sortValue: r => r.amount, render: r => r.status === 'paid' ? rupees(r.amount) : <span className="text-slate-500">{rupees(r.amount)} due</span>, align: 'right' },
         { key: 'date', header: 'Date', sortValue: r => r.paidAt || r.createdAt, render: r => date(r.paidAt || r.createdAt), hideOnMobile: true },
-        { key: 'action', header: 'Action', sticky: 'right', render: r => r.memberId && !r.registrationDeleted ? <button className={ADMIN_PRIMARY_BTN} onClick={() => void open(r.memberId)}>Details</button> : '—' }
+        { key: 'action', header: 'Action', sticky: 'right', render: r => r.registrationDeleted
+            ? <button type="button" className={`${ADMIN_SECONDARY_BTN} text-rose-700`} disabled={!!deletingPayment} onClick={() => void removeArchivedPayment(r)}><Trash2 className="h-4 w-4 shrink-0" />{deletingPayment === r.id ? 'Deleting…' : 'Delete permanently'}</button>
+            : r.memberId ? <button className={ADMIN_PRIMARY_BTN} onClick={() => void open(r.memberId)}>Details</button> : '—' }
     ];
     const submit = async () => {
         if (!selectedPlan || (selectedPlan.audience === 'business' && !selectedPlan.commencementYears.includes(commencementYear))) { toast.error('Choose the eligible plan and a business commencement year from its range.'); return; }
@@ -126,7 +143,7 @@ export default function MembershipRegistrations() {
                         {(tab === 'members' ? [['all', 'All registrations'], ['registered', 'Application not submitted'], ['submitted', 'Applications submitted'], ['pending', 'Awaiting review'], ['awaiting_payment', 'Awaiting payment'], ['active', 'Active'], ['expired', 'Expired'], ['waived', 'Fee waived'], ['rejected', 'Rejected'], ['blocked', 'Blocked']] : [['all', 'All payments'], ['paid', 'Paid / confirmed'], ['created', 'Pending checkout'], ['waived', 'Fee waived'], ['failed', 'Failed'], ['cancelled', 'Cancelled']]).map(([v, text]) => <option key={v} value={v}>{text}</option>)}
                     </select></label>
                 </div>
-                {tab === 'archived' && <p className="text-ui-caption text-slate-500">Payments retained from deleted registrations, for accounting records.</p>}
+                {tab === 'archived' && <p className="text-ui-caption text-slate-500">Payments retained from deleted registrations. Export any records you need before permanently deleting an unnecessary payment.</p>}
                 {tab === 'members' ? <AdminTable key={`members-${filter}`} rows={members} columns={memberColumns} rowKey={r => r.id} loading={loading} searchable searchPlaceholder="Name, email, mobile, member number or plan" empty="No members match this filter." /> : <AdminTable key={`payments-${filter}`} rows={payments} columns={paymentColumns} minWidth="1200px" cardBreakpoint={760} rowKey={r => r.id} loading={loading} searchable searchPlaceholder="Name, email, order or payment reference" empty="No payments match this filter." />}
             </main>
         </div>

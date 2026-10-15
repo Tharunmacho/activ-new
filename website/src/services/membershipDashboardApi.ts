@@ -30,3 +30,4 @@ export const loadMembershipDetail = async (id: string) => unwrap<MembershipDetai
 export const confirmMembership = async (id: string, body: MembershipConfirmation) => unwrap<MembershipDetail>(await api.post(`${base}/${encodeURIComponent(id)}/confirm`, body), null as unknown as MembershipDetail);
 
 export const deleteMembershipRegistration = async (id: string) => unwrap(await api.delete(`${base}/${encodeURIComponent(id)}`), null);
+export const deleteArchivedMembershipPayment = async (id: string) => unwrap(await api.delete(`/admin/super/membership/payments/${encodeURIComponent(id)}/archived`, { data: { recordId: id, confirmation: 'DELETE' } }), null);

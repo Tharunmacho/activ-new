@@ -129,13 +129,12 @@ function Frame() {
 
 type RowData = { icon: typeof Building2; label: string; value: string };
 
-function Row({ icon: Icon, label, value, last }: RowData & { last: boolean }) {
+function Row({ icon: Icon, label, value }: RowData) {
     return (
-        <div className={`grid min-h-[33px] grid-cols-[28px_144px_minmax(0,1fr)] items-center gap-x-2 py-[3px] ${last ? '' : 'border-b'}`}
-             style={{ borderColor: '#E3EAF6' }}>
-            <Icon className="h-[21px] w-[21px]" style={{ color: NAVY_MID }} strokeWidth={2.1} />
-            <span className="text-[14px] font-medium" style={{ color: MUTED }}>{label}</span>
-            <span className="break-words text-[15px] font-semibold leading-snug" style={{ color: INK }}>{value}</span>
+        <div data-certificate-fact={label} className="grid min-h-[33px] min-w-0 grid-cols-[28px_126px_minmax(0,1fr)] items-start gap-x-2 py-1">
+            <Icon className="mt-px h-[20px] w-[20px]" style={{ color: NAVY_MID }} strokeWidth={2.1} />
+            <span className="text-[13.5px] font-medium leading-[20px]" style={{ color: MUTED }}>{label}</span>
+            <span className="min-w-0 text-[15px] font-semibold leading-[20px] [overflow-wrap:anywhere]" style={{ color: INK }}>{value}</span>
         </div>
     );
 }
@@ -212,6 +211,7 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
         ? [[...identity, ...dates], address]
         : [identity, [...address, ...dates]];
     const rows = [...columns[0], ...columns[1]];
+    const pairedRows = Array.from({ length: Math.max(columns[0].length, columns[1].length) }, (_, index) => [columns[0][index], columns[1][index]]);
 
     const nameSize = company.length > 40 ? 'text-[29px]' : company.length > 30 ? 'text-[34px]' : 'text-[40px]';
     const issued = date(cert.issuedAt);
@@ -256,17 +256,15 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
 
                 {/* ============================================ the facts panel */}
                 {rows.length > 0 && (
-                    <div className="relative z-10 mx-[92px] mt-[8px] grid grid-cols-[minmax(0,1.12fr)_2px_minmax(0,1fr)] gap-x-6 rounded-2xl border bg-white/85 px-6 py-1.5"
+                    <div data-testid="membership-facts" className="relative z-10 mx-[92px] mt-[8px] rounded-2xl border bg-white/85 px-5 py-1.5"
                          style={{ borderColor: '#CFDBF1', boxShadow: '0 8px 26px -16px rgba(14,31,77,0.38)' }}>
-                        <div>
-                            {columns[0].map((r, i) => <Row key={r.label} {...r} last={i === columns[0].length - 1} />)}
-                        </div>
-                        <div className="relative my-1" style={{ background: `linear-gradient(${'#E3EAF6'}, ${GOLD_LIGHT}, ${'#E3EAF6'})` }}>
-                            <span className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45" style={{ background: GOLD }} />
-                        </div>
-                        <div>
-                            {columns[1].map((r, i) => <Row key={r.label} {...r} last={i === columns[1].length - 1} />)}
-                        </div>
+                        {pairedRows.map(([left, right], index) => <div key={index} data-testid="membership-fact-row"
+                            className={`grid grid-cols-[minmax(0,1fr)_2px_minmax(0,1fr)] gap-x-[18px] ${index < pairedRows.length - 1 ? 'border-b' : ''}`}
+                            style={{ borderColor: '#E3EAF6' }}>
+                            {left ? <Row {...left} /> : <div />}
+                            <div aria-hidden="true" style={{ backgroundColor: GOLD_LIGHT }} />
+                            {right ? <Row {...right} /> : <div />}
+                        </div>)}
                     </div>
                 )}
 
@@ -278,34 +276,36 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
                 </div>
 
                 {/* ============================================ signature · seal · date */}
-                <div data-testid="membership-signature-block" className="absolute left-[190px] top-[594px] z-10 w-[280px] text-center">
+                <div data-testid="membership-signatories" className="absolute inset-x-[210px] top-[594px] z-10 grid grid-cols-3 items-start text-center">
+                <div data-testid="membership-signature-block" className="mx-auto w-[260px] max-w-full">
                     <p className="text-[15px] leading-[20px] font-semibold" style={{ color: NAVY }}>Founder and Chairperson</p>
                     <SignatureInk className="h-[86px]" />
                     <span className="mt-0.5 block h-px w-full" style={{ background: NAVY_MID }} />
                     <p className="mt-[3px] text-[13px] leading-[18px] font-bold" style={{ color: NAVY }}>THAMIZHAZHAGAN NALLAIYAN</p>
                 </div>
 
-                <div className="absolute left-1/2 top-[606px] z-20 flex -translate-x-1/2 flex-col items-center">
+                <div data-testid="membership-seal-block" className="z-20 flex flex-col items-center pt-3">
                     <CertificateMedallion line="Membership" className="h-[128px] w-[128px]" />
                     <p className="mt-0.5 text-[14px] font-semibold" style={{ color: NAVY }}>Official Seal</p>
                 </div>
 
-                <div className="absolute right-[250px] top-[630px] z-10 w-[230px] text-center">
+                <div data-testid="membership-issue-block" className="mx-auto w-[230px] max-w-full pt-9">
                     <p className="text-[16px] font-bold" style={{ color: NAVY }}>Date of Issue</p>
                     <p className="flex h-[56px] items-end justify-center pb-1 font-certificate text-[26px] font-bold" style={{ color: NAVY_MID }}>
                         {issued || '—'}
                     </p>
                     <span className="mt-0.5 block h-px w-full" style={{ background: NAVY_MID }} />
                 </div>
+                </div>
 
                 {/* ============================================ the foot bars */}
                 {/* Held inside the left bar and clear of the seal: the bar ends at
                     x=500 and the medallion starts at ~497, so the line is capped at
                     410px and never runs under it. */}
-                <p className="absolute left-[40px] top-[730px] z-10 flex h-[46px] max-w-[410px] items-center gap-2 whitespace-nowrap text-[13.5px] font-medium text-white">
+                <div data-testid="membership-reference" className="absolute left-[40px] top-[730px] z-10 flex h-[46px] w-[410px] items-center gap-2 text-[12px] font-medium leading-[15px] text-white">
                     <FileText className="h-[17px] w-[17px] shrink-0" style={{ color: GOLD_LIGHT }} />
-                    Certificate No: <span className="font-bold tracking-[0.03em]">{cert.reference || '—'}</span>
-                </p>
+                    <p className="min-w-0">Certificate No: <span className="font-bold [overflow-wrap:anywhere]">{cert.reference || '—'}</span></p>
+                </div>
                 <div className="absolute right-[36px] top-[730px] z-10 flex h-[46px] items-center gap-2.5 text-white">
                     <Globe className="h-[20px] w-[20px]" style={{ color: GOLD_LIGHT }} />
                     <div className="leading-tight">

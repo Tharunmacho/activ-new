@@ -19,6 +19,7 @@ import {
   religionsFor,
   normalizeReligion,
 } from "@/lib/memberFormOptions";
+import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
 
 interface PersonalFormData {
   /** `fullName`, not `name` — this is the field name the backend stores. */
@@ -170,8 +171,7 @@ const PersonalInformationForm = () => {
         });
 
         setIsLocked(profile.isLocked === true && profile.personalDetailsComplete !== false
-          && !!normalizeReligion(profile.religion) && SOCIAL_CATEGORIES.includes(profile.socialCategory)
-          && GENDERS.includes(profile.gender));
+          && Object.keys(personalDetailsErrors(profile)).length === 0);
         setIsAbroad(profile.isInternational === true);
         setAbroadCountry(profile.country || "");
       }
@@ -236,26 +236,9 @@ const PersonalInformationForm = () => {
       return;
     }
 
-    /* The region is asked of members in India only; abroad, the place. */
-    const locationMissing = isAbroad
-      ? !(formData.place || "").trim()
-      : !formData.state || !formData.district || (blocks.length > 0 && !formData.block) || !formData.city;
-
-    if (
-      !formData.fullName.trim() ||
-      !formData.phoneNumber.trim() ||
-      !formData.email.trim() ||
-      locationMissing ||
-      !formData.socialCategory ||
-      !formData.religion ||
-      !formData.gender
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (!religionsFor(formData.socialCategory).includes(formData.religion)) {
-      toast.error(`Please choose a religion recognised for ${formData.socialCategory}`);
+    const errors = personalDetailsErrors(formData, { international: isAbroad, blockRequired: blocks.length > 0 });
+    if (Object.keys(errors).length) {
+      toast.error(Object.values(errors).find(message => message !== 'Required') || "Please fill in all required fields");
       return;
     }
 
@@ -404,7 +387,7 @@ const PersonalInformationForm = () => {
             <Input
               type="tel"
               inputMode="numeric"
-              maxLength={10}
+              maxLength={isAbroad ? 20 : 16}
               value={formData.phoneNumber}
               onChange={(e) => setField("phoneNumber", e.target.value)}
               placeholder="Enter Phone Number"

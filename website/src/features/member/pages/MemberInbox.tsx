@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-    Inbox, Send, ArrowLeft, Loader2, AlertCircle, ImagePlus, Smile, X,
+    Inbox, Send, ArrowLeft, Loader2, AlertCircle, Paperclip, Download, Smile, X,
     MessagesSquare, Search, Lock, PackageSearch, FileText, Handshake,
 } from 'lucide-react';
 import { resolveMediaUrl } from '@/config/api.config';
@@ -66,8 +66,8 @@ const EMOJI = [
 ];
 import { errorMessage } from '@/services/activApi';
 import {
-    listConversations, listMessages, sendMessage, uploadMessageImage, markConversationRead,
-    type Conversation, type DirectMessage,
+    listConversations, listMessages, sendMessage, uploadMessageAttachment, downloadMessageAttachment, markConversationRead,
+    type Conversation, type DirectMessage, type MessageAttachment, type UploadedMessageAttachment,
 } from '@/services/messagesApi';
 
 /**
@@ -106,6 +106,11 @@ const timeOf = (iso?: string | null) => {
 
 const initialsOf = (name: string) =>
     (name || '').split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'M';
+
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
+const FILE_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'rtf']);
+const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf';
+const fileSize = (size: number) => size >= 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.ceil(size / 1024))} KB`;
 
 /**
  * A SENTENCE A MEMBER CAN ACT ON — never the server's own words.
@@ -178,6 +183,9 @@ const memberFacing = (err: unknown, fallback: string): string => {
 export default function MemberInbox() {
     const [params, setParams] = useSearchParams();
     const openId = params.get('c') || '';
+    const activeId = useRef(openId);
+    activeId.current = openId;
+    const threadRequest = useRef(0);
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
@@ -196,13 +204,18 @@ export default function MemberInbox() {
      * strip above the box draws. Both, because a file input that reports
      * “chosen” and shows nothing is how somebody sends the wrong photograph.
      */
-    const [picture, setPicture] = useState<{ file: File; preview: string } | null>(null);
+    const [picture, setPicture] = useState<{ file: File; preview: string; kind: 'image' | 'file'; uploaded?: UploadedMessageAttachment } | null>(null);
     const [emojiOpen, setEmojiOpen] = useState(false);
     const fileRef = useRef<HTMLInputElement | null>(null);
     const boxRef = useRef<HTMLTextAreaElement | null>(null);
     const [sending, setSending] = useState(false);
+    const sendingRef = useRef(false);
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    const [downloading, setDownloading] = useState('');
 
     const endRef = useRef<HTMLDivElement | null>(null);
+    const scrollRef = useRef<HTMLDivElement | null>(null);
+    const followLatest = useRef(true);
 
     // ------------------------------------------------------------- loading
 
@@ -221,9 +234,11 @@ export default function MemberInbox() {
 
     const loadThread = useCallback(async (id: string, quiet = false) => {
         if (!id) return;
+        const request = ++threadRequest.current;
         if (!quiet) setThreadLoading(true);
         try {
             const data = await listMessages(id);
+            if (id !== activeId.current || request !== threadRequest.current) return;
             setMessages(data?.messages || []);
             setThread(data?.conversation || null);
             /*
@@ -234,14 +249,17 @@ export default function MemberInbox() {
             await markConversationRead(id).catch(() => null);
             setConversations(prev => prev.map(c => (c.id === id ? { ...c, unread: 0 } : c)));
         } catch (err) {
-            if (!quiet) setError(memberFacing(err, 'Could not open this conversation'));
+            if (!quiet && id === activeId.current) setError(memberFacing(err, 'Could not open this conversation'));
         } finally {
-            if (!quiet) setThreadLoading(false);
+            if (!quiet && id === activeId.current) setThreadLoading(false);
         }
     }, []);
 
     useEffect(() => { loadInbox(); }, [loadInbox]);
     useEffect(() => {
+        followLatest.current = true;
+        setDraft(''); setPicture(null); setEmojiOpen(false);
+        if (fileRef.current) fileRef.current.value = '';
         if (openId) loadThread(openId);
         else { setMessages([]); setThread(null); }
     }, [openId, loadThread]);
@@ -258,25 +276,38 @@ export default function MemberInbox() {
     }, [openId, loadInbox, loadThread]);
 
     useEffect(() => {
-        endRef.current?.scrollIntoView({ block: 'end' });
+        const pane = scrollRef.current;
+        if (pane && followLatest.current) pane.scrollTop = pane.scrollHeight;
     }, [messages.length, openId]);
+
+    useEffect(() => () => { if (picture?.preview) URL.revokeObjectURL(picture.preview); }, [picture?.preview]);
+    useEffect(() => {
+        const box = boxRef.current;
+        if (box) { box.style.height = 'auto'; box.style.height = `${Math.min(144, box.scrollHeight)}px`; }
+    }, [draft]);
 
     // -------------------------------------------------------------- sending
 
     /** Chosen, shown, and revocable — nothing is uploaded until Send. */
     const choosePicture = (file?: File | null) => {
-        if (!file) return;
+        if (!file || sendingRef.current) return;
+        const extension = file.name.split('.').pop()?.toLowerCase() || '';
+        const isImage = IMAGE_EXTENSIONS.has(extension);
+        if (!isImage && !FILE_EXTENSIONS.has(extension)) { setError('Choose a photo, PDF, Word, Excel, PowerPoint or text file.'); if (fileRef.current) fileRef.current.value = ''; return; }
+        const maxMb = isImage ? 5 : 10;
+        if (!file.size || file.size > maxMb * 1024 * 1024) { setError(`Choose a non-empty ${isImage ? 'photo' : 'file'} smaller than ${maxMb} MB.`); if (fileRef.current) fileRef.current.value = ''; return; }
+        setError('');
         setPicture((current) => {
             /* The old object URL is released, or every picture a member
                changes their mind about stays in memory for the session. */
-            if (current) URL.revokeObjectURL(current.preview);
-            return { file, preview: URL.createObjectURL(file) };
+            if (current?.preview) URL.revokeObjectURL(current.preview);
+            return { file, preview: isImage ? URL.createObjectURL(file) : '', kind: isImage ? 'image' : 'file' };
         });
     };
 
     const dropPicture = () => {
         setPicture((current) => {
-            if (current) URL.revokeObjectURL(current.preview);
+            if (current?.preview) URL.revokeObjectURL(current.preview);
             return null;
         });
         if (fileRef.current) fileRef.current.value = '';
@@ -309,20 +340,26 @@ export default function MemberInbox() {
         const body = draft.trim();
         /* TEXT OR A PICTURE. A photograph with no caption is an ordinary
            message; one with neither is nothing at all. */
-        if ((!body && !picture) || !openId || sending) return;
+        if ((!body && !picture) || !openId || sendingRef.current) return;
 
+        sendingRef.current = true;
         setSending(true);
+        setError('');
         try {
-            /*
-             * The file goes up FIRST and its url travels with the message.
-             *
-             * Two calls rather than a multipart send, which is what lets a
-             * picture be sent with no caption and keeps the send atomic: a send
-             * refused by the membership check after the bytes had landed would
-             * leave the upload orphaned on the server.
-             */
-            const url = picture ? await uploadMessageImage(picture.file) : '';
-            const sent = await sendMessage(openId, body, url);
+            // Retain the upload token if sending fails so retry does not upload
+            // the same large file again. The server verifies its owner and type.
+            let uploaded = picture?.uploaded;
+            if (picture && !uploaded) {
+                setUploadProgress(0);
+                uploaded = await uploadMessageAttachment(picture.file, setUploadProgress);
+                if (!uploaded?.token) throw new Error('The attachment could not be uploaded. Please try again.');
+                setPicture(current => current?.file === picture.file ? { ...current, uploaded } : current);
+            }
+            setUploadProgress(null);
+            const sent = await sendMessage(openId, body, uploaded?.url || '', uploaded);
+            if (activeId.current !== openId) { void loadInbox(true); return; }
+            ++threadRequest.current;
+            followLatest.current = true;
             setDraft('');
             dropPicture();
             /*
@@ -334,13 +371,24 @@ export default function MemberInbox() {
             if (sent) setMessages(prev => [...prev, sent]);
             loadInbox(true);
         } catch (err) {
-            setError(memberFacing(err, 'That message could not be sent'));
+            if (activeId.current === openId) setError(memberFacing(err, 'That message could not be sent'));
         } finally {
+            sendingRef.current = false;
             setSending(false);
+            setUploadProgress(null);
         }
     };
 
+    const download = async (attachment: MessageAttachment) => {
+        if (downloading) return;
+        setDownloading(attachment.id); setError('');
+        try { await downloadMessageAttachment(attachment); }
+        catch (err) { setError(memberFacing(err, 'That file could not be downloaded. Please try again.')); }
+        finally { setDownloading(''); }
+    };
+
     const openThread = (id: string) => {
+        if (sendingRef.current) return;
         setParams(id ? { c: id } : {}, { replace: false });
     };
 
@@ -580,7 +628,7 @@ export default function MemberInbox() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-2.5">
+                                <div ref={scrollRef} onScroll={event => { const pane = event.currentTarget; followLatest.current = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 80; }} className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-2.5">
                                     {messages.map((m) => (
                                         <div
                                             key={m.id}
@@ -601,7 +649,15 @@ export default function MemberInbox() {
                                                   often saved, and the browser
                                                   already does both.
                                                 */}
-                                                {m.attachmentUrl ? (
+                                                {m.attachment?.kind === 'file' ? (
+                                                    <button type="button" onClick={() => void download(m.attachment!)} disabled={!!downloading}
+                                                        className={`mb-2 flex w-full min-w-0 items-center gap-2 rounded-xl border p-3 text-left ${m.mine ? 'border-white/30 bg-white/10' : 'border-slate-200 bg-white'}`}
+                                                        aria-label={`Download ${m.attachment.name}`}>
+                                                        <FileText className="h-6 w-6 shrink-0" />
+                                                        <span className="min-w-0 flex-1"><span className="block break-all text-ui-small font-semibold">{m.attachment.name}</span><span className="block text-ui-caption">{fileSize(m.attachment.size)} · {downloading === m.attachment.id ? 'Downloading…' : 'Download file'}</span></span>
+                                                        {downloading === m.attachment.id ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Download className="h-4 w-4 shrink-0" />}
+                                                    </button>
+                                                ) : m.attachmentUrl ? (
                                                     <a
                                                         href={resolveMediaUrl(m.attachmentUrl)}
                                                         target="_blank"
@@ -667,7 +723,7 @@ export default function MemberInbox() {
                               already had messages in it and then vanished, which
                               reads as the screen losing something.
                             */}
-                            {!threadLoading && messages.length === 0 && !draft.trim() && (
+                            {!threadLoading && messages.length === 0 && !draft.trim() && !picture && (
                                 <div className="shrink-0 overflow-y-auto border-t border-slate-200
                                                 bg-white px-4 py-4">
                                     <p className="mb-1 text-ui-body font-bold text-slate-900">
@@ -752,23 +808,24 @@ export default function MemberInbox() {
                                 <div className="shrink-0 border-t border-slate-200 bg-white px-3 py-2.5">
                                     <div className="flex items-center gap-3 rounded-xl border border-slate-200
                                                     bg-slate-50 p-2">
-                                        <img
+                                        {picture.kind === 'image' ? <img
                                             src={picture.preview}
                                             alt=""
                                             className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                                        />
+                                        /> : <FileText className="h-10 w-10 shrink-0 text-blue-600" />}
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-ui-small font-semibold text-slate-800">
                                                 {picture.file.name}
                                             </p>
                                             <p className="text-ui-caption text-slate-500">
-                                                Ready to send — a caption is optional.
+                                                {fileSize(picture.file.size)} · {sending ? uploadProgress === null ? 'Sending…' : `Uploading ${uploadProgress}%` : 'Ready to send. Caption optional.'}
                                             </p>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={dropPicture}
-                                            aria-label="Remove picture"
+                                            aria-label="Remove attachment"
+                                            disabled={sending}
                                             className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors
                                                        hover:bg-slate-200 hover:text-slate-700"
                                         >
@@ -778,10 +835,12 @@ export default function MemberInbox() {
                                 </div>
                             ) : null}
 
+                            {uploadProgress !== null && <div className="shrink-0 px-3 py-1" role="status" aria-live="polite"><progress aria-label="Attachment upload progress" value={uploadProgress} max={100} className="h-2 w-full" /></div>}
+
                             <form
                                 onSubmit={submit}
                                 className="relative shrink-0 border-t border-slate-200 bg-slate-50 p-3
-                                           flex items-end gap-2"
+                                           flex flex-wrap items-end gap-2 sm:flex-nowrap"
                             >
                                 {/*
                                   A SHORT CURATED GRID, not a picker library.
@@ -813,20 +872,24 @@ export default function MemberInbox() {
                                 <input
                                     ref={fileRef}
                                     type="file"
-                                    accept="image/*"
+                                    accept={ATTACHMENT_ACCEPT}
                                     className="hidden"
+                                    disabled={sending}
+                                    aria-label="Choose a photo or document"
                                     onChange={(e) => choosePicture(e.target.files?.[0])}
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => fileRef.current?.click()}
-                                    aria-label="Send a picture"
+                                    aria-label="Attach a photo or file"
+                                    title="Photos up to 5 MB; PDF, Word, Excel, PowerPoint and text up to 10 MB"
+                                    disabled={sending}
                                     className="mb-0.5 shrink-0 rounded-xl border border-slate-200 bg-white p-2.5
                                                text-slate-500 transition-colors hover:border-blue-400
                                                hover:bg-blue-50 hover:text-blue-600"
                                 >
-                                    <ImagePlus className="h-5 w-5" />
+                                    <Paperclip className="h-5 w-5" />
                                 </button>
 
                                 <button
@@ -834,6 +897,7 @@ export default function MemberInbox() {
                                     onClick={() => setEmojiOpen((open) => !open)}
                                     aria-label="Insert an emoji"
                                     aria-expanded={emojiOpen}
+                                    disabled={sending}
                                     className={`mb-0.5 shrink-0 rounded-xl border p-2.5 transition-colors ${
                                         emojiOpen
                                             ? 'border-blue-400 bg-blue-50 text-blue-600'
@@ -846,6 +910,7 @@ export default function MemberInbox() {
                                 <textarea
                                     ref={boxRef}
                                     value={draft}
+                                    readOnly={sending}
                                     onChange={(e) => setDraft(e.target.value)}
                                     onKeyDown={(e) => {
                                         // Enter sends; Shift+Enter is a new line. The
@@ -857,7 +922,7 @@ export default function MemberInbox() {
                                     maxLength={4000}
                                     placeholder={
                                         picture
-                                            ? 'Add a caption, or send the picture on its own…'
+                                            ? 'Add a caption, or send the attachment…'
                                             : messages.length === 0
                                                 ? 'Write about your business — what you make, what you need…'
                                                 : `Message ${peerName.split(' ')[0] || 'member'}…`
@@ -865,7 +930,7 @@ export default function MemberInbox() {
                                     /* 20px, matching the member area's body
                                        text. 18px here read as a smaller screen
                                        than the ones on either side of it. */
-                                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-white
+                                    className="order-first w-full min-w-0 flex-auto resize-none rounded-xl border border-slate-200 bg-white sm:order-none sm:w-auto sm:flex-1
                                                px-4 py-3 text-ui-body text-slate-900 outline-none
                                                transition-colors placeholder:text-slate-400
                                                focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
@@ -877,8 +942,9 @@ export default function MemberInbox() {
                                     `{…}` is spread syntax, not a comment slot. */}
                                 <button
                                     type="submit"
+                                    aria-label={sending ? 'Sending message' : 'Send message'}
                                     disabled={(!draft.trim() && !picture) || sending}
-                                    className="shrink-0 inline-flex items-center justify-center gap-2 h-11 px-4
+                                    className="ml-auto shrink-0 inline-flex items-center justify-center gap-2 h-11 px-4
                                                rounded-xl bg-blue-600 text-ui-small font-bold text-white shadow-sm
                                                transition-colors hover:bg-blue-700 disabled:opacity-50"
                                 >

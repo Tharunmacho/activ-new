@@ -9,6 +9,7 @@ import {
   isAuthenticated,
 } from "@/services/activApi";
 import { SESSION_EVENT } from "@/services/api";
+import { personalDetailsErrors } from '@/lib/personalDetailsValidation';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 /** The roles that have an admin dashboard instead of a member profile. */
@@ -108,8 +109,7 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
       const completed: string[] = [];
 
       const personalComplete = profile?.personalDetailsComplete === true
-        || (profile?.personalDetailsComplete === undefined && ['fullName', 'email', 'phoneNumber', 'religion', 'socialCategory', 'gender']
-          .every(key => String(profile?.[key] || '').trim()));
+        || (profile?.personalDetailsComplete === undefined && Object.keys(personalDetailsErrors(profile)).length === 0);
       if (personalComplete) completed.push('Personal Details');
 
       // A boolean, not the string 'yes'. It no longer changes the denominator —

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PlatinumNotice } from '@/components/shared/Platinum';
 import { resizeCompanyNames, toCount } from "@/lib/sisterConcerns";
+import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -540,7 +541,8 @@ export default function Profile() {
           const d = personal.data;
           answered.personal = true;
           setHasExistingProfile(true);
-          setIsLocked(d.isLocked || false);
+          setIsLocked(d.isLocked === true && d.personalDetailsComplete !== false
+            && Object.keys(personalDetailsErrors(d)).length === 0);
 
           Object.assign(merged, {
             name: d.fullName || d.name || "",
@@ -804,7 +806,7 @@ export default function Profile() {
       return false;
     }
 
-    if (!data.block || !data.block.trim()) {
+    if (blocks.length > 0 && (!data.block || !data.block.trim())) {
       toast.error("Block is required");
       return false;
     }
@@ -839,6 +841,12 @@ export default function Profile() {
 
     if (!data.gender || !data.gender.trim()) {
       toast.error("Gender is required");
+      return false;
+    }
+
+    const personalErrors = personalDetailsErrors({ ...data, fullName: data.name, phoneNumber: data.phone }, { blockRequired: blocks.length > 0 });
+    if (Object.keys(personalErrors).length) {
+      toast.error(Object.values(personalErrors).find(message => message !== 'Required') || 'Please complete all required personal details');
       return false;
     }
 
@@ -1150,8 +1158,7 @@ export default function Profile() {
       // The region gate refuses an application whose block has no active admin,
       // so an incomplete personal step has to be caught with a message that
       // says what to do about it.
-      if (profile?.personalDetailsComplete === false || !profile?.religion || !profile?.socialCategory || !profile?.gender
-        || (profile?.isInternational ? !profile?.place : !profile?.state || !profile?.district)) {
+      if (profile?.personalDetailsComplete === false || Object.keys(personalDetailsErrors(profile)).length > 0) {
         toast.error("Complete all required personal details, including religion, social category and gender, before submitting.");
         return false;
       }

@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Ticket, Users, IndianRupee, Clock, RefreshCw, CalendarDays,
-    MapPin, ArrowRight, Eye, BadgePercent, Loader2, CalendarRange, Contact,
+    MapPin, ArrowRight, Eye, BadgePercent, Loader2, CalendarRange, Contact, Trash2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
 import {
     AdminPageHeader, AdminStat, ADMIN_BG, ADMIN_PAGE, ADMIN_SECONDARY_BTN, rupees,
@@ -11,7 +12,7 @@ import {
 import { AdminTable, AdminChip, AdminCount, type AdminColumn }
     from '@/features/admin/components/AdminTable';
 import {
-    listBookingOverview, type BookingOverviewRow, type BookingOverview, type BookingHistoryCategory,
+    listBookingOverview, deleteArchivedEventHistory, type BookingOverviewRow, type BookingOverview, type BookingHistoryCategory,
 } from '@/services/eventBookingAdminApi';
 import { errorMessage } from '@/services/api';
 import BookingPeople from './BookingPeople';
@@ -99,6 +100,10 @@ export default function SuperAdminBookingEvents() {
     const visible = useMemo(() => data.filter(row => row.historyCategory === history), [data, history]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [deletingEvent, setDeletingEvent] = useState('');
+    const [peopleRevision, setPeopleRevision] = useState(0);
+    const deleteInFlight = useRef(false);
+    const canDeleteHistory = (() => { try { return localStorage.getItem('role') === 'super_admin'; } catch { return false; } })();
 
     const load = useCallback(async (quiet = false) => {
         const request = ++sequence.current;
@@ -131,6 +136,21 @@ export default function SuperAdminBookingEvents() {
         };
     }, [load]);
 
+    const removeArchivedHistory = useCallback(async (row: BookingOverviewRow) => {
+        if (!canDeleteHistory || row.historyCategory !== 'deleted' || !row.id || deleteInFlight.current) return;
+        deleteInFlight.current = true;
+        try {
+            if (!window.confirm(`Permanently delete old event history?\n\n${row.title || 'Untitled event'}\n${formatDay(row.startAt)}\n\nThis removes this old event and all its bookings, booking contacts, attendance and payment records from the database and reports. Member accounts stay. This cannot be undone and does not refund payments. Download an Excel copy first if needed.`)) return;
+            setDeletingEvent(row.id);
+            await deleteArchivedEventHistory(row.id);
+            ++sequence.current;
+            setData(current => current.filter(event => event.id !== row.id));
+            setPeopleRevision(value => value + 1);
+            toast.success('Old event and booking history permanently deleted.');
+            await load(true);
+        } catch (err) { toast.error(errorMessage(err, 'Could not delete old event history.')); }
+        finally { deleteInFlight.current = false; setDeletingEvent(''); }
+    }, [canDeleteHistory, load]);
     const open = (row: BookingOverviewRow) => navigate(`${adminBasePath()}/bookings/${row.id}?${new URLSearchParams(criteria)}`);
     const exportRows = async () => {
         setExporting(true); setError('');
@@ -299,6 +319,7 @@ export default function SuperAdminBookingEvents() {
             // to fall off the right edge, and it is the reason the row is here.
             width: 'w-48',
             render: (row) => (
+                <div className="flex flex-col items-start gap-2">
                 <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); open(row); }}
@@ -311,9 +332,16 @@ export default function SuperAdminBookingEvents() {
                 >
                     <Eye className="w-4 h-4" /> Booking Details
                 </button>
+                {canDeleteHistory && row.historyCategory === 'deleted' && <button
+                    type="button"
+                    disabled={!!deletingEvent}
+                    onClick={event => { event.stopPropagation(); void removeArchivedHistory(row); }}
+                    className={`${ADMIN_SECONDARY_BTN} text-rose-700 whitespace-normal text-left`}
+                ><Trash2 className="h-4 w-4 shrink-0" />{deletingEvent === row.id ? 'Deleting…' : 'Delete permanently'}</button>}
+                </div>
             ),
         },
-    ], [criteria, navigate]);
+    ], [criteria, navigate, canDeleteHistory, deletingEvent, removeArchivedHistory]);
 
     return (
         <div className={`flex h-screen ${ADMIN_BG}`}>
@@ -322,7 +350,7 @@ export default function SuperAdminBookingEvents() {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <AdminPageHeader
                     title="Booking Details"
-                    subtitle="Bookings and contact details are retained here even after an event is deleted. Open Booking Details to view or download them."
+                    subtitle="View or download event bookings and contacts. Old event history stays here until a Super Admin permanently deletes it."
                     onMenu={() => setSidebarOpen(true)}
                     actions={
                         <button
@@ -424,7 +452,7 @@ export default function SuperAdminBookingEvents() {
                             {exporting ? 'Preparing report…' : 'Download filtered Excel'}
                         </button>
                     </div>
-                    {tab === 'people' && <BookingPeople key={JSON.stringify(criteria)} filters={criteria} />}
+                    {tab === 'people' && <BookingPeople key={`${JSON.stringify(criteria)}-${peopleRevision}`} filters={criteria} />}
                     {tab === 'events' && (<>
                     <AdminTable
                         key={history}

@@ -298,3 +298,4 @@ export const getBookingPerson = async (email: string, filters: BookingFiltersVal
     );
 
 export const deleteEventBooking = async (eventId: string, ref: string) => unwrap(await api.delete(`/events/${encodeURIComponent(eventId)}/bookings/${encodeURIComponent(ref)}`), null);
+export const deleteArchivedEventHistory = async (eventId: string) => unwrap(await api.delete(`/events/${encodeURIComponent(eventId)}/bookings/history`, { data: { recordId: eventId, confirmation: 'DELETE' } }), null);
