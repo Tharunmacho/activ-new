@@ -31,7 +31,7 @@ function Detail({ icon: Icon, label, value }: { icon: typeof Mail; label: string
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600"><Icon className="h-5 w-5" /></span>
             <span className="min-w-0">
                 <span className="block text-[0.9375rem] text-slate-500">{label}</span>
-                <span className="block break-words text-[1.0625rem] font-semibold text-slate-900">{value}</span>
+                <span className="block break-words text-ui-caption font-semibold text-slate-900">{value}</span>
             </span>
         </div>
     );
@@ -110,7 +110,7 @@ export default function DonorDetail() {
                             <section className={`${ADMIN_CARD} p-4 sm:p-6`}>
                                 <h2 className={`${CARD_TITLE} text-slate-900`}>By financial year</h2>
                                 {byYear.length === 0 ? (
-                                    <p className="mt-3 text-[1.0625rem] text-slate-500">No completed donations yet.</p>
+                                    <p className="mt-3 text-ui-caption text-slate-500">No completed donations yet.</p>
                                 ) : (
                                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                         {byYear.map((y) => (
@@ -132,10 +132,10 @@ export default function DonorDetail() {
                             <section className={`${ADMIN_CARD} p-4 sm:p-6`}>
                                 <h2 className={`${CARD_TITLE} text-slate-900`}>Every donation</h2>
                                 {donations.length === 0 ? (
-                                    <p className="mt-3 text-[1.0625rem] text-slate-500">No donations recorded.</p>
+                                    <p className="mt-3 text-ui-caption text-slate-500">No donations recorded.</p>
                                 ) : (
                                     <div ref={tableRef} className="card-table mt-4">
-                                        <table className="w-full text-left text-[1.0625rem] sm:table-fixed [&_td]:break-words">
+                                        <table className="w-full text-left text-ui-caption sm:table-fixed [&_td]:break-words">
                                             <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                                                 <tr>
                                                     <th className="w-[11%] px-3 py-3 font-semibold">Date</th>

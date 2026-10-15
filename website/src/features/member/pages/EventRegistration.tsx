@@ -53,7 +53,7 @@ import { memberEventPath } from '@/lib/eventPath';
 type Step = 'details' | 'payment' | 'done';
 
 const INPUT =
-    'w-full h-11 px-3.5 rounded-xl border border-slate-200 text-[1.1875rem] text-slate-900 '
+    'w-full h-11 px-3.5 rounded-xl border border-slate-200 text-ui-small text-slate-900 '
     + 'placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 '
     + 'focus:border-blue-400 transition-shadow';
 
@@ -279,14 +279,14 @@ export default function EventRegistration() {
                         return (
                             <li key={s.key} className="flex items-center gap-2 min-w-0 flex-1 last:flex-none">
                                 <span className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center
-                                                  text-[1.0625rem] font-bold transition-colors ${
+                                                  text-ui-caption font-bold transition-colors ${
                                     done ? 'bg-emerald-600 text-white'
                                         : current ? 'bg-blue-600 text-white'
                                             : 'bg-slate-200 text-slate-500'
                                 }`}>
                                     {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
                                 </span>
-                                <span className={`text-[1.0625rem] font-semibold truncate ${
+                                <span className={`text-ui-caption font-semibold truncate ${
                                     current ? 'text-slate-900' : 'text-slate-400'
                                 }`}>
                                     {s.label}
@@ -312,7 +312,7 @@ export default function EventRegistration() {
                             >
                                 <div>
                                     <h2 className={`${CARD_TITLE} text-slate-900`}>Your details</h2>
-                                    <p className="text-[1.0625rem] text-slate-500 mt-0.5">
+                                    <p className="text-ui-caption text-slate-500 mt-0.5">
                                         So the organiser can reach you on the day.
                                     </p>
                                 </div>
@@ -346,7 +346,7 @@ export default function EventRegistration() {
                                   */}
                                 {fields.length > 0 ? (
                                     <div className="pt-4 border-t border-slate-100 space-y-4">
-                                        <p className="text-[1.0625rem] font-bold uppercase tracking-wide
+                                        <p className="text-ui-caption font-bold uppercase tracking-wide
                                                       text-slate-500">
                                             For this event
                                         </p>
@@ -374,7 +374,7 @@ export default function EventRegistration() {
                                 <button
                                     type="submit"
                                     disabled={working || !form.memberName.trim()}
-                                    className="w-full h-12 rounded-xl bg-blue-600 text-white text-[1.1875rem]
+                                    className="w-full h-12 rounded-xl bg-blue-600 text-white text-ui-small
                                                font-bold hover:bg-blue-700 disabled:opacity-60
                                                transition-colors inline-flex items-center justify-center gap-2"
                                 >
@@ -393,14 +393,14 @@ export default function EventRegistration() {
                                             space-y-5">
                                 <div>
                                     <h2 className={`${CARD_TITLE} text-slate-900`}>Payment</h2>
-                                    <p className="text-[1.0625rem] text-slate-500 mt-0.5">
+                                    <p className="text-ui-caption text-slate-500 mt-0.5">
                                         Your seat is held. It is confirmed the moment this is paid.
                                     </p>
                                 </div>
 
                                 <div className="rounded-2xl bg-blue-600
                                                 text-white p-5 shadow-md">
-                                    <p className="text-[1.0625rem] font-bold uppercase tracking-wider
+                                    <p className="text-ui-caption font-bold uppercase tracking-wider
                                                   text-blue-200">
                                         Amount due
                                     </p>
@@ -408,7 +408,7 @@ export default function EventRegistration() {
                                         ₹{registration.payment.amount.toLocaleString('en-IN')}
                                     </p>
                                     {registration.payment.reference ? (
-                                        <p className="mt-4 pt-3 border-t border-white/20 text-[1.0625rem]
+                                        <p className="mt-4 pt-3 border-t border-white/20 text-ui-caption
                                                       text-blue-200">
                                             Reference{' '}
                                             <span className="font-semibold tracking-wider text-white">
@@ -428,7 +428,7 @@ export default function EventRegistration() {
                                   and never through this server.
                                 */}
                                 <div>
-                                    <p className="text-[1.0625rem] font-bold uppercase tracking-wide
+                                    <p className="text-ui-caption font-bold uppercase tracking-wide
                                                   text-slate-500 mb-2">
                                         Pay using
                                     </p>
@@ -451,7 +451,7 @@ export default function EventRegistration() {
                                                 }`}
                                             >
                                                 <Icon className="w-5 h-5" />
-                                                <span className="px-1 text-center text-[1rem] sm:text-[1.0625rem] font-bold leading-tight">{label}</span>
+                                                <span className="px-1 text-center text-[1rem] sm:text-ui-caption font-bold leading-tight">{label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -461,7 +461,7 @@ export default function EventRegistration() {
                                     type="button"
                                     onClick={pay}
                                     disabled={working}
-                                    className="w-full h-12 rounded-xl bg-emerald-600 text-white text-[1.1875rem]
+                                    className="w-full h-12 rounded-xl bg-emerald-600 text-white text-ui-small
                                                font-bold hover:bg-emerald-700 disabled:opacity-60
                                                transition-colors inline-flex items-center justify-center gap-2
                                                shadow-sm"
@@ -472,7 +472,7 @@ export default function EventRegistration() {
                                     Pay ₹{registration.payment.amount.toLocaleString('en-IN')}
                                 </button>
 
-                                <p className="text-[1.0625rem] text-amber-700 bg-amber-50 border
+                                <p className="text-ui-caption text-amber-700 bg-amber-50 border
                                               border-amber-200 rounded-lg px-3 py-2 leading-snug
                                               flex items-start gap-1.5">
                                     <Info className="w-3.5 h-3.5 shrink-0 mt-px" />
@@ -503,7 +503,7 @@ export default function EventRegistration() {
                                         ? 'You are on the waiting list'
                                         : 'Your seat is confirmed'}
                                 </h2>
-                                <p className="text-[1.1875rem] text-slate-500 mt-1.5 max-w-sm mx-auto
+                                <p className="text-ui-small text-slate-500 mt-1.5 max-w-sm mx-auto
                                               leading-relaxed">
                                     {registration.status === 'waitlist'
                                         ? 'You will move into a seat automatically if one is given up.'
@@ -544,7 +544,7 @@ export default function EventRegistration() {
                                     <button
                                         type="button"
                                         onClick={() => navigate(memberEventPath(event))}
-                                        className="flex-1 h-11 rounded-xl bg-blue-600 text-white text-[1.1875rem]
+                                        className="flex-1 h-11 rounded-xl bg-blue-600 text-white text-ui-small
                                                    font-bold hover:bg-blue-700 transition-colors"
                                     >
                                         Back to the event
@@ -553,7 +553,7 @@ export default function EventRegistration() {
                                         type="button"
                                         onClick={() => navigate('/member/events')}
                                         className="flex-1 h-11 rounded-xl border border-slate-200
-                                                   text-[1.1875rem] font-semibold text-slate-600
+                                                   text-ui-small font-semibold text-slate-600
                                                    hover:bg-slate-50 transition-colors"
                                     >
                                         All events
@@ -585,20 +585,20 @@ export default function EventRegistration() {
                                     {event.title}
                                 </h3>
 
-                                <p className="text-[1.0625rem] text-slate-600 flex items-start gap-2">
+                                <p className="text-ui-caption text-slate-600 flex items-start gap-2">
                                     <CalendarDays className="w-4 h-4 shrink-0 mt-0.5 text-slate-400" />
                                     {formatWhen(event)}
                                 </p>
 
                                 {event.venue ? (
-                                    <p className="text-[1.0625rem] text-slate-600 flex items-start gap-2">
+                                    <p className="text-ui-caption text-slate-600 flex items-start gap-2">
                                         <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-slate-400" />
                                         {event.venue}
                                     </p>
                                 ) : null}
 
                                 {left !== null ? (
-                                    <p className={`text-[1.0625rem] font-semibold flex items-center gap-2 ${
+                                    <p className={`text-ui-caption font-semibold flex items-center gap-2 ${
                                         full ? 'text-amber-600' : 'text-slate-600'
                                     }`}>
                                         <Users className="w-4 h-4 shrink-0" />
@@ -619,7 +619,7 @@ export default function EventRegistration() {
                             */}
                             <div className="border-t border-slate-100 p-4 sm:p-5 bg-slate-50">
                                 <div className="flex items-baseline justify-between gap-3">
-                                    <span className="text-[1.0625rem] text-slate-600 flex items-center gap-1.5">
+                                    <span className="text-ui-caption text-slate-600 flex items-center gap-1.5">
                                         <Ticket className="w-3.5 h-3.5" />
                                         Registration fee
                                     </span>
@@ -633,21 +633,21 @@ export default function EventRegistration() {
                                 {/* The membership's effect, on the screen that
                                     takes the money. */}
                                 {savedByMembership > 0 ? (
-                                    <p className="text-[1.0625rem] font-semibold text-emerald-600 mt-2">
+                                    <p className="text-ui-caption font-semibold text-emerald-600 mt-2">
                                         Member price applied — ₹{savedByMembership.toLocaleString('en-IN')} off
                                         the usual ₹{listFee.toLocaleString('en-IN')}.
                                     </p>
                                 ) : null}
 
                                 {full && fee > 0 ? (
-                                    <p className="text-[1.0625rem] text-slate-500 mt-2 leading-snug">
+                                    <p className="text-ui-caption text-slate-500 mt-2 leading-snug">
                                         Nothing is charged for a place on the waiting list. You pay only if a
                                         seat becomes yours.
                                     </p>
                                 ) : null}
 
                                 {registration?.payment?.status === 'paid' ? (
-                                    <p className="text-[1.0625rem] text-emerald-700 font-semibold mt-2
+                                    <p className="text-ui-caption text-emerald-700 font-semibold mt-2
                                                   inline-flex items-center gap-1.5">
                                         <BadgeCheck className="w-3.5 h-3.5" /> Paid
                                     </p>
@@ -656,7 +656,7 @@ export default function EventRegistration() {
                         </div>
 
                         {event.registrationNote ? (
-                            <p className="text-[1.0625rem] text-slate-600 leading-relaxed bg-blue-50
+                            <p className="text-ui-caption text-slate-600 leading-relaxed bg-blue-50
                                           border border-blue-100 rounded-xl p-4">
                                 {event.registrationNote}
                             </p>
@@ -666,7 +666,7 @@ export default function EventRegistration() {
                             <button
                                 type="button"
                                 onClick={() => navigate(memberEventPath(event))}
-                                className="w-full h-10 rounded-xl text-[1.0625rem] font-semibold
+                                className="w-full h-10 rounded-xl text-ui-caption font-semibold
                                            text-slate-500 hover:text-slate-700 inline-flex items-center
                                            justify-center gap-1"
                             >
@@ -697,7 +697,7 @@ function Field({
 }) {
     return (
         <label className="block">
-            <span className="block text-[1.0625rem] font-semibold text-slate-600 mb-1.5">
+            <span className="block text-ui-caption font-semibold text-slate-600 mb-1.5">
                 {label}
                 {required ? <span className="text-red-500"> *</span> : null}
             </span>
@@ -745,12 +745,12 @@ function CustomField({
                     className="w-4 h-4 mt-0.5 accent-blue-600 shrink-0"
                 />
                 <span className="min-w-0">
-                    <span className="block text-[1.0625rem] text-slate-700 leading-snug">
+                    <span className="block text-ui-caption text-slate-700 leading-snug">
                         {field.label}
                         {field.required ? <span className="text-red-500"> *</span> : null}
                     </span>
                     {field.helpText ? (
-                        <span className="block text-[1.0625rem] text-slate-400 mt-0.5">{field.helpText}</span>
+                        <span className="block text-ui-caption text-slate-400 mt-0.5">{field.helpText}</span>
                     ) : null}
                 </span>
             </label>
@@ -761,7 +761,7 @@ function CustomField({
 
     return (
         <label className="block">
-            <span className="block text-[1.0625rem] font-semibold text-slate-600 mb-1.5">
+            <span className="block text-ui-caption font-semibold text-slate-600 mb-1.5">
                 {field.label}
                 {field.required ? <span className="text-red-500"> *</span> : null}
             </span>
@@ -808,7 +808,7 @@ function CustomField({
             )}
 
             {field.helpText ? (
-                <span className="block text-[1.0625rem] text-slate-400 mt-1">{field.helpText}</span>
+                <span className="block text-ui-caption text-slate-400 mt-1">{field.helpText}</span>
             ) : null}
         </label>
     );
@@ -817,8 +817,8 @@ function CustomField({
 function ReceiptRow({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[1.0625rem] text-slate-500 shrink-0">{label}</span>
-            <span className="text-[1.0625rem] font-semibold text-slate-900 text-right break-words">
+            <span className="text-ui-caption text-slate-500 shrink-0">{label}</span>
+            <span className="text-ui-caption font-semibold text-slate-900 text-right break-words">
                 {value}
             </span>
         </div>

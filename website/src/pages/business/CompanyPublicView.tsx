@@ -75,8 +75,8 @@ const Detail = ({ label, value }: { label: string; value?: string | null }) => {
     if (!text) return null;
     return (
         <div className="min-w-0">
-            <dt className="text-[1.1875rem] font-semibold uppercase tracking-wider text-slate-400">{label}</dt>
-            <dd className="text-[1.25rem] text-slate-700 mt-1 break-words">{text}</dd>
+            <dt className="text-ui-small font-semibold uppercase tracking-wider text-slate-400">{label}</dt>
+            <dd className="text-ui-body text-slate-700 mt-1 break-words">{text}</dd>
         </div>
     );
 };
@@ -106,17 +106,17 @@ const ProductTile = ({ product, onView }: {
             )}
         </div>
         <div className="p-3 sm:p-4 flex-1 flex flex-col min-w-0">
-            <p className="font-semibold text-[1.25rem] text-slate-900 line-clamp-1 break-all">
+            <p className="font-semibold text-ui-body text-slate-900 line-clamp-1 break-all">
                 {product.name || 'Untitled product'}
             </p>
-            <p className="text-[1.1875rem] text-slate-500 mt-0.5 line-clamp-1">
+            <p className="text-ui-small text-slate-500 mt-0.5 line-clamp-1">
                 {product.category || 'General'}{product.sku ? ` · ${product.sku}` : ''}
             </p>
             {product.description ? (
-                <p className="text-[1.1875rem] text-slate-500 mt-2 line-clamp-2 break-words">{product.description}</p>
+                <p className="text-ui-small text-slate-500 mt-2 line-clamp-2 break-words">{product.description}</p>
             ) : null}
             <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-1">
-                <span className="font-bold text-[1.25rem] text-blue-600 tabular-nums">
+                <span className="font-bold text-ui-body text-blue-600 tabular-nums">
                     {money(product.price)}
                 </span>
                 {product.stock ? (
@@ -387,13 +387,13 @@ export default function CompanyPublicView() {
 
                         <div className="mt-3 sm:mt-4 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                             <div className="min-w-0">
-                                <h1 className="text-[1.75rem] sm:text-[2.5625rem] font-extrabold tracking-tight text-slate-900 break-words">
+                                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 break-words">
                                     {company.businessName || 'Company'}
                                 </h1>
 
                                 {/* The one-line "who are you" — type, constitution,
                                     and the headline category if one is set. */}
-                                <p className="text-[1.25rem] sm:text-[1.375rem] text-slate-600 mt-1.5 font-medium break-words">
+                                <p className="text-ui-body text-slate-600 mt-1.5 font-medium break-words">
                                     {[
                                         company.businessType,
                                         company.constitutionType,
@@ -401,7 +401,7 @@ export default function CompanyPublicView() {
                                     ].filter(Boolean).join(' · ') || 'Business'}
                                 </p>
 
-                                <p className="text-[1.25rem] text-slate-500 mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <p className="text-ui-body text-slate-500 mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
                                     {location ? (
                                         <span className="inline-flex min-w-0 items-center gap-1.5 break-words">
                                             <MapPin className="h-4 w-4 shrink-0" />
@@ -492,14 +492,14 @@ export default function CompanyPublicView() {
                                         type="button"
                                         onClick={() => setTab(entry.key)}
                                         aria-current={active ? 'page' : undefined}
-                                        className={`py-3 shrink-0 whitespace-nowrap text-[1.25rem] font-semibold border-b-2 transition-colors ${active
+                                        className={`py-3 shrink-0 whitespace-nowrap text-ui-body font-semibold border-b-2 transition-colors ${active
                                             ? 'border-blue-600 text-blue-700'
                                             : 'border-transparent text-slate-500 hover:text-slate-800'
                                             }`}
                                     >
                                         {entry.label}
                                         {entry.key === 'products' && products.length > 0 ? (
-                                            <span className="ml-1.5 text-[1.1875rem] text-slate-400 tabular-nums">
+                                            <span className="ml-1.5 text-ui-small text-slate-400 tabular-nums">
                                                 {products.length}
                                             </span>
                                         ) : null}
@@ -517,7 +517,7 @@ export default function CompanyPublicView() {
                             <>
                                 <Card>
                                     <SectionTitle>Overview</SectionTitle>
-                                    <p className="text-[1.25rem] text-slate-600 leading-relaxed whitespace-pre-line break-words">
+                                    <p className="text-ui-body text-slate-600 leading-relaxed whitespace-pre-line break-words">
                                         {company.description
                                             || company.businessActivities
                                             || 'This company has not written an overview yet.'}
@@ -525,7 +525,7 @@ export default function CompanyPublicView() {
                                     <button
                                         type="button"
                                         onClick={() => setTab('about')}
-                                        className="mt-4 text-[1.25rem] font-semibold text-blue-700 hover:underline"
+                                        className="mt-4 text-ui-body font-semibold text-blue-700 hover:underline"
                                     >
                                         Show all details →
                                     </button>
@@ -547,7 +547,7 @@ export default function CompanyPublicView() {
                                                     key={`${category?.code || 'custom'}-${index}`}
                                                     className="max-w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                                                 >
-                                                    <span className="block text-[1.25rem] text-slate-800 break-words">
+                                                    <span className="block text-ui-body text-slate-800 break-words">
                                                         {category?.description || '—'}
                                                     </span>
                                                     <span className="block text-[1rem] text-slate-500 mt-0.5">
@@ -568,7 +568,7 @@ export default function CompanyPublicView() {
                                             <button
                                                 type="button"
                                                 onClick={() => setTab('products')}
-                                                className="text-[1.25rem] font-semibold text-blue-700 hover:underline"
+                                                className="text-ui-body font-semibold text-blue-700 hover:underline"
                                             >
                                                 Show all {products.length} →
                                             </button>
@@ -576,7 +576,7 @@ export default function CompanyPublicView() {
                                     </div>
 
                                     {products.length === 0 ? (
-                                        <p className="text-[1.25rem] text-slate-500">
+                                        <p className="text-ui-body text-slate-500">
                                             No products listed yet.
                                             {isOwner ? ' Add some so other members can find you by what you sell.' : ''}
                                         </p>
@@ -594,7 +594,7 @@ export default function CompanyPublicView() {
                         {tab === 'about' && (
                             <Card>
                                 <SectionTitle>About {company.businessName}</SectionTitle>
-                                <p className="text-[1.25rem] text-slate-600 leading-relaxed whitespace-pre-line break-words">
+                                <p className="text-ui-body text-slate-600 leading-relaxed whitespace-pre-line break-words">
                                     {company.description || 'No overview provided.'}
                                 </p>
 
@@ -629,7 +629,7 @@ export default function CompanyPublicView() {
                                     <div className="mt-6 pt-6 border-t border-slate-100 space-y-5">
                                         {(company.govtRegistrations || []).length > 0 && (
                                             <div>
-                                                <p className="text-[1.1875rem] font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                                                <p className="text-ui-small font-semibold uppercase tracking-wider text-slate-400 mb-3">
                                                     Registered with
                                                 </p>
                                                 <ul className="flex flex-wrap gap-2">
@@ -644,7 +644,7 @@ export default function CompanyPublicView() {
 
                                         {(schemes.length > 0 || explicitlyNone) && (
                                             <div>
-                                                <p className="text-[1.1875rem] font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                                                <p className="text-ui-small font-semibold uppercase tracking-wider text-slate-400 mb-3">
                                                     Schemes availed
                                                 </p>
                                                 {schemes.length > 0 ? <ul className="flex flex-wrap gap-2">
@@ -674,21 +674,21 @@ export default function CompanyPublicView() {
                                 */}
                                 {categories.length > 0 && products.length === 0 && (
                                     <div className="mt-6 pt-6 border-t border-slate-100">
-                                        <p className="text-[1.1875rem] font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                                        <p className="text-ui-small font-semibold uppercase tracking-wider text-slate-400 mb-3">
                                             Product categories
                                         </p>
                                         <ul className="space-y-2">
                                             {categories.map((category, index) => (
                                                 <li
                                                     key={`${category?.code || 'custom'}-${index}`}
-                                                    className="flex items-start gap-2.5 text-[1.25rem]"
+                                                    className="flex items-start gap-2.5 text-ui-body"
                                                 >
                                                     <Tag className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
                                                     <span className="min-w-0">
                                                         <span className="block text-slate-800 break-words">
                                                             {category?.description || '—'}
                                                         </span>
-                                                        <span className="block text-[1.1875rem] text-slate-500">
+                                                        <span className="block text-ui-small text-slate-500">
                                                             {category?.code
                                                                 ? `NIC ${category.code}${category?.industryType ? ` · ${category.industryType}` : ''}`
                                                                 : 'Custom category'}
@@ -736,7 +736,7 @@ export default function CompanyPublicView() {
                     <div className="min-w-0 space-y-4 sm:space-y-5">
                         <Card>
                             <SectionTitle>Contact</SectionTitle>
-                            <dl className="space-y-4 text-[1.25rem]">
+                            <dl className="space-y-4 text-ui-body">
                                 {company.mobileNumber ? (
                                     <div className="flex items-start gap-3">
                                         <Phone className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
@@ -760,7 +760,7 @@ export default function CompanyPublicView() {
                                     </div>
                                 ) : null}
                                 {!company.mobileNumber && !company.email && !location ? (
-                                    <p className="text-[1.25rem] text-slate-500">No contact details published.</p>
+                                    <p className="text-ui-body text-slate-500">No contact details published.</p>
                                 ) : null}
                             </dl>
                         </Card>

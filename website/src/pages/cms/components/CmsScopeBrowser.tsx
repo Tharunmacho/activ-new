@@ -131,7 +131,7 @@ export function CmsScopeBrowser<T>({
     );
 
     const emptyLine = (text: string) => (
-        <p className="rounded-xl border border-dashed border-slate-300 p-4 sm:p-5 text-[1.1875rem] text-slate-400 dark:border-[#2a2a2a]">
+        <p className="rounded-xl border border-dashed border-slate-300 p-4 sm:p-5 text-ui-small text-slate-400 dark:border-[#2a2a2a]">
             {text}
         </p>
     );
@@ -173,7 +173,7 @@ export function CmsScopeBrowser<T>({
                     <button
                         type="button"
                         onClick={() => setOpenState('')}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2 text-[1.0625rem]
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2 text-ui-caption
                                    font-semibold text-slate-600 transition-colors hover:border-[#2563EB] hover:text-[#2563EB]
                                    dark:border-[#2a2a2a] dark:text-neutral-300"
                     >
@@ -181,11 +181,11 @@ export function CmsScopeBrowser<T>({
                     </button>
                     <div className="min-w-0 flex-1">
                         <p className="text-[1.375rem] sm:text-[1.5rem] font-bold break-words text-slate-900 dark:text-white">{current.name}</p>
-                        <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">{current.regionLabel}</p>
+                        <p className="text-ui-caption text-slate-500 dark:text-neutral-400">{current.regionLabel}</p>
                     </div>
                     {publicHref && rows.length > 0 && (
                         <a href={publicHref(current)} target="_blank" rel="noopener noreferrer"
-                           className="inline-flex items-center gap-1.5 text-[1.0625rem] font-semibold text-blue-700 dark:text-blue-400">
+                           className="inline-flex items-center gap-1.5 text-ui-caption font-semibold text-blue-700 dark:text-blue-400">
                             View on the site <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                     )}
@@ -231,7 +231,7 @@ export function CmsScopeBrowser<T>({
                             key={chip.key || 'all'}
                             type="button"
                             onClick={() => setRegionFilter(chip.key)}
-                            className={`inline-flex items-center gap-2 rounded-full px-3 sm:px-4 py-2 text-[1.1875rem] font-semibold transition-colors ${regionFilter === chip.key
+                            className={`inline-flex items-center gap-2 rounded-full px-3 sm:px-4 py-2 text-ui-small font-semibold transition-colors ${regionFilter === chip.key
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-[#141414] dark:text-neutral-300'}`}
                         >
@@ -251,8 +251,8 @@ export function CmsScopeBrowser<T>({
                                     transition-colors hover:border-slate-300 dark:border-[#2a2a2a] dark:bg-[#111]">
                         <MapPin className={`h-4 w-4 shrink-0 ${rows.length ? 'text-blue-600' : 'text-slate-300'}`} />
                         <button type="button" onClick={() => setOpenState(st.slug)} className="min-w-0 flex-1 text-left">
-                            <p className="text-[1.25rem] font-bold break-words text-slate-900 dark:text-neutral-100">{st.name}</p>
-                            <p className="mt-0.5 text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                            <p className="text-ui-body font-bold break-words text-slate-900 dark:text-neutral-100">{st.name}</p>
+                            <p className="mt-0.5 text-ui-caption font-medium text-slate-500 dark:text-neutral-400">
                                 {rows.length
                                     ? `${count(own, `state ${noun}`)} · ${count(district, `district ${noun}`)}`
                                     : `No ${plural} yet`}
@@ -262,7 +262,7 @@ export function CmsScopeBrowser<T>({
                         <button
                             type="button"
                             onClick={() => setOpenState(st.slug)}
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[1.0625rem]
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-ui-caption
                                        font-semibold text-[#2563EB] transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/30"
                         >
                             Open

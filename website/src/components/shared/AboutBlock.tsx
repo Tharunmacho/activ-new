@@ -314,7 +314,7 @@ export function AboutBlock({
                             </span>
 
                             <blockquote
-                                className="relative text-[1.1875rem] font-semibold leading-[1.6] break-words
+                                className="relative text-ui-small font-semibold leading-[1.6] break-words
                                            text-brand-900 sm:text-[1.75rem] sm:leading-[1.55]
                                            [&_strong]:text-brand-600"
                                 dangerouslySetInnerHTML={{ __html: quote!.text || '' }}
@@ -347,13 +347,13 @@ export function AboutBlock({
                                     )}
                                     <span className="min-w-0 text-left">
                                         {quote!.author && (
-                                            <span className="block text-[1.1875rem] font-extrabold
+                                            <span className="block text-ui-small font-extrabold
                                                              text-brand-900">
                                                 {quote!.author}
                                             </span>
                                         )}
                                         {quote!.role && (
-                                            <span className="block text-[1.0625rem] font-semibold
+                                            <span className="block text-ui-caption font-semibold
                                                              text-brand-500">
                                                 {quote!.role}
                                             </span>

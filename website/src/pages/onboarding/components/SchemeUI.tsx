@@ -106,7 +106,7 @@ export function SchemesBand({ settings, title, highlight, description }: {
                     </h1>
 
                     {blurb && (
-                        <p className={`mt-4 ${BAND_MEASURE} text-[1.0625rem] sm:text-[1.1875rem] font-semibold
+                        <p className={`mt-4 ${BAND_MEASURE} text-ui-caption sm:text-ui-small font-semibold
                                       leading-relaxed text-white/80 line-clamp-3`}>
                             {blurb}
                         </p>
@@ -181,7 +181,7 @@ export function SchemeCard({ scheme, showWhere = true }: { scheme: SchemeRecord;
             </div>
 
             <Link to={detail} className="mt-4 block">
-                <h3 className="text-[1.1875rem] sm:text-[1.3125rem] font-extrabold leading-snug tracking-tight text-brand-900
+                <h3 className="text-ui-small sm:text-[1.3125rem] font-extrabold leading-snug tracking-tight text-brand-900
                                transition-colors group-hover:text-brand-700 line-clamp-3">
                     {scheme.title || 'Untitled scheme'}
                 </h3>
@@ -194,7 +194,7 @@ export function SchemeCard({ scheme, showWhere = true }: { scheme: SchemeRecord;
             )}
 
             {scheme.summary && (
-                <p className="mt-3 text-[1.0625rem] leading-relaxed text-gray-600 line-clamp-3">
+                <p className="mt-3 text-ui-caption leading-relaxed text-gray-600 line-clamp-3">
                     {scheme.summary}
                 </p>
             )}

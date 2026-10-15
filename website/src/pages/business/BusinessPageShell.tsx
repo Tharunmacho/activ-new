@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, ArrowLeft } from 'lucide-react';
 import BusinessSidebar from './BusinessSidebar';
 
-import { PAGE_SUBTITLE } from '@/components/layout/appTypography';
-
-/* `appTypography.PAGE_TITLE` with a smaller phone step, so the title keeps
-   more than one word beside the menu button and an action in a 64px bar. */
-const PAGE_TITLE = 'text-[1.625rem] sm:text-[2.5rem] font-semibold tracking-tight leading-[1.1]';
+import { PAGE_SUBTITLE, PAGE_TITLE } from '@/components/layout/appTypography';
 /**
  * The page shell every business screen renders inside.
  *

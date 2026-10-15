@@ -158,7 +158,7 @@ const Explore = () => {
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <h3 className={`${CARD_TITLE} break-words`}>{member.fullName || 'Member'}</h3>
-                            <p className="text-[1.1875rem] text-blue-100 break-all">{member.email || ''}</p>
+                            <p className="text-ui-small text-blue-100 break-all">{member.email || ''}</p>
                           </div>
                         </div>
                         <Button
@@ -176,15 +176,15 @@ const Explore = () => {
                         <div className="p-4 bg-slate-50 border-b">
                           <div className="flex items-center gap-2 mb-3">
                             <Building2 className="w-4 h-4 text-slate-500" />
-                            <span className="font-semibold text-[1.1875rem] text-slate-700">
+                            <span className="font-semibold text-ui-small text-slate-700">
                               {member.companies.length} {member.companies.length === 1 ? 'Business' : 'Businesses'}
                             </span>
                           </div>
                           <div className="space-y-2">
                             {member.companies.slice(0, 2).map((company) => (
                               <div key={company._id} className="bg-white p-3 rounded-lg shadow-sm">
-                                <p className="font-medium text-[1.1875rem] text-slate-900">{company.businessName}</p>
-                                <p className="text-[1.0625rem] text-slate-500">{company.businessType}</p>
+                                <p className="font-medium text-ui-small text-slate-900">{company.businessName}</p>
+                                <p className="text-ui-caption text-slate-500">{company.businessType}</p>
                               </div>
                             ))}
                           </div>
@@ -195,7 +195,7 @@ const Explore = () => {
                       {member.products.length > 0 ? (
                         <div className="p-4">
                           <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold text-[1.1875rem] text-slate-700">
+                            <span className="font-semibold text-ui-small text-slate-700">
                               {member.productCount} {member.productCount === 1 ? 'Product' : 'Products'}
                             </span>
                           </div>
@@ -217,8 +217,8 @@ const Explore = () => {
                                 </div>
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 rounded-lg flex items-center justify-center">
                                   <div className="opacity-0 group-hover:opacity-100 text-white text-center px-2">
-                                    <p className="text-[1.0625rem] font-semibold line-clamp-2">{product.name}</p>
-                                    <p className="text-[1.0625rem] mt-1">₹{product.price}</p>
+                                    <p className="text-ui-caption font-semibold line-clamp-2">{product.name}</p>
+                                    <p className="text-ui-caption mt-1">₹{product.price}</p>
                                   </div>
                                 </div>
                               </div>
@@ -227,7 +227,7 @@ const Explore = () => {
                         </div>
                       ) : (
                         <div className="p-4 text-center">
-                          <p className="text-[1.1875rem] text-slate-500">No products yet</p>
+                          <p className="text-ui-small text-slate-500">No products yet</p>
                         </div>
                       )}
                     </CardContent>

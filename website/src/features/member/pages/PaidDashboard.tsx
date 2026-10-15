@@ -527,7 +527,7 @@ export default function PaidDashboard() {
                                       four tiles that had slipped. `em`, so it
                                       follows the type size.
                                     */}
-                                    <span className="block text-[1.125rem] sm:text-[1.25rem] font-bold leading-snug text-slate-900
+                                    <span className="block text-[1.125rem] sm:text-ui-body font-bold leading-snug text-slate-900
                                                      break-normal [overflow-wrap:normal] [hyphens:manual]">
                                         {label}
                                     </span>
@@ -576,7 +576,7 @@ export default function PaidDashboard() {
                                         <doc.icon className="h-5 w-5" />
                                     </span>
 
-                                    <span className="block text-[1.125rem] sm:text-[1.25rem] font-bold leading-snug text-slate-900
+                                    <span className="block text-[1.125rem] sm:text-ui-body font-bold leading-snug text-slate-900
                                                      break-normal [overflow-wrap:normal] [hyphens:manual]">
                                         {doc.label}
                                     </span>
@@ -584,11 +584,11 @@ export default function PaidDashboard() {
                                     <span className="block">
                                         {doc.issued ? (
                                             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50
-                                                             px-2.5 py-1 text-[1.0625rem] font-bold text-emerald-700">
+                                                             px-2.5 py-1 text-ui-caption font-bold text-emerald-700">
                                                 <BadgeCheck className="h-4 w-4" /> Verified
                                             </span>
                                         ) : (
-                                            <span className="block text-[1.25rem] font-semibold text-slate-500">
+                                            <span className="block text-ui-body font-semibold text-slate-500">
                                                 {doc.detail}
                                             </span>
                                         )}
@@ -657,7 +657,7 @@ export default function PaidDashboard() {
                                                 <span className="text-[1.5rem] sm:text-[1.75rem] font-extrabold leading-none text-blue-700">
                                                     {when.day}
                                                 </span>
-                                                <span className="mt-1 text-[1.0625rem] font-extrabold uppercase
+                                                <span className="mt-1 text-ui-caption font-extrabold uppercase
                                                                  tracking-wider text-blue-500">
                                                     {when.month}
                                                 </span>
@@ -682,7 +682,7 @@ export default function PaidDashboard() {
                                                     />
                                                     {event.category && (
                                                         <span className="absolute left-1.5 top-1.5 rounded-md
-                                                                         bg-slate-900/80 px-2 py-0.5 text-[1.0625rem]
+                                                                         bg-slate-900/80 px-2 py-0.5 text-ui-caption
                                                                          font-bold text-white">
                                                             {event.category}
                                                         </span>
@@ -693,7 +693,7 @@ export default function PaidDashboard() {
                                             <span className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-1">
                                                 {!banner && event.category && (
                                                     <span className="w-fit rounded-md bg-slate-100 px-2 py-0.5
-                                                                     text-[1.0625rem] font-bold text-slate-600">
+                                                                     text-ui-caption font-bold text-slate-600">
                                                         {event.category}
                                                     </span>
                                                 )}
@@ -702,19 +702,19 @@ export default function PaidDashboard() {
                                                     their time and venue rows a line
                                                     apart, and three rows down the
                                                     card nothing lines up. */}
-                                                <span className="line-clamp-2 break-words text-[1.25rem] sm:text-[1.5625rem]
+                                                <span className="line-clamp-2 break-words text-ui-body sm:text-[1.5625rem]
                                                                  font-extrabold leading-snug tracking-tight
                                                                  text-slate-900">
                                                     {event.title || 'Untitled event'}
                                                 </span>
                                                 {when.time && (
-                                                    <span className="flex items-center gap-1.5 text-[1.25rem]
+                                                    <span className="flex items-center gap-1.5 text-ui-body
                                                                      font-semibold text-slate-500">
                                                         <Clock className="h-4 w-4 shrink-0" /> {when.time}
                                                     </span>
                                                 )}
                                                 {(event.venue || event.district) && (
-                                                    <span className="flex items-center gap-1.5 text-[1.25rem]
+                                                    <span className="flex items-center gap-1.5 text-ui-body
                                                                      font-semibold text-slate-500">
                                                         <MapPin className="h-4 w-4 shrink-0" />
                                                         <span className="truncate">
@@ -729,7 +729,7 @@ export default function PaidDashboard() {
                                                     type="button"
                                                     onClick={() => navigate(memberEventPath(event))}
                                                     className={`inline-flex w-full sm:w-auto justify-center items-center gap-1.5 rounded-xl px-4 py-2.5
-                                                                text-[1.25rem] font-bold transition-colors ${registered
+                                                                text-ui-body font-bold transition-colors ${registered
                                                             ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                                                             : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                                 >
@@ -798,31 +798,31 @@ export default function PaidDashboard() {
                                                 <span className="flex flex-wrap items-center gap-2">
                                                     {update.category && (
                                                         <span className="rounded-md bg-blue-50 px-2 py-0.5
-                                                                         text-[1.0625rem] font-bold capitalize
+                                                                         text-ui-caption font-bold capitalize
                                                                          text-blue-700">
                                                             {update.category}
                                                         </span>
                                                     )}
                                                     {update.pinned && (
                                                         <span className="rounded-md bg-amber-50 px-2 py-0.5
-                                                                         text-[1.0625rem] font-bold text-amber-700">
+                                                                         text-ui-caption font-bold text-amber-700">
                                                             Pinned
                                                         </span>
                                                     )}
                                                 </span>
                                                 <span className="mt-1.5 line-clamp-2 block min-h-[2.6em]
-                                                                 text-[1.25rem] font-extrabold leading-snug
+                                                                 text-ui-body font-extrabold leading-snug
                                                                  tracking-tight text-slate-900">
                                                     {update.title}
                                                 </span>
                                                 {update.summary && (
-                                                    <span className="mt-1 line-clamp-2 block min-h-[3em] text-[1.25rem]
+                                                    <span className="mt-1 line-clamp-2 block min-h-[3em] text-ui-body
                                                                      font-medium text-slate-500">
                                                         {update.summary}
                                                     </span>
                                                 )}
                                                 {update.publishedAt && (
-                                                    <span className="mt-1.5 flex items-center gap-1.5 text-[1.1875rem]
+                                                    <span className="mt-1.5 flex items-center gap-1.5 text-ui-small
                                                                      font-semibold text-slate-400">
                                                         <CalendarDays className="h-4 w-4" />
                                                         {shortDate(update.publishedAt)}

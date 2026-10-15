@@ -742,7 +742,7 @@ export default function EventDetailPage() {
                                 )}
 
                                 {event.description && (
-                                    <p className="text-[1.25rem] sm:text-[1.375rem] leading-relaxed font-medium text-slate-600
+                                    <p className="text-ui-body sm:text-[1.375rem] leading-relaxed font-medium text-slate-600
                                                   whitespace-pre-line mb-6">
                                         {event.description}
                                     </p>
@@ -780,11 +780,11 @@ export default function EventDetailPage() {
                                                         {/* Which day it is, the date, and its hours. */}
                                                         <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                                                             <span className="inline-flex items-center rounded-lg bg-brand-50
-                                                                             px-2.5 py-1 text-[1.0625rem] font-bold
+                                                                             px-2.5 py-1 text-ui-caption font-bold
                                                                              uppercase tracking-wide text-brand-700">
                                                                 Day {d + 1}
                                                             </span>
-                                                            <span className="text-[1.25rem] font-bold text-slate-900">
+                                                            <span className="text-ui-body font-bold text-slate-900">
                                                                 {dayHeading(day.date)}
                                                             </span>
                                                             {hours && (
@@ -805,9 +805,9 @@ export default function EventDetailPage() {
                                                                                 {span(row.startTime, row.endTime)}
                                                                             </p>
                                                                         )}
-                                                                        <p className="text-[1.25rem] font-bold text-slate-900">{row.title}</p>
+                                                                        <p className="text-ui-body font-bold text-slate-900">{row.title}</p>
                                                                         {row.description && (
-                                                                            <p className="text-[1.25rem] text-slate-500 mt-1 whitespace-pre-line">
+                                                                            <p className="text-ui-body text-slate-500 mt-1 whitespace-pre-line">
                                                                                 {row.description}
                                                                             </p>
                                                                         )}
@@ -824,7 +824,7 @@ export default function EventDetailPage() {
                                                                is settled and the programme is not written
                                                                yet. Say so, rather than leave a heading with
                                                                nothing under it. */
-                                                            <p className="pl-5 text-[1.1875rem] text-slate-400">
+                                                            <p className="pl-5 text-ui-small text-slate-400">
                                                                 The programme for this day is still being confirmed.
                                                             </p>
                                                         )}
@@ -848,9 +848,9 @@ export default function EventDetailPage() {
                                                             {span(row.startTime, row.endTime)}
                                                         </p>
                                                     )}
-                                                    <p className="text-[1.25rem] font-bold text-slate-900">{row.title}</p>
+                                                    <p className="text-ui-body font-bold text-slate-900">{row.title}</p>
                                                     {row.description && (
-                                                        <p className="text-[1.25rem] text-slate-500 mt-1 whitespace-pre-line">
+                                                        <p className="text-ui-body text-slate-500 mt-1 whitespace-pre-line">
                                                             {row.description}
                                                         </p>
                                                     )}
@@ -935,14 +935,14 @@ export default function EventDetailPage() {
                                                             : <User size={30} className="text-slate-400" />}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-[1.25rem] font-bold text-slate-900">{person.name}</p>
+                                                        <p className="text-ui-body font-bold text-slate-900">{person.name}</p>
                                                         {(person.role || person.organization) && (
-                                                            <p className="text-[1.1875rem] font-semibold text-slate-500 mt-0.5">
+                                                            <p className="text-ui-small font-semibold text-slate-500 mt-0.5">
                                                                 {[person.role, person.organization].filter(Boolean).join(', ')}
                                                             </p>
                                                         )}
                                                         {person.bio && (
-                                                            <p className="text-[1.25rem] text-slate-500 mt-2">{person.bio}</p>
+                                                            <p className="text-ui-body text-slate-500 mt-2">{person.bio}</p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -1054,7 +1054,7 @@ export default function EventDetailPage() {
                                     <div className={`${BIZ_WELL} mt-5`}>
                                         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                                             <p className={BIZ_DETAIL_LABEL}>Availability</p>
-                                            <p className={`text-[1.1875rem] font-bold whitespace-nowrap ${
+                                            <p className={`text-ui-small font-bold whitespace-nowrap ${
                                                 soldOut ? 'text-rose-600'
                                                     : fillingFast ? 'text-amber-700' : 'text-slate-900'
                                             }`}>
@@ -1070,7 +1070,7 @@ export default function EventDetailPage() {
                                                 style={{ width: `${Math.max(3, takenPercent)}%` }}
                                             />
                                         </div>
-                                        <p className="mt-2 text-[1.1875rem] font-semibold text-slate-500">
+                                        <p className="mt-2 text-ui-small font-semibold text-slate-500">
                                             {Math.max(0, Number(capacity || 0) - Number(seatsLeft || 0)).toLocaleString('en-IN')} booked so far
                                         </p>
                                     </div>
@@ -1107,7 +1107,7 @@ export default function EventDetailPage() {
                                                       text-amber-700">
                                             Please note
                                         </p>
-                                        <p className="mt-1.5 text-[1.25rem] font-semibold text-amber-900 whitespace-pre-line">
+                                        <p className="mt-1.5 text-ui-body font-semibold text-amber-900 whitespace-pre-line">
                                             {event.registrationNote}
                                         </p>
                                     </div>
@@ -1186,7 +1186,7 @@ export default function EventDetailPage() {
                                                     {hasPassed ? 'Event has ended'
                                                         : soldOut ? 'Fully booked' : 'Booking closed'}
                                                 </div>
-                                                <p className="mt-3 text-center text-[1.1875rem] font-semibold text-slate-500">
+                                                <p className="mt-3 text-center text-ui-small font-semibold text-slate-500">
                                                     {hasPassed
                                                         ? 'This event has already taken place.'
                                                         : soldOut
@@ -1287,7 +1287,7 @@ export default function EventDetailPage() {
                                                     title but does nothing for a short one, so a
                                                     one-line title pulled its date 24px up and the
                                                     four tiles read as four different cards. */}
-                                                <p className="min-h-[3rem] text-[1.125rem] sm:text-[1.25rem] font-bold text-slate-900 line-clamp-2
+                                                <p className="min-h-[3rem] text-[1.125rem] sm:text-ui-body font-bold text-slate-900 line-clamp-2
                                                               group-hover:text-brand-700 transition-colors">
                                                     {/* Never an empty line — the same
                                                         fallback every other card uses. */}

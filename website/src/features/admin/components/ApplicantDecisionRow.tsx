@@ -167,14 +167,14 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                         <p className="font-semibold text-slate-900 truncate">
                             {applicant.fullName || applicant.email || 'Applicant'}
                         </p>
-                        <p className="text-[1.1875rem] text-slate-500 mt-0.5 truncate">
+                        <p className="text-ui-small text-slate-500 mt-0.5 truncate">
                             {applicant.email}{applicant.phone ? ` · ${applicant.phone}` : ''}
                         </p>
                     </div>
 
                     <div className="flex items-center gap-2 max-w-full flex-wrap justify-start sm:justify-end">
                         <span
-                            className={`inline-flex items-center gap-1.5 text-[1.1875rem] font-semibold px-2.5 py-1
+                            className={`inline-flex items-center gap-1.5 text-ui-small font-semibold px-2.5 py-1
                                         rounded-full ${pill}`}
                             /* The whole truth on hover: the badge is this level's
                                verdict, the title is the application's own state. */
@@ -195,7 +195,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                           * saying the same thing.
                           */}
                         {enrolled && stage !== 'approved' && (
-                            <span className="inline-flex items-center gap-1.5 text-[1.1875rem] font-semibold
+                            <span className="inline-flex items-center gap-1.5 text-ui-small font-semibold
                                              px-2.5 py-1 rounded-full bg-slate-100 text-slate-600
                                              ring-1 ring-slate-200 whitespace-nowrap"
                                 title="The State Admin has approved this application — the member profile exists">
@@ -203,7 +203,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                             </span>
                         )}
                         {declined && stage !== 'rejected' && (
-                            <span className="inline-flex items-center gap-1.5 text-[1.1875rem] font-semibold
+                            <span className="inline-flex items-center gap-1.5 text-ui-small font-semibold
                                              px-2.5 py-1 rounded-full bg-slate-100 text-slate-600
                                              ring-1 ring-slate-200 whitespace-nowrap"
                                 title="The State Admin has rejected this application">
@@ -217,7 +217,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                           Admin clears it or somebody is appointed.
                         */}
                         {!applicant.canAct && applicant.waitingOn && stage === 'pending' && (
-                            <span className="inline-flex items-center gap-1 text-[1.1875rem] text-slate-500 sm:whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 text-ui-small text-slate-500 sm:whitespace-nowrap">
                                 <ArrowRight className="w-3.5 h-3.5" />
                                 No admin in this region — with the Super Admin
                             </span>
@@ -236,7 +236,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                                 type="button"
                                 onClick={() => onView(applicant)}
                                 className="inline-flex items-center gap-1.5 h-10 sm:h-auto px-3.5 py-1.5 rounded-lg border
-                                           border-slate-300 text-slate-700 text-[1.1875rem] font-semibold
+                                           border-slate-300 text-slate-700 text-ui-small font-semibold
                                            hover:bg-slate-50 transition-colors"
                             >
                                 <Eye className="w-3.5 h-3.5" /> View
@@ -249,7 +249,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                                     disabled={busy}
                                     onClick={() => onDecide(id, true)}
                                     className="inline-flex items-center gap-1.5 h-10 sm:h-auto px-3.5 py-1.5 rounded-lg bg-green-600
-                                               text-white text-[1.1875rem] font-semibold hover:bg-green-700
+                                               text-white text-ui-small font-semibold hover:bg-green-700
                                                disabled:opacity-50 transition-colors"
                                 >
                                     <Check className="w-3.5 h-3.5" /> Approve
@@ -258,7 +258,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                                     disabled={busy}
                                     onClick={() => { setRejecting(v => !v); setReason(''); }}
                                     className="inline-flex items-center gap-1.5 h-10 sm:h-auto px-3.5 py-1.5 rounded-lg border
-                                               border-red-200 text-red-600 text-[1.1875rem] font-semibold hover:bg-red-50
+                                               border-red-200 text-red-600 text-ui-small font-semibold hover:bg-red-50
                                                disabled:opacity-50 transition-colors"
                                 >
                                     <X className="w-3.5 h-3.5" /> Reject
@@ -279,7 +279,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                   * thinking their Approve button grants a membership.
                   */}
                 {(applicant.endorsementLine || (applicant.canAct && applicant.decidesOutcome === false)) && (
-                    <p className="mt-2 text-[1.1875rem] text-slate-500">
+                    <p className="mt-2 text-ui-small text-slate-500">
                         {applicant.endorsementLine}
                         {applicant.endorsementLine && applicant.canAct && applicant.decidesOutcome === false && ' · '}
                         {applicant.canAct && applicant.decidesOutcome === false
@@ -294,20 +294,20 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             placeholder="Why is this being rejected?"
-                            className="flex-1 min-w-0 h-11 sm:h-auto px-3 py-2 border border-slate-200 rounded-xl text-[1.25rem]
+                            className="flex-1 min-w-0 h-11 sm:h-auto px-3 py-2 border border-slate-200 rounded-xl text-ui-body
                                        focus:outline-none focus:ring-2 focus:ring-red-500"
                         />
                         <button
                             disabled={busy}
                             onClick={async () => { await onDecide(id, false, reason); setRejecting(false); setReason(''); }}
-                            className="h-10 sm:h-auto px-4 py-2 rounded-lg bg-red-600 text-white text-[1.25rem] font-medium
+                            className="h-10 sm:h-auto px-4 py-2 rounded-lg bg-red-600 text-white text-ui-body font-medium
                                        hover:bg-red-700 disabled:opacity-50"
                         >
                             Confirm rejection
                         </button>
                         <button
                             onClick={() => { setRejecting(false); setReason(''); }}
-                            className="h-10 sm:h-auto px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-[1.25rem] hover:bg-slate-50"
+                            className="h-10 sm:h-auto px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-ui-body hover:bg-slate-50"
                         >
                             Cancel
                         </button>

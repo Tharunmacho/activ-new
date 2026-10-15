@@ -429,7 +429,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
 
                     {unreadCount > 0 ? (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1.5
-                                         rounded-full bg-red-500 text-white text-[1.0625rem] font-bold
+                                         rounded-full bg-red-500 text-white text-ui-caption font-bold
                                          ring-2 ring-white
                                          flex items-center justify-center tabular-nums">
                             {unreadCount > 9 ? '9+' : unreadCount}
@@ -444,7 +444,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                     >
                         <div className="flex items-center justify-between gap-2 px-4 py-3 border-b
                                         border-slate-100">
-                            <p className="text-[1.1875rem] font-bold text-slate-900">Notifications</p>
+                            <p className="text-ui-small font-bold text-slate-900">Notifications</p>
 
                             {/*
                               MARK EVERYTHING READ — a real control.
@@ -466,7 +466,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                     type="button"
                                     onClick={markRead}
                                     className="inline-flex items-center gap-1 rounded-lg px-2 py-1
-                                               text-[1.0625rem] font-semibold text-blue-600
+                                               text-ui-caption font-semibold text-blue-600
                                                transition-colors hover:bg-blue-50 hover:text-blue-700
                                                focus-visible:outline focus-visible:outline-2
                                                focus-visible:outline-offset-1 focus-visible:outline-blue-500"
@@ -490,14 +490,14 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                                      mb-3 flex items-center justify-center">
                                         <Inbox className="w-5 h-5" />
                                     </span>
-                                    <p className="text-[1.0625rem] font-semibold text-slate-700">
+                                    <p className="text-ui-caption font-semibold text-slate-700">
                                         Nothing in the last 24 hours
                                     </p>
                                     {/* The window is named, because an empty bell
                                         beside a full events page otherwise reads
                                         as a bell that has stopped working. The two
                                         links below reach everything older. */}
-                                    <p className="text-[1.0625rem] text-slate-500 mt-1">
+                                    <p className="text-ui-caption text-slate-500 mt-1">
                                         New events and association notices appear here for a day.
                                         Everything else is under All events and All updates.
                                     </p>
@@ -546,7 +546,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
 
                                                     <span className="min-w-0 flex-1">
                                                         <span className="flex items-center gap-1.5">
-                                                            <span className="text-[1.0625rem] font-semibold
+                                                            <span className="text-ui-caption font-semibold
                                                                              text-slate-900 truncate">
                                                                 {item.title}
                                                             </span>
@@ -555,11 +555,11 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                                                                  bg-blue-600 shrink-0" />
                                                             ) : null}
                                                         </span>
-                                                        <span className="block text-[1.0625rem] text-slate-500
+                                                        <span className="block text-ui-caption text-slate-500
                                                                          mt-0.5 line-clamp-2 leading-snug">
                                                             {item.detail}
                                                         </span>
-                                                        <span className="block text-[1.0625rem] text-slate-400
+                                                        <span className="block text-ui-caption text-slate-400
                                                                          mt-1">
                                                             {when(item.at)}
                                                         </span>
@@ -605,7 +605,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                             <button
                                 type="button"
                                 onClick={() => go('/member/events')}
-                                className="px-4 py-3 text-[1.0625rem] font-semibold text-blue-600
+                                className="px-4 py-3 text-ui-caption font-semibold text-blue-600
                                            hover:bg-blue-50 transition-colors inline-flex items-center
                                            justify-center gap-1"
                             >
@@ -614,7 +614,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                             <button
                                 type="button"
                                 onClick={() => go('/member/updates')}
-                                className="px-4 py-3 text-[1.0625rem] font-semibold text-blue-600
+                                className="px-4 py-3 text-ui-caption font-semibold text-blue-600
                                            hover:bg-blue-50 transition-colors inline-flex items-center
                                            justify-center gap-1"
                             >

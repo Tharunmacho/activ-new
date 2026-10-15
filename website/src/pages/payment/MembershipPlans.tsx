@@ -251,8 +251,8 @@ export default function MembershipPlans() {
           >
             <Loader2 className="w-8 h-8 animate-spin text-white" />
           </div>
-          <h2 className="text-[1.1875rem] font-semibold text-slate-900 mb-1">Loading Plans</h2>
-          <p className="text-slate-500 text-[1.0625rem]">Please wait...</p>
+          <h2 className="text-ui-small font-semibold text-slate-900 mb-1">Loading Plans</h2>
+          <p className="text-slate-500 text-ui-caption">Please wait...</p>
         </div>
       </div>
     );
@@ -276,10 +276,10 @@ export default function MembershipPlans() {
           <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
             <FileText className="w-6 h-6 text-amber-600" />
           </div>
-          <h2 className="text-[1.1875rem] font-semibold text-slate-900 mb-1">
+          <h2 className="text-ui-small font-semibold text-slate-900 mb-1">
             {loadFailed ? 'Could not load the plans' : upgrading ? 'Update your profile to change membership' : 'No membership plans are available'}
           </h2>
-          <p className="text-slate-500 text-[1.0625rem] mb-6">
+          <p className="text-slate-500 text-ui-caption mb-6">
             {loadFailed
               ? 'The membership prices could not be read just now. Nothing has been charged.'
               : upgrading ? upgradeReason : 'The association has not published a plan for your membership yet. '
@@ -328,7 +328,7 @@ export default function MembershipPlans() {
         </div>
       }
     >
-      {upgrading && <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><p className="text-[1.25rem]">{upgradeReason}</p><p className="mt-2 text-slate-600">Your email, password, mobile number and previous receipts stay with this account.</p>{canPurchaseUpgrade && selectedPlan.audience === 'business' && <label className="mt-4 block max-w-md font-semibold text-slate-700">Business commencement year<select aria-label="Business commencement year" value={commencementYear} onChange={e => setCommencementYear(e.target.value)} className="mt-2 h-12 w-full rounded-xl border border-blue-200 bg-white px-4 font-normal"><option value="">Choose commencement year</option>{(selectedPlan.commencementYears || []).map(year => <option key={year} value={year}>{year}</option>)}</select><span className="mt-2 block text-base font-normal">Started {selectedPlan.commencementYearLabel}. Your profile updates after payment succeeds.</span></label>}</div>}
+      {upgrading && <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6"><p className="text-ui-body">{upgradeReason}</p><p className="mt-2 text-slate-600">Your email, password, mobile number and previous receipts stay with this account.</p>{canPurchaseUpgrade && selectedPlan.audience === 'business' && <label className="mt-4 block max-w-md font-semibold text-slate-700">Business commencement year<select aria-label="Business commencement year" value={commencementYear} onChange={e => setCommencementYear(e.target.value)} className="mt-2 h-12 w-full rounded-xl border border-blue-200 bg-white px-4 font-normal"><option value="">Choose commencement year</option>{(selectedPlan.commencementYears || []).map(year => <option key={year} value={year}>{year}</option>)}</select><span className="mt-2 block text-base font-normal">Started {selectedPlan.commencementYearLabel}. Your profile updates after payment succeeds.</span></label>}</div>}
       <div className="pb-28 lg:pb-6">
         {/* ============================================================ hero */}
         <section className="relative mb-6 overflow-hidden rounded-3xl px-5 py-7 text-white sm:mb-8 sm:px-10 sm:py-10"
@@ -346,7 +346,7 @@ export default function MembershipPlans() {
               <h1 className="mt-4 text-[1.75rem] font-black leading-tight tracking-tight sm:text-[2.5rem]">
                 {upgrading ? 'Your next membership' : planLocked ? 'Your membership is one step away' : 'Choose your membership'}
               </h1>
-              <p className="mt-2 max-w-xl text-[1rem] text-blue-100 sm:text-[1.0625rem]">
+              <p className="mt-2 max-w-xl text-[1rem] text-blue-100 sm:text-ui-caption">
                 {upgrading ? 'Select your new membership. Business plans follow the commencement year you enter above.' : planLocked
                   ? userData?.memberType === 'Student'
                     ? 'The plan for students who are not yet in business.'

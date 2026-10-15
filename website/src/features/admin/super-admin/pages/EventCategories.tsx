@@ -302,7 +302,7 @@ export default function SuperAdminEventCategories() {
                                          flex items-center justify-center shrink-0">
                             <CalendarDays className="w-5 h-5" />
                         </span>
-                        <span className="text-[1.25rem] font-semibold tracking-tight
+                        <span className="text-ui-body font-semibold tracking-tight
                                          text-slate-900 truncate">{row.label}</span>
                         {!row.managed && (
                             <AdminChip
@@ -334,7 +334,7 @@ export default function SuperAdminEventCategories() {
                     disabled={busy === row.id}
                     onChange={(e) => setRowMode(row, e.target.value as EventCategoryMode)}
                     aria-label={`Which kind of event “${row.label}” is for`}
-                    className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-[1.1875rem]
+                    className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-ui-small
                                font-semibold text-slate-700 outline-none transition-colors
                                hover:border-slate-300 focus:border-blue-500
                                disabled:opacity-50"
@@ -442,7 +442,7 @@ export default function SuperAdminEventCategories() {
                                 () => `“${row.label}” added to the list`,
                             )}
                             className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl border
-                                       border-blue-100 bg-blue-50 text-[1.1875rem] font-semibold text-blue-700
+                                       border-blue-100 bg-blue-50 text-ui-small font-semibold text-blue-700
                                        hover:bg-blue-100 transition-colors disabled:opacity-40"
                         >
                             <Plus className="w-4 h-4" /> Add to list
@@ -527,13 +527,13 @@ export default function SuperAdminEventCategories() {
                     {/* ------------------------------------------- messages */}
                     {error && (
                         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words
-                                        text-[1.25rem] font-semibold text-rose-700">
+                                        text-ui-body font-semibold text-rose-700">
                             {error}
                         </div>
                     )}
                     {notice && (
                         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 sm:px-5 py-3 sm:py-4 break-words
-                                        text-[1.25rem] font-semibold text-emerald-700">
+                                        text-ui-body font-semibold text-emerald-700">
                             {notice}
                         </div>
                     )}
@@ -639,7 +639,7 @@ export default function SuperAdminEventCategories() {
                       * opened.
                       */}
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[1.1875rem] font-bold uppercase tracking-widest text-slate-400 mr-1">
+                        <span className="text-ui-small font-bold uppercase tracking-widest text-slate-400 mr-1">
                             Show
                         </span>
                         {(['all', ...MODE_ORDER] as const).map((m) => {
@@ -654,7 +654,7 @@ export default function SuperAdminEventCategories() {
                                     aria-pressed={active}
                                     onClick={() => setModeFilter(m)}
                                     className={`inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border px-3 sm:px-3.5
-                                                text-[1.1875rem] font-bold transition-colors ${active
+                                                text-ui-small font-bold transition-colors ${active
                                         ? 'border-blue-600 bg-blue-600 text-white'
                                         : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
                                 >
@@ -679,7 +679,7 @@ export default function SuperAdminEventCategories() {
                         </>}
                     />
 
-                    <p className="text-[1.25rem] text-slate-500 leading-relaxed max-w-3xl">
+                    <p className="text-ui-body text-slate-500 leading-relaxed max-w-3xl">
                         <strong className="font-semibold text-slate-700">Renaming is not cosmetic.</strong>{' '}
                         A category is stored on an event as its name, so renaming one here also re-files
                         every event carrying the old name — the screen says how many moved. Removing one

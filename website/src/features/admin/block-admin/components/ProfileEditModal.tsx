@@ -346,7 +346,7 @@ const ProfileEditModal = ({ open, onClose, adminData, onProfileUpdate }: Profile
                             onChange={handleAvatarChange}
                             className="hidden"
                         />
-                        <p className="text-[1.1875rem] text-slate-500 text-center">
+                        <p className="text-ui-small text-slate-500 text-center">
                             Click avatar or camera icon to change photo<br />
                             (Max 2MB, JPG/PNG)
                         </p>
@@ -425,7 +425,7 @@ const ProfileEditModal = ({ open, onClose, adminData, onProfileUpdate }: Profile
                                     onChange={handleChange}
                                     placeholder={`Enter your ${regionKey}`}
                                 />
-                                <p className="text-[1.1875rem] text-slate-500">
+                                <p className="text-ui-small text-slate-500">
                                     This decides which applications reach your queue.
                                 </p>
                             </div>
@@ -481,7 +481,7 @@ const ProfileEditModal = ({ open, onClose, adminData, onProfileUpdate }: Profile
                                 placeholder="Enter new password"
                                 autoComplete="new-password"
                             />
-                            <p className="text-[1.1875rem] text-slate-500">Must be at least 6 characters</p>
+                            <p className="text-ui-small text-slate-500">Must be at least 6 characters</p>
                         </div>
 
                         {/* Confirm Password */}

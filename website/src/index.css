@@ -42,6 +42,7 @@ All colors MUST be HSL.
    * and focus ring in the product. That was far wider than the brief.
    */
   :root {
+    --font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     /*
      * One hue, 226, all the way down — these are tints and shades of the mark,
      * not a hand-picked ramp.
@@ -187,57 +188,8 @@ All colors MUST be HSL.
 }
 
 @layer base {
-  /**
-   * The public site scales with the viewport instead of pinning to it.
-   *
-   * At 100% zoom on a 1920px screen the onboarding pages look right. Zoom out
-   * to 90% and the CSS viewport becomes ~2133px wide — but the container stops
-   * at 80rem and every type size is a fixed number of rem, so the whole design
-   * stayed exactly the same physical size while the window around it grew. The
-   * result reads as small and stranded in the middle of the screen, which is
-   * not what 100% looks like.
-   *
-   * Tailwind's spacing, type and max-width scales are all rem-based, so moving
-   * the root size moves the entire layout together — `max-w-7xl` grows from
-   * 1280px to 1422px at 90% zoom, and the type, gaps and radii grow with it.
-   * The proportions are then identical at any zoom level.
-   *
-   * ONBOARDING ONLY. `rem` is root-relative, so this must sit on `<html>` and
-   * cannot be scoped with CSS alone — `useFluidScale()` adds the class while a
-   * public page is mounted and takes it off again on the way out. Without the
-   * class the root stays at the browser default, which is what the member and
-   * admin screens were built against.
-   *
-   * Written in `rem`, not `px`, so a reader who has set a larger default font
-   * size in their browser still gets it — a `px` floor would silently override
-   * that. Floored at 1rem so nothing below 1920px changes, and capped at
-   * 1.25rem so a very wide display does not get a comically large page.
-   */
-  /**
-   * The signed-in product's base size.
-   *
-   * Back at 1rem — the browser's own default, and full size. A 0.9375rem step
-   * was tried here to tighten the application up, and it did shrink the cards,
-   * but rem drives type and spacing from the same number: the text came down
-   * with them and ended up too small to read comfortably. Legibility wins.
-   *
-   * Tailwind's type, spacing, radius and max-width scales are all rem-based, so
-   * this one value moves the whole application together and every relationship
-   * between elements is preserved whatever it is set to.
-   *
-   * The 330 hard pixel values that used to sit across these screens were
-   * converted to rem on the way through, so they now follow this number too —
-   * previously they would have stayed put while everything around them moved.
-   *
-   * In `rem` rather than `px` so a reader who has raised their browser's
-   * default font size still gets a proportionally larger interface.
-   */
-  html {
-    font-size: 1rem;
-  }
-
-  /* Onboarding opts out — see the note above. Higher specificity, so the
-     public pages keep their own fluid scale and are untouched by the above. */
+  /* Browser-relative type preserves reader font-size and zoom preferences. */
+  html { font-size: 100%; }
 
   /**
    * THE PUBLIC SITE'S PAGE SURFACE — a tinted band with a dot field on it.
@@ -260,45 +212,14 @@ All colors MUST be HSL.
     background-position: 0 0;
   }
 
-  html.fluid-scale {
-    font-size: clamp(1rem, 0.833vw, 1.25rem);
-  }
+  /* Use the same root on phones and desktop; individual type tokens adapt instead. */
+  html.fluid-scale { font-size: 100%; }
 
-  /*
-   * PHONES GET A SMALLER ROOT. The public pages are sized for a desktop read —
-   * 1.25rem ledes, 2rem card padding, 5rem gaps — and at a 16px root that
-   * turned every card on a 390px screen into a full-screen plate. Because the
-   * whole site is rem-based, one number here compacts type, cards, padding and
-   * gaps together and keeps their proportions. 0.875rem = 14px, which keeps
-   * body copy at ~17px and the smallest labels legible.
-   */
-  /*
-   * THE SAME ON EVERY SCREEN, NOT ONLY THE PUBLIC ONES. The member area, the
-   * admin portals, the CMS and the payment screens are rem-based too, and at a
-   * 16px root their cards were as outsized on a phone as the public site's.
-   * `html` alone would lose to `html.fluid-scale`'s clamp, so both are named.
-   */
-  /* `screen` so a certificate printed FROM a phone keeps its real type size —
-     the certificates are rem-sized inside a millimetre frame. */
   @media screen and (max-width: 639px) {
-    html,
-    html.fluid-scale {
-      font-size: 0.875rem;
-    }
-
-    /*
-     * iOS Safari zooms the whole page into any field whose text is under 16px
-     * the moment it is focused, and does not zoom back out. With a 14px root a
-     * `text-base` field is 14px, so every form on the site would do it. Fields
-     * alone are held at 16px; their boxes are unaffected. `!important`
-     * because this sits in `@layer base`, and a field's own `text-sm` utility
-     * would otherwise win and bring the zoom straight back.
-     */
+    /* Prevent mobile Safari focus zoom while respecting larger reader settings. */
     input:not([type='checkbox']):not([type='radio']):not([type='range']),
     select,
-    textarea {
-      font-size: max(16px, 1em) !important;
-    }
+    textarea { font-size: max(16px, 1em) !important; }
   }
 
   * {
@@ -557,69 +478,27 @@ All colors MUST be HSL.
   }
 }
 
-/*
- * Typography defaults.
- *
- * BOTH OF THESE ARE INTER FEATURES, AND INTER IS NO LONGER THE FACE. Poppins
- * ships neither `tnum` nor `cv11`, so both settings are inert — kept, not
- * deleted, because Inter is still second in the stack and renders while Poppins
- * is in flight, and because the next face may well carry them again.
- *
- * What they were for, so the reason survives the face change:
- *
- * `tnum` is tabular figures. Without them "100%" and "33%" are different
- * widths, so the progress figure in the profile card and the percentage pill in
- * the tracker shift sideways every time the number changes. Poppins draws its
- * digits at a uniform width by default, so the figures still hold still — that
- * is the family's own drawing doing it, not this line.
- *
- * `cv11` gave Inter the single-storey lowercase l, which stopped "Il1" being
- * three identical strokes in an application id. Poppins has no equivalent, and
- * its `I`, `l` and `1` ARE close — so an application id shown in a face this
- * geometric is worth reading twice. `.tabular` and the copy button beside every
- * id are what carry that now.
- *
- * `antialiased` because these faces are drawn for screen and render heavy under
- * the default subpixel smoothing on Windows.
- */
+/* UI typography; numbers align in tables and counters. */
 @layer base {
-  html {
-    -webkit-text-size-adjust: 100%;
-  }
-
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    font-feature-settings: 'tnum' 1, 'cv11' 1;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-feature-settings: 'cv11' 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-
-  /*
-   * Headings take the display face automatically, so no screen has to remember
-   * to ask for it. Slightly negative tracking: at 18px and up, default letter
-   * spacing on a geometric face reads loose.
-   */
-  h1, h2, h3, h4 {
-    font-family: theme('fontFamily.display');
-    /*
-     * Back to -0.025em, because the face is Poppins.
-     *
-     * This has moved with the face each time and is not a matter of taste. A
-     * geometric face with round, wide letterforms leaves visible gaps between
-     * the letters of a two-word heading at the default spacing, so it needs
-     * pulling in — Poppins especially, since its `o`, `e` and `c` are close to
-     * true circles and sit further apart than the flatter forms in a grotesque.
-     * It was eased to -0.02em for Manrope, which is tightly spaced by its own
-     * designer and closed its counters up under the full value.
-     *
-     * If the face changes again, look at this line. A single global value is
-     * right for exactly one family at a time.
-     */
-    letter-spacing: -0.025em;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-ui);
+    letter-spacing: -0.02em;
   }
+  .tabular { font-variant-numeric: tabular-nums; }
 
-  /* Numbers in a column should never be a proportional face. */
-  .tabular {
-    font-variant-numeric: tabular-nums;
+  /* Printed certificate artwork keeps its original family and type sizes. */
+  .activ-sheet {
+    --font-ui: 'Poppins', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-ui);
   }
 }
 

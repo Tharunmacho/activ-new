@@ -99,7 +99,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
 
     return (
         <Reveal as="div" className="min-w-0">
-            <p className="mb-3 break-words text-[1rem] sm:text-[1.25rem] font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500">
+            <p className="mb-3 break-words text-[1rem] sm:text-ui-body font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500">
                 {caption}
             </p>
 
@@ -181,7 +181,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                     })}
                 </svg>
 
-                <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-[0.9375rem] sm:text-[1.0625rem]
+                <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-[0.9375rem] sm:text-ui-caption
                                font-semibold text-gray-600">
                     {map.states.map((row, i) => (
                         <li key={row.slug} className="flex min-w-0 items-center gap-2">
@@ -193,7 +193,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                 </ul>
 
                 <p className="mt-3 flex items-center gap-2 border-t border-gray-200/80 pt-3
-                              text-[1.0625rem] font-semibold text-gray-500">
+                              text-ui-caption font-semibold text-gray-500">
                     <span className="h-3 w-3 shrink-0 rounded-full border-2 border-brand-800 bg-white" />
                     State with a council
                 </p>
@@ -215,7 +215,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                             <X size={14} />
                         </button>
 
-                        <p className="px-8 break-words text-[1rem] sm:text-[1.25rem] font-bold uppercase tracking-[0.16em]
+                        <p className="px-8 break-words text-[1rem] sm:text-ui-body font-bold uppercase tracking-[0.16em]
                                       text-brand-500">
                             {regionLabel}
                         </p>
@@ -242,11 +242,11 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                                   * map, not about the association, and it is the one
                                   * number on this card that cannot go stale.
                                   */}
-                                <p className="mt-3 text-[1.0625rem] font-medium text-gray-500">
+                                <p className="mt-3 text-ui-caption font-medium text-gray-500">
                                     {shape.districts} districts
                                 </p>
 
-                                <ul className="mt-3 space-y-3 text-[1.0625rem] font-medium
+                                <ul className="mt-3 space-y-3 text-ui-caption font-medium
                                                text-gray-600">
                                     {(council.contacts || [])
                                         .filter((c) => c && (c.name || c.designation
@@ -288,7 +288,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                                     <Link
                                         to={`/states/${council.slug}`}
                                         className="mt-4 inline-flex max-w-full min-h-[40px] items-center gap-2 rounded-full
-                                                   bg-brand-800 px-4 py-2 text-[1.0625rem] font-bold
+                                                   bg-brand-800 px-4 py-2 text-ui-caption font-bold
                                                    text-white transition-colors hover:bg-brand-700"
                                     >
                                         Open the {shape.name} page
@@ -297,7 +297,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                                 )}
                             </>
                         ) : (
-                            <p className="mt-2 text-[1.0625rem] font-semibold text-gray-500">
+                            <p className="mt-2 text-ui-caption font-semibold text-gray-500">
                                 {shape.districts} districts. No council page published yet.
                             </p>
                         )}

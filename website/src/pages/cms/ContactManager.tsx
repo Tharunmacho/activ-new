@@ -113,7 +113,7 @@ export default function ContactManager() {
             <CmsPage>
             <CmsError message={error} onRetry={load} />
             {saved && (
-                <p className="text-[1.1875rem] text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40
+                <p className="text-ui-small text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40
                               border border-green-200 dark:border-green-900 rounded-lg px-4 py-2">
                     {saved}
                 </p>
@@ -165,7 +165,7 @@ export default function ContactManager() {
                             <button
                                 type="button"
                                 onClick={() => set({ heroMedia: [...info.heroMedia, { ...EMPTY_MEDIA }] })}
-                                className="flex items-center gap-1.5 text-[1.1875rem] text-blue-600 dark:text-blue-400 shrink-0"
+                                className="flex items-center gap-1.5 text-ui-small text-blue-600 dark:text-blue-400 shrink-0"
                             >
                                 <Plus size={14} /> Add image
                             </button>
@@ -173,7 +173,7 @@ export default function ContactManager() {
                     >
 
                         {info.heroMedia.length === 0 ? (
-                            <p className="text-[1.1875rem] text-neutral-500 py-4 text-center border border-dashed
+                            <p className="text-ui-small text-neutral-500 py-4 text-center border border-dashed
                                           border-slate-300 dark:border-[#2a2a2a] rounded-lg">
                                 No images — the heading uses the full width.
                             </p>
@@ -182,7 +182,7 @@ export default function ContactManager() {
                                 {info.heroMedia.map((media, i) => (
                                     <div key={i} className="border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-3 sm:p-4">
                                         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                            <span className="text-[1.0625rem] font-semibold uppercase tracking-wider text-neutral-400">
+                                            <span className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400">
                                                 {i === 0 ? 'Large frame' : 'Small frame'}
                                             </span>
                                             <button
@@ -191,7 +191,7 @@ export default function ContactManager() {
                                                     if (!window.confirm('Remove this image from the heading?')) return;
                                                     set({ heroMedia: info.heroMedia.filter((_, x) => x !== i) });
                                                 }}
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[1.0625rem] font-medium
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-ui-caption font-medium
                                                            text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30
                                                            hover:bg-red-500/10 transition-colors"
                                                 aria-label="Delete image"
@@ -372,7 +372,7 @@ export default function ContactManager() {
 
             {/* ============================================== bottom banner */}
             <CmsStep sectionKey="contact.banner" ownFields={false} step="Section 4" title="Bottom banner" hint="The strip at the foot of the contact page.">
-                <label className="flex items-center gap-2 text-[1.1875rem] text-slate-700 dark:text-neutral-300 mb-5">
+                <label className="flex items-center gap-2 text-ui-small text-slate-700 dark:text-neutral-300 mb-5">
                     <input
                         type="checkbox"
                         checked={info.banner.enabled}
@@ -436,7 +436,7 @@ export default function ContactManager() {
                 title="Contacts across India"
                 hint="The zone and state tiles near the foot of /contact. Clicking one opens that zone's or state's contact details. Blank fields use the wording shown in grey."
             >
-                <label className="flex items-center gap-2 text-[1.1875rem] text-slate-700 dark:text-neutral-300 mb-5">
+                <label className="flex items-center gap-2 text-ui-small text-slate-700 dark:text-neutral-300 mb-5">
                     <input
                         type="checkbox"
                         checked={info.regionsBand?.enabled !== false}

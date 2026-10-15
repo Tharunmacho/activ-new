@@ -318,7 +318,7 @@ export default function PaymentSuccess() {
                                     <ReceiptText className="h-5 w-5" />
                                 </span>
                                 <div className="min-w-0">
-                                    <p className="font-display text-[1.25rem] font-bold text-slate-900">Membership receipt</p>
+                                    <p className="font-display text-ui-body font-bold text-slate-900">Membership receipt</p>
                                     <p className="text-[0.9375rem] text-slate-500">Adidravidar Confederation of Trade &amp; Industrial Vision</p>
                                 </div>
                             </div>
@@ -342,7 +342,7 @@ export default function PaymentSuccess() {
                                     </span>
                                     <div className="min-w-0">
                                         <dt className="text-[0.8125rem] font-semibold uppercase tracking-wider text-slate-500">{label}</dt>
-                                        <dd className="mt-0.5 break-words text-[1.0625rem] font-semibold text-slate-900">{value}</dd>
+                                        <dd className="mt-0.5 break-words text-ui-caption font-semibold text-slate-900">{value}</dd>
                                     </div>
                                 </div>
                             ))}
@@ -416,7 +416,7 @@ export default function PaymentSuccess() {
                         ) : null}
 
                         <button type="button" onClick={() => navigate('/payment/member-dashboard')}
-                            className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl ${GRADIENT} px-5 text-[1.0625rem] font-bold text-white shadow-[0_12px_28px_-12px_rgba(30,58,138,0.7)] transition-transform hover:-translate-y-0.5`}>
+                            className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl ${GRADIENT} px-5 text-ui-caption font-bold text-white shadow-[0_12px_28px_-12px_rgba(30,58,138,0.7)] transition-transform hover:-translate-y-0.5`}>
                             <LayoutDashboard className="h-5 w-5" /> Go to my dashboard <ArrowRight className="h-4 w-4" />
                         </button>
                         <p className="flex items-center justify-center gap-1.5 text-[0.875rem] text-slate-500">

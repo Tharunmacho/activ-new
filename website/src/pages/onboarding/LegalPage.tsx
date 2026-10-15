@@ -287,7 +287,7 @@ export default function LegalPage() {
                                                         key={`${link.href}-${l}`}
                                                         to={link.href}
                                                         className="inline-flex items-center gap-1.5 text-brand-600
-                                                                   hover:text-brand-800 text-[1.0625rem] font-bold
+                                                                   hover:text-brand-800 text-ui-caption font-bold
                                                                    transition-colors"
                                                     >
                                                         {link.label || link.href}
@@ -300,7 +300,7 @@ export default function LegalPage() {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-1.5 text-brand-600
-                                                                   hover:text-brand-800 text-[1.0625rem] font-bold
+                                                                   hover:text-brand-800 text-ui-caption font-bold
                                                                    transition-colors"
                                                     >
                                                         {link.label || link.href} <ExternalLink size={13} />
@@ -362,7 +362,7 @@ export default function LegalPage() {
                                                  */
                                                 aria-current={current ? 'page' : undefined}
                                                 className={
-                                                    'rounded-xl px-3.5 py-2.5 text-[1.0625rem] transition-colors '
+                                                    'rounded-xl px-3.5 py-2.5 text-ui-caption transition-colors '
                                                     + (current
                                                         ? 'bg-brand-800 text-white font-extrabold'
                                                         : 'text-gray-600 font-bold hover:bg-white hover:text-brand-700')

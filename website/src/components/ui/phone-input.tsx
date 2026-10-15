@@ -99,7 +99,7 @@ function Flag({ iso2, className }: { iso2: string; className?: string }) {
 
     if (emoji) {
         return (
-            <span className={cn('text-[1.25rem] leading-none', className)} aria-hidden="true">
+            <span className={cn('text-ui-body leading-none', className)} aria-hidden="true">
                 {flagEmoji(iso2)}
             </span>
         );
@@ -376,7 +376,7 @@ export function PhoneInput({
                     aria-label={`Country code: ${selected.name}, +${selected.dial}`}
                     className={cn(
                         'flex shrink-0 items-center gap-1.5 border-r border-black bg-slate-50 px-3',
-                        'text-[1.1875rem] font-medium text-slate-700 transition-colors',
+                        'text-ui-small font-medium text-slate-700 transition-colors',
                         'hover:bg-slate-100 focus:outline-none focus-visible:bg-slate-100',
                         'disabled:cursor-not-allowed disabled:hover:bg-slate-50',
                     )}
@@ -402,7 +402,7 @@ export function PhoneInput({
                     maxLength={maxDigits + 4}
                     placeholder={placeholder || 'X'.repeat(Math.min(selected.min || 10, 12))}
                     className={cn(
-                        'min-w-0 flex-1 bg-transparent px-3 text-[1.25rem] text-black md:text-[1.1875rem]',
+                        'min-w-0 flex-1 bg-transparent px-3 text-ui-body text-black md:text-ui-small',
                         'placeholder:text-gray-500 focus:outline-none',
                         'disabled:cursor-not-allowed',
                     )}
@@ -433,7 +433,7 @@ export function PhoneInput({
                             onKeyDown={onSearchKeyDown}
                             placeholder="Search country or code"
                             aria-label="Search for a country or dialling code"
-                            className="w-full bg-transparent text-[1.1875rem] text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                            className="w-full bg-transparent text-ui-small text-slate-700 placeholder:text-slate-400 focus:outline-none"
                         />
                     </div>
 
@@ -445,7 +445,7 @@ export function PhoneInput({
                         className="max-h-64 overflow-y-auto overscroll-contain py-1"
                     >
                         {rows.length === 0 && (
-                            <p className="px-3 py-6 text-center text-[1.1875rem] text-slate-500">
+                            <p className="px-3 py-6 text-center text-ui-small text-slate-500">
                                 No country matches “{query}”.
                             </p>
                         )}
@@ -468,7 +468,7 @@ export function PhoneInput({
                                     onMouseEnter={() => setHighlight(index)}
                                     onClick={() => choose(row.iso2)}
                                     className={cn(
-                                        'flex w-full items-center gap-2.5 px-3 py-2 text-left text-[1.1875rem] transition-colors',
+                                        'flex w-full items-center gap-2.5 px-3 py-2 text-left text-ui-small transition-colors',
                                         index === highlight ? 'bg-blue-50' : 'bg-transparent',
                                     )}
                                 >

@@ -263,7 +263,7 @@ export default function MembershipCard({
                             {name}
                         </h2>
                         {subtitle && (
-                            <p className="mt-1 text-[1.1875rem] font-bold text-blue-600">{subtitle}</p>
+                            <p className="mt-1 text-ui-small font-bold text-blue-600">{subtitle}</p>
                         )}
                     </div>
                 </div>
@@ -327,7 +327,7 @@ export default function MembershipCard({
                             type="button"
                             onClick={onCertificate}
                             className="inline-flex items-center justify-center gap-2 rounded-xl
-                                       bg-blue-600 px-4 py-2.5 text-[1.1875rem] font-bold text-white
+                                       bg-blue-600 px-4 py-2.5 text-ui-small font-bold text-white
                                        shadow-sm transition-colors hover:bg-blue-700"
                         >
                             <FileText className="w-4 h-4" /> Membership certificate
@@ -338,7 +338,7 @@ export default function MembershipCard({
                             type="button"
                             onClick={onProfile}
                             className="inline-flex items-center justify-center gap-2 rounded-xl
-                                       border border-slate-200 bg-white px-4 py-2.5 text-[1.1875rem]
+                                       border border-slate-200 bg-white px-4 py-2.5 text-ui-small
                                        font-bold text-slate-700 shadow-sm transition-colors
                                        hover:border-slate-300 hover:bg-slate-50"
                         >

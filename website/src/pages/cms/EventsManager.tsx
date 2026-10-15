@@ -170,7 +170,7 @@ const BLANK = {
 /** The two filters above the list, styled as one control rather than two. */
 const FILTER_SELECT =
     'min-w-0 max-w-full h-11 rounded-lg border border-slate-200 dark:border-[#2a2a2a] '
-    + 'bg-white dark:bg-black px-3 text-[1.25rem] font-medium text-slate-900 dark:text-neutral-100 '
+    + 'bg-white dark:bg-black px-3 text-ui-body font-medium text-slate-900 dark:text-neutral-100 '
     + 'hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors';
 
 const hasTargets = (e: CmsEvent) =>
@@ -866,12 +866,12 @@ export default function EventsManager({
                                     setWordingTab(false);
                                     setWhen(key as 'upcoming' | 'past');
                                 }}
-                                className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-[1.25rem] font-semibold transition-colors ${on
+                                className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-ui-body font-semibold transition-colors ${on
                                     ? 'border-blue-600 text-blue-700 dark:text-blue-400'
                                     : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-neutral-200'}`}
                             >
                                 {label}
-                                {count !== null && <span className="ml-2 text-[1.1875rem] text-slate-400">{count}</span>}
+                                {count !== null && <span className="ml-2 text-ui-small text-slate-400">{count}</span>}
                             </button>
                         );
                     })}
@@ -1209,7 +1209,7 @@ export default function EventsManager({
                         type="button"
                         onClick={() => setShowForm(false)}
                         className="mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2
-                                   text-[1.0625rem] font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
+                                   text-ui-caption font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
                                    hover:text-[#2563EB] dark:border-[#2a2a2a] dark:text-neutral-300"
                     >
                         <ArrowLeft className="h-4 w-4" /> Back to the events
@@ -1246,7 +1246,7 @@ export default function EventsManager({
                                 <h2 className={`${CARD_TITLE} text-slate-900 dark:text-neutral-100`}>
                                     {editing ? 'Edit event' : 'New event'}
                                 </h2>
-                                <p className="text-[1.25rem] text-slate-500 dark:text-[#A1A1AA] mt-1">
+                                <p className="text-ui-body text-slate-500 dark:text-[#A1A1AA] mt-1">
                                     Published events appear on the public site and to signed-in members.
                                 </p>
                             </div>
@@ -1449,7 +1449,7 @@ export default function EventsManager({
                                     value={form.category}
                                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                                     className="w-full h-12 rounded-xl border border-slate-200 bg-white px-3.5
-                                               text-[1.25rem] text-slate-900 outline-none transition-colors
+                                               text-ui-body text-slate-900 outline-none transition-colors
                                                focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                                 >
                                     <option value="">No category</option>
@@ -1549,7 +1549,7 @@ export default function EventsManager({
                               * puts them on the same left edge as every other
                               * field's name.
                               */}
-                            <span className="block mb-2 text-[1.25rem] font-semibold
+                            <span className="block mb-2 text-ui-body font-semibold
                                              text-slate-800 dark:text-neutral-100">
                                 How this event is attended
                             </span>
@@ -1769,7 +1769,7 @@ export default function EventsManager({
                                     */}
                                     {form.showOnOnboarding && form.targets.length > 0 && (
                                         <p className="mt-3 flex items-start gap-2 rounded-lg border border-blue-200
-                                                      dark:border-blue-900/60 bg-blue-500/5 px-3 py-2 text-[1.1875rem]
+                                                      dark:border-blue-900/60 bg-blue-500/5 px-3 py-2 text-ui-small
                                                       text-blue-700 dark:text-blue-300">
                                             <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                                             <span>
@@ -1891,7 +1891,7 @@ export default function EventsManager({
                     {events.length > upcomingCount && (
                         <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg
                                       border border-slate-200 bg-slate-50 px-3 py-2.5
-                                      text-[1.1875rem] text-slate-600 dark:border-[#2a2a2a]
+                                      text-ui-small text-slate-600 dark:border-[#2a2a2a]
                                       dark:bg-[#0f0f0f] dark:text-neutral-300">
                             <span>
                                 <strong className="font-semibold text-slate-900 dark:text-white">
@@ -1968,7 +1968,7 @@ export default function EventsManager({
                             aria-label="Search events"
                             className="w-full bg-slate-50 dark:bg-black border border-slate-300
                                        dark:border-[#2a2a2a] rounded-lg pl-10 pr-3 py-2.5
-                                       text-[1.1875rem] text-slate-900 dark:text-neutral-100"
+                                       text-ui-small text-slate-900 dark:text-neutral-100"
                         />
                     </div>
 
@@ -1979,15 +1979,15 @@ export default function EventsManager({
                         />
                     ) : (
                     <div ref={cardTableRef} className="overflow-x-auto card-table">
-                        <table className="w-full text-[1.25rem]">
+                        <table className="w-full text-ui-body">
                             <thead>
                                 <tr className="text-left text-neutral-500 dark:text-neutral-400 border-b border-slate-200 dark:border-[#1f1f1f]">
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider w-16">Banner</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">Title</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">When</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">Where</th>
-                                    <th className="pb-4 pr-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider">Status</th>
-                                    <th className="pb-4 text-[1.1875rem] sm:text-[1.0625rem] font-semibold uppercase tracking-wider text-right">Actions</th>
+                                    <th className="pb-4 pr-4 text-ui-small sm:text-ui-caption font-semibold uppercase tracking-wider w-16">Banner</th>
+                                    <th className="pb-4 pr-4 text-ui-small sm:text-ui-caption font-semibold uppercase tracking-wider">Title</th>
+                                    <th className="pb-4 pr-4 text-ui-small sm:text-ui-caption font-semibold uppercase tracking-wider">When</th>
+                                    <th className="pb-4 pr-4 text-ui-small sm:text-ui-caption font-semibold uppercase tracking-wider">Where</th>
+                                    <th className="pb-4 pr-4 text-ui-small sm:text-ui-caption font-semibold uppercase tracking-wider">Status</th>
+                                    <th className="pb-4 text-ui-small sm:text-ui-caption font-semibold uppercase tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2068,7 +2068,7 @@ export default function EventsManager({
                                                 members-only event and a published open one
                                                 both read "published". */}
                                             {e.audience === 'paid' ? (
-                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                <span className="inline-flex items-center gap-1 text-ui-caption
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-blue-100 dark:bg-blue-950
                                                                  text-blue-700 dark:text-blue-400">
@@ -2094,7 +2094,7 @@ export default function EventsManager({
                                               reason.
                                             */}
                                             {channel === 'members' && isOnPublicSite(e) ? (
-                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                <span className="inline-flex items-center gap-1 text-ui-caption
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-emerald-100 dark:bg-emerald-950
                                                                  text-emerald-700 dark:text-emerald-400">
@@ -2106,7 +2106,7 @@ export default function EventsManager({
                                                 other row, and the first sign it was not
                                                 public was a visitor's "Not found". */}
                                             {channel === 'members' && !isOnPublicSite(e) ? (
-                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                <span className="inline-flex items-center gap-1 text-ui-caption
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-slate-100 dark:bg-[#1a1a1a]
                                                                  text-slate-600 dark:text-neutral-400"
@@ -2123,7 +2123,7 @@ export default function EventsManager({
                                                 write and may not expect to
                                                 find. */}
                                             {channel === 'public' && (e.channel || 'public') !== 'public' ? (
-                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                <span className="inline-flex items-center gap-1 text-ui-caption
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-violet-100 dark:bg-violet-950
                                                                  text-violet-700 dark:text-violet-400 align-middle"
@@ -2132,7 +2132,7 @@ export default function EventsManager({
                                                 </span>
                                             ) : null}
                                             {channel === 'public' && !isOnPublicSite(e) ? (
-                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                <span className="inline-flex items-center gap-1 text-ui-caption
                                                                  font-bold uppercase tracking-wide px-1.5 py-0.5
                                                                  rounded-full bg-amber-100 dark:bg-amber-950/60
                                                                  text-amber-700 dark:text-amber-400 align-middle"
@@ -2161,13 +2161,13 @@ export default function EventsManager({
                                               label you can see.
                                             */}
                                             {e.registrationEnabled ? (
-                                                <span className="text-[1.0625rem] font-medium
+                                                <span className="text-ui-caption font-medium
                                                                  text-emerald-600">
                                                     registration open
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1
-                                                                 text-[1.0625rem] font-semibold uppercase
+                                                                 text-ui-caption font-semibold uppercase
                                                                  tracking-wide px-1.5 py-0.5 rounded-full
                                                                  bg-amber-100 dark:bg-amber-950
                                                                  text-amber-700 dark:text-amber-400">
@@ -2213,7 +2213,7 @@ export default function EventsManager({
                                                 column an administrator scans to answer "which
                                                 of these went to Ariyalur", and a targeted
                                                 event has to stand out from a national one. */}
-                                            <span className={`inline-block text-[1.1875rem] mt-1 px-2 py-0.5 rounded-full ${
+                                            <span className={`inline-block text-ui-small mt-1 px-2 py-0.5 rounded-full ${
                                                 e.targetLabel
                                                     ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
                                                     : 'bg-slate-100 dark:bg-[#161616] text-neutral-500 dark:text-neutral-400'
@@ -2222,7 +2222,7 @@ export default function EventsManager({
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4">
-                                            <span className={`text-[1.1875rem] px-2 py-0.5 rounded-full ${
+                                            <span className={`text-ui-small px-2 py-0.5 rounded-full ${
                                                 e.status === 'published'
                                                     ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400'
                                                     : 'bg-slate-100 dark:bg-[#161616] text-neutral-500 dark:text-neutral-400'

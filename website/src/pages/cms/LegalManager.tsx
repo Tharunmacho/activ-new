@@ -404,10 +404,10 @@ export default function LegalManager() {
                                 }
                             >
                                 <div className="min-w-0 flex-1 basis-[12rem]">
-                                    <p className="truncate text-[1.25rem] font-bold text-slate-900 dark:text-white">
+                                    <p className="truncate text-ui-body font-bold text-slate-900 dark:text-white">
                                         {d.title || d.slug}
                                     </p>
-                                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-[1.0625rem]
+                                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-ui-caption
                                                   text-neutral-500">
                                         <span>/{d.slug}</span>
                                         <span>·</span>
@@ -417,7 +417,7 @@ export default function LegalManager() {
                                             why their page 404s for everybody else. */}
                                         {d.status === 'draft' && (
                                             <span className="inline-flex items-center gap-1 rounded-full
-                                                             bg-amber-100 px-2 py-0.5 text-[1.0625rem] font-semibold
+                                                             bg-amber-100 px-2 py-0.5 text-ui-caption font-semibold
                                                              text-amber-800 dark:bg-amber-950/50
                                                              dark:text-amber-300">
                                                 <EyeOff className="w-3 h-3" /> Off the site
@@ -481,7 +481,7 @@ export default function LegalManager() {
                                         target="_blank"
                                         rel="noreferrer"
                                         className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg
-                                                   text-[1.1875rem] font-medium bg-slate-100 dark:bg-[#1A1A1A]
+                                                   text-ui-small font-medium bg-slate-100 dark:bg-[#1A1A1A]
                                                    text-slate-800 dark:text-[#E4E4E7] hover:bg-slate-200
                                                    dark:hover:bg-[#262626] transition-colors"
                                     >
@@ -606,7 +606,7 @@ export default function LegalManager() {
                                         : <><Eye className="w-4 h-4" /> Publish</>}
                                 </CmsButton>
 
-                                <p className="text-[1.0625rem] text-slate-500 dark:text-[#A1A1AA]">
+                                <p className="text-ui-caption text-slate-500 dark:text-[#A1A1AA]">
                                     {draft.status === 'published'
                                         ? 'Live on the public site and listed in the footer.'
                                         : 'Hidden from the public site and from the footer.'}
@@ -647,7 +647,7 @@ export default function LegalManager() {
                                               the screen’s own Section 2 and Section 3,
                                               and the numbering read as one broken run.
                                             */}
-                                            <span className="text-[1.0625rem] font-semibold uppercase tracking-wider
+                                            <span className="text-ui-caption font-semibold uppercase tracking-wider
                                                              text-slate-400 dark:text-[#52525B] pt-2">
                                                 Clause {i + 1}
                                                 {!section.heading && ' — no heading'}
@@ -778,7 +778,7 @@ export default function LegalManager() {
                                 Cancel
                             </CmsButton>
                             {!!draft.version && (
-                                <span className="text-[1.0625rem] text-neutral-500">
+                                <span className="text-ui-caption text-neutral-500">
                                     Saving archives version {draft.version} first — nothing is overwritten.
                                 </span>
                             )}
@@ -811,14 +811,14 @@ export default function LegalManager() {
                                            rounded-xl border border-slate-200 dark:border-[#262626] px-3 sm:px-4 py-3"
                             >
                                 <div className="min-w-0">
-                                    <p className="text-[1.1875rem] font-semibold text-slate-900 dark:text-white">
+                                    <p className="text-ui-small font-semibold text-slate-900 dark:text-white">
                                         Version {r.version}
                                         <span className="ml-2 font-normal text-slate-500 dark:text-[#A1A1AA]">
                                             {r.sectionCount} section{r.sectionCount === 1 ? '' : 's'} ·{' '}
                                             {r.wordCount.toLocaleString('en-GB')} words
                                         </span>
                                     </p>
-                                    <p className="text-[1.0625rem] text-slate-500 dark:text-[#A1A1AA] mt-0.5">
+                                    <p className="text-ui-caption text-slate-500 dark:text-[#A1A1AA] mt-0.5">
                                         {formatWhen(r.savedAt)}
                                         {r.savedBy ? ` · ${r.savedBy}` : ''}
                                         {r.note ? ` · ${r.note}` : ''}
@@ -838,7 +838,7 @@ export default function LegalManager() {
                         ))}
                     </div>
 
-                    <p className="mt-4 flex items-start gap-2 text-[1.0625rem] text-slate-500 dark:text-[#A1A1AA]">
+                    <p className="mt-4 flex items-start gap-2 text-ui-caption text-slate-500 dark:text-[#A1A1AA]">
                         <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                         A policy is never deleted, only unpublished — somebody agreed to it at
                         that address, and the record of what they agreed to has to survive.

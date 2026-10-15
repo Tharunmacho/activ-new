@@ -218,7 +218,7 @@ export default function AdminMembersScreen({ tier }: { tier: AdminTier }) {
 
                 <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
                     {data?.scopeUnresolved ? (
-                        <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[1.0625rem] text-amber-900">
+                        <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-ui-caption text-amber-900">
                             {(data as any).message || 'This account has no region on record, so no members can be shown. Ask the Super Admin to set its region.'}
                         </p>
                     ) : null}

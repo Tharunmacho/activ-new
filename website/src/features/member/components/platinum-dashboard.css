@@ -5,7 +5,7 @@
   --lifetime-muted: #71634e;
   --lifetime-gold: #876018;
   --lifetime-border: #e9dcc3;
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-ui);
   color: var(--lifetime-ink);
 }
 .member-shell--gold > div > header { border-color: var(--lifetime-border); }
@@ -27,7 +27,7 @@
 .platinum-welcome {
   container: lifetime-welcome / inline-size;
   color: var(--lifetime-ink, #302718);
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-ui);
   border: 1px solid #e6d7b9;
   border-radius: 28px;
   background: #fffcf5;

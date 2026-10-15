@@ -52,7 +52,7 @@ export default function CertificatePage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center gap-3 text-[1.25rem] text-gray-500">
+            <div className="flex min-h-screen items-center justify-center gap-3 text-ui-body text-gray-500">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Preparing your certificate…
             </div>
@@ -63,10 +63,10 @@ export default function CertificatePage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
                 <AlertCircle className="h-10 w-10 text-amber-500" />
-                <p className="max-w-md text-[1.25rem] text-gray-700">{error || 'Nothing to show'}</p>
+                <p className="max-w-md text-ui-body text-gray-700">{error || 'Nothing to show'}</p>
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-1.5 text-[1.25rem] font-semibold text-brand-800 hover:underline"
+                    className="flex items-center gap-1.5 text-ui-body font-semibold text-brand-800 hover:underline"
                 >
                     <ArrowLeft className="h-4 w-4" /> Go back
                 </button>
@@ -87,7 +87,7 @@ export default function CertificatePage() {
             >
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex min-h-[2.75rem] items-center gap-2 text-[1.25rem] font-semibold text-gray-500
+                    className="flex min-h-[2.75rem] items-center gap-2 text-ui-body font-semibold text-gray-500
                                transition-colors hover:text-brand-900"
                 >
                     <ArrowLeft className="h-4 w-4" /> Back
@@ -95,7 +95,7 @@ export default function CertificatePage() {
 
                 <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 rounded-xl bg-brand-800 px-4 sm:px-5 py-2.5 text-base sm:text-[1.25rem]
+                    className="flex items-center gap-2 rounded-xl bg-brand-800 px-4 sm:px-5 py-2.5 text-base sm:text-ui-body
                                font-semibold text-white transition-colors hover:bg-brand-900"
                 >
                     <Printer className="h-4 w-4" />

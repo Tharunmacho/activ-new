@@ -152,7 +152,7 @@ export default function SchemesManager() {
                         type="button"
                         onClick={() => setScheme(null)}
                         className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2
-                                   text-[1.0625rem] font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
+                                   text-ui-caption font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
                                    hover:text-[#2563EB] dark:border-[#2a2a2a] dark:text-neutral-300"
                     >
                         <ArrowLeft className="h-4 w-4" /> Back to {tab === 'states' && openState ? 'the state' : 'the list'}
@@ -357,12 +357,12 @@ export default function SchemesManager() {
                                 key={key}
                                 type="button"
                                 onClick={() => setTab(key)}
-                                className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-[1.25rem] font-semibold transition-colors ${tab === key
+                                className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-ui-body font-semibold transition-colors ${tab === key
                                     ? 'border-blue-600 text-blue-700 dark:text-blue-400'
                                     : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-neutral-200'}`}
                             >
                                 {label}
-                                {count !== null && <span className="ml-2 text-[1.1875rem] text-slate-400">{count}</span>}
+                                {count !== null && <span className="ml-2 text-ui-small text-slate-400">{count}</span>}
                             </button>
                         ))}
                 </div>
@@ -435,7 +435,7 @@ export default function SchemesManager() {
                             function they do. */}
                         <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3">
                             <a href="/schemes" target="_blank" rel="noopener noreferrer"
-                               className="inline-flex items-center gap-1.5 text-[1.0625rem] font-semibold text-blue-700 dark:text-blue-400">
+                               className="inline-flex items-center gap-1.5 text-ui-caption font-semibold text-blue-700 dark:text-blue-400">
                                 View the schemes page <ExternalLink className="h-3.5 w-3.5" />
                             </a>
                         </div>
@@ -457,8 +457,8 @@ function SchemeRow({ row, onEdit, onRemove }: { row: SchemeRecord; onEdit: () =>
                 {row.tier === 'national' ? <Landmark className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
             </span>
             <div className="!min-w-[9rem] flex-1">
-                <p className="truncate text-[1.25rem] font-bold text-slate-900 dark:text-white">{row.title || 'Untitled'}</p>
-                <p className="truncate text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                <p className="truncate text-ui-body font-bold text-slate-900 dark:text-white">{row.title || 'Untitled'}</p>
+                <p className="truncate text-ui-caption text-slate-500 dark:text-neutral-400">
                     {[TIER_LABEL[row.tier], row.district, row.authority, row.deadline].filter(Boolean).join(' · ')}
                 </p>
             </div>
@@ -468,13 +468,13 @@ function SchemeRow({ row, onEdit, onRemove }: { row: SchemeRecord; onEdit: () =>
                     No apply link
                 </span>
             )}
-            <span className={`shrink-0 rounded-full px-2.5 py-1 text-[1.0625rem] font-bold ${row.status === 'published'
+            <span className={`shrink-0 rounded-full px-2.5 py-1 text-ui-caption font-bold ${row.status === 'published'
                 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
                 : 'bg-slate-100 text-slate-500 dark:bg-[#161616] dark:text-neutral-400'}`}>
                 {row.status === 'published' ? 'Published' : 'Draft'}
             </span>
             <button type="button" onClick={onEdit}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[1.0625rem]
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-ui-caption
                                font-semibold text-blue-700 transition-colors hover:bg-blue-50
                                dark:text-blue-400 dark:hover:bg-blue-950/40">
                 <Pencil className="h-3.5 w-3.5" /> Edit

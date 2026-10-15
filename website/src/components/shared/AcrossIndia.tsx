@@ -170,7 +170,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
             <div className={contact ? SCREEN_CONTAINER : 'mx-auto w-full max-w-[90rem] px-4 sm:px-6 lg:px-10'}>
                 <Reveal as="header" className="mb-6 sm:mb-8 text-center">
                     {band?.eyebrow && (
-                        <p className="text-[1.0625rem] font-bold uppercase tracking-[0.18em] text-brand-500">
+                        <p className="text-ui-caption font-bold uppercase tracking-[0.18em] text-brand-500">
                             {band.eyebrow}
                         </p>
                     )}
@@ -181,7 +181,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                         </h2>
                     )}
                     {band?.subtitle && (
-                        <p className="mx-auto mt-3 max-w-2xl text-[1.0625rem] sm:text-[1.125rem] font-medium
+                        <p className="mx-auto mt-3 max-w-2xl text-ui-caption sm:text-[1.125rem] font-medium
                                       leading-relaxed text-gray-600">
                             {band.subtitle}
                         </p>
@@ -206,7 +206,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                             >
                                 <Globe2 size={20} className="shrink-0 text-brand-300" />
                                 <span className="min-w-0 flex-1">
-                                    <span className="block text-[1.1875rem] font-extrabold leading-tight">
+                                    <span className="block text-ui-small font-extrabold leading-tight">
                                         {national.label}
                                     </span>
                                     <span className="block text-[1rem] text-white/60">
@@ -245,7 +245,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                         >
                                             <span className="flex items-center gap-2">
                                                 <MapPin size={15} className="shrink-0 text-brand-400" />
-                                                <span className="truncate text-[1.1875rem] font-extrabold
+                                                <span className="truncate text-ui-small font-extrabold
                                                                  text-brand-900 transition-colors
                                                                  group-hover:text-brand-600">
                                                     {zoneName(region.label)}
@@ -259,7 +259,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                         <span className="min-w-0 flex-1">
                                             <span className="flex items-center gap-2">
                                                 <MapPin size={15} className="shrink-0 text-gray-300" />
-                                                <span className="truncate text-[1.1875rem] font-extrabold
+                                                <span className="truncate text-ui-small font-extrabold
                                                                  text-gray-400">
                                                     {zoneName(region.label)}
                                                 </span>
@@ -309,7 +309,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                 <Link
                                     key={state.slug}
                                     to={`/states/${state.slug}${hash}`}
-                                    className="rounded-full border border-gray-200 px-3.5 py-2 sm:px-4 text-[1rem] sm:text-[1.0625rem]
+                                    className="rounded-full border border-gray-200 px-3.5 py-2 sm:px-4 text-[1rem] sm:text-ui-caption
                                                font-semibold text-brand-700 transition-colors
                                                hover:border-brand-300 hover:bg-brand-50"
                                 >

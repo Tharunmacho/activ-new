@@ -1,5 +1,5 @@
 .dashboard-membership__review { container-type: inline-size; min-width: 0; }
-.dashboard-membership__identity { position: relative; isolation: isolate; overflow: hidden; width: 100%; max-width: 480px; min-width: 0; padding: 20px; border: 2px solid #3576d6; border-radius: 20px; background: #fff; box-shadow: 0 0 0 4px #dbeafe, 0 12px 28px -18px #132b6266; font-family: 'Poppins', sans-serif; }
+.dashboard-membership__identity { position: relative; isolation: isolate; overflow: hidden; width: 100%; max-width: 480px; min-width: 0; padding: 20px; border: 2px solid #3576d6; border-radius: 20px; background: #fff; box-shadow: 0 0 0 4px #dbeafe, 0 12px 28px -18px #132b6266; font-family: var(--font-ui); }
 .dashboard-membership__identity h3, .dashboard-membership__identity button { font-family: inherit; }
 .dashboard-member-card__backdrop { position: absolute; z-index: -1; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
 .dashboard-member-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -8,10 +8,10 @@
 .dashboard-member-card__plan p { font-size: 15px; line-height: 1.4; font-weight: 600; color: #2563eb; margin: 2px 0 0; }
 .dashboard-member-card__icon { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(140deg, #2563eb, #38bdf8); color: white; box-shadow: 0 4px 8px #1c409226; }
 .is-lifetime .dashboard-member-card__icon { background: linear-gradient(140deg, #1e293b, #64748b); color: #f8e7b0; }
-.dashboard-member-card__status { display: inline-flex; align-items: center; flex-shrink: 0; gap: 5px; border: 1px solid #fcd68b; border-radius: 30px; padding: 4px 9px; background: #fffbeb; color: #92400e; font-size: 12px; line-height: 18px; font-weight: 700; }
+.dashboard-member-card__status { display: inline-flex; align-items: center; flex-shrink: 0; gap: 5px; border: 1px solid #fcd68b; border-radius: 30px; padding: 4px 9px; background: #fffbeb; color: #92400e; font-size: .875rem; line-height: 1.5; font-weight: 700; }
 .dashboard-member-card__status.is-active { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
 .dashboard-member-card__id { margin: 15px 0 13px; border-top: 1px solid #dce5f2; padding-top: 13px; }
-.dashboard-member-card__id > span, .dashboard-member-card__dates span, .dashboard-membership__facts dt { display: block; font-size: 11px; line-height: 17px; font-weight: 600; text-transform: uppercase; letter-spacing: .55px; color: #667b9c; }
+.dashboard-member-card__id > span, .dashboard-member-card__dates span, .dashboard-membership__facts dt { display: block; font-size: .875rem; line-height: 1.5; font-weight: 600; text-transform: uppercase; letter-spacing: .55px; color: #667b9c; }
 .dashboard-member-card__id strong { display: block; margin-top: 4px; font-size: clamp(15px, 3.8cqw, 19px); line-height: 1.5; font-weight: 700; color: #10234f; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .dashboard-member-card__dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .dashboard-member-card__dates strong { display: block; color: #10234f; font-size: 15px; line-height: 1.5; font-weight: 600; margin-top: 4px; overflow-wrap: anywhere; }
@@ -20,15 +20,15 @@
 .dashboard-membership__facts dd { font-size: 15px; line-height: 1.45; font-weight: 600; color: #152444; margin: 4px 0 0; overflow-wrap: anywhere; }
 .dashboard-membership__details { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; border-radius: 11px; border: 0; background: #2563eb; color: #fff; font-size: 15px; line-height: 20px; font-weight: 600; padding: 10px 14px; }
 .dashboard-membership__details:hover { background: #1d4ed8; }
-.dashboard-membership__next { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 24px; min-width: 0; width: 100%; padding: 28px; border: 1px solid #dce5f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 16px -12px #132b6266; color: #132b59; font-family: 'Poppins', sans-serif; }
+.dashboard-membership__next { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 24px; min-width: 0; width: 100%; padding: 28px; border: 1px solid #dce5f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 16px -12px #132b6266; color: #132b59; font-family: var(--font-ui); }
 .dashboard-membership__review-copy, .dashboard-membership__review-actions { min-width: 0; }
 .dashboard-membership__icon { display: grid; place-items: center; width: 44px; height: 44px; background: linear-gradient(140deg, #224897, #3774df); border-radius: 14px; color: #fff; box-shadow: 0 8px 16px -8px #274680; margin-bottom: 14px; }
-.dashboard-membership__eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .8px; color: #4e6796; }
-.dashboard-membership__next h3 { font-family: inherit; font-size: clamp(26px, 3.5cqw, 36px); line-height: 1.25; letter-spacing: -.025em; font-weight: 800; margin: 8px 0 12px; color: #0f172a; }
-.dashboard-membership__next p { font-size: 18px; font-weight: 500; line-height: 1.65; color: #5f7090; margin: 0 0 16px; }
+.dashboard-membership__eyebrow { font-size: .875rem; font-weight: 600; letter-spacing: .8px; color: #4e6796; }
+.dashboard-membership__next h3 { font-family: inherit; font-size: clamp(1.25rem, 3cqw, 1.5rem); line-height: 1.25; letter-spacing: -.025em; font-weight: 800; margin: 8px 0 12px; color: #0f172a; }
+.dashboard-membership__next p { font-size: 1rem; font-weight: 400; line-height: 1.65; color: #5f7090; margin: 0 0 16px; }
 .dashboard-membership__assurance { display: flex; align-items: flex-start; gap: 9px; font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 12px; color: #50698f; }
 .dashboard-membership__assurance svg { flex-shrink: 0; color: #4264aa; margin-top: 2px; }
-.dashboard-membership__review-actions > button { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; margin-top: 20px; min-height: 48px; padding: 12px; border-radius: 11px; border: 0; background: linear-gradient(105deg, #213d87, #2563eb); color: #fff; font-family: inherit; font-size: 17px; line-height: 25px; font-weight: 700; }
+.dashboard-membership__review-actions > button { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; margin-top: 20px; min-height: 48px; padding: 12px; border-radius: 11px; border: 0; background: linear-gradient(105deg, #213d87, #2563eb); color: #fff; font-family: inherit; font-size: 1rem; line-height: 1.5; font-weight: 700; }
 .dashboard-membership__identity button, .dashboard-membership__next button { cursor: pointer; }
 .dashboard-membership__identity button:focus-visible, .dashboard-membership__next button:focus-visible { outline: 3px solid #79acf8; outline-offset: 3px; }
 @container (min-width: 800px) { .dashboard-membership__next { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; padding: 32px; } }

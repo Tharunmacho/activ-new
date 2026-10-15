@@ -473,7 +473,7 @@ export default function GalleryDetailPage() {
                                     {String(field.value).split(/\n{2,}/).map((para, j) => (
                                         <p
                                             key={j}
-                                            className="text-[1.125rem] sm:text-[1.1875rem] leading-[1.75]
+                                            className="text-[1.125rem] sm:text-ui-small leading-[1.75]
                                                        text-gray-700 whitespace-pre-line"
                                         >
                                             {para.trim()}

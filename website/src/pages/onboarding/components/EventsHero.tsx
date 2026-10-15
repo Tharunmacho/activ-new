@@ -100,7 +100,7 @@ export function EventsHero({ settings }: Props) {
                         {/* The editor's own rows on these two cards, in the
                             hero's own lede type — the rows are a continuation of
                             the words over the picture, not a footnote under it. */}
-                        <div className="text-[1.125rem] sm:text-[1.25rem] font-medium leading-relaxed">
+                        <div className="text-[1.125rem] sm:text-ui-body font-medium leading-relaxed">
                             <CmsExtraFields fields={ownRows} tone="dark" force="content" className="mt-8" />
                         </div>
 
@@ -179,10 +179,10 @@ export function EventsHero({ settings }: Props) {
                                             fallback="calendar-days"
                                         />
                                         {heroBadge?.title && (
-                                            <p className="text-[1.1875rem] font-extrabold leading-tight">{heroBadge.title}</p>
+                                            <p className="text-ui-small font-extrabold leading-tight">{heroBadge.title}</p>
                                         )}
                                         {heroBadge?.subtitle && (
-                                            <p className="mt-1 text-[1.0625rem] leading-snug text-white/70">
+                                            <p className="mt-1 text-ui-caption leading-snug text-white/70">
                                                 {heroBadge.subtitle}
                                             </p>
                                         )}

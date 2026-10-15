@@ -149,10 +149,10 @@ export function LeaderMessageForm({ person, context, onDone }: {
     if (sent) {
         return (
             <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-5 text-left">
-                <p className="flex items-center gap-2 text-[1.1875rem] font-extrabold text-emerald-800">
+                <p className="flex items-center gap-2 text-ui-small font-extrabold text-emerald-800">
                     <Check size={18} className="shrink-0" /> Recorded
                 </p>
-                <p className="mt-2 text-[1.0625rem] font-medium leading-relaxed text-emerald-900/80">
+                <p className="mt-2 text-ui-caption font-medium leading-relaxed text-emerald-900/80">
                     Your request has been passed to the association, who will be in touch on{' '}
                     <span className="font-bold">{phone.trim()}</span>.
                     {sent.purposeLabel && (
@@ -163,7 +163,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                     type="button"
                     onClick={onDone}
                     className="mt-4 inline-flex items-center rounded-full border border-emerald-300
-                               bg-white px-5 py-2 text-[1.0625rem] font-bold text-emerald-800
+                               bg-white px-5 py-2 text-ui-caption font-bold text-emerald-800
                                transition-colors hover:bg-emerald-50"
                 >
                     Close
@@ -174,13 +174,13 @@ export function LeaderMessageForm({ person, context, onDone }: {
 
     /* --------------------------------------------------------------- the form */
 
-    const field = 'w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[1.0625rem] '
+    const field = 'w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-ui-caption '
         + 'font-medium text-brand-800 outline-none transition-colors placeholder:text-gray-400 '
         + 'hover:border-brand-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/15';
 
     return (
         <div className="mt-5 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 sm:p-5 text-left">
-            <p className="flex items-center gap-2 text-[1.1875rem] font-extrabold text-brand-900">
+            <p className="flex items-center gap-2 text-ui-small font-extrabold text-brand-900">
                 <MessageSquare size={17} className="shrink-0 text-brand-600" />
                 Ask to be contacted
             </p>
@@ -222,7 +222,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                                 className="mt-1 shrink-0 accent-brand-600"
                             />
                             <span className="min-w-0">
-                                <span className="block text-[1.0625rem] font-bold text-brand-800">
+                                <span className="block text-ui-caption font-bold text-brand-800">
                                     {p.label}
                                 </span>
                                 {p.hint && (
@@ -235,7 +235,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                     ))}
 
                     {purposes.length === 0 && (
-                        <p className="text-[1.0625rem] font-medium text-gray-400">
+                        <p className="text-ui-caption font-medium text-gray-400">
                             Loading the options…
                         </p>
                     )}
@@ -328,7 +328,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
             </label>
 
             {error && (
-                <p className="mt-3 text-[1.0625rem] font-semibold text-red-600">{error}</p>
+                <p className="mt-3 text-ui-caption font-semibold text-red-600">{error}</p>
             )}
 
             <button

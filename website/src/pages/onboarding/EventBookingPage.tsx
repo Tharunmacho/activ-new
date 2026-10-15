@@ -100,7 +100,7 @@ import EventActions from '@/components/shared/EventActions';
 /*
  * WHAT SOMEBODY TYPED IS THE HEAVIEST TEXT ON THE FIELD.
  *
- * It was `text-[1.25rem] font-medium` in the default grey — lighter than the label
+ * It was `text-ui-body font-medium` in the default grey — lighter than the label
  * above it and the hint below, so the one piece of real information in the
  * control was the faintest thing in it. The placeholder stays light, which is
  * what keeps the two distinguishable at a glance.
@@ -111,12 +111,12 @@ const INPUT_CLASS =
      *
      * `CompanyForm` — the screen a member creates their business account on —
      * sets every control to a slate-50 well inside a slate-200 hairline that
-     * turns white on focus, at `text-[1.25rem]`. A white field on a white card has
+     * turns white on focus, at `text-ui-body`. A white field on a white card has
      * only its border to say it is a field at all; the tinted well says it
      * before the reader looks for the edge, and it is the idiom this product
      * already uses on its longest form.
      */
-    'w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[1.25rem] ' +
+    'w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-ui-body ' +
     'font-semibold text-slate-900 hover:border-slate-300 ' +
     'focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-600 focus:border-transparent ' +
     'transition-colors placeholder:font-normal placeholder:text-slate-400 ' +
@@ -193,7 +193,7 @@ function BookingSteps({ current }: { current: Step }) {
                         <span
                             aria-current={here ? 'step' : undefined}
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full
-                                        text-[1.0625rem] font-extrabold transition-colors ${
+                                        text-ui-caption font-extrabold transition-colors ${
                                 done
                                     ? 'bg-brand-800 text-white'
                                     : here
@@ -205,7 +205,7 @@ function BookingSteps({ current }: { current: Step }) {
                         </span>
 
                         <span
-                            className={`hidden truncate text-[1.0625rem] sm:block ${
+                            className={`hidden truncate text-ui-caption sm:block ${
                                 here ? 'font-extrabold text-brand-800' : 'font-bold text-slate-400'
                             }`}
                         >
@@ -870,7 +870,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                                tracking-tight text-slate-900 truncate">
                                     Book your place
                                 </h1>
-                                <p className="text-[1.25rem] text-slate-500 mt-0.5 truncate hidden sm:block">
+                                <p className="text-ui-body text-slate-500 mt-0.5 truncate hidden sm:block">
                                     {event?.title || 'Reserve seats for this event'}
                                 </p>
                             </div>
@@ -913,7 +913,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         return shell(
             <div className={`${SCREEN_CONTAINER} py-24 text-center`}>
                 <h1 className={`${SECTION_HEADING} text-brand-800 mb-4`}>Booking unavailable</h1>
-                <p className="text-[1.25rem] text-gray-500 font-semibold mb-8 max-w-lg mx-auto">
+                <p className="text-ui-body text-gray-500 font-semibold mb-8 max-w-lg mx-auto">
                     {loadError || 'This event is not taking bookings.'}
                 </p>
                 <Link to={eventsHref} className={PRIMARY_BUTTON}>
@@ -1011,8 +1011,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
                             {fact.icon}
                         </span>
                         <div className="min-w-0">
-                            <p className="text-[1.0625rem] font-semibold text-gray-500">{fact.label}</p>
-                            <p className="text-[1.0625rem] font-bold text-brand-800 leading-snug break-words">
+                            <p className="text-ui-caption font-semibold text-gray-500">{fact.label}</p>
+                            <p className="text-ui-caption font-bold text-brand-800 leading-snug break-words">
                                 {fact.value}
                             </p>
                         </div>
@@ -1026,7 +1026,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mx-2 sm:mx-3 mb-2 inline-flex items-center gap-1.5 text-brand-600
-                               hover:text-brand-800 text-[1.0625rem] font-bold transition-colors"
+                               hover:text-brand-800 text-ui-caption font-bold transition-colors"
                 >
                     Open in maps <ExternalLink size={13} />
                 </a>
@@ -1044,7 +1044,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                       text-brand-700">
                             Please note
                         </p>
-                        <p className="text-[1.0625rem] font-semibold text-gray-700 whitespace-pre-line">
+                        <p className="text-ui-caption font-semibold text-gray-700 whitespace-pre-line">
                             {event.registrationNote}
                         </p>
                     </div>
@@ -1068,7 +1068,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 way off it. */}
             <Link
                 to={eventHref}
-                className="inline-flex items-center gap-2 -ml-3 px-3 py-2 rounded-lg text-[1.0625rem]
+                className="inline-flex items-center gap-2 -ml-3 px-3 py-2 rounded-lg text-ui-caption
                            font-bold text-gray-600 hover:text-brand-800 hover:bg-brand-50
                            transition-colors"
             >
@@ -1085,7 +1085,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 {crumb}
                 <div className={`${SCREEN_CONTAINER} py-16 text-center`}>
                     <h1 className={`${SECTION_HEADING} text-brand-800 mb-4`}>Fully booked</h1>
-                    <p className="text-[1.25rem] text-gray-500 font-semibold mb-8 max-w-lg mx-auto">
+                    <p className="text-ui-body text-gray-500 font-semibold mb-8 max-w-lg mx-auto">
                         Every seat for {event.title || 'this event'} has been taken.
                     </p>
                     <Link to={eventsHref} className={PRIMARY_BUTTON}>See other events</Link>
@@ -1100,7 +1100,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 {crumb}
                 <div className={`${SCREEN_CONTAINER} py-16 text-center`}>
                     <h1 className={`${SECTION_HEADING} text-brand-800 mb-4`}>Bookings closed</h1>
-                    <p className="text-[1.25rem] text-gray-500 font-semibold mb-8 max-w-lg mx-auto">
+                    <p className="text-ui-body text-gray-500 font-semibold mb-8 max-w-lg mx-auto">
                         The booking deadline for {event.title || 'this event'} has passed.
                         {event.contactEmail ? ` Write to ${event.contactEmail} if you need a place.` : ''}
                     </p>
@@ -1152,7 +1152,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                     ? 'border-emerald-200 bg-emerald-50/70'
                     : 'border-slate-200 bg-slate-50'}`}
             >
-                <p className={`text-[1.0625rem] font-extrabold uppercase tracking-widest ${tone === 'emerald' ? 'text-emerald-700' : 'text-slate-500'}`}>
+                <p className={`text-ui-caption font-extrabold uppercase tracking-widest ${tone === 'emerald' ? 'text-emerald-700' : 'text-slate-500'}`}>
                     {caption}
                 </p>
                 <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
@@ -1160,10 +1160,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         {figure}
                     </span>
                     {unit ? (
-                        <span className="text-[1.25rem] font-bold text-slate-500">{unit}</span>
+                        <span className="text-ui-body font-bold text-slate-500">{unit}</span>
                     ) : null}
                 </p>
-                <p className={`mt-1.5 text-[1.25rem] font-semibold ${tone === 'emerald' ? 'text-emerald-700/90' : 'text-slate-500'}`}>
+                <p className={`mt-1.5 text-ui-body font-semibold ${tone === 'emerald' ? 'text-emerald-700/90' : 'text-slate-500'}`}>
                     {note}
                 </p>
             </div>
@@ -1216,7 +1216,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         <h1 className={`${SECTION_HEADING} text-brand-800`}>
                             How would you like to book?
                         </h1>
-                        <p className="mt-3 max-w-xl mx-auto text-[1.25rem] sm:text-[1.375rem] font-semibold text-slate-500">
+                        <p className="mt-3 max-w-xl mx-auto text-ui-body sm:text-[1.375rem] font-semibold text-slate-500">
                             Both take the same seats. Members get their rate applied automatically.
                         </p>
                     </div>
@@ -1235,7 +1235,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                             {/* `min-h` on both cards' lede, so the rule beneath
                                 it falls on one line across the pair whether the
                                 sentence runs to one line or to two. */}
-                            <p className="mt-2 min-h-[3.5rem] text-[1.25rem] leading-relaxed font-medium text-slate-600">
+                            <p className="mt-2 min-h-[3.5rem] text-ui-body leading-relaxed font-medium text-slate-600">
                                 Checkout takes about a minute, with no account to create.
                             </p>
 
@@ -1250,7 +1250,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                                          rounded-full bg-brand-50 text-brand-700">
                                             <Check size={12} strokeWidth={3} />
                                         </span>
-                                        <span className="text-[1.25rem] font-semibold text-slate-700">
+                                        <span className="text-ui-body font-semibold text-slate-700">
                                             {point}
                                         </span>
                                     </li>
@@ -1278,7 +1278,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 the same height, so whatever the right card
                                 carries below its button the left card must
                                 carry too, or the two buttons do not align. */}
-                            <p className="mt-3 text-center text-[1.25rem] font-semibold text-slate-500">
+                            <p className="mt-3 text-center text-ui-body font-semibold text-slate-500">
                                 You can check everything before paying.
                             </p>
                         </div>
@@ -1302,7 +1302,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                             </span>
 
                             <h2 className={`${BIZ_CARD_TITLE} mt-4`}>Sign in &amp; checkout</h2>
-                            <p className="mt-2 min-h-[3.5rem] text-[1.25rem] leading-relaxed font-medium text-slate-600">
+                            <p className="mt-2 min-h-[3.5rem] text-ui-body leading-relaxed font-medium text-slate-600">
                                 Sign in and your membership rate is applied automatically.
                             </p>
 
@@ -1339,7 +1339,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                         </label>
                                         <Link
                                             to="/forgot-password"
-                                            className="mb-2 text-[1.25rem] font-bold text-brand-600 hover:text-brand-800"
+                                            className="mb-2 text-ui-body font-bold text-brand-600 hover:text-brand-800"
                                         >
                                             Forgot?
                                         </Link>
@@ -1370,7 +1370,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 </div>
 
                                 {signInError && (
-                                    <p className="mt-3 flex items-start gap-2 text-[1.25rem] font-bold text-red-600">
+                                    <p className="mt-3 flex items-start gap-2 text-ui-body font-bold text-red-600">
                                         <AlertCircle size={14} className="mt-0.5 shrink-0" /> {signInError}
                                     </p>
                                 )}
@@ -1387,7 +1387,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                         : <>Sign in <ArrowRight size={15} /></>}
                                 </button>
 
-                                <p className="mt-3 text-center text-[1.25rem] font-semibold text-slate-500">
+                                <p className="mt-3 text-center text-ui-body font-semibold text-slate-500">
                                     No account?{' '}
                                     <Link
                                         to="/register"
@@ -1429,13 +1429,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
                             <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
                                 <div className="min-w-0">
                                     <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-brand-50
-                                                     px-3.5 py-1.5 text-[1.0625rem] font-bold text-brand-700">
+                                                     px-3.5 py-1.5 text-ui-caption font-bold text-brand-700">
                                         <Calendar size={13} className="shrink-0" />
                                         <span className="truncate">{event.title}</span>
                                     </span>
                                     <h1 className="mt-3 text-[1.875rem] sm:text-[2.75rem] font-black leading-[1.05]
                                                    tracking-tight text-brand-800">Book Now</h1>
-                                    <p className="text-[1.0625rem] font-semibold text-gray-500 mt-1">
+                                    <p className="text-ui-caption font-semibold text-gray-500 mt-1">
                                         Secure your seat for this event
                                     </p>
                                 </div>
@@ -1447,10 +1447,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                             <Ticket size={20} />
                                         </span>
                                         <div>
-                                            <p className="text-[1.0625rem] font-bold text-brand-800">
+                                            <p className="text-ui-caption font-bold text-brand-800">
                                                 {seatsLeft} seats left
                                             </p>
-                                            <p className="text-[1.0625rem] font-semibold text-gray-500">
+                                            <p className="text-ui-caption font-semibold text-gray-500">
                                                 Book early to avoid missing out
                                             </p>
                                         </div>
@@ -1468,7 +1468,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                               */}
                             <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 mb-6
                                             shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-20px_rgba(28,46,104,0.3)]">
-                                <h2 className="flex items-center gap-2.5 text-[1.0625rem] font-bold
+                                <h2 className="flex items-center gap-2.5 text-ui-caption font-bold
                                                tracking-tight text-brand-800 mb-4">
                                     <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex
                                                      items-center justify-center">
@@ -1552,7 +1552,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 <h2 className="text-[1.375rem] font-black tracking-tight text-brand-800 mb-1">
                                     Participants
                                 </h2>
-                                <p className="text-[1.0625rem] text-gray-600 font-semibold mb-5">
+                                <p className="text-ui-caption text-gray-600 font-semibold mb-5">
                                     Name, email and mobile are required for every participant.
                                     Participant 1 is filled from your booking details; edit it if someone else is attending.
                                 </p>
@@ -1580,7 +1580,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                               * it was set lighter than the
                                               * labels inside the card.
                                               */}
-                                            <p className="text-[1.0625rem] font-extrabold uppercase
+                                            <p className="text-ui-caption font-extrabold uppercase
                                                           tracking-widest text-brand-800 mb-3">
                                                 Participant {i + 1}
                                                 {i === 0 && firstUsesBooker && (
@@ -1634,7 +1634,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                             rounded-2xl border border-gray-200 bg-white p-4 sm:p-6
                                             shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-18px_rgba(28,46,104,0.35)]">
                                 <div>
-                                    <p className="flex items-center gap-2 text-[1.0625rem] font-bold uppercase
+                                    <p className="flex items-center gap-2 text-ui-caption font-bold uppercase
                                                   tracking-wider text-gray-600">
                                         <span className="w-7 h-7 rounded-lg bg-brand-50 text-brand-600 flex
                                                          items-center justify-center">
@@ -1657,7 +1657,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                         </p>
                                     )}
                                     {!isFree && (
-                                        <p className="text-[1.0625rem] text-gray-500 font-semibold">
+                                        <p className="text-ui-caption text-gray-500 font-semibold">
                                             {countText
                                                 ? `${rupees(price)} × ${count} ${count === 1 ? 'person' : 'people'}`
                                                 : `${rupees(price)} per person`}
@@ -1719,10 +1719,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                                text-white transition-colors shadow-lg disabled:opacity-70
                                                shadow-brand-900/20 w-full sm:w-auto sm:min-w-[13rem]"
                                 >
-                                    <span className="text-[1.25rem] font-black tracking-tight">
+                                    <span className="text-ui-body font-black tracking-tight">
                                         {checking ? 'Checking…' : 'Continue'}
                                     </span>
-                                    <span className="mt-0.5 inline-flex items-center gap-1.5 text-[1.0625rem]
+                                    <span className="mt-0.5 inline-flex items-center gap-1.5 text-ui-caption
                                                      font-semibold text-white/75">
                                         {isFree ? 'Confirm your seats' : 'Proceed to payment'}
                                         <ArrowRight size={12} />
@@ -1775,13 +1775,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         as one screen a page further on. */}
                     <div className="mb-7">
                         <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-brand-50
-                                         px-3.5 py-1.5 text-[1.0625rem] font-bold text-brand-700">
+                                         px-3.5 py-1.5 text-ui-caption font-bold text-brand-700">
                             <Calendar size={13} className="shrink-0" />
                             <span className="truncate">{event.title}</span>
                         </span>
                         <h1 className="mt-3 text-[1.875rem] sm:text-[2.75rem] font-black leading-[1.05]
                                      tracking-tight text-brand-800">Review your booking</h1>
-                        <p className="text-[1.0625rem] font-semibold text-gray-500 mt-1">
+                        <p className="text-ui-caption font-semibold text-gray-500 mt-1">
                             Check these details before {isFree ? 'confirming' : 'paying'}.
                         </p>
                     </div>
@@ -1828,7 +1828,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         Details, so an empty section here says nothing twice. */}
                     {participantRows.length > 0 && (
                     <section className="mb-8">
-                        <h2 className="flex items-center gap-2.5 text-[1.0625rem] font-bold
+                        <h2 className="flex items-center gap-2.5 text-ui-caption font-bold
                                        tracking-tight text-brand-800 mb-3">
                             <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex
                                              items-center justify-center">
@@ -1841,14 +1841,14 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         <ul className="sm:hidden divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
                             {participantRows.map(({ name, email, phone }, i) => (
                                 <li key={i} className="min-w-0 px-4 py-3">
-                                    <p className="text-[1.1875rem] font-extrabold text-brand-900 break-words">
+                                    <p className="text-ui-small font-extrabold text-brand-900 break-words">
                                         {name || `Participant ${i + 1}`}
                                     </p>
                                     {email ? (
-                                        <p className="text-[1.0625rem] font-semibold text-gray-700 break-all">{email}</p>
+                                        <p className="text-ui-caption font-semibold text-gray-700 break-all">{email}</p>
                                     ) : null}
                                     {phone ? (
-                                        <p className="text-[1.0625rem] font-semibold text-gray-700 tabular-nums">{phone}</p>
+                                        <p className="text-ui-caption font-semibold text-gray-700 tabular-nums">{phone}</p>
                                     ) : null}
                                 </li>
                             ))}
@@ -1861,7 +1861,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                         {['Name', 'Email', 'Mobile'].map((head) => (
                                             <th
                                                 key={head}
-                                                className="text-[1.0625rem] font-semibold uppercase
+                                                className="text-ui-caption font-semibold uppercase
                                                            tracking-[0.08em] text-gray-500 px-5 sm:px-6 py-3.5
                                                            border-b border-gray-200"
                                             >
@@ -1890,15 +1890,15 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                     {participantRows.map(({ name, email, phone }, i) => {
                                         return (
                                             <tr key={i} className="border-b border-gray-100 last:border-0">
-                                                <td className="px-5 sm:px-6 py-4 text-[1.25rem] sm:text-[1.0625rem]
+                                                <td className="px-5 sm:px-6 py-4 text-ui-body sm:text-ui-caption
                                                                font-extrabold text-brand-900">
                                                     {name}
                                                 </td>
-                                                <td className="px-5 sm:px-6 py-4 text-[1.25rem] sm:text-[1.0625rem]
+                                                <td className="px-5 sm:px-6 py-4 text-ui-body sm:text-ui-caption
                                                                text-gray-700 font-semibold break-all">
                                                     {email}
                                                 </td>
-                                                <td className="px-5 sm:px-6 py-4 text-[1.25rem] sm:text-[1.0625rem]
+                                                <td className="px-5 sm:px-6 py-4 text-ui-body sm:text-ui-caption
                                                                text-gray-700 font-semibold tabular-nums">
                                                     {phone}
                                                 </td>
@@ -1915,7 +1915,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
 
                     {payError && (
                         <p className="flex items-start gap-2 mb-5 rounded-xl bg-red-50 border border-red-100
-                                      px-4 py-3 text-[1.0625rem] font-bold text-red-700">
+                                      px-4 py-3 text-ui-caption font-bold text-red-700">
                             <AlertCircle size={15} className="mt-0.5 shrink-0" /> {payError}
                         </p>
                     )}
@@ -1942,7 +1942,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         </button>
                     </div>
 
-                    <p className="mt-5 text-[1.0625rem] text-gray-500 font-semibold">
+                    <p className="mt-5 text-ui-caption text-gray-500 font-semibold">
                         By continuing you agree to our{' '}
                         <Link to="/terms-and-conditions" className="text-brand-600 hover:text-brand-800 font-bold">
                             Terms &amp; Conditions
@@ -1999,7 +1999,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                     <CheckCircle2 size={28} />
                 </span>
                 <h1 className={`${SECTION_HEADING} text-brand-800 mb-3`}>{headline}</h1>
-                <p className="text-[1.25rem] sm:text-[1.0625rem] text-gray-600 font-semibold">
+                <p className="text-ui-body sm:text-ui-caption text-gray-600 font-semibold">
                     {settled ? (
                         <>
                             Your seats are confirmed. Keep your booking reference and entry pass for the event.
@@ -2013,13 +2013,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 </p>
 
                 <div className="mt-7 rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-4 sm:px-5 sm:py-5">
-                    <p className="text-[1.0625rem] font-bold uppercase tracking-wider text-gray-600 mb-2">
+                    <p className="text-ui-caption font-bold uppercase tracking-wider text-gray-600 mb-2">
                         Your booking reference
                     </p>
                     <p className="text-[1.5625rem] sm:text-3xl font-black tracking-tight text-brand-800 break-all">
                         {confirmed?.bookingRef}
                     </p>
-                    <p className="text-[1.0625rem] text-gray-600 font-semibold mt-2">
+                    <p className="text-ui-caption text-gray-600 font-semibold mt-2">
                         Keep this — it is how we find your booking.
                     </p>
                 </div>
@@ -2055,12 +2055,12 @@ export default function EventBookingPage({ chrome = 'public' }: {
                   */}
                 {settled && confirmed?.mode === 'online' && (
                     <div className="mt-7 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-4 sm:px-5 sm:py-5 text-left">
-                        <p className="text-[1.0625rem] font-extrabold uppercase tracking-widest text-emerald-700">
+                        <p className="text-ui-caption font-extrabold uppercase tracking-widest text-emerald-700">
                             Your online event
                         </p>
                         {confirmed.onlineUrl ? (
                             <>
-                                <p className="mt-1.5 text-[1.25rem] font-semibold text-emerald-900">
+                                <p className="mt-1.5 text-ui-body font-semibold text-emerald-900">
                                     {confirmed.onlinePlatform
                                         ? `This event runs on ${confirmed.onlinePlatform}.`
                                         : 'This event is online.'}
@@ -2070,20 +2070,20 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl
-                                               bg-emerald-600 px-5 text-[1.25rem] font-bold text-white
+                                               bg-emerald-600 px-5 text-ui-body font-bold text-white
                                                transition-colors hover:bg-emerald-700"
                                 >
                                     <Video size={16} /> {onlineRegistrationLink(confirmed.onlineUrl) ? 'Complete platform registration' : 'Join online event'}
                                 </a>
-                                <p className="mt-3 break-all text-[1.25rem] font-semibold text-emerald-800/80">
+                                <p className="mt-3 break-all text-ui-body font-semibold text-emerald-800/80">
                                     {confirmed.onlineUrl}
                                 </p>
-                                <p className="mt-2 text-[1.25rem] font-semibold text-emerald-700/80">
+                                <p className="mt-2 text-ui-body font-semibold text-emerald-700/80">
                                     {onlineRegistrationLink(confirmed.onlineUrl) ? 'Complete the platform form and follow its instructions to receive your personal joining link.' : 'Open this link at the event start time. Please keep it private.'}
                                 </p>
                             </>
                         ) : (
-                            <p className="mt-1.5 text-[1.25rem] font-semibold text-emerald-900">
+                            <p className="mt-1.5 text-ui-body font-semibold text-emerald-900">
                                 {confirmed.onlinePlatform
                                     ? `This event runs on ${confirmed.onlinePlatform}. `
                                     : 'This event is online. '}
@@ -2275,15 +2275,15 @@ function Field(props: {
                     className={
                         INPUT_CLASS
                         + (icon ? ' pl-11' : '')
-                        + (compact ? ' py-2.5 text-[1.0625rem]' : '')
+                        + (compact ? ' py-2.5 text-ui-caption' : '')
                         + (error ? ' border-red-300 focus:ring-red-500' : '')
                     }
                 />
             </div>
             {error
-                ? <p className="mt-1.5 text-[1.0625rem] font-bold text-red-600">{error}</p>
+                ? <p className="mt-1.5 text-ui-caption font-bold text-red-600">{error}</p>
                 : hint
-                    ? <p className="mt-1.5 text-[1.0625rem] font-semibold text-gray-500">{hint}</p>
+                    ? <p className="mt-1.5 text-ui-caption font-semibold text-gray-500">{hint}</p>
                     : null}
         </div>
     );
@@ -2328,7 +2328,7 @@ function DetailTable(props: {
               * reading size, hairlines between them, and a single tinted row
               * for the figure about to be paid.
               */}
-            <h2 className="flex items-center gap-2.5 text-[1.25rem] font-extrabold tracking-tight
+            <h2 className="flex items-center gap-2.5 text-ui-body font-extrabold tracking-tight
                            text-brand-900 mb-3">
                 {icon && (
                     <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center
@@ -2357,7 +2357,7 @@ function DetailTable(props: {
                             {/* A step darker. `gray-500` on white is the grey
                                 a disabled control uses, and a receipt's labels
                                 are not disabled. */}
-                            <dt className="text-[1.0625rem] font-bold uppercase tracking-[0.08em]
+                            <dt className="text-ui-caption font-bold uppercase tracking-[0.08em]
                                            text-gray-600 sm:w-44 shrink-0">
                                 {label}
                             </dt>
@@ -2370,7 +2370,7 @@ function DetailTable(props: {
                                            out beside the headings above it. This is the
                                            answer somebody is checking before paying, and
                                            reading back off a screenshot months later. */
-                                        : 'text-[1.1875rem] sm:text-[1.3125rem] font-semibold text-brand-900')
+                                        : 'text-ui-small sm:text-[1.3125rem] font-semibold text-brand-900')
                                 }
                             >
                                 {value}

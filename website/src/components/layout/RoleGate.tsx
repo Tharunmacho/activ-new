@@ -85,7 +85,7 @@ function SignedInAsAdmin({ from }: { from: string }) {
                 <h1 className="font-display text-[1.5rem] sm:text-[1.75rem] font-bold text-slate-900">
                     You are signed in as {who}
                 </h1>
-                <p className="mt-2 text-[1.0625rem] leading-relaxed text-slate-600">
+                <p className="mt-2 text-ui-caption leading-relaxed text-slate-600">
                     This page belongs to a member account. To see a member&apos;s dashboard, sign out and
                     sign in with that member&apos;s own email.
                 </p>
@@ -94,7 +94,7 @@ function SignedInAsAdmin({ from }: { from: string }) {
                         type="button"
                         onClick={() => navigate(homeForSession(), { replace: true })}
                         className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5
-                                   text-[1.0625rem] font-semibold text-white"
+                                   text-ui-caption font-semibold text-white"
                     >
                         <LayoutDashboard className="h-4 w-4" /> Go to my {who} dashboard
                     </button>
@@ -102,7 +102,7 @@ function SignedInAsAdmin({ from }: { from: string }) {
                         type="button"
                         onClick={() => { clearSession(); navigate('/login', { replace: true, state: { from } }); }}
                         className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200
-                                   px-5 text-[1.0625rem] font-semibold text-slate-700 hover:bg-slate-50"
+                                   px-5 text-ui-caption font-semibold text-slate-700 hover:bg-slate-50"
                     >
                         <LogOut className="h-4 w-4" /> Sign out and sign in as a member
                     </button>

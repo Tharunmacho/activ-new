@@ -156,14 +156,14 @@ export default function PaymentRegistration() {
         {/* Title Section */}
         <div className="text-center mb-6 sm:mb-12">
           <div className="inline-block mb-4">
-            <span className="px-4 sm:px-5 py-1.5 sm:py-2 bg-blue-600 text-white text-sm sm:text-[1.0625rem] font-semibold rounded-full shadow-md">
+            <span className="px-4 sm:px-5 py-1.5 sm:py-2 bg-blue-600 text-white text-sm sm:text-ui-caption font-semibold rounded-full shadow-md">
               Complete Your Registration
             </span>
           </div>
           <h1 className="text-2xl sm:text-4xl md:text-[3.125rem] font-bold text-slate-900 mb-3 sm:mb-4">
             {plan?.name || `${kindLabel} Membership`}
           </h1>
-          <p className="text-slate-600 text-base sm:text-[1.1875rem] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-600 text-base sm:text-ui-small max-w-2xl mx-auto leading-relaxed">
             {plan?.description || (kind === 'student'
               ? 'The membership for students who are not yet in business.'
               : 'The membership for applicants who have not yet registered a business.')}
@@ -181,7 +181,7 @@ export default function PaymentRegistration() {
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4 sm:mb-6">
                   <div>
                     <h3 className="text-xl sm:text-[1.5625rem] font-bold text-slate-900 mb-1 sm:mb-2">{plan?.name || 'Your plan'}</h3>
-                    <p className="text-slate-600 text-[1.0625rem]">{plan?.experience || `${kindLabel} membership`}</p>
+                    <p className="text-slate-600 text-ui-caption">{plan?.experience || `${kindLabel} membership`}</p>
                   </div>
                   <div className="sm:text-right">
                     <div className="text-3xl sm:text-[3.125rem] font-bold text-blue-600">{plan ? money(plan.price) : '—'}</div>
@@ -191,7 +191,7 @@ export default function PaymentRegistration() {
 
                 <div className="space-y-4">
                   {!plan && (
-                    <p className="text-[1.0625rem] text-slate-600">
+                    <p className="text-ui-caption text-slate-600">
                       We could not load the membership price. Please refresh the page to try again.
                     </p>
                   )}
@@ -200,7 +200,7 @@ export default function PaymentRegistration() {
                       <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-0.5">
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div>
-                      <span className="text-slate-700 text-[1.0625rem] leading-relaxed">{feature}</span>
+                      <span className="text-slate-700 text-ui-caption leading-relaxed">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -215,13 +215,13 @@ export default function PaymentRegistration() {
                     <Lock className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-green-900 text-[1.25rem] mb-2">
+                    <p className="font-bold text-green-900 text-ui-body mb-2">
                       🔒 Secure Payment Gateway
                     </p>
-                    <p className="text-[1.0625rem] text-green-800 leading-relaxed mb-3">
+                    <p className="text-ui-caption text-green-800 leading-relaxed mb-3">
                       Powered by Instamojo - Your payment information is encrypted with industry-standard SSL encryption. We never store your card details.
                     </p>
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm sm:text-[1.0625rem] text-green-700">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm sm:text-ui-caption text-green-700">
                       <span className="px-3 py-1.5 bg-white border border-green-300 rounded-full font-medium">SSL Encrypted</span>
                       <span className="px-3 py-1.5 bg-white border border-green-300 rounded-full font-medium">PCI Compliant</span>
                     </div>
@@ -237,7 +237,7 @@ export default function PaymentRegistration() {
                   <div className="flex-shrink-0 w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
                     <Shield className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                   </div>
-                  <h3 className="font-bold text-slate-900 text-[1.25rem]">What Happens Next?</h3>
+                  <h3 className="font-bold text-slate-900 text-ui-body">What Happens Next?</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
                   {[
@@ -247,10 +247,10 @@ export default function PaymentRegistration() {
                     { icon: '🎯', text: 'Access to member dashboard' }
                   ].map((item, idx) => (
                     <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-white border border-blue-200">
-                      <span className="text-[1.25rem]">{item.icon}</span>
+                      <span className="text-ui-body">{item.icon}</span>
                       <div className="flex items-start gap-2">
                         <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-slate-700 text-[1.0625rem] font-medium">{item.text}</span>
+                        <span className="text-slate-700 text-ui-caption font-medium">{item.text}</span>
                       </div>
                     </div>
                   ))}
@@ -272,31 +272,31 @@ export default function PaymentRegistration() {
               <CardContent className="p-4 sm:p-6 md:p-8">
                 <div className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                   <div className="flex justify-between items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <span className="text-slate-600 text-[1.0625rem] font-medium">Member Type</span>
+                    <span className="text-slate-600 text-ui-caption font-medium">Member Type</span>
                     <span className="font-bold text-slate-900">{kindLabel}</span>
                   </div>
 
                   <div className="flex justify-between items-center gap-3 p-3 rounded-lg bg-blue-50 border-2 border-blue-400">
-                    <span className="text-blue-700 text-[1.0625rem] font-medium">Selected Plan</span>
+                    <span className="text-blue-700 text-ui-caption font-medium">Selected Plan</span>
                     <span className="font-bold text-blue-900 text-right min-w-0 break-words">{plan?.name || '—'}</span>
                   </div>
 
                   <div className="border-t-2 border-slate-300 pt-5 mt-5">
-                    <div className="flex justify-between items-center mb-3 text-[1.0625rem]">
+                    <div className="flex justify-between items-center mb-3 text-ui-caption">
                       <span className="text-slate-600">Subtotal</span>
                       <span className="font-semibold text-slate-900">{plan ? money(plan.price) : '—'}</span>
                     </div>
-                    <div className="flex justify-between items-center mb-5 text-[1.0625rem]">
+                    <div className="flex justify-between items-center mb-5 text-ui-caption">
                       <span className="text-slate-600">Tax & Fees</span>
                       <span className="font-semibold text-green-600">₹0 (Included)</span>
                     </div>
                     <div className="flex justify-between items-center pt-5 border-t-2 border-slate-300 bg-blue-50 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-4 sm:py-5 rounded-b-lg gap-3">
-                      <span className="text-[1.1875rem] font-bold text-slate-900">Total Amount</span>
+                      <span className="text-ui-small font-bold text-slate-900">Total Amount</span>
                       <div className="text-right">
                         <span className="text-3xl sm:text-[2.5rem] font-bold text-blue-600 block">
                           {plan ? money(plan.price) : '—'}
                         </span>
-                        <span className="text-[1.0625rem] text-slate-600">One-time payment</span>
+                        <span className="text-ui-caption text-slate-600">One-time payment</span>
                       </div>
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export default function PaymentRegistration() {
 
                 {/* Payment Button */}
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 sm:py-5 text-base sm:text-[1.1875rem] font-bold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 sm:py-5 text-base sm:text-ui-small font-bold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
                   onClick={handlePayment}
                   disabled={processing || !plan}
                 >
@@ -322,8 +322,8 @@ export default function PaymentRegistration() {
 
                 {/* Trust Badges */}
                 <div className="mt-6 pt-6 border-t border-slate-200 text-center">
-                  <p className="text-[1.0625rem] text-slate-500 mb-2">Secure payment · receipt by email and WhatsApp</p>
-                  <div className="flex items-center justify-center gap-2 text-[1.0625rem] text-slate-600">
+                  <p className="text-ui-caption text-slate-500 mb-2">Secure payment · receipt by email and WhatsApp</p>
+                  <div className="flex items-center justify-center gap-2 text-ui-caption text-slate-600">
                     <Shield className="w-4 h-4 text-green-600" />
                     <span>Money-back guarantee</span>
                   </div>

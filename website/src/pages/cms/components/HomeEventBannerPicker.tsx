@@ -154,7 +154,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
 
     if (events === null) {
         return (
-            <p className="flex items-center gap-2 py-6 text-[1.0625rem] font-medium text-slate-400">
+            <p className="flex items-center gap-2 py-6 text-ui-caption font-medium text-slate-400">
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading the events…
             </p>
         );
@@ -180,7 +180,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                 />
             ) : (
                 <>
-                    <p className="mb-3 text-[1.0625rem] font-semibold text-slate-500 dark:text-neutral-400">
+                    <p className="mb-3 text-ui-caption font-semibold text-slate-500 dark:text-neutral-400">
                         {onCount} of {events.length} events are switched on.
                         {liveCount > 0 && <span>{' '}{liveCount} ride the banner now.</span>}
                         {onCount === 0 && (
@@ -219,11 +219,11 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                                         </span>
 
                                         <div className="min-w-0 flex-1 basis-[10rem]">
-                                            <p className="truncate text-[1.1875rem] font-bold text-slate-900 dark:text-white">
+                                            <p className="truncate text-ui-small font-bold text-slate-900 dark:text-white">
                                                 {event.title || 'Untitled event'}
                                             </p>
                                             <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5
-                                                          text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                                                          text-ui-caption font-medium text-slate-500 dark:text-neutral-400">
                                                 <span className="inline-flex items-center gap-1">
                                                     <CalendarDays className="h-3.5 w-3.5 shrink-0" />
                                                     {dayOf(event.startAt) || 'Date to be confirmed'}
@@ -259,7 +259,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                                             aria-expanded={openId === event.id}
                                             title="The heading, subheading and side shown over this event in the banner"
                                             className={`ml-auto sm:ml-0 inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-2 sm:py-1.5
-                                                        text-[1.0625rem] font-semibold transition-colors
+                                                        text-ui-caption font-semibold transition-colors
                                                         ${openId === event.id
                                                 ? 'bg-blue-600 text-white'
                                                 : 'text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40'}`}
@@ -271,7 +271,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                                             href={`/cms/events?event=${encodeURIComponent(event.id)}`}
                                             title="Open this event on the Events screen to change its picture or details"
                                             className="hidden shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5
-                                                       text-[1.0625rem] font-semibold text-blue-700 transition-colors
+                                                       text-ui-caption font-semibold text-blue-700 transition-colors
                                                        hover:bg-blue-50 sm:inline-flex
                                                        dark:text-blue-400 dark:hover:bg-blue-950/40"
                                         >
@@ -289,7 +289,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                                                     ? 'Add a picture to this event first — the banner is a picture'
                                                     : on ? 'Take it out of the banner' : 'Put it in the banner'}
                                             className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border
-                                                        px-3 py-2 sm:py-1.5 text-[1.0625rem] font-bold transition-colors
+                                                        px-3 py-2 sm:py-1.5 text-ui-caption font-bold transition-colors
                                                         disabled:opacity-40 ${on
                                                     ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                                                         + ' dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'
@@ -319,7 +319,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                                                     onClick={() => setOpenId(null)}
                                                     disabled={busy === event.id}
                                                     className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5
-                                                               text-[1.0625rem] font-semibold text-slate-600 hover:bg-slate-100
+                                                               text-ui-caption font-semibold text-slate-600 hover:bg-slate-100
                                                                dark:border-[#2a2a2a] dark:text-neutral-300"
                                                 >
                                                     <X className="h-4 w-4" /> Cancel
@@ -329,7 +329,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                                                     onClick={() => saveWords(event)}
                                                     disabled={busy === event.id}
                                                     className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3.5 py-1.5
-                                                               text-[1.0625rem] font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+                                                               text-ui-caption font-bold text-white hover:bg-blue-700 disabled:opacity-60"
                                                 >
                                                     {busy === event.id
                                                         ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -344,7 +344,7 @@ export function HomeEventBannerPicker({ onChanged }: { onChanged?: () => void })
                         })}
                     </ul>
 
-                    <p className="mt-4 text-[1.0625rem] font-medium text-slate-400">
+                    <p className="mt-4 text-ui-caption font-medium text-slate-400">
                         {ordered.length > shown.length
                             ? `Showing the switched-on events and a few more, of ${events.length}. `
                             : ''}

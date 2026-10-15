@@ -49,7 +49,7 @@ const BTN =
 
 /** A line inside one of the popovers. */
 const MENU_ITEM =
-    'flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[1.1875rem] font-semibold ' +
+    'flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-ui-small font-semibold ' +
     'text-brand-800 transition-colors hover:bg-brand-50';
 
 const MENU =

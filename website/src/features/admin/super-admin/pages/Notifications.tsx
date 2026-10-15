@@ -215,7 +215,7 @@ export default function Notifications() {
                     {(emailOff || waOff) && (
                         <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
                             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                            <div className="min-w-0 text-[1.25rem] text-amber-900 [overflow-wrap:anywhere]">
+                            <div className="min-w-0 text-ui-body text-amber-900 [overflow-wrap:anywhere]">
                                 <p className="font-semibold">
                                     {emailOff && waOff
                                         ? 'Neither email nor WhatsApp is configured.'
@@ -224,10 +224,10 @@ export default function Notifications() {
                                 <p className="mt-1">
                                     Messages on {emailOff && waOff ? 'those channels' : 'that channel'} are recorded
                                     below as <strong>not sent</strong> and nothing leaves the server. Add the
-                                    credentials to <code className="font-mono text-[1.1875rem]">backend/.env</code> and
-                                    restart — {emailOff ? <><code className="font-mono text-[1.1875rem]">EMAIL_USER</code> and <code className="font-mono text-[1.1875rem]">EMAIL_PASS</code></> : null}
+                                    credentials to <code className="font-mono text-ui-small">backend/.env</code> and
+                                    restart — {emailOff ? <><code className="font-mono text-ui-small">EMAIL_USER</code> and <code className="font-mono text-ui-small">EMAIL_PASS</code></> : null}
                                     {emailOff && waOff ? ', ' : null}
-                                    {waOff ? <><code className="font-mono text-[1.1875rem]">BOTBEE_API_TOKEN</code> and <code className="font-mono text-[1.1875rem]">BOTBEE_PHONE_NUMBER_ID</code></> : null}.
+                                    {waOff ? <><code className="font-mono text-ui-small">BOTBEE_API_TOKEN</code> and <code className="font-mono text-ui-small">BOTBEE_PHONE_NUMBER_ID</code></> : null}.
                                 </p>
                             </div>
                         </div>
@@ -245,7 +245,7 @@ export default function Notifications() {
                                 type="button"
                                 onClick={() => setView(value)}
                                 aria-pressed={view === value}
-                                className={`flex-1 sm:flex-none min-w-0 h-11 px-2 sm:px-5 rounded-xl text-[1.0625rem] sm:text-[1.1875rem] font-semibold
+                                className={`flex-1 sm:flex-none min-w-0 h-11 px-2 sm:px-5 rounded-xl text-ui-caption sm:text-ui-small font-semibold
                                             whitespace-nowrap truncate transition-colors ${view === value
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-slate-500 hover:text-slate-800'}`}
@@ -338,7 +338,7 @@ export default function Notifications() {
                     <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6
                                         shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
                         <h2 className={`${CARD_TITLE} text-slate-900`}>Send a test message</h2>
-                        <p className="text-[1.25rem] text-slate-500 mt-1">
+                        <p className="text-ui-body text-slate-500 mt-1">
                             The difference between "the credentials are saved" and "it arrives".
                         </p>
 
@@ -346,7 +346,7 @@ export default function Notifications() {
                             <select
                                 value={testChannel}
                                 onChange={(e) => setTestChannel(e.target.value as 'email' | 'whatsapp')}
-                                className="h-11 px-3 rounded-xl border border-slate-200 text-[1.25rem] bg-white
+                                className="h-11 px-3 rounded-xl border border-slate-200 text-ui-body bg-white
                                            outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                             >
                                 <option value="email">Email</option>
@@ -356,7 +356,7 @@ export default function Notifications() {
                                 value={testTo}
                                 onChange={(e) => setTestTo(e.target.value)}
                                 placeholder={testChannel === 'email' ? 'you@example.com' : '9876543210'}
-                                className="flex-1 min-w-0 h-11 px-3.5 rounded-xl border border-slate-200 text-[1.25rem]
+                                className="flex-1 min-w-0 h-11 px-3.5 rounded-xl border border-slate-200 text-ui-body
                                            outline-none transition-colors focus:border-blue-500
                                            focus:ring-4 focus:ring-blue-500/10"
                             />
@@ -365,7 +365,7 @@ export default function Notifications() {
                                 onClick={runTest}
                                 disabled={testing}
                                 className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl
-                                           bg-blue-600 text-white text-[1.25rem] font-semibold hover:bg-blue-700
+                                           bg-blue-600 text-white text-ui-body font-semibold hover:bg-blue-700
                                            transition-colors disabled:opacity-60"
                             >
                                 {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -382,7 +382,7 @@ export default function Notifications() {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Filter by email or phone number"
-                                className="h-11 w-full pl-9 pr-3.5 rounded-xl border border-slate-200 text-[1.25rem]
+                                className="h-11 w-full pl-9 pr-3.5 rounded-xl border border-slate-200 text-ui-body
                                            outline-none transition-colors focus:border-blue-500
                                            focus:ring-4 focus:ring-blue-500/10"
                             />
@@ -423,10 +423,10 @@ export default function Notifications() {
                                         </span>
 
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-[1.25rem] font-semibold text-slate-900 break-words">
+                                            <p className="text-ui-body font-semibold text-slate-900 break-words">
                                                 {row.subject || messageLabel(row.event)}
                                             </p>
-                                            <p className="text-[1.1875rem] text-slate-500 mt-0.5 break-words">
+                                            <p className="text-ui-small text-slate-500 mt-0.5 break-words">
                                                 {messageLabel(row.event)} · to <span className="font-medium">{row.recipient}</span>
                                                 {row.replyTo ? <> · reply-to {row.replyTo}</> : null}
                                             </p>
@@ -434,12 +434,12 @@ export default function Notifications() {
                                                 only place the reason a message failed
                                                 is visible at all. */}
                                             {row.lastError ? (
-                                                <p className="text-[1.1875rem] text-rose-600 mt-1 break-words">{row.lastError}</p>
+                                                <p className="text-ui-small text-rose-600 mt-1 break-words">{row.lastError}</p>
                                             ) : null}
                                         </div>
 
                                         <div className="w-full sm:w-auto pl-12 sm:pl-0 flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
-                                            <span className="text-[1.1875rem] text-slate-400 tabular-nums whitespace-nowrap">
+                                            <span className="text-ui-small text-slate-400 tabular-nums whitespace-nowrap">
                                                 {when(row.createdAt)}
                                             </span>
                                             <StatePill state={state} />
@@ -486,7 +486,7 @@ function ChannelCard({ icon, title, configured, rows, note, noteIcon }: {
                     {icon}
                 </span>
                 <h2 className={`${CARD_TITLE} text-slate-900 flex-1 min-w-0`}>{title}</h2>
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[1.0625rem]
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-ui-caption
                                   font-bold uppercase tracking-wide shrink-0 ${configured
                         ? 'bg-emerald-50 text-emerald-700'
                         : 'bg-amber-50 text-amber-700'}`}>
@@ -498,7 +498,7 @@ function ChannelCard({ icon, title, configured, rows, note, noteIcon }: {
             <dl className="mt-4 space-y-2">
                 {rows.map(([label, value]) => (
                     <div key={label} className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-3">
-                        <dt className="text-[1.1875rem] text-slate-500 sm:w-40 shrink-0">{label}</dt>
+                        <dt className="text-ui-small text-slate-500 sm:w-40 shrink-0">{label}</dt>
                         {/*
                           * `break-words`, NOT `break-all`.
                           *
@@ -509,13 +509,13 @@ function ChannelCard({ icon, title, configured, rows, note, noteIcon }: {
                           * line by itself, which is what a webhook URL is and
                           * what a sentence is not.
                           */}
-                        <dd className="text-[1.25rem] text-slate-900 font-medium break-words min-w-0">{value}</dd>
+                        <dd className="text-ui-body text-slate-900 font-medium break-words min-w-0">{value}</dd>
                     </div>
                 ))}
             </dl>
 
             {note ? (
-                <p className="mt-4 pt-4 border-t border-slate-100 text-[1.1875rem] text-slate-500 leading-relaxed
+                <p className="mt-4 pt-4 border-t border-slate-100 text-ui-small text-slate-500 leading-relaxed
                               flex items-start gap-2 break-words">
                     <span className="shrink-0 mt-0.5 text-slate-400">{noteIcon || <Info className="w-3.5 h-3.5" />}</span>
                     <span className="min-w-0">{note}</span>
@@ -534,7 +534,7 @@ function StatePill({ state }: { state: string }) {
     };
     const pill = MAP[state] || MAP.queued;
     return (
-        <span className={`px-2.5 py-1 rounded-full text-[1.0625rem] font-bold uppercase tracking-wide
+        <span className={`px-2.5 py-1 rounded-full text-ui-caption font-bold uppercase tracking-wide
                           whitespace-nowrap ${pill.className}`}>
             {pill.label}
         </span>
@@ -549,7 +549,7 @@ function Select({ value, onChange, label, options }: {
             value={value}
             onChange={(e) => onChange(e.target.value)}
             aria-label={label}
-            className="h-11 w-full sm:w-auto min-w-0 px-3 rounded-xl border border-slate-200 text-[1.25rem] bg-white text-slate-700
+            className="h-11 w-full sm:w-auto min-w-0 px-3 rounded-xl border border-slate-200 text-ui-body bg-white text-slate-700
                        outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
         >
             <option value="">{label}</option>

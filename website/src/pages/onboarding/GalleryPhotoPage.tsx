@@ -115,13 +115,13 @@ export default function GalleryPhotoPage() {
                 <h1 className="text-[1.75rem] sm:text-[2.1875rem] font-black tracking-tight text-brand-900">
                     This photograph could not be loaded
                 </h1>
-                <p className="mt-3 text-[1.1875rem] text-gray-500">
+                <p className="mt-3 text-ui-small text-gray-500">
                     The link is fine — the server did not answer. Please try again.
                 </p>
                 <button
                     type="button"
                     onClick={() => setReloadKey((k) => k + 1)}
-                    className="mt-6 inline-flex rounded-full bg-brand-800 px-5 py-2.5 text-[1.0625rem] font-bold text-white hover:bg-brand-700"
+                    className="mt-6 inline-flex rounded-full bg-brand-800 px-5 py-2.5 text-ui-caption font-bold text-white hover:bg-brand-700"
                 >
                     Try again
                 </button>
@@ -176,12 +176,12 @@ export default function GalleryPhotoPage() {
                 <h1 className="text-[1.75rem] sm:text-[2.1875rem] font-black tracking-tight text-brand-900">
                     That photograph is not here
                 </h1>
-                <p className="mt-3 text-[1.1875rem] text-gray-500">
+                <p className="mt-3 text-ui-small text-gray-500">
                     It may have been removed, or the link may be out of date.
                 </p>
                 <Link
                     to={item ? `/gallery/${id}` : '/gallery'}
-                    className="mt-6 inline-flex rounded-full bg-brand-800 px-5 py-2.5 text-[1.0625rem] font-bold text-white hover:bg-brand-700"
+                    className="mt-6 inline-flex rounded-full bg-brand-800 px-5 py-2.5 text-ui-caption font-bold text-white hover:bg-brand-700"
                 >
                     {item ? 'Back to the album' : 'The gallery'}
                 </Link>
@@ -345,7 +345,7 @@ export default function GalleryPhotoPage() {
                                 </h1>
 
                                 {current.title && current.caption && (
-                                    <p className="mt-5 text-[1.1875rem] sm:text-[1.25rem] leading-[1.75] text-gray-700
+                                    <p className="mt-5 text-ui-small sm:text-ui-body leading-[1.75] text-gray-700
                                                   whitespace-pre-line">
                                         {current.caption}
                                     </p>
@@ -367,7 +367,7 @@ export default function GalleryPhotoPage() {
                                             {current.body.split(/\n{2,}/).map((para, i) => (
                                                 <p
                                                     key={i}
-                                                    className="text-[1.125rem] sm:text-[1.1875rem] leading-[1.75]
+                                                    className="text-[1.125rem] sm:text-ui-small leading-[1.75]
                                                                text-gray-700 whitespace-pre-line"
                                                 >
                                                     {para.trim()}
@@ -402,7 +402,7 @@ export default function GalleryPhotoPage() {
                                             {field.value.split(/\n{2,}/).map((para, j) => (
                                                 <p
                                                     key={j}
-                                                    className="text-[1.125rem] sm:text-[1.1875rem] leading-[1.75]
+                                                    className="text-[1.125rem] sm:text-ui-small leading-[1.75]
                                                                text-gray-700 whitespace-pre-line"
                                                 >
                                                     {para.trim()}
@@ -412,7 +412,7 @@ export default function GalleryPhotoPage() {
                                     </section>
                                 ))}
 
-                                <p className="mt-8 text-[1.1875rem] text-gray-500">
+                                <p className="mt-8 text-ui-small text-gray-500">
                                     From{' '}
                                     <Link to={`/gallery/${id}`} className="font-bold text-brand-700 hover:text-brand-900">
                                         {item.title || 'this album'}

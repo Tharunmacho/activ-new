@@ -379,7 +379,7 @@ export function FooterSection() {
                                     {renderLink(
                                         item.label,
                                         item.href,
-                                        'px-3 sm:px-5 py-2.5 text-[1.0625rem] sm:text-[1.125rem] font-medium text-white/80 '
+                                        'px-3 sm:px-5 py-2.5 text-ui-caption sm:text-[1.125rem] font-medium text-white/80 '
                                         + 'hover:text-white transition-colors',
                                         `nav-${i}`,
                                     )}
@@ -437,7 +437,7 @@ export function FooterSection() {
                                     {renderLink(
                                         item.label,
                                         item.href,
-                                        'inline-block py-1.5 text-[1.0625rem] font-semibold text-white/55 '
+                                        'inline-block py-1.5 text-ui-caption font-semibold text-white/55 '
                                         + 'hover:text-white transition-colors',
                                         `region-${item.href}`,
                                     )}
@@ -517,7 +517,7 @@ export function FooterSection() {
  */
 function ColumnHeading({ children }: { children: React.ReactNode }) {
     return (
-        <h4 className="text-[1.0625rem] sm:text-[0.8125rem] font-extrabold uppercase tracking-[0.16em]
+        <h4 className="text-ui-caption sm:text-[0.8125rem] font-extrabold uppercase tracking-[0.16em]
                        text-white mb-5">
             {children}
             <span className="mt-2.5 block h-0.5 w-9 rounded-full bg-white/40" />

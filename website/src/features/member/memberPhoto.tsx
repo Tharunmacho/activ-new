@@ -112,7 +112,7 @@ export const initialsOf = (name: string) =>
 export function MemberAvatar({
     name,
     className = 'h-11 w-11 rounded-xl',
-    initialsClassName = 'bg-blue-600 text-white text-[1.1875rem] font-bold',
+    initialsClassName = 'bg-blue-600 text-white text-ui-small font-bold',
     imgClassName = '',
     label = 'View your profile photo',
 }: {

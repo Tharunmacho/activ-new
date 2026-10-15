@@ -38,10 +38,10 @@ export default function BannerWordsFields({ value, onChange, preview, whenBlank,
     return (
         <div className="space-y-3 rounded-lg border border-slate-200 dark:border-[#2a2a2a] p-4">
             <div>
-                <p className="text-[1.0625rem] font-semibold uppercase tracking-wider text-neutral-400">
+                <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400">
                     Banner words for this image
                 </p>
-                <p className="text-[1.0625rem] text-neutral-500 mt-1">
+                <p className="text-ui-caption text-neutral-500 mt-1">
                     Written for this picture only. {whenBlank
                         || "Leave them all blank and the banner's shared heading is shown."}
                 </p>

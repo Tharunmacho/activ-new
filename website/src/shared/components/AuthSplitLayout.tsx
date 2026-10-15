@@ -171,7 +171,7 @@ export default function AuthSplitLayout({
                         </p>
                     )}
 
-                    <p className="mt-6 max-w-xl text-[1.1875rem] font-medium leading-relaxed text-white/75">
+                    <p className="mt-6 max-w-xl text-ui-small font-medium leading-relaxed text-white/75">
                         {lede}
                     </p>
                 </div>
@@ -272,7 +272,7 @@ export default function AuthSplitLayout({
                     </div>
 
                     {assurance && (
-                        <p className="mt-7 flex items-center justify-center gap-2 text-[1.0625rem]
+                        <p className="mt-7 flex items-center justify-center gap-2 text-ui-caption
                                       font-medium text-slate-400">
                             <ShieldCheck size={16} className="shrink-0" />
                             {assurance}

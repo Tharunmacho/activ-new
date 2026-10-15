@@ -29,14 +29,14 @@ import { DEFAULT_COUNTRY, countryByIso2 } from "@/lib/countryCodes";
  * as annotation around the boxes rather than as the form's own questions —
  * and it was two steps below the field text under it.
  */
-const LABEL = 'block text-[1.1875rem] font-semibold text-slate-800 mb-2';
+const LABEL = 'block text-ui-small font-semibold text-slate-800 mb-2';
 
 /** The card's buttons: `BusinessUI`'s blue at the size the fields now run. */
-const BUTTON = 'h-[3.75rem] text-[1.25rem] font-semibold rounded-xl';
+const BUTTON = 'h-[3.75rem] text-ui-body font-semibold rounded-xl';
 
 const FIELD =
   'h-[3.75rem] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-[1.375rem] ' +
-  'font-medium text-slate-900 placeholder:text-[1.1875rem] placeholder:font-normal ' +
+  'font-medium text-slate-900 placeholder:text-ui-small placeholder:font-normal ' +
   'placeholder:text-slate-400 ' +
   'transition-colors hover:border-slate-300 focus:bg-white focus:border-transparent ' +
   'focus:ring-2 focus:ring-blue-600';
@@ -410,7 +410,7 @@ const MemberRegister = () => {
           <h2 className="text-xl sm:text-[1.5625rem] font-bold tracking-tight text-slate-900">
             {step === 1 ? 'Account credentials' : 'Profile details'}
           </h2>
-          <p className="mt-1 text-[1.1875rem] text-slate-500">
+          <p className="mt-1 text-ui-small text-slate-500">
             {step === 1
               ? 'Required — this is what you will sign in with.'
               : 'Optional — you can finish this later from your dashboard.'}
@@ -474,7 +474,7 @@ const MemberRegister = () => {
                       country={phoneCountry}
                       onCountryChange={setPhoneCountry}
                     />
-                    {errorsStep1.mobile && <p className="text-[1.1875rem] font-medium text-red-600 mt-1.5">{errorsStep1.mobile.message}</p>}
+                    {errorsStep1.mobile && <p className="text-ui-small font-medium text-red-600 mt-1.5">{errorsStep1.mobile.message}</p>}
                   </div>
 
                   {/*
@@ -505,7 +505,7 @@ const MemberRegister = () => {
                       disabled={sameWhatsapp}
                       {...registerStep1('whatsapp')}
                     />
-                    <label className="mt-2.5 flex items-center gap-2.5 text-[1.1875rem] font-normal text-slate-600 cursor-pointer">
+                    <label className="mt-2.5 flex items-center gap-2.5 text-ui-small font-normal text-slate-600 cursor-pointer">
                       <input
                         type="checkbox"
                         className="h-4 w-4 rounded border-slate-300 accent-blue-600"
@@ -522,7 +522,7 @@ const MemberRegister = () => {
                       />
                       Same as my phone number
                     </label>
-                    <p className="mt-2 text-[1.1875rem] text-slate-500">
+                    <p className="mt-2 text-ui-small text-slate-500">
                       Application updates are sent here on WhatsApp.
                     </p>
                   </div>
@@ -547,7 +547,7 @@ const MemberRegister = () => {
                         pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' }
                       })}
                     />
-                    {errorsStep1.email && <p className="text-[1.1875rem] font-medium text-red-600 mt-1.5">{errorsStep1.email.message}</p>}
+                    {errorsStep1.email && <p className="text-ui-small font-medium text-red-600 mt-1.5">{errorsStep1.email.message}</p>}
                   </div>
 
                   <div>
@@ -565,7 +565,7 @@ const MemberRegister = () => {
                         minLength: { value: 6, message: 'At least 6 characters' },
                       })}
                     />
-                    {errorsStep1.password && <p className="text-[1.1875rem] font-medium text-red-600 mt-1.5">{errorsStep1.password.message}</p>}
+                    {errorsStep1.password && <p className="text-ui-small font-medium text-red-600 mt-1.5">{errorsStep1.password.message}</p>}
                   </div>
 
                   <div>
@@ -585,7 +585,7 @@ const MemberRegister = () => {
                       : <>Next <ArrowRight className="ml-2 h-5 w-5" /></>}
                   </Button>
 
-                  <p className="text-center text-[1.1875rem] text-slate-500">
+                  <p className="text-center text-ui-small text-slate-500">
                     Already have an account?{" "}
                     <Link to="/login" className="font-bold text-blue-700 hover:text-blue-900">
                       Sign in
@@ -630,7 +630,7 @@ const MemberRegister = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {states.map((s) => (
-                              <SelectItem key={s} value={s} className="text-[1.25rem]">{s}</SelectItem>
+                              <SelectItem key={s} value={s} className="text-ui-body">{s}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -654,7 +654,7 @@ const MemberRegister = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {districts.map((d) => (
-                              <SelectItem key={d} value={d} className="text-[1.25rem]">{d}</SelectItem>
+                              <SelectItem key={d} value={d} className="text-ui-body">{d}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -680,7 +680,7 @@ const MemberRegister = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {blocks.map((b) => (
-                              <SelectItem key={b} value={b} className="text-[1.25rem]">{b}</SelectItem>
+                              <SelectItem key={b} value={b} className="text-ui-body">{b}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -718,7 +718,7 @@ const MemberRegister = () => {
                     </div>
                   </div>
 
-                  <p className="text-center text-[1.1875rem] text-slate-500">
+                  <p className="text-center text-ui-small text-slate-500">
                     Already have an account?{" "}
                     <Link to="/login" className="font-bold text-blue-700 hover:text-blue-900">
                       Sign in

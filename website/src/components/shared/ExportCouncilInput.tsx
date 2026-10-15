@@ -155,7 +155,7 @@ export default function ExportCouncilInput({
     };
 
     const inputClass =
-        'h-12 pl-10 pr-10 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 '
+        'h-12 pl-10 pr-10 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 '
         + `focus-visible:bg-white focus-visible:ring-blue-500 ${className}`;
 
     return (
@@ -177,7 +177,7 @@ export default function ExportCouncilInput({
                         title={value}
                         className="min-w-0 flex-1 text-left"
                     >
-                        <span className="block truncate text-[1.25rem] text-slate-900">{value}</span>
+                        <span className="block truncate text-ui-body text-slate-900">{value}</span>
                         {custom && (
                             /*
                              * Said out loud rather than hidden. A member whose
@@ -235,7 +235,7 @@ export default function ExportCouncilInput({
                     role="listbox"
                 >
                     {!grouped.length && !offerCustom && (
-                        <p className="px-4 py-3 text-[1.1875rem] text-slate-500">
+                        <p className="px-4 py-3 text-ui-small text-slate-500">
                             Nothing matches “{trimmed}”. Type at least three characters to add it
                             as your own entry.
                         </p>

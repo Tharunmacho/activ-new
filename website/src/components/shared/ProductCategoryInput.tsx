@@ -261,7 +261,7 @@ export default function ProductCategoryInput({
                     onKeyDown={onKeyDown}
                     disabled={atLimit}
                     placeholder={atLimit ? `Up to ${max} categories` : placeholder}
-                    className="h-12 pl-10 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 pl-10 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                     role="combobox"
                     aria-expanded={open}
                     aria-autocomplete="list"
@@ -279,7 +279,7 @@ export default function ProductCategoryInput({
                 >
                     {!trimmed ? (
                         <div className="px-4 py-4">
-                            <p className="text-[1.1875rem] text-slate-500">
+                            <p className="text-ui-small text-slate-500">
                                 Search {catalogue ? catalogue.length.toLocaleString() : '1,846'} NIC categories by
                                 product name or code — or start from one of these.
                             </p>
@@ -311,7 +311,7 @@ export default function ProductCategoryInput({
                                                 setOpen(true);
                                             }}
                                             className="rounded-full border border-slate-200 bg-white px-3.5 py-1.5
-                                                       text-[1.1875rem] font-semibold text-slate-600 transition-colors
+                                                       text-ui-small font-semibold text-slate-600 transition-colors
                                                        hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
                                         >
                                             {starter}
@@ -321,9 +321,9 @@ export default function ProductCategoryInput({
                             </ul>
                         </div>
                     ) : loading ? (
-                        <p className="px-4 py-3 text-[1.1875rem] text-slate-500">Loading categories…</p>
+                        <p className="px-4 py-3 text-ui-small text-slate-500">Loading categories…</p>
                     ) : rowCount === 0 ? (
-                        <p className="px-4 py-3 text-[1.1875rem] text-slate-500">
+                        <p className="px-4 py-3 text-ui-small text-slate-500">
                             Nothing matches “{trimmed}”. Try a shorter or more common word.
                         </p>
                     ) : (
@@ -420,11 +420,11 @@ export default function ProductCategoryInput({
                                             className={`w-full text-left px-4 py-2.5 transition-colors ${highlight === results.length ? 'bg-blue-50' : 'hover:bg-slate-50'
                                                 }`}
                                         >
-                                            <span className="flex items-center gap-2 text-[1.1875rem] font-semibold text-blue-700">
+                                            <span className="flex items-center gap-2 text-ui-small font-semibold text-blue-700">
                                                 <Plus className="h-4 w-4" />
                                                 Add “{trimmed}”
                                             </span>
-                                            <span className="block text-[1.0625rem] text-slate-500 mt-0.5">
+                                            <span className="block text-ui-caption text-slate-500 mt-0.5">
                                                 Not in the NIC list — saved as a custom category, with no code.
                                             </span>
                                         </button>
@@ -439,7 +439,7 @@ export default function ProductCategoryInput({
                                 would have found their row.
                             */}
                             {total > results.length && (
-                                <p className="border-t border-slate-100 px-4 py-2 text-[1.0625rem] text-slate-500">
+                                <p className="border-t border-slate-100 px-4 py-2 text-ui-caption text-slate-500">
                                     Showing {results.length} of {total.toLocaleString()} matches — keep typing to narrow it down.
                                 </p>
                             )}

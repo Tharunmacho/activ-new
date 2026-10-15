@@ -238,7 +238,7 @@ const BusinessDashboard = () => {
                                                 <Chip tone={STATUS_TONES[status] || 'amber'}>{statusLabel}</Chip>
                                             </div>
 
-                                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 mt-3 text-[1.1875rem]">
+                                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 mt-3 text-ui-small">
                                                 <div className="flex gap-2 min-w-0">
                                                     <dt className="text-slate-500 shrink-0">Type</dt>
                                                     <dd className="text-slate-800 font-medium truncate">
@@ -299,7 +299,7 @@ const BusinessDashboard = () => {
                             {recentActivity.length === 0 ? (
                                 <div className="text-center py-6 sm:py-10">
                                     <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-                                    <p className="text-[1.1875rem] text-slate-500">No recent activity</p>
+                                    <p className="text-ui-small text-slate-500">No recent activity</p>
                                 </div>
                             ) : (
                                 <ul className="space-y-2">
@@ -310,9 +310,9 @@ const BusinessDashboard = () => {
                                         >
                                             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-[1.1875rem] font-semibold text-slate-800">{activity.type}</p>
-                                                <p className="text-[1.1875rem] text-slate-600 truncate">{activity.name}</p>
-                                                <p className="text-[1.0625rem] text-slate-400 mt-0.5">{activity.time}</p>
+                                                <p className="text-ui-small font-semibold text-slate-800">{activity.type}</p>
+                                                <p className="text-ui-small text-slate-600 truncate">{activity.name}</p>
+                                                <p className="text-ui-caption text-slate-400 mt-0.5">{activity.time}</p>
                                             </div>
                                         </li>
                                     ))}

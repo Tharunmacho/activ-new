@@ -237,10 +237,10 @@ const PLATE_DARK =
 const CARD_HEADING = 'text-[1.5rem] sm:text-[1.875rem] font-extrabold leading-[1.2] tracking-tight text-slate-900';
 
 /** Body copy inside a card. */
-const CARD_TEXT = 'text-[1.3125rem] xl:text-[1.1875rem] leading-relaxed font-medium text-slate-600';
+const CARD_TEXT = 'text-[1.3125rem] xl:text-ui-small leading-relaxed font-medium text-slate-600';
 
 /** `BusinessUI.Field`'s label — the line that introduces a list. */
-const CARD_LEAD = 'text-[1.3125rem] xl:text-[1.1875rem] font-bold text-slate-800';
+const CARD_LEAD = 'text-[1.3125rem] xl:text-ui-small font-bold text-slate-800';
 
 /**
  * What a band's own added fields are set in.
@@ -253,7 +253,7 @@ const CARD_LEAD = 'text-[1.3125rem] xl:text-[1.1875rem] font-bold text-slate-800
 const BAND_PROSE = 'text-[1.3125rem] md:text-[1.5625rem] font-bold leading-relaxed tracking-tight text-slate-700';
 
 /** A card's sub-heading — the document's own line under each title. */
-const CARD_SUB = 'text-[1.1875rem] font-bold leading-snug text-brand-600';
+const CARD_SUB = 'text-ui-small font-bold leading-snug text-brand-600';
 
 /**
  * `AboutBlock`'s dot field. Decorative, so it is not authored and carries no
@@ -335,7 +335,7 @@ function Ticked({ children, dark = false }: { children: React.ReactNode; dark?: 
             </span>
             <span
                 className={dark
-                    ? 'text-[1.3125rem] xl:text-[1.1875rem] leading-relaxed font-medium text-white/85'
+                    ? 'text-[1.3125rem] xl:text-ui-small leading-relaxed font-medium text-white/85'
                     : CARD_TEXT}
             >
                 {children}
@@ -444,7 +444,7 @@ function AdvantageCard({
                 aria-expanded={open}
                 aria-controls={panelId}
                 className="group/btn mt-auto flex w-full items-center justify-between gap-3 border-t
-                           border-slate-100 pt-5 text-[1.1875rem] font-extrabold text-brand-700
+                           border-slate-100 pt-5 text-ui-small font-extrabold text-brand-700
                            transition-colors hover:text-brand-900"
             >
                 {open ? 'Show less' : "What's included"}
@@ -613,7 +613,7 @@ export default function MembershipPage() {
                                   four boxed tiles gave them the visual weight
                                   of the headline.
                                 */}
-                                <p className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2 text-[1.0625rem]
+                                <p className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2 text-ui-caption
                                               font-bold text-white/75">
                                     <span className="text-white">{advantages.length} advantages</span>
                                     <span aria-hidden="true" className="h-1 w-1 rounded-full bg-white/30" />
@@ -626,7 +626,7 @@ export default function MembershipPage() {
                                     <Link
                                         to="/register"
                                         className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-full bg-white px-6 sm:px-9 py-3.5 sm:py-4
-                                                   text-[1.25rem] font-bold uppercase tracking-[0.1em] text-brand-900
+                                                   text-ui-body font-bold uppercase tracking-[0.1em] text-brand-900
                                                    shadow-lg transition-opacity hover:opacity-90"
                                     >
                                         Become a member <ArrowRight size={17} />
@@ -634,7 +634,7 @@ export default function MembershipPage() {
                                     <a
                                         href="#advantages"
                                         className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-full border border-white/30
-                                                   px-6 sm:px-9 py-3.5 sm:py-4 text-[1.25rem] font-bold uppercase tracking-[0.1em]
+                                                   px-6 sm:px-9 py-3.5 sm:py-4 text-ui-body font-bold uppercase tracking-[0.1em]
                                                    text-white transition-colors hover:bg-white/10"
                                     >
                                         See what is included
@@ -693,7 +693,7 @@ export default function MembershipPage() {
                                                             border-white/15 pt-4">
                                                 <div>
                                                     <p className={`${MICRO_LABEL} text-white/40`}>Chamber of commerce</p>
-                                                    <p className="mt-1 text-[1.0625rem] font-bold">
+                                                    <p className="mt-1 text-ui-caption font-bold">
                                                         SC/ST &amp; Women Entrepreneurs
                                                     </p>
                                                 </div>
@@ -717,7 +717,7 @@ export default function MembershipPage() {
                                         key={advantage.slug}
                                         href={`#${advantage.slug}`}
                                         onClick={() => reveal(advantage.slug)}
-                                        className="rounded-full bg-white/[0.07] px-4 py-2 text-[1.1875rem] font-bold
+                                        className="rounded-full bg-white/[0.07] px-4 py-2 text-ui-small font-bold
                                                    text-white/80 ring-1 ring-white/15 transition-colors
                                                    hover:bg-white hover:text-brand-900"
                                     >
@@ -726,7 +726,7 @@ export default function MembershipPage() {
                                 ))}
                                 <a
                                     href="#advantages"
-                                    className="rounded-full px-4 py-2 text-[1.1875rem] font-bold text-brand-300
+                                    className="rounded-full px-4 py-2 text-ui-small font-bold text-brand-300
                                                transition-colors hover:text-white"
                                 >
                                     +{advantages.length - 6} more
@@ -785,7 +785,7 @@ export default function MembershipPage() {
                                         key={i}
                                         className={`mb-6 leading-relaxed tracking-tight last:mb-0 ${
                                             i === 0
-                                                ? 'text-[1.25rem] md:text-[1.75rem] font-extrabold text-brand-900'
+                                                ? 'text-ui-body md:text-[1.75rem] font-extrabold text-brand-900'
                                                 : 'text-[1.3125rem] md:text-[1.5625rem] font-bold text-slate-700'
                                         }`}
                                     >
@@ -841,7 +841,7 @@ export default function MembershipPage() {
                                 onClick={toggleAll}
                                 aria-pressed={allOpen}
                                 className="mt-7 inline-flex items-center gap-2 rounded-full border border-brand-200
-                                           bg-white px-7 py-3.5 text-[1.25rem] font-extrabold uppercase
+                                           bg-white px-7 py-3.5 text-ui-body font-extrabold uppercase
                                            tracking-[0.1em] text-brand-700 shadow-sm transition-colors
                                            hover:border-brand-800 hover:bg-brand-800 hover:text-white"
                             >
@@ -879,7 +879,7 @@ export default function MembershipPage() {
                                     href={`#${item.slug}`}
                                     onClick={() => reveal(item.slug)}
                                     className={`${PILL} flex items-center justify-center px-4 py-3 sm:px-5 sm:py-4 text-center
-                                                text-[1.0625rem] font-bold leading-snug text-brand-700
+                                                text-ui-caption font-bold leading-snug text-brand-700
                                                 hover:border-brand-800 hover:bg-brand-800 hover:text-white`}
                                 >
                                     {item.title}
@@ -967,7 +967,7 @@ export default function MembershipPage() {
                                             <h3 className="text-[1.5rem] sm:text-[1.875rem] font-extrabold tracking-tight">
                                                 {step.title}
                                             </h3>
-                                            <p className="mt-2 text-[1.3125rem] xl:text-[1.1875rem] leading-relaxed
+                                            <p className="mt-2 text-[1.3125rem] xl:text-ui-small leading-relaxed
                                                           font-medium text-white/70">
                                                 {step.text}
                                             </p>
@@ -1009,7 +1009,7 @@ export default function MembershipPage() {
                                 <span
                                     key={i}
                                     className={`${PILL} flex items-center justify-center gap-2 sm:gap-2.5 px-3.5 py-2.5 sm:px-5 sm:py-4
-                                                text-center text-[0.95rem] sm:text-[1.0625rem] font-bold leading-snug
+                                                text-center text-[0.95rem] sm:text-ui-caption font-bold leading-snug
                                                 text-slate-800`}
                                 >
                                     <span aria-hidden="true"
@@ -1102,11 +1102,11 @@ export default function MembershipPage() {
                                         </p>
                                     ))}
 
-                                    <p className="mt-6 text-[1.1875rem] xl:text-[1.25rem] leading-[1.7]
+                                    <p className="mt-6 text-ui-small xl:text-ui-body leading-[1.7]
                                                   font-semibold text-slate-700">
                                         {copy.closingNote}
                                     </p>
-                                    <p className="mt-5 text-[1.3125rem] xl:text-[1.1875rem] leading-[1.7]
+                                    <p className="mt-5 text-[1.3125rem] xl:text-ui-small leading-[1.7]
                                                   font-bold text-brand-700">
                                         {copy.statement}
                                     </p>
@@ -1127,7 +1127,7 @@ export default function MembershipPage() {
                                         ))}
                                     </ul>
 
-                                    <p className="mt-5 text-[1.3125rem] xl:text-[1.1875rem] leading-relaxed
+                                    <p className="mt-5 text-[1.3125rem] xl:text-ui-small leading-relaxed
                                                   font-medium text-white/70">
                                         {copy.invitation}
                                     </p>
@@ -1135,7 +1135,7 @@ export default function MembershipPage() {
                                     <Link
                                         to="/register"
                                         className="mt-6 inline-flex w-full items-center justify-center gap-2
-                                                   rounded-full bg-white px-6 sm:px-9 py-3.5 sm:py-4 font-bold text-[1.25rem]
+                                                   rounded-full bg-white px-6 sm:px-9 py-3.5 sm:py-4 font-bold text-ui-body
                                                    uppercase tracking-[0.1em] text-brand-900 shadow-lg
                                                    transition-opacity hover:opacity-90"
                                     >

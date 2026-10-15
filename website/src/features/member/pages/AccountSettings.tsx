@@ -223,7 +223,7 @@ export default function AccountSettings() {
                             <div className="min-w-0 flex-1">
                                 <p className="truncate font-display text-[1.75rem] sm:text-[2.125rem] font-bold">{name || 'Your account'}</p>
                                 <p className="truncate text-[1.125rem] text-white/80">{String(profile?.email || '')}</p>
-                                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-[1.0625rem] font-semibold ${status.tone}`}>
+                                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-ui-caption font-semibold ${status.tone}`}>
                                     {status.text}
                                 </span>
                             </div>
@@ -260,7 +260,7 @@ export default function AccountSettings() {
                                 </>
                             )}
                         </div>
-                        <p className="mt-3 text-[1.0625rem] text-slate-500">
+                        <p className="mt-3 text-ui-caption text-slate-500">
                             Your region decides which Block, District and State Admins review your application.
                         </p>
                     </Section>
@@ -310,7 +310,7 @@ export default function AccountSettings() {
                                     <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">{s.icon}</span>
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate text-[1.125rem] font-semibold text-slate-800">{s.label}</span>
-                                        <span className="block truncate text-[1.0625rem] text-slate-500">{s.note}</span>
+                                        <span className="block truncate text-ui-caption text-slate-500">{s.note}</span>
                                     </span>
                                     <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
                                 </button>

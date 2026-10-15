@@ -107,7 +107,7 @@ function ApplyForm({ onDone, onCancel }: { onDone: (r: PlatinumRequest) => void;
 
     return (
         <form onSubmit={submit} className="mt-4 rounded-2xl bg-white p-4 sm:p-5 text-slate-800 shadow-xl">
-            <p className="font-display text-[1.125rem] sm:text-[1.25rem] font-bold text-slate-900">How should the ACTIV office reach you?</p>
+            <p className="font-display text-[1.125rem] sm:text-ui-body font-bold text-slate-900">How should the ACTIV office reach you?</p>
             <div role="radiogroup" aria-label="Preferred contact" className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {CONTACTS.map(({ key, label, icon: Icon }) => {
                     const on = contact === key;
@@ -189,10 +189,10 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
                     <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.8125rem] font-semibold uppercase tracking-[0.16em] ring-1 ring-white/20">
                         <Crown className={`h-4 w-4 ${GOLD}`} /> Lifetime Membership
                     </p>
-                    <h3 className={`font-display font-bold leading-tight ${compact ? 'mt-2 text-[1.25rem] sm:text-[1.5rem]' : 'mt-3 text-[1.75rem] sm:text-[2.25rem]'}`}>
+                    <h3 className={`font-display font-bold leading-tight ${compact ? 'mt-2 text-ui-body sm:text-[1.5rem]' : 'mt-3 text-[1.75rem] sm:text-[2.25rem]'}`}>
                         Join once. Stay an ACTIV member for life.
                     </h3>
-                    <p className={`text-blue-100 ${compact ? 'mt-1 text-[0.9375rem]' : 'mt-2 text-[1rem] sm:text-[1.0625rem]'}`}>
+                    <p className={`text-blue-100 ${compact ? 'mt-1 text-[0.9375rem]' : 'mt-2 text-[1rem] sm:text-ui-caption'}`}>
                         {context === 'application'
                             ? 'Building a business? Lifetime makes your membership permanent — one payment, no renewals, and the association’s highest recognition.'
                             : 'Upgrade to Lifetime: one payment makes your membership permanent, with the association’s highest recognition.'}

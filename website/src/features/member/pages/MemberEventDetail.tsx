@@ -152,7 +152,7 @@ export default function MemberEventDetail() {
                         <button
                             type="button"
                             onClick={() => navigate('/member/events')}
-                            className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
+                            className="text-ui-caption font-semibold text-blue-600 hover:underline"
                         >
                             Back to events
                         </button>
@@ -183,7 +183,7 @@ export default function MemberEventDetail() {
                 <button
                     type="button"
                     onClick={() => navigate('/member/events')}
-                    className="text-[1.0625rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="text-ui-caption font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                     All events
                 </button>
@@ -270,12 +270,12 @@ export default function MemberEventDetail() {
                         </h2>
 
                         {event.description ? (
-                            <p className="text-[1.1875rem] sm:text-[1.3125rem] leading-relaxed font-medium text-slate-600
+                            <p className="text-ui-small sm:text-[1.3125rem] leading-relaxed font-medium text-slate-600
                                           whitespace-pre-line mb-6">
                                 {event.description}
                             </p>
                         ) : (
-                            <p className="text-[1.0625rem] text-slate-400 mb-6">
+                            <p className="text-ui-caption text-slate-400 mb-6">
                                 No description was published for this event.
                             </p>
                         )}
@@ -297,9 +297,9 @@ export default function MemberEventDetail() {
                                                     {[item.startTime, item.endTime].filter(Boolean).join(' – ')}
                                                 </p>
                                             ) : null}
-                                            <p className="text-[1.25rem] font-bold text-slate-900">{item.title || 'Session'}</p>
+                                            <p className="text-ui-body font-bold text-slate-900">{item.title || 'Session'}</p>
                                             {item.description ? (
-                                                <p className="text-[1.1875rem] text-slate-500 mt-1 whitespace-pre-line">{item.description}</p>
+                                                <p className="text-ui-small text-slate-500 mt-1 whitespace-pre-line">{item.description}</p>
                                             ) : null}
                                             {item.speaker || item.location ? (
                                                 <p className={`${LABEL} mt-1.5 normal-case tracking-normal`}>
@@ -338,11 +338,11 @@ export default function MemberEventDetail() {
                                         extra={(
                                             <>
                                                 {event.venueAddress ? (
-                                                    <span className="block text-[1.0625rem] text-slate-500 font-medium mt-0.5">{event.venueAddress}</span>
+                                                    <span className="block text-ui-caption text-slate-500 font-medium mt-0.5">{event.venueAddress}</span>
                                                 ) : null}
                                                 {event.venueMapUrl ? (
                                                     <a href={event.venueMapUrl} target="_blank" rel="noopener noreferrer"
-                                                        className="mt-1.5 inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-blue-600 hover:underline">
+                                                        className="mt-1.5 inline-flex items-center gap-1 text-ui-caption font-semibold text-blue-600 hover:underline">
                                                         Open in maps <ExternalLink className="w-3.5 h-3.5" />
                                                     </a>
                                                 ) : null}
@@ -380,19 +380,19 @@ export default function MemberEventDetail() {
                                 <div className="space-y-4">
                                     <div className="rounded-2xl bg-blue-600
                                                     text-white p-5 shadow-lg">
-                                        <p className="text-[1.0625rem] font-bold uppercase tracking-wider
+                                        <p className="text-ui-caption font-bold uppercase tracking-wider
                                                       text-blue-200">
                                             Amount due
                                         </p>
                                         <p className="text-[2rem] sm:text-[2.5625rem] font-extrabold mt-1 tabular-nums">
                                             ₹{registration.payment.amount.toLocaleString('en-IN')}
                                         </p>
-                                        <p className="text-[1.0625rem] text-blue-100 mt-2 leading-snug">
+                                        <p className="text-ui-caption text-blue-100 mt-2 leading-snug">
                                             Your seat is held. It is confirmed the moment this is paid.
                                         </p>
 
                                         {registration.payment.reference ? (
-                                            <p className="mt-4 pt-3 border-t border-white/20 text-[1.0625rem]
+                                            <p className="mt-4 pt-3 border-t border-white/20 text-ui-caption
                                                           text-blue-200">
                                                 Reference{' '}
                                                 <span className="font-semibold tracking-wider text-white">
@@ -414,7 +414,7 @@ export default function MemberEventDetail() {
                                     <button
                                         type="button"
                                         onClick={() => navigate(fromBooking ? ticketHref : memberEventPath(event, '/register'))}
-                                        className="w-full h-12 rounded-xl bg-emerald-600 text-white text-[1.1875rem]
+                                        className="w-full h-12 rounded-xl bg-emerald-600 text-white text-ui-small
                                                    font-bold hover:bg-emerald-700
                                                    transition-colors inline-flex items-center justify-center gap-2
                                                    shadow-sm"
@@ -429,7 +429,7 @@ export default function MemberEventDetail() {
                                             type="button"
                                             onClick={cancel}
                                             disabled={working}
-                                            className="w-full h-10 rounded-xl text-[1.0625rem] font-semibold
+                                            className="w-full h-10 rounded-xl text-ui-caption font-semibold
                                                        text-slate-500 hover:text-slate-700 disabled:opacity-60"
                                         >
                                             Give up this seat instead
@@ -443,7 +443,7 @@ export default function MemberEventDetail() {
                                             ? 'bg-amber-50 border border-amber-200'
                                             : 'bg-emerald-50 border border-emerald-200'
                                     }`}>
-                                        <p className={`text-[1.1875rem] font-bold flex items-center gap-1.5 ${
+                                        <p className={`text-ui-small font-bold flex items-center gap-1.5 ${
                                             registration.status === 'waitlist'
                                                 ? 'text-amber-800' : 'text-emerald-800'
                                         }`}>
@@ -452,13 +452,13 @@ export default function MemberEventDetail() {
                                                 ? 'You are on the waiting list'
                                                 : 'You are registered'}
                                         </p>
-                                        <p className="text-[1.0625rem] text-slate-600 mt-1">
+                                        <p className="text-ui-caption text-slate-600 mt-1">
                                             {registration.status === 'waitlist'
                                                 ? 'You will move into a seat automatically if one is given up.'
                                                 : `Registered on ${formatDate(registration.registeredAt)}.`}
                                         </p>
                                         {fromBooking ? (
-                                            <p className="text-[1.0625rem] text-slate-700 mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                                            <p className="text-ui-caption text-slate-700 mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
                                                 {registration.bookingRef ? <span>Booking <strong>{registration.bookingRef}</strong></span> : null}
                                                 {Number(registration.seats || 0) > 0 ? (
                                                     <span>{registration.seats} {Number(registration.seats) === 1 ? 'seat' : 'seats'}</span>
@@ -471,7 +471,7 @@ export default function MemberEventDetail() {
                                         <button
                                             type="button"
                                             onClick={() => navigate(ticketHref)}
-                                            className="w-full h-11 rounded-xl bg-blue-600 text-white text-[1.1875rem] font-bold
+                                            className="w-full h-11 rounded-xl bg-blue-600 text-white text-ui-small font-bold
                                                        hover:bg-blue-700 transition-colors inline-flex items-center justify-center gap-2"
                                         >
                                             View your ticket <ChevronRight className="w-4 h-4" />
@@ -487,7 +487,7 @@ export default function MemberEventDetail() {
                                     */}
                                     {registration.payment?.status === 'paid' ? (
                                         <div className="rounded-xl border border-slate-200 p-4">
-                                            <p className="text-[1.0625rem] font-bold uppercase tracking-wide
+                                            <p className="text-ui-caption font-bold uppercase tracking-wide
                                                           text-slate-500 flex items-center gap-1.5">
                                                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                                                 Payment received
@@ -524,7 +524,7 @@ export default function MemberEventDetail() {
                                             type="button"
                                             onClick={cancel}
                                             disabled={working}
-                                            className="w-full h-11 rounded-xl border border-slate-200 text-[1.1875rem]
+                                            className="w-full h-11 rounded-xl border border-slate-200 text-ui-small
                                                        font-semibold text-slate-600 hover:bg-slate-50
                                                        disabled:opacity-60 transition-colors
                                                        inline-flex items-center justify-center gap-2"
@@ -551,16 +551,16 @@ export default function MemberEventDetail() {
                                                      mb-3 flex items-center justify-center">
                                         <Lock className="w-5 h-5" />
                                     </span>
-                                    <p className="text-[1.1875rem] font-semibold text-slate-700">
+                                    <p className="text-ui-small font-semibold text-slate-700">
                                         Registration is not open
                                     </p>
-                                    <p className="text-[1.0625rem] text-slate-500 mt-1 max-w-xs mx-auto
+                                    <p className="text-ui-caption text-slate-500 mt-1 max-w-xs mx-auto
                                                   leading-relaxed">
                                         {gate.reason || 'The organiser has not opened registration for this event.'}
                                     </p>
 
                                     {event.contactPhone || event.contactEmail ? (
-                                        <p className="text-[1.0625rem] text-slate-500 mt-3">
+                                        <p className="text-ui-caption text-slate-500 mt-3">
                                             Contact{' '}
                                             {event.contactName ? (
                                                 <span className="font-semibold text-slate-700">
@@ -599,7 +599,7 @@ export default function MemberEventDetail() {
                                     {event.registrationNote ? (
                                         <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
                                             <p className="text-[0.875rem] font-extrabold uppercase tracking-widest text-amber-700">Please note</p>
-                                            <p className="mt-1 text-[1.0625rem] font-semibold text-amber-900 whitespace-pre-line">
+                                            <p className="mt-1 text-ui-caption font-semibold text-amber-900 whitespace-pre-line">
                                                 {event.registrationNote}
                                             </p>
                                         </div>
@@ -635,7 +635,7 @@ export default function MemberEventDetail() {
                                                   * getting the lower price.
                                                   */}
                                                 {savedByMembership > 0 ? (
-                                                    <span className="block text-[1.1875rem] font-semibold text-emerald-600 mt-1">
+                                                    <span className="block text-ui-small font-semibold text-emerald-600 mt-1">
                                                         Member price — you save
                                                         ₹{savedByMembership.toLocaleString('en-IN')}
                                                         <span className="text-slate-400 font-normal line-through ml-1.5">
@@ -657,27 +657,27 @@ export default function MemberEventDetail() {
                                                     <Link
                                                         to="/payment/membership-plans"
                                                         className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg
-                                                                   bg-amber-50 px-2.5 py-1 text-[1.1875rem] font-bold
+                                                                   bg-amber-50 px-2.5 py-1 text-ui-small font-bold
                                                                    text-amber-800 hover:bg-amber-100 transition-colors"
                                                     >
                                                         Members pay ₹{Number(event.memberPrice).toLocaleString('en-IN')}
                                                         {' '}— activate your membership
                                                     </Link>
                                                 ) : null}
-                                                <span className="block text-[1.0625rem] text-slate-500 mt-1">
+                                                <span className="block text-ui-caption text-slate-500 mt-1">
                                                     per seat
                                                 </span>
                                             </span>
                                         </div>
                                     ) : (
-                                        <p className="text-[1.0625rem] font-semibold text-emerald-700
+                                        <p className="text-ui-caption font-semibold text-emerald-700
                                                       inline-flex items-center gap-1.5">
                                             <Ticket className="w-3.5 h-3.5" /> Free to attend
                                         </p>
                                     )}
 
                                     {left !== null ? (
-                                        <p className={`text-[1.0625rem] font-semibold ${
+                                        <p className={`text-ui-caption font-semibold ${
                                             left === 0 ? 'text-amber-600' : 'text-slate-600'
                                         }`}>
                                             {left === 0
@@ -687,7 +687,7 @@ export default function MemberEventDetail() {
                                     ) : null}
 
                                     {event.registrationDeadline ? (
-                                        <p className="text-[1.0625rem] text-slate-500">
+                                        <p className="text-ui-caption text-slate-500">
                                             Registration closes {formatDate(event.registrationClosesAt)}.
                                         </p>
                                     ) : null}
@@ -727,7 +727,7 @@ export default function MemberEventDetail() {
                                     <button
                                         type="button"
                                         onClick={() => navigate(memberEventPath(event, '/book'))}
-                                        className="w-full h-11 rounded-xl bg-blue-600 text-white text-[1.1875rem]
+                                        className="w-full h-11 rounded-xl bg-blue-600 text-white text-ui-small
                                                    font-bold hover:bg-blue-700 transition-colors
                                                    inline-flex items-center justify-center gap-1.5"
                                     >
@@ -739,7 +739,7 @@ export default function MemberEventDetail() {
 
 
                             {reminders ? (
-                                <p className="mt-4 pt-3 border-t border-slate-100 text-[1.0625rem] text-slate-500
+                                <p className="mt-4 pt-3 border-t border-slate-100 text-ui-caption text-slate-500
                                               inline-flex items-center gap-1.5">
                                     <Bell className="w-3.5 h-3.5" /> {reminders}
                                 </p>
@@ -773,7 +773,7 @@ function Fact({ icon, label, value, href, extra }: {
             <div className="min-w-0 flex-1">
                 <p className={LABEL}>{label}</p>
                 {value ? (
-                    <p className="mt-1 text-[1.1875rem] font-semibold text-slate-900 break-words [overflow-wrap:anywhere]">
+                    <p className="mt-1 text-ui-small font-semibold text-slate-900 break-words [overflow-wrap:anywhere]">
                         {href ? <a href={href} className="text-blue-700 hover:underline">{value}</a> : value}
                     </p>
                 ) : null}
@@ -810,16 +810,16 @@ function SpeakerCard({ speaker }: { speaker: MemberEvent['speakers'][number] }) 
                     />
                 ) : (
                     <span className="grid h-full w-full place-items-center bg-gradient-to-br from-[#1e3a8a] to-[#2563eb]
-                                     text-[1.25rem] sm:text-[1.5rem] font-bold text-white">
+                                     text-ui-body sm:text-[1.5rem] font-bold text-white">
                         {initials}
                     </span>
                 )}
             </div>
             <div className="min-w-0">
-                <p className="text-[1.25rem] font-bold text-slate-900 break-words">{speaker.name}</p>
-                {speaker.role ? <p className="text-[1.0625rem] font-semibold text-slate-600 mt-0.5 break-words">{speaker.role}</p> : null}
-                {speaker.organization ? <p className="text-[1.0625rem] text-slate-500 break-words">{speaker.organization}</p> : null}
-                {speaker.bio ? <p className="text-[1.0625rem] text-slate-600 mt-2 leading-relaxed">{speaker.bio}</p> : null}
+                <p className="text-ui-body font-bold text-slate-900 break-words">{speaker.name}</p>
+                {speaker.role ? <p className="text-ui-caption font-semibold text-slate-600 mt-0.5 break-words">{speaker.role}</p> : null}
+                {speaker.organization ? <p className="text-ui-caption text-slate-500 break-words">{speaker.organization}</p> : null}
+                {speaker.bio ? <p className="text-ui-caption text-slate-600 mt-2 leading-relaxed">{speaker.bio}</p> : null}
             </div>
         </div>
     );
@@ -834,8 +834,8 @@ function SpeakerCard({ speaker }: { speaker: MemberEvent['speakers'][number] }) 
 function ReceiptRow({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[1.0625rem] text-slate-500 shrink-0">{label}</span>
-            <span className="text-[1.0625rem] font-semibold text-slate-900 text-right break-all tabular-nums">
+            <span className="text-ui-caption text-slate-500 shrink-0">{label}</span>
+            <span className="text-ui-caption font-semibold text-slate-900 text-right break-all tabular-nums">
                 {value}
             </span>
         </div>

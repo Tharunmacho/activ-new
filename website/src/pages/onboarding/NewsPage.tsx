@@ -154,7 +154,7 @@ export default function NewsPage() {
                             </h1>
 
                             {settings?.description && (
-                                <p className={`mt-4 ${BAND_MEASURE} text-[1.0625rem] sm:text-[1.1875rem]
+                                <p className={`mt-4 ${BAND_MEASURE} text-ui-caption sm:text-ui-small
                                               font-semibold leading-relaxed text-white/80
                                               line-clamp-3`}>
                                     {settings.description}

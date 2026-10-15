@@ -373,7 +373,7 @@ export default function BusinessSidebar({
                                 initials, which are at least its own.
                             */}
                             {!!companyLogo && <AvatarImage src={companyLogo} className="object-cover" />}
-                            <AvatarFallback className="bg-blue-600 text-white font-semibold text-[1.1875rem] rounded-xl">
+                            <AvatarFallback className="bg-blue-600 text-white font-semibold text-ui-small rounded-xl">
                                 {initials}
                             </AvatarFallback>
                         </Avatar>

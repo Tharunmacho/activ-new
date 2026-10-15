@@ -169,19 +169,19 @@ const AdminDashboard = () => {
                 <h2 className={`${CARD_TITLE} mb-4 text-slate-900`}>Overview Statistics</h2>
                 <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
                   <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 shadow-[0_10px_28px_-6px_rgba(37,99,235,0.55)]">
-                    <p className="text-blue-100 text-[1.25rem] mb-1 font-medium">Total Members</p>
+                    <p className="text-blue-100 text-ui-body mb-1 font-medium">Total Members</p>
                     <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">{stats.totalMembers}</p>
                   </div>
                   <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
-                    <p className="text-purple-100 text-[1.25rem] mb-1 font-medium">Pending</p>
+                    <p className="text-purple-100 text-ui-body mb-1 font-medium">Pending</p>
                     <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">{stats.pending}</p>
                   </div>
                   <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
-                    <p className="text-cyan-100 text-[1.25rem] mb-1 font-medium">Approved</p>
+                    <p className="text-cyan-100 text-ui-body mb-1 font-medium">Approved</p>
                     <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">{stats.approved}</p>
                   </div>
                   <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
-                    <p className="text-indigo-100 text-[1.25rem] mb-1 font-medium">Rejected</p>
+                    <p className="text-indigo-100 text-ui-body mb-1 font-medium">Rejected</p>
                     <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">{stats.rejected}</p>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ const AdminDashboard = () => {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
                   <h2 className={`${CARD_TITLE} text-slate-900`}>Recent Activity</h2>
-                  <p className="text-slate-500 text-[1.25rem]">Latest application submissions</p>
+                  <p className="text-slate-500 text-ui-body">Latest application submissions</p>
                 </div>
                 <Link to="/admin/applications">
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 shadow-sm">
@@ -207,7 +207,7 @@ const AdminDashboard = () => {
 
               {/* Applications Table/List */}
               <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
-                <div className="hidden md:grid grid-cols-4 gap-4 px-5 py-4 text-[1.25rem] font-semibold text-slate-700 border-b border-slate-200 mb-4">
+                <div className="hidden md:grid grid-cols-4 gap-4 px-5 py-4 text-ui-body font-semibold text-slate-700 border-b border-slate-200 mb-4">
                   <div>Name</div>
                   <div>Status</div>
                   <div>Size</div>
@@ -223,13 +223,13 @@ const AdminDashboard = () => {
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10 ring-2 ring-blue-200">
                           <AvatarImage src={app.image} className="object-cover" />
-                          <AvatarFallback className="bg-blue-600 text-white font-bold text-[1.25rem]">
+                          <AvatarFallback className="bg-blue-600 text-white font-bold text-ui-body">
                             {app.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold text-slate-900 text-[1.25rem]">{app.name}</p>
-                          <p className="text-[1.1875rem] text-slate-500">{app.id}</p>
+                          <p className="font-semibold text-slate-900 text-ui-body">{app.name}</p>
+                          <p className="text-ui-small text-slate-500">{app.id}</p>
                         </div>
                       </div>
                       <div>
@@ -244,9 +244,9 @@ const AdminDashboard = () => {
                           {app.status?.toLowerCase() === "approved" ? "Approved" : "Pending"}
                         </Badge>
                       </div>
-                      <div className="text-[1.25rem] text-slate-700 font-medium">{app.size}</div>
+                      <div className="text-ui-body text-slate-700 font-medium">{app.size}</div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[1.25rem] text-slate-700 font-medium">{app.date}</span>
+                        <span className="text-ui-body text-slate-700 font-medium">{app.date}</span>
                         <Link to={`/admin/application/${app.id}`}>
                           <Button
                             size="sm"

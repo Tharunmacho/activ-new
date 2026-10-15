@@ -106,7 +106,7 @@ type DiscoverFilter = 'all' | 'companies' | 'products';
 /** One control style for the three region dropdowns. */
 const REGION_SELECT =
     'h-10 flex-1 min-w-[8.5rem] max-w-full sm:flex-none sm:max-w-[12rem] rounded-lg border border-slate-200 bg-white px-3 '
-    + 'text-[1.25rem] font-medium text-slate-700 hover:border-slate-300 focus:outline-none '
+    + 'text-ui-body font-medium text-slate-700 hover:border-slate-300 focus:outline-none '
     + 'focus:ring-2 focus:ring-blue-500 transition-colors disabled:bg-slate-50 '
     + 'disabled:text-slate-400';
 
@@ -145,7 +145,7 @@ const CountOnly = ({ companies, products, term, regionLabel, onJoin }: {
             {companies} {companies === 1 ? 'company' : 'companies'}
             {products > 0 ? ` · ${products} ${products === 1 ? 'product' : 'products'}` : ''}
         </p>
-        <p className="mx-auto mt-2 max-w-xl text-[1.25rem] text-slate-600">
+        <p className="mx-auto mt-2 max-w-xl text-ui-body text-slate-600">
             {term ? <>match “{term}” in {regionLabel}. </> : <>in {regionLabel}. </>}
             Membership opens ACTIV Network — names, catalogues and contact details for
             every one of them.
@@ -700,7 +700,7 @@ const Discover = () => {
                                                          group-hover:text-blue-600 transition-colors" />
                             </h3>
                         </button>
-                        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[1.25rem]
+                        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ui-body
                                       text-slate-500">
                             <span className="min-w-0 break-words">{item.businessType || '—'}</span>
                             {/* No line at all when nobody has trusted them yet.
@@ -719,7 +719,7 @@ const Discover = () => {
                             )}
                         </p>
 
-                        <dl className="mt-3 space-y-1.5 text-[1.25rem]">
+                        <dl className="mt-3 space-y-1.5 text-ui-body">
                             <div className="flex items-center gap-2 text-slate-600 min-w-0">
                                 <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
                                 <span className="truncate">
@@ -750,7 +750,7 @@ const Discover = () => {
                 </div>
 
                 {item.description ? (
-                    <p className="text-[1.25rem] text-slate-600 mt-3 sm:mt-4 line-clamp-2 break-words">{item.description}</p>
+                    <p className="text-ui-body text-slate-600 mt-3 sm:mt-4 line-clamp-2 break-words">{item.description}</p>
                 ) : null}
 
                 {/*
@@ -819,7 +819,7 @@ const Discover = () => {
                 */}
                 {ordered.length > 0 ? (
                     <div className="mt-auto border-t border-slate-200 pt-4 sm:pt-5">
-                        <p className="mb-3 text-[1.1875rem] font-semibold uppercase tracking-wider text-slate-500">
+                        <p className="mb-3 text-ui-small font-semibold uppercase tracking-wider text-slate-500">
                             {hasQuery && !companyMatchesQuery(item)
                                 ? `Matching Products (${ordered.length})`
                                 : `Products & Services (${ordered.length})`}
@@ -850,7 +850,7 @@ const Discover = () => {
                                         )}
 
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-[1.25rem] text-slate-800 truncate">
+                                            <p className="font-semibold text-ui-body text-slate-800 truncate">
                                                 {prod?.name || 'Item'}
                                             </p>
                                             {/* No description. Two lines of free
@@ -858,14 +858,14 @@ const Discover = () => {
                                                 rows inside one card different
                                                 heights; it is on the company's own
                                                 page, which this card links to. */}
-                                            <p className="truncate text-[1.1875rem] text-slate-500">
+                                            <p className="truncate text-ui-small text-slate-500">
                                                 {prod?.category || 'General'}
                                                 {prod?.sku ? ` · ${prod.sku}` : ''}
                                             </p>
                                         </div>
 
                                         <div className="text-right shrink-0">
-                                            <p className="font-bold text-[1.25rem] text-blue-600 tabular-nums">
+                                            <p className="font-bold text-ui-body text-blue-600 tabular-nums">
                                                 ₹{Number(prod?.price || 0).toLocaleString('en-IN')}
                                             </p>
                                             {prod?.stock ? (
@@ -927,7 +927,7 @@ const Discover = () => {
                             placeholder="Search any product or company (e.g. chairs)…"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-11 pr-11 h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                            className="pl-11 pr-11 h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                         />
                         {searchQuery ? (
                             <button
@@ -962,7 +962,7 @@ const Discover = () => {
                                     key={f.key}
                                     type="button"
                                     onClick={() => setFilter(f.key)}
-                                    className={`px-4 py-2 rounded-lg text-[1.25rem] font-medium transition-colors ${isActive
+                                    className={`px-4 py-2 rounded-lg text-ui-body font-medium transition-colors ${isActive
                                         ? 'bg-blue-600 text-white'
                                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                                         }`}
@@ -1049,7 +1049,7 @@ const Discover = () => {
                             <button
                                 type="button"
                                 onClick={() => setRegion(homeRegion)}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[1.25rem]
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-ui-body
                                            font-medium text-blue-700 hover:bg-blue-50 transition-colors"
                             >
                                 <MapPin className="w-3.5 h-3.5" /> My region
@@ -1105,7 +1105,7 @@ const Discover = () => {
                       says.
                     */}
                     {isTermTooShort && (
-                        <p className="shrink-0 text-[1.25rem] text-slate-500 lg:max-w-xs lg:text-right">
+                        <p className="shrink-0 text-ui-body text-slate-500 lg:max-w-xs lg:text-right">
                             Type at least {MIN_QUERY_LENGTH} characters to search.
                         </p>
                     )}
@@ -1226,18 +1226,18 @@ const Discover = () => {
                                                             />
                                                         )}
                                                     </span>
-                                                    <span className="block truncate text-[1.1875rem] text-slate-500">
+                                                    <span className="block truncate text-ui-small text-slate-500">
                                                         {item.businessType || '—'}
                                                     </span>
                                                 </span>
 
-                                                <span className="hidden min-w-0 flex-1 truncate text-[1.1875rem]
+                                                <span className="hidden min-w-0 flex-1 truncate text-ui-small
                                                                  text-slate-600 md:block">
                                                     {[item.location, item.area].filter(Boolean).join(', ')
                                                         || 'Location not set'}
                                                 </span>
 
-                                                <span className="hidden shrink-0 text-[1.1875rem] font-semibold
+                                                <span className="hidden shrink-0 text-ui-small font-semibold
                                                                  tabular-nums text-slate-700 lg:block">
                                                     {item.mobileNumber || ''}
                                                 </span>

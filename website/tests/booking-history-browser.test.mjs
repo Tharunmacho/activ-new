@@ -44,7 +44,7 @@ const server = http.createServer((req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
     const files = await readdir(path.join(root, 'dist/assets'));
-    css = await readFile(path.join(root, 'dist/assets', files.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+    css = await readFile(process.env.TEST_CSS || path.join(root, 'dist/assets', files.find(file => /^index-.*\.css$/.test(file))), 'utf8');
     const fixtures = { name: 'unrelated-shell-fixtures', setup(b) {
         b.onResolve({ filter: /AdminSidebar$|\/BookingPeople$|\/notificationDeliveryApi$/ }, args => ({ path: args.path, namespace: 'fixture' }));
         b.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ loader: 'js', contents: 'export default function Empty(){return null};export const getDeliverySummaries=async()=>({});export const getBookingDelivery=async()=>({rows:[]});export const resendNotification=async()=>{throw Error("Read-only fixture");};' }));
@@ -57,7 +57,7 @@ try {
     ` } });
     bundle = built.outputFiles.find(file => file.path.endsWith('.js')).text;
     css += '\n' + (built.outputFiles.find(file => file.path.endsWith('.css'))?.text || '');
-    chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
+    chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--disable-gpu', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
     let port;
     for (let i = 0; i < 100; i++) { try { port = (await readFile(path.join(profile, 'DevToolsActivePort'), 'utf8')).split('\n')[0]; if (port) break; } catch {} await pause(100); }
     assert(port, 'Chrome starts');
@@ -66,13 +66,40 @@ try {
     await new Promise(resolve => ws.addEventListener('open', resolve));
     let seq = 0; const pending = new Map(), errors = [];
     ws.addEventListener('message', event => { const m = JSON.parse(event.data); if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.text); pending.get(m.id)?.(m); pending.delete(m.id); });
-    const send = (method, params = {}) => new Promise((resolve, reject) => { const id = ++seq, timer = setTimeout(() => reject(Error(method)), 15000); pending.set(id, r => { clearTimeout(timer); resolve(r); }); ws.send(JSON.stringify({ id, method, params })); });
+    const send = (method, params = {}) => new Promise((resolve, reject) => { const id = ++seq, timer = setTimeout(() => reject(Error(method)), method === 'Page.captureScreenshot' ? 45000 : 15000); pending.set(id, r => { clearTimeout(timer); resolve(r); }); ws.send(JSON.stringify({ id, method, params })); });
     const evaluate = async expression => { const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (r.result?.exceptionDetails) throw Error(r.result.exceptionDetails.exception?.description); return r.result?.result?.value; };
     const until = async expression => { for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(100); } throw Error(expression); };
     await send('Runtime.enable');
     await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}` });
     await until('document.body.textContent.includes("Current workshop")');
+    const typography = [];
+    for (const width of [1440, 390, 320]) {
+        await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 600 });
+        await pause(100);
+        const measured = await evaluate(`(() => {
+            const style = element => ({ size: getComputedStyle(element).fontSize, family: getComputedStyle(element).fontFamily });
+            return { width: innerWidth, body: style(document.body), title: style(document.querySelector('h1')),
+                subtitle: style(document.querySelector('h1 + p')),
+                control: style(document.querySelector('input[aria-label="Event name or venue"]')),
+                metrics: [...document.querySelectorAll('p.tabular-nums')].map(style),
+                overflows: document.documentElement.scrollWidth > innerWidth };
+        })()`);
+        assert.equal(measured.title.size, width >= 640 ? '30px' : '24px', `${width}: shared page heading size`);
+        assert.equal(measured.body.size, '16px', `${width}: readable base size`);
+        assert.equal(measured.subtitle.size, '16px', `${width}: consistent description size`);
+        assert.equal(measured.control.size, '16px', `${width}: input avoids mobile focus zoom`);
+        assert(measured.body.family.startsWith('Inter'), `${width}: shared UI font family`);
+        assert(measured.metrics.length === 4 && measured.metrics.every(metric => metric.size === (width >= 640 ? '36px' : '30px')), `${width}: balanced metric sizes`);
+        assert.equal(measured.overflows, false, `${width}: overview fits viewport`);
+        typography.push(measured);
+        if (process.env.TEST_ARTIFACTS) {
+            const shot = await send('Page.captureScreenshot', { format: 'png' });
+            await writeFile(path.join(process.env.TEST_ARTIFACTS, `booking-overview-${width}.png`), Buffer.from(shot.result.data, 'base64'));
+        }
+    }
+    if (process.env.TEST_ARTIFACTS) await writeFile(path.join(process.env.TEST_ARTIFACTS, 'booking-typography.json'), JSON.stringify(typography, null, 2));
+    await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     assert.equal(await evaluate('document.body.textContent.includes("Deleted workshop")'), false);
     await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("Past")).click()');
     await until('document.body.textContent.includes("Completed workshop")');
@@ -88,7 +115,7 @@ try {
     await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.includes("Excel Report")).click()');
     for (let i = 0; i < 50 && !requests.some(r => r.path.endsWith('/bookings/export')); i++) await pause(100);
     assert(requests.some(r => r.path.endsWith(`/${deletedId}/bookings/export`) && r.query.format === 'xlsx'));
-    for (const width of [1566, 1280, 1024, 768, 640, 390]) {
+    for (const width of [1566, 1280, 1024, 768, 640, 390, 320]) {
         await send('Emulation.setDeviceMetricsOverride', { width, height: 940, deviceScaleFactor: 1, mobile: width < 600 });
         await pause(150);
         await evaluate('document.querySelector(".booking-records").scrollIntoView({block:"start"})');
@@ -121,7 +148,7 @@ try {
     assert(requests.every(r => r.method === 'GET'), 'viewing history does not write any data');
     assert(!requests.some(r => r.path === '/api/v1/events'), 'history does not depend on the deleted event list');
     assert.deepEqual(errors, []);
-    console.log('PASS: retained contacts, history picker, Excel, details, pagination and no horizontal overflow at 1566/1280/1024/768/640/390px; no writes.');
+    console.log('PASS: retained contacts, history picker, Excel, details, pagination and no horizontal overflow at 1566/1280/1024/768/640/390/320px; shared UI typography verified; no writes.');
     await send('Browser.close');
 } finally {
     ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

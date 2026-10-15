@@ -186,7 +186,7 @@ export default function Payment() {
                                     ? `Renew your ${kindLabel.toLowerCase()} membership`
                                     : isCompany && plans.length > 1 ? 'Choose your business plan' : `Activate your ${kindLabel.toLowerCase()} membership`}
                             </h2>
-                            <p className="mt-1.5 max-w-2xl text-[1rem] sm:text-[1.0625rem] text-blue-100">
+                            <p className="mt-1.5 max-w-2xl text-[1rem] sm:text-ui-caption text-blue-100">
                                 {renewing
                                     ? renewalMessage(renewal)
                                     : isCompany
@@ -308,7 +308,7 @@ export default function Payment() {
                                     <KindIcon className="h-5 w-5" />
                                 </span>
                                 <div className="min-w-0">
-                                    <p className="font-display text-[1.25rem] font-bold text-slate-900">Why join as {isCompany ? 'a Business member' : isStudent ? 'a Student' : 'an Aspirant'}</p>
+                                    <p className="font-display text-ui-body font-bold text-slate-900">Why join as {isCompany ? 'a Business member' : isStudent ? 'a Student' : 'an Aspirant'}</p>
                                     <p className="text-[0.9375rem] text-slate-500">What your {kindLabel.toLowerCase()} membership opens up</p>
                                 </div>
                             </div>
@@ -329,7 +329,7 @@ export default function Payment() {
 
                         {/* ===================================== after payment */}
                         <section className={`${CARD} p-5 sm:p-7`}>
-                            <p className="font-display text-[1.25rem] font-bold text-slate-900">What happens after you pay</p>
+                            <p className="font-display text-ui-body font-bold text-slate-900">What happens after you pay</p>
                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                                 {AFTER_PAYMENT.map(({ Icon, title, text }) => (
                                     <div key={title} className="flex min-w-0 items-start gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
@@ -351,7 +351,7 @@ export default function Payment() {
                         <div className={`${CARD} overflow-hidden`}>
                             <div className={`${GRADIENT} px-5 py-4 text-white sm:px-6`}>
                                 <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.16em] text-blue-100">Order summary</p>
-                                <p className="mt-0.5 font-display text-[1.25rem] font-bold">{activePlan ? activePlan.name : 'No plan selected'}</p>
+                                <p className="mt-0.5 font-display text-ui-body font-bold">{activePlan ? activePlan.name : 'No plan selected'}</p>
                             </div>
 
                             <div className="space-y-3 px-5 py-5 sm:px-6">
@@ -368,7 +368,7 @@ export default function Payment() {
                                 </div>
 
                                 <button type="button" onClick={pay} disabled={!activePlan || paying}
-                                    className={`mt-1 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl ${GRADIENT} px-5 text-[1.0625rem] font-bold text-white
+                                    className={`mt-1 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl ${GRADIENT} px-5 text-ui-caption font-bold text-white
                                                 shadow-[0_12px_28px_-12px_rgba(30,58,138,0.7)] transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0`}>
                                     {paying ? <Loader2 className="h-5 w-5 animate-spin" /> : <Lock className="h-4 w-4" />}
                                     {paying ? 'Processing…' : `Pay ${activePlan ? rupees(activePlan.price) : ''} securely`}

@@ -139,10 +139,10 @@ export function EventDaysEditor({ startDate, endDate, days, onChange }: {
     return (
         <div className="mt-6 rounded-xl border border-slate-200 p-3 sm:p-4 dark:border-[#2a2a2a]">
             <div className="mb-1">
-                <p className="text-[1.25rem] font-bold text-slate-800 dark:text-neutral-100">
+                <p className="text-ui-body font-bold text-slate-800 dark:text-neutral-100">
                     Each day’s hours and programme
                 </p>
-                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-caption text-slate-500 dark:text-neutral-400">
                     {dates.length} days, taken from the dates above. Leave a day’s
                     times blank and the page shows the event’s own hours for it.
                 </p>
@@ -161,11 +161,11 @@ export function EventDaysEditor({ startDate, endDate, days, onChange }: {
                         >
                             <div className="mb-3 flex flex-wrap items-center gap-2">
                                 <span className="inline-flex h-7 items-center rounded-lg bg-blue-50 px-2.5
-                                                 text-[1.0625rem] font-bold text-[#2563EB]
+                                                 text-ui-caption font-bold text-[#2563EB]
                                                  dark:bg-blue-950/40 dark:text-blue-300">
                                     Day {i + 1}
                                 </span>
-                                <span className="text-[1.1875rem] font-semibold text-slate-700 dark:text-neutral-200">
+                                <span className="text-ui-small font-semibold text-slate-700 dark:text-neutral-200">
                                     {dayLabel(iso)}
                                 </span>
                             </div>
@@ -191,7 +191,7 @@ export function EventDaysEditor({ startDate, endDate, days, onChange }: {
                             <div className="mt-4 border-t border-dashed border-slate-200 pt-3
                                             dark:border-[#232323]">
                                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-                                    <p className="text-[1.0625rem] font-semibold text-slate-600
+                                    <p className="text-ui-caption font-semibold text-slate-600
                                                   dark:text-neutral-300">
                                         Sessions on this day
                                     </p>
@@ -199,7 +199,7 @@ export function EventDaysEditor({ startDate, endDate, days, onChange }: {
                                         type="button"
                                         onClick={() => setSessions(iso, [...sessions, { ...BLANK_SESSION }])}
                                         className="inline-flex items-center gap-1.5 rounded-lg border
-                                                   border-blue-200 px-2.5 py-1.5 text-[1.0625rem]
+                                                   border-blue-200 px-2.5 py-1.5 text-ui-caption
                                                    font-semibold text-blue-700 transition-colors
                                                    hover:bg-blue-50 dark:border-blue-900 dark:text-blue-300"
                                     >
@@ -208,7 +208,7 @@ export function EventDaysEditor({ startDate, endDate, days, onChange }: {
                                 </div>
 
                                 {sessions.length === 0 ? (
-                                    <p className="text-[1.0625rem] text-slate-400 dark:text-neutral-500">
+                                    <p className="text-ui-caption text-slate-400 dark:text-neutral-500">
                                         No sessions listed for this day.
                                     </p>
                                 ) : (
@@ -272,7 +272,7 @@ export function EventDaysEditor({ startDate, endDate, days, onChange }: {
                                                         onClick={() => setSessions(iso, sessions.filter((_, j) => j !== k))}
                                                         title="Delete this session"
                                                         className="inline-flex shrink-0 items-center gap-1.5 rounded-lg
-                                                                   border border-red-200 px-2.5 py-2.5 sm:py-1.5 text-[1.0625rem]
+                                                                   border border-red-200 px-2.5 py-2.5 sm:py-1.5 text-ui-caption
                                                                    font-semibold text-red-600 transition-colors
                                                                    hover:bg-red-50 dark:border-red-500/30
                                                                    dark:text-red-400"

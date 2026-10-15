@@ -68,7 +68,7 @@ function EditableField({
 }) {
     return (
         <div className="min-w-0">
-            <Label className="text-[1.25rem] font-semibold text-slate-700">{label}</Label>
+            <Label className="text-ui-body font-semibold text-slate-700">{label}</Label>
             {editing ? (
                 <Input
                     type={type}
@@ -95,7 +95,7 @@ function PasswordField({
     const [shown, setShown] = useState(false);
     return (
         <div>
-            <Label className="text-[1.25rem] font-semibold text-slate-700">{label}</Label>
+            <Label className="text-ui-body font-semibold text-slate-700">{label}</Label>
             <div className="relative mt-1.5">
                 <Input
                     type={shown ? "text" : "password"}
@@ -375,11 +375,11 @@ export default function AdminSettingsScreen({
                                     <h2 className={`${CARD_TITLE} text-slate-900 truncate`}>
                                         {saved.fullName || "Admin"}
                                     </h2>
-                                    <p className="text-[1.25rem] text-slate-600 flex items-center gap-1.5 mt-0.5">
+                                    <p className="text-ui-body text-slate-600 flex items-center gap-1.5 mt-0.5">
                                         <Shield className="w-4 h-4 shrink-0 text-blue-600" />
                                         {saved.region ? `${saved.region} ${regionLabel} Admin` : `${regionLabel} Admin`}
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[1.25rem] text-slate-500">
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-ui-body text-slate-500">
                                         <span className="flex items-center gap-1.5 min-w-0">
                                             <Mail className="w-4 h-4 shrink-0" />
                                             {/*
@@ -435,7 +435,7 @@ export default function AdminSettingsScreen({
                             {/* Password, only while editing — as on mobile. */}
                             {editing && (
                                 <div className="mt-5 pt-5 sm:mt-6 sm:pt-6 border-t border-slate-200">
-                                    <h4 className="text-[1.25rem] font-bold text-slate-900 mb-4">
+                                    <h4 className="text-ui-body font-bold text-slate-900 mb-4">
                                         Change Password (Optional)
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">

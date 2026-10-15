@@ -396,19 +396,19 @@ const ProfileView = () => {
                                     <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
                                         {personalData?.district && (
                                             <span className="px-3.5 py-1.5 bg-blue-100 text-blue-700 rounded-full
-                                                             text-[1.25rem] font-semibold">
+                                                             text-ui-body font-semibold">
                                                 {personalData.district}
                                             </span>
                                         )}
                                         {personalData?.state && (
                                             <span className="px-3.5 py-1.5 bg-green-100 text-green-700 rounded-full
-                                                             text-[1.25rem] font-semibold">
+                                                             text-ui-body font-semibold">
                                                 {personalData.state}
                                             </span>
                                         )}
                                         {personalData?.membershipNumber && (
                                             <span className="px-3.5 py-1.5 bg-slate-100 text-slate-700 rounded-full
-                                                             text-[1.25rem] font-semibold tracking-wider">
+                                                             text-ui-body font-semibold tracking-wider">
                                                 ID {personalData.membershipNumber}
                                             </span>
                                         )}
@@ -796,8 +796,8 @@ const InfoItem = ({ label, value }: { label: string; value?: string | number | n
               the quieter of the two. 22px semibold for the answer, and the
               label up a step with it so the pair stay legible together.
             */}
-            <p className="mb-1 text-[1.25rem] font-semibold text-slate-500">{label}</p>
-            <p className="text-[1.1875rem] sm:text-[1.375rem] font-semibold text-slate-900 break-words">
+            <p className="mb-1 text-ui-body font-semibold text-slate-500">{label}</p>
+            <p className="text-ui-small sm:text-[1.375rem] font-semibold text-slate-900 break-words">
                 {String(value)}
             </p>
         </div>

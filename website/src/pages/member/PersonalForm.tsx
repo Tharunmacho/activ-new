@@ -291,7 +291,7 @@ const PersonalInformationForm = () => {
       onSubmit={handleSubmit}
     >
       {!isAbroad && !coverageAvailable && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[1.1875rem] text-amber-800">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-ui-small text-amber-800">
           Location data is unavailable. Reload the page to try again.
         </div>
       )}

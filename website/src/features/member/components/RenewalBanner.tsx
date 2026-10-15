@@ -38,12 +38,12 @@ export default function RenewalBanner({ renewal, className = '' }: { renewal: Re
                     <p className="text-[0.8125rem] font-bold uppercase tracking-[0.16em] text-sky-200">
                         {expired ? 'Membership expired' : 'Renewal open'}
                     </p>
-                    <p className="mt-1 text-[1.25rem] sm:text-[1.5rem] font-extrabold leading-tight">
+                    <p className="mt-1 text-ui-body sm:text-[1.5rem] font-extrabold leading-tight">
                         {expired
                             ? 'Renew your membership'
                             : days === 0 ? 'Your membership ends today' : `${days} ${days === 1 ? 'day' : 'days'} left on your membership`}
                     </p>
-                    <p className="mt-1 text-[1rem] sm:text-[1.0625rem] leading-relaxed text-blue-100">
+                    <p className="mt-1 text-[1rem] sm:text-ui-caption leading-relaxed text-blue-100">
                         {renewalMessage(renewal)}
                     </p>
                 </div>
@@ -51,7 +51,7 @@ export default function RenewalBanner({ renewal, className = '' }: { renewal: Re
                 <div className="flex shrink-0 flex-col gap-2 sm:items-end">
                     <Link
                         to={RENEW_PATH}
-                        className={`inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 text-[1.0625rem] font-extrabold shadow-sm transition hover:brightness-105 ${
+                        className={`inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 text-ui-caption font-extrabold shadow-sm transition hover:brightness-105 ${
                             expired ? 'bg-amber-400 text-amber-950' : 'bg-white text-blue-800'}`}
                     >
                         <RefreshCw className="h-5 w-5" />

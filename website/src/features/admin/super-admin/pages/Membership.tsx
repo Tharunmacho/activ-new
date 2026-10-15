@@ -445,14 +445,14 @@ export default function SuperAdminMembership() {
                           one time it matters it looks the same as always.
                         */
                         <section className="rounded-xl border border-amber-300 bg-amber-50 shadow-sm p-4 sm:p-6">
-                            <p className="flex items-center gap-2 text-[1.25rem] font-bold text-amber-900">
+                            <p className="flex items-center gap-2 text-ui-body font-bold text-amber-900">
                                 <AlertTriangle className="w-5 h-5 shrink-0" />
                                 These bands leave applicants without a plan
                             </p>
-                            <ul className="mt-2 space-y-1 text-[1.1875rem] text-amber-700 list-disc list-inside">
+                            <ul className="mt-2 space-y-1 text-ui-small text-amber-700 list-disc list-inside">
                                 {bandProblems.map((problem, i) => <li key={i}>{problem}</li>)}
                             </ul>
-                            <p className="mt-2 text-[1.1875rem] text-amber-700">
+                            <p className="mt-2 text-ui-small text-amber-700">
                                 A missing range leaves members without an eligible payment plan. Keep the ranges continuous and without overlap so each business matches one plan.
                             </p>
 
@@ -472,7 +472,7 @@ export default function SuperAdminMembership() {
                                 onClick={alignBands}
                                 disabled={aligning}
                                 className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3.5
-                                           py-2 text-[1.1875rem] font-semibold text-white transition-colors
+                                           py-2 text-ui-small font-semibold text-white transition-colors
                                            hover:bg-amber-700 disabled:opacity-60"
                             >
                                 {aligning
@@ -595,10 +595,10 @@ export default function SuperAdminMembership() {
                                           setting.
                                         */}
                                         <div className="sm:col-span-2 rounded-lg border border-blue-100 bg-blue-50/60 p-3">
-                                            <p className="text-[1.1875rem] font-semibold text-blue-800">
+                                            <p className="text-ui-small font-semibold text-blue-800">
                                                 Or set it by commencement year
                                             </p>
-                                            <p className="text-[1.0625rem] text-blue-700/80 mt-0.5 mb-2.5">
+                                            <p className="text-ui-caption text-blue-700/80 mt-0.5 mb-2.5">
                                                 Which years a company can have started in to earn this plan.
                                                 Stored as a duration, so this window moves forward every
                                                 January and a company rises to the next plan as it matures.
@@ -637,7 +637,7 @@ export default function SuperAdminMembership() {
                                                 </Field>
                                             </div>
 
-                                            <p className="mt-2 text-[1.0625rem] text-blue-800">
+                                            <p className="mt-2 text-ui-caption text-blue-800">
                                                 Right now: <strong>{yearWindowLabel(form, thisYear)}</strong>
                                                 {' · '}{bandLabel(form)}
                                             </p>
@@ -688,14 +688,14 @@ export default function SuperAdminMembership() {
 
                             <div className="sticky -bottom-4 sm:-bottom-6 bg-white flex flex-wrap gap-3 pt-3 pb-1 border-t">
                                 <button type="button" onClick={closeForm} disabled={saving}
-                                    className="h-11 px-5 rounded-xl border border-slate-200 text-[1.25rem] font-semibold text-slate-700 transition-colors hover:border-slate-300">
+                                    className="h-11 px-5 rounded-xl border border-slate-200 text-ui-body font-semibold text-slate-700 transition-colors hover:border-slate-300">
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
                                     className="flex-1 inline-flex items-center justify-center gap-2 py-2.5
-                                               rounded-lg bg-blue-600 text-white text-[1.25rem] font-medium
+                                               rounded-lg bg-blue-600 text-white text-ui-body font-medium
                                                disabled:opacity-60"
                                 >
                                     {saving && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -708,7 +708,7 @@ export default function SuperAdminMembership() {
 
                     {/* --------------------------------------------------- plans */}
                     {loading ? (
-                        <p className="flex items-center gap-2 text-[1.25rem] text-slate-500 py-10">
+                        <p className="flex items-center gap-2 text-ui-body text-slate-500 py-10">
                             <Loader2 className="w-4 h-4 animate-spin" /> Loading plans…
                         </p>
                     ) : (
@@ -780,7 +780,7 @@ export default function SuperAdminMembership() {
                                     <h2 className={`${CARD_TITLE} text-slate-900`}>
                                         Commencement year → plan
                                     </h2>
-                                    <p className="text-[1.25rem] text-slate-500 mt-0.5">
+                                    <p className="text-ui-body text-slate-500 mt-0.5">
                                         What a company that started in each year is offered today. Every row
                                         shifts by one year each January, because the bands are durations.
                                     </p>
@@ -788,13 +788,13 @@ export default function SuperAdminMembership() {
                             </div>
 
                             <div ref={cardTableRef} className="overflow-x-auto card-table">
-                                <table className="w-full text-[1.25rem]">
+                                <table className="w-full text-ui-body">
                                     <thead>
                                         <tr className="text-left text-slate-500 border-b border-slate-200">
-                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Started in</th>
-                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Years trading</th>
-                                            <th className="pb-3 pr-4 text-[1.0625rem] font-semibold uppercase tracking-wider">Plan</th>
-                                            <th className="pb-3 text-[1.0625rem] font-semibold uppercase tracking-wider text-right">Price</th>
+                                            <th className="pb-3 pr-4 text-ui-caption font-semibold uppercase tracking-wider">Started in</th>
+                                            <th className="pb-3 pr-4 text-ui-caption font-semibold uppercase tracking-wider">Years trading</th>
+                                            <th className="pb-3 pr-4 text-ui-caption font-semibold uppercase tracking-wider">Plan</th>
+                                            <th className="pb-3 text-ui-caption font-semibold uppercase tracking-wider text-right">Price</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -858,7 +858,7 @@ export default function SuperAdminMembership() {
                             </span>
                             <div className="min-w-0">
                                 <h2 className={`${CARD_TITLE} text-slate-900`}>Check a commencement year</h2>
-                                <p className="text-[1.25rem] text-slate-500 mt-0.5">
+                                <p className="text-ui-body text-slate-500 mt-0.5">
                                     What an applicant whose company started in this year would be shown.
                                 </p>
                             </div>
@@ -874,7 +874,7 @@ export default function SuperAdminMembership() {
                             />
 
                             {preview && (
-                                <p className="text-[1.25rem] text-slate-700">
+                                <p className="text-ui-body text-slate-700">
                                     {preview.matched ? (
                                         <>
                                             <strong>{preview.years} years trading</strong> → they see{' '}
@@ -910,7 +910,7 @@ export default function SuperAdminMembership() {
  * screen is not a reason to invent a second.
  */
 const INPUT =
-    'h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-[1.25rem] text-slate-900 '
+    'h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-ui-body text-slate-900 '
     + 'outline-none transition-colors placeholder:text-slate-400 '
     + 'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
@@ -921,9 +921,9 @@ function Field({ label, hint, full, children }: {
     const id = useId();
     return (
         <div className={`min-w-0 ${full ? 'sm:col-span-2' : ''}`}>
-            <label htmlFor={id} className="block text-[1.25rem] font-semibold text-slate-700 mb-2">{label}</label>
+            <label htmlFor={id} className="block text-ui-body font-semibold text-slate-700 mb-2">{label}</label>
             {cloneElement(children, { id, 'aria-describedby': hint ? `${id}-hint` : undefined })}
-            {hint && <p id={`${id}-hint`} className="text-[1.1875rem] text-slate-500 mt-1.5">{hint}</p>}
+            {hint && <p id={`${id}-hint`} className="text-ui-small text-slate-500 mt-1.5">{hint}</p>}
         </div>
     );
 }
@@ -949,7 +949,7 @@ function MoneyInput({ value, onChange, id, 'aria-describedby': describedBy }: {
     return (
         <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
-                             text-[1.25rem] font-semibold text-slate-400">
+                             text-ui-body font-semibold text-slate-400">
                 ₹
             </span>
             <input
@@ -981,7 +981,7 @@ function Toggle({ checked, onChange, label }: {
             role="switch"
             aria-checked={checked}
             onClick={() => onChange(!checked)}
-            className="inline-flex items-center gap-2 text-[1.25rem] text-slate-700"
+            className="inline-flex items-center gap-2 text-ui-body text-slate-700"
         >
             <span className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
                 checked ? 'bg-blue-600' : 'bg-slate-300'
@@ -1012,12 +1012,12 @@ function PlanGroup({ title, hint, icon, plans, thisYear, onEdit, onDelete }: {
                 </span>
                 <div className="min-w-0">
                     <h2 className={`${CARD_TITLE} text-slate-900`}>{title}</h2>
-                    <p className="text-[1.25rem] text-slate-500 mt-0.5">{hint}</p>
+                    <p className="text-ui-body text-slate-500 mt-0.5">{hint}</p>
                 </div>
             </header>
 
             {plans.length === 0 ? (
-                <p className="px-5 py-8 text-[1.25rem] text-slate-500">No plans here yet.</p>
+                <p className="px-5 py-8 text-ui-body text-slate-500">No plans here yet.</p>
             ) : (
                 <ul className="divide-y">
                     {plans.map((plan) => (
@@ -1029,14 +1029,14 @@ function PlanGroup({ title, hint, icon, plans, thisYear, onEdit, onDelete }: {
                         >
                             <div className="min-w-0 flex-1">
                                 <p className="flex flex-wrap items-center gap-2">
-                                    <span className={`text-[1.25rem] font-semibold ${
+                                    <span className={`text-ui-body font-semibold ${
                                         plan.active ? 'text-slate-900' : 'text-slate-500'
                                     }`}>
                                         {plan.name}
                                     </span>
 
                                     {plan.popular && (
-                                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-bold
+                                        <span className="inline-flex items-center gap-1 text-ui-caption font-bold
                                                          uppercase tracking-wide px-1.5 py-0.5 rounded-full
                                                          bg-blue-100 text-blue-700">
                                             <Users className="w-2.5 h-2.5" /> Popular
@@ -1047,14 +1047,14 @@ function PlanGroup({ title, hint, icon, plans, thisYear, onEdit, onDelete }: {
                                         other row is offered, so a badge saying so
                                         would be on every line. */}
                                     {!plan.active && (
-                                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-bold
+                                        <span className="inline-flex items-center gap-1 text-ui-caption font-bold
                                                          uppercase tracking-wide px-1.5 py-0.5 rounded-full
                                                          bg-slate-200 text-slate-500">
                                             <EyeOff className="w-2.5 h-2.5" /> Retired
                                         </span>
                                     )}
                                 </p>
-                                <p className="text-[1.1875rem] text-slate-500 mt-0.5">
+                                <p className="text-ui-small text-slate-500 mt-0.5">
                                     {bandLabel(plan)}
                                     {/* The same band in the unit the APPLICANT types.
                                         The form asks for a year; this row said
@@ -1098,7 +1098,7 @@ function PlanGroup({ title, hint, icon, plans, thisYear, onEdit, onDelete }: {
                                     onClick={() => onDelete(plan)}
                                     aria-label={`Delete ${plan.name}`}
                                     className="inline-flex items-center gap-1.5 px-2.5 h-9 rounded-lg
-                                               text-[1.1875rem] font-semibold text-red-600 border border-red-200
+                                               text-ui-small font-semibold text-red-600 border border-red-200
                                                transition-colors hover:bg-red-50 hover:border-red-300"
                                 >
                                     <Trash2 className="w-3.5 h-3.5" /> Delete

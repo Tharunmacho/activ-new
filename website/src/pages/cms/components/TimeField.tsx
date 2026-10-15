@@ -61,7 +61,7 @@ const join = (hour: string, minute: string, meridiem: string) => {
     return `${String(h24).padStart(2, '0')}:${minute}`;
 };
 
-const SELECT = `rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-[1.25rem]
+const SELECT = `rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-ui-body
                 text-slate-900 outline-none focus:border-[#2563EB] focus:ring-2
                 focus:ring-blue-500/20 dark:border-[#2a2a2a] dark:bg-black
                 dark:text-neutral-100`;
@@ -107,7 +107,7 @@ export function TimeField({ value, onChange, label }: {
                 {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
             </select>
 
-            <span aria-hidden="true" className="text-[1.25rem] font-bold text-slate-400">:</span>
+            <span aria-hidden="true" className="text-ui-body font-bold text-slate-400">:</span>
 
             <select
                 className={SELECT}
@@ -138,7 +138,7 @@ export function TimeField({ value, onChange, label }: {
                     type="button"
                     onClick={() => onChange('')}
                     title={`Clear ${label}`}
-                    className="ml-0.5 rounded px-1.5 py-1 text-[1.0625rem] font-semibold
+                    className="ml-0.5 rounded px-1.5 py-1 text-ui-caption font-semibold
                                text-slate-400 transition-colors hover:bg-slate-100
                                hover:text-slate-700 dark:hover:bg-[#161616]"
                 >

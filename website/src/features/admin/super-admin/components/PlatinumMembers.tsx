@@ -35,7 +35,7 @@ const day = (v?: string | null) => {
     return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 const today = () => new Date().toISOString().slice(0, 10);
-const FIELD_LABEL = 'block text-[1.1875rem] font-semibold text-slate-700';
+const FIELD_LABEL = 'block text-ui-small font-semibold text-slate-700';
 const region = (m: PlatinumCandidate) => [m.block, m.district, m.state].filter(Boolean).join(', ');
 
 function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) => void }) {
@@ -270,12 +270,12 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                     <h3 className="flex items-center gap-2 font-display text-[1.5rem] font-semibold text-slate-900">
                         <Inbox className="h-5 w-5 text-blue-700" /> Lifetime requests
                     </h3>
-                    <p className="text-[1.0625rem] text-slate-500">Members who asked to become Lifetime. Call them, then grant it once the payment is received.</p>
+                    <p className="text-ui-caption text-slate-500">Members who asked to become Lifetime. Call them, then grant it once the payment is received.</p>
                 </div>
                 <div className="flex gap-1 rounded-xl bg-white p-1 ring-1 ring-slate-200">
                     {TABS.map((t) => (
                         <button key={t.key} type="button" onClick={() => setTab(t.key)}
-                            className={`min-h-10 rounded-lg px-3 text-[1.0625rem] font-semibold ${tab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
+                            className={`min-h-10 rounded-lg px-3 text-ui-caption font-semibold ${tab === t.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
                             {t.label}{typeof counts[t.key] === 'number' ? <span className="ml-1.5 opacity-80">{counts[t.key]}</span> : null}
                         </button>
                     ))}
@@ -285,7 +285,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
             {loading ? (
                 <p className="mt-4 flex items-center gap-2 text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</p>
             ) : rows.length === 0 ? (
-                <p className="mt-4 rounded-xl bg-white p-4 text-[1.0625rem] text-slate-500 ring-1 ring-slate-100">
+                <p className="mt-4 rounded-xl bg-white p-4 text-ui-caption text-slate-500 ring-1 ring-slate-100">
                     {tab === 'new' ? 'No new requests. When a member presses “Apply for Lifetime”, it appears here and the office is emailed.' : 'Nothing here yet.'}
                 </p>
             ) : (
@@ -298,7 +298,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                     <div className="min-w-0 flex-1">
                                         <p className="flex flex-wrap items-center gap-2">
-                                            <span className="truncate text-[1.1875rem] font-semibold text-slate-900">{r.name || 'Member'}</span>
+                                            <span className="truncate text-ui-small font-semibold text-slate-900">{r.name || 'Member'}</span>
                                             <span className={`rounded-full px-2.5 py-0.5 text-[0.9375rem] font-semibold ${STATUS_CHIP[r.status] || STATUS_CHIP.new}`}>
                                                 {STATUS_WORD[r.status] || r.status}
                                             </span>
@@ -364,7 +364,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                 {declining === r.id ? (
                                     <div className="mt-3 flex flex-col gap-2 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-center">
                                         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reason (optional, for your records)"
-                                            className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-[1.0625rem] outline-none focus:border-blue-500" />
+                                            className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-ui-caption outline-none focus:border-blue-500" />
                                         <div className="flex gap-2">
                                             <button type="button" onClick={() => setDeclining('')} className="min-h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-600">Keep</button>
                                             <button type="button" disabled={busy === r.id} onClick={() => setStatus(r, 'declined', note.trim())}
@@ -510,13 +510,13 @@ export default function PlatinumMembers() {
                                         <span className="truncate">{m.fullName || 'Unnamed member'}</span>
                                         {m.membershipTier === 'platinum' ? <PlatinumBadge size="sm" /> : null}
                                     </p>
-                                    <p className="truncate text-[1.0625rem] text-slate-500">{[m.email, m.phoneNumber].filter(Boolean).join(' · ')}</p>
+                                    <p className="truncate text-ui-caption text-slate-500">{[m.email, m.phoneNumber].filter(Boolean).join(' · ')}</p>
                                     <p className="truncate text-[1rem] text-slate-400">{[m.membershipNumber, region(m)].filter(Boolean).join(' · ')}</p>
                                 </div>
                                 {m.membershipTier === 'platinum' ? (
-                                    <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-700"><Check className="h-4 w-4" /> Lifetime</span>
+                                    <span className="inline-flex items-center gap-1 text-ui-caption font-semibold text-emerald-700"><Check className="h-4 w-4" /> Lifetime</span>
                                 ) : m.blockedReason && !m.canAdmitManually ? (
-                                    <span className="text-[1.0625rem] text-amber-700 sm:max-w-[16rem] sm:text-right">{m.blockedReason}</span>
+                                    <span className="text-ui-caption text-amber-700 sm:max-w-[16rem] sm:text-right">{m.blockedReason}</span>
                                 ) : granting === m.id ? null : (
                                     <button type="button" onClick={() => setGranting(m.id)}
                                         className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 font-semibold text-white sm:w-auto">
@@ -551,7 +551,7 @@ export default function PlatinumMembers() {
                                         <p className="flex flex-wrap items-center gap-2 font-semibold text-slate-900">
                                             <span className="truncate">{m.fullName || 'Unnamed member'}</span><PlatinumBadge size="sm" />
                                         </p>
-                                        <p className="truncate text-[1.0625rem] text-slate-500">{[m.membershipNumber, m.email].filter(Boolean).join(' · ')}</p>
+                                        <p className="truncate text-ui-caption text-slate-500">{[m.membershipNumber, m.email].filter(Boolean).join(' · ')}</p>
                                         {m.platinumGrant ? (
                                             <p className="text-[1rem] text-slate-500">
                                                 {rupees(m.platinumGrant.amount)} · {PAYMENT_MODE_LABEL[m.platinumGrant.paymentMode as PlatinumPaymentMode] || 'Paid'}

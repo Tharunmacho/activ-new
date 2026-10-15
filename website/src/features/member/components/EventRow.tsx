@@ -67,7 +67,7 @@ export default function EventRow({ event }: { event: MemberEvent }) {
                         </span>
                     ) : null}
                 </span>
-                <span className="line-clamp-2 break-words text-[1.1875rem] sm:text-[1.375rem] font-extrabold leading-snug tracking-tight text-slate-900">
+                <span className="line-clamp-2 break-words text-ui-small sm:text-[1.375rem] font-extrabold leading-snug tracking-tight text-slate-900">
                     {event.title || 'Untitled event'}
                 </span>
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.9375rem] sm:text-base font-semibold text-slate-500">

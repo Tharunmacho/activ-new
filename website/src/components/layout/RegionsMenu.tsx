@@ -126,7 +126,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                    old 0.9375rem when those were raised, and one link a step
                    smaller than its neighbours is the first thing the eye finds
                    in a row of six. */
-                className={`text-[1.0625rem] pt-1.5 pb-1 border-b-2 border-transparent transition
+                className={`text-ui-caption pt-1.5 pb-1 border-b-2 border-transparent transition
                             inline-flex items-center gap-1.5 ${
                     open ? 'font-semibold' : 'font-medium opacity-70 hover:opacity-100'
                 }`}
@@ -175,7 +175,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                             onFocus={() => setActive(region.key)}
                                             onClick={() => setOpen(false)}
                                             className={`flex items-center justify-between gap-2 px-4 py-2.5
-                                                        text-[1.0625rem] transition-colors ${
+                                                        text-ui-caption transition-colors ${
                                                 region.national ? 'font-extrabold' : 'font-bold'
                                             } ${
                                                 on ? 'bg-brand-50 text-brand-800' : 'text-brand-700 hover:bg-brand-50/60'
@@ -195,7 +195,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                             onMouseEnter={() => setActive(region.key)}
                                             onFocus={() => setActive(region.key)}
                                             className={`flex w-full items-center justify-between gap-2 px-4 py-2.5
-                                                        text-left text-[1.0625rem] font-bold transition-colors ${
+                                                        text-left text-ui-caption font-bold transition-colors ${
                                                 on ? 'bg-brand-50 text-gray-500' : 'text-gray-500 hover:bg-brand-50/60'
                                             }`}
                                         >
@@ -221,7 +221,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                         <Link
                                             to={`/regions/${region.slug}`}
                                             onClick={() => setOpen(false)}
-                                            className="block px-4 py-2.5 text-[1.0625rem] font-semibold
+                                            className="block px-4 py-2.5 text-ui-caption font-semibold
                                                        text-brand-700 transition-colors hover:bg-brand-50/60"
                                         >
                                             {zoneName(region.label, region.national)}
@@ -236,7 +236,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                                         <Link
                                             to={`/states/${state.slug}`}
                                             onClick={() => setOpen(false)}
-                                            className="block px-4 py-2.5 text-[1.0625rem] font-semibold
+                                            className="block px-4 py-2.5 text-ui-caption font-semibold
                                                        text-brand-700 transition-colors hover:bg-brand-50/60"
                                         >
                                             {state.name}
@@ -247,7 +247,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
                         ) : (
                             /* Said plainly rather than left blank. An empty
                                column reads as a menu that failed to load. */
-                            <p className="px-4 py-2 text-[1.0625rem] font-semibold text-gray-400">
+                            <p className="px-4 py-2 text-ui-caption font-semibold text-gray-400">
                                 No state pages yet.
                             </p>
                         )}
@@ -305,7 +305,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
                             to={`/regions/${region.slug}`}
                             onClick={onNavigate}
                             className="flex items-center gap-2 rounded-2xl px-4 py-3.5
-                                       text-[1.0625rem] font-semibold transition-all hover:bg-slate-50 active:scale-[0.98]"
+                                       text-ui-caption font-semibold transition-all hover:bg-slate-50 active:scale-[0.98]"
                             style={{ color: accent }}
                         >
                             <Globe2 size={17} className="shrink-0 opacity-50" />
@@ -320,7 +320,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
                             type="button"
                             onClick={() => setOpenKey(on ? '' : region.key)}
                             className="flex w-full items-center justify-between gap-2 rounded-2xl px-4 py-3.5 text-left
-                                       text-[1.0625rem] font-semibold transition-all hover:bg-slate-50 active:scale-[0.98]"
+                                       text-ui-caption font-semibold transition-all hover:bg-slate-50 active:scale-[0.98]"
                             style={{ color: accent }}
                             aria-expanded={on}
                         >
@@ -337,7 +337,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
                                     <Link
                                         to={`/regions/${region.slug}`}
                                         onClick={onNavigate}
-                                        className="block py-2 text-[1.0625rem] font-bold text-brand-700"
+                                        className="block py-2 text-ui-caption font-bold text-brand-700"
                                     >
                                         {zoneName(region.label)} overview
                                     </Link>
@@ -347,13 +347,13 @@ export function RegionsAccordion({ accent, onNavigate }: {
                                         key={state.slug}
                                         to={`/states/${state.slug}`}
                                         onClick={onNavigate}
-                                        className="block py-2 text-[1.0625rem] font-semibold text-gray-600"
+                                        className="block py-2 text-ui-caption font-semibold text-gray-600"
                                     >
                                         {state.name}
                                     </Link>
                                 ))}
                                 {!region.hasPage && !states.length && (
-                                    <p className="py-2 text-[1.0625rem] font-semibold text-gray-400">
+                                    <p className="py-2 text-ui-caption font-semibold text-gray-400">
                                         Nothing published yet.
                                     </p>
                                 )}

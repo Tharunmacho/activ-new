@@ -79,7 +79,7 @@ export function SectionCard({
                 ) : actionTo ? (
                     <Link
                         to={actionTo}
-                        className="shrink-0 inline-flex items-center gap-0.5 text-[1.0625rem] font-semibold
+                        className="shrink-0 inline-flex items-center gap-0.5 text-ui-caption font-semibold
                                    text-blue-600 hover:text-blue-700 hover:underline"
                     >
                         {actionLabel || 'See all'}
@@ -122,8 +122,8 @@ export function EmptyState({
                              flex items-center justify-center">
                 {icon || <Inbox className="w-6 h-6" />}
             </span>
-            <p className="text-[1.1875rem] font-semibold text-slate-700">{title}</p>
-            <p className="text-[1.0625rem] text-slate-500 mt-1 max-w-sm mx-auto">{detail}</p>
+            <p className="text-ui-small font-semibold text-slate-700">{title}</p>
+            <p className="text-ui-caption text-slate-500 mt-1 max-w-sm mx-auto">{detail}</p>
             {action ? <div className="mt-4">{action}</div> : null}
         </div>
     );
@@ -161,10 +161,10 @@ export function PlanLockedCard({
                 </span>
                 <div className="min-w-0">
                     <h3 className={`${CARD_TITLE} text-slate-800`}>{title}</h3>
-                    <p className="text-[1.0625rem] text-slate-600 mt-1 leading-relaxed">{explanation}</p>
+                    <p className="text-ui-caption text-slate-600 mt-1 leading-relaxed">{explanation}</p>
                     <Link
                         to={upgradeTo}
-                        className="inline-flex items-center gap-1 mt-3 text-[1.0625rem] font-semibold
+                        className="inline-flex items-center gap-1 mt-3 text-ui-caption font-semibold
                                    text-blue-600 hover:text-blue-700 hover:underline"
                     >
                         Compare memberships <ChevronRight className="w-4 h-4" />
@@ -223,11 +223,11 @@ export function StatTile({
         <>
             <div className="flex items-start gap-2 text-slate-500">
                 {icon ? <span className="w-4 h-4 shrink-0 mt-px">{icon}</span> : null}
-                <span className="text-[1.0625rem] font-semibold uppercase tracking-wide
+                <span className="text-ui-caption font-semibold uppercase tracking-wide
                                  leading-snug break-words min-w-0">{label}</span>
             </div>
             <p className={`text-[1.375rem] sm:text-[1.75rem] font-bold mt-1 sm:mt-2 tabular-nums break-words ${TONES[tone]}`}>{value}</p>
-            {hint ? <p className="text-[1.0625rem] text-slate-400 mt-0.5 leading-snug break-words">{hint}</p> : null}
+            {hint ? <p className="text-ui-caption text-slate-400 mt-0.5 leading-snug break-words">{hint}</p> : null}
         </>
     );
 
@@ -313,16 +313,16 @@ export function MembershipGate({
 
                 <div className="min-w-0 flex-1">
                     <h3 className={`${CARD_TITLE} text-slate-900`}>{title}</h3>
-                    <p className="text-[1.1875rem] text-slate-600 mt-2 leading-relaxed max-w-2xl">{detail}</p>
+                    <p className="text-ui-small text-slate-600 mt-2 leading-relaxed max-w-2xl">{detail}</p>
 
                     {cta.detail ? (
-                        <p className="text-[1.0625rem] text-blue-700 font-medium mt-3">{cta.detail}</p>
+                        <p className="text-ui-caption text-blue-700 font-medium mt-3">{cta.detail}</p>
                     ) : null}
 
                     <Link
                         to={cta.to}
                         className="inline-flex items-center gap-1.5 mt-4 bg-blue-600 hover:bg-blue-700
-                                   text-white text-[1.1875rem] font-bold px-5 py-2.5 rounded-xl shadow-sm
+                                   text-white text-ui-small font-bold px-5 py-2.5 rounded-xl shadow-sm
                                    transition-colors"
                     >
                         {cta.label} <ChevronRight className="w-4 h-4" />
@@ -364,15 +364,15 @@ export function GateBenefit({
             </span>
             <span className="min-w-0">
                 <span className="flex items-center gap-2">
-                    <span className="text-[1.1875rem] font-bold text-slate-900 leading-tight">{title}</span>
+                    <span className="text-ui-small font-bold text-slate-900 leading-tight">{title}</span>
                     {open ? (
-                        <span className="text-[1.0625rem] font-bold uppercase tracking-wide text-emerald-700
+                        <span className="text-ui-caption font-bold uppercase tracking-wide text-emerald-700
                                          bg-emerald-100 rounded-full px-1.5 py-0.5 shrink-0">
                             Open now
                         </span>
                     ) : null}
                 </span>
-                <span className="block text-[1.0625rem] text-slate-500 mt-0.5 leading-snug">{detail}</span>
+                <span className="block text-ui-caption text-slate-500 mt-0.5 leading-snug">{detail}</span>
             </span>
         </li>
     );

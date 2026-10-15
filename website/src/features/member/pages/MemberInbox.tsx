@@ -151,7 +151,7 @@ function PaneWelcome({ title, detail, children }: { title: string; detail: strin
                 <p className="mt-5 text-[1.375rem] sm:text-[1.5rem] font-extrabold tracking-tight text-slate-900">
                     {title}
                 </p>
-                <p className="mx-auto mt-1.5 max-w-[26rem] text-[1.0625rem] sm:text-[1.125rem] leading-relaxed text-slate-500">
+                <p className="mx-auto mt-1.5 max-w-[26rem] text-ui-caption sm:text-[1.125rem] leading-relaxed text-slate-500">
                     {detail}
                 </p>
                 {children}
@@ -161,7 +161,7 @@ function PaneWelcome({ title, detail, children }: { title: string; detail: strin
 }
 
 const FIND_MEMBER = 'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0b1f4d] to-blue-600 '
-    + 'px-5 h-11 text-[1.0625rem] font-bold text-white shadow-sm transition hover:brightness-110';
+    + 'px-5 h-11 text-ui-caption font-bold text-white shadow-sm transition hover:brightness-110';
 
 const PLUMBING =/route .* not found|network error|request failed|<!doctype|404|500|502|503|504|ECONNREFUSED|timeout of/i;
 
@@ -391,7 +391,7 @@ export default function MemberInbox() {
             {error ? (
                 <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
                     <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[1.1875rem] font-medium text-amber-800">{error}</p>
+                    <p className="text-ui-small font-medium text-amber-800">{error}</p>
                 </div>
             ) : null}
 
@@ -413,7 +413,7 @@ export default function MemberInbox() {
                             <Inbox className="h-5 w-5" />
                         </span>
                         <span className="min-w-0 flex-1">
-                            <span className="block text-[1.1875rem] font-extrabold text-slate-900">Conversations</span>
+                            <span className="block text-ui-small font-extrabold text-slate-900">Conversations</span>
                             <span className="block text-[0.9375rem] font-medium text-slate-500">
                                 {conversations.length === 0
                                     ? 'None yet'
@@ -451,26 +451,26 @@ export default function MemberInbox() {
                                                     ${c.id === openId ? 'bg-blue-50' : ''}`}
                                     >
                                         <span className="shrink-0 w-10 h-10 rounded-xl bg-blue-600 text-white
-                                                         text-[1.1875rem] font-bold flex items-center justify-center">
+                                                         text-ui-small font-bold flex items-center justify-center">
                                             {initialsOf(c.withMember?.fullName || '')}
                                         </span>
                                         <span className="min-w-0 flex-1">
                                             <span className="flex items-center justify-between gap-2">
-                                                <span className="text-[1.1875rem] font-bold text-slate-900 truncate">
+                                                <span className="text-ui-small font-bold text-slate-900 truncate">
                                                     {c.withMember?.fullName || 'Member'}
                                                 </span>
-                                                <span className="text-[1.0625rem] font-medium text-slate-400 shrink-0">
+                                                <span className="text-ui-caption font-medium text-slate-400 shrink-0">
                                                     {timeOf(c.lastMessageAt)}
                                                 </span>
                                             </span>
                                             <span className="flex items-center justify-between gap-2 mt-0.5">
-                                                <span className="text-[1.0625rem] font-medium text-slate-500 truncate">
+                                                <span className="text-ui-caption font-medium text-slate-500 truncate">
                                                     {c.lastMessageMine ? 'You: ' : ''}
                                                     {c.lastMessageText || 'No messages yet'}
                                                 </span>
                                                 {c.unread > 0 ? (
                                                     <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full
-                                                                     bg-blue-600 text-white text-[1.0625rem]
+                                                                     bg-blue-600 text-white text-ui-caption
                                                                      font-bold flex items-center justify-center">
                                                         {c.unread}
                                                     </span>
@@ -494,7 +494,7 @@ export default function MemberInbox() {
                                     <Lock className="h-5 w-5" />
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block text-[1.1875rem] font-extrabold text-slate-900">Private messages</span>
+                                    <span className="block text-ui-small font-extrabold text-slate-900">Private messages</span>
                                     <span className="block truncate text-[0.9375rem] font-medium text-slate-500">
                                         Between you and one fellow member — nobody else reads them
                                     </span>
@@ -514,7 +514,7 @@ export default function MemberInbox() {
                                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
                                                     <Icon className="h-[1.125rem] w-[1.125rem]" />
                                                 </span>
-                                                <span className="mt-2.5 block min-h-[2.75em] text-[1.0625rem] font-bold leading-snug text-slate-900">
+                                                <span className="mt-2.5 block min-h-[2.75em] text-ui-caption font-bold leading-snug text-slate-900">
                                                     {opener.label}
                                                 </span>
                                                 <span className="mt-1 block text-[0.9375rem] leading-snug text-slate-500">
@@ -544,16 +544,16 @@ export default function MemberInbox() {
                                     <ArrowLeft className="w-4 h-4" />
                                 </button>
                                 <span className="shrink-0 w-10 h-10 rounded-xl bg-blue-600 text-white
-                                                 text-[1.1875rem] font-bold flex items-center justify-center">
+                                                 text-ui-small font-bold flex items-center justify-center">
                                     {initialsOf(peerName)}
                                 </span>
                                 <span className="min-w-0">
-                                    <span className="block text-[1.25rem] font-extrabold tracking-tight
+                                    <span className="block text-ui-body font-extrabold tracking-tight
                                                      text-slate-900 truncate">
                                         {peerName}
                                     </span>
                                     {peerWhere ? (
-                                        <span className="block text-[1.1875rem] font-medium text-slate-500 truncate">
+                                        <span className="block text-ui-small font-medium text-slate-500 truncate">
                                             {peerWhere}
                                         </span>
                                     ) : null}
@@ -575,7 +575,7 @@ export default function MemberInbox() {
                                 </div>
                             ) : messages.length === 0 ? (
                                 <div className="flex-1 flex items-center justify-center px-5">
-                                    <p className="text-center text-[1.1875rem] font-bold text-slate-500">
+                                    <p className="text-center text-ui-small font-bold text-slate-500">
                                         No messages yet. Say hello.
                                     </p>
                                 </div>
@@ -623,12 +623,12 @@ export default function MemberInbox() {
                                                     for a picture sent without a caption — an
                                                     empty paragraph is a gap under the image. */}
                                                 {m.body ? (
-                                                    <p className="text-[1.1875rem] leading-relaxed whitespace-pre-wrap
+                                                    <p className="text-ui-small leading-relaxed whitespace-pre-wrap
                                                                   break-words">
                                                         {m.body}
                                                     </p>
                                                 ) : null}
-                                                <p className={`text-[1.0625rem] mt-1 ${
+                                                <p className={`text-ui-caption mt-1 ${
                                                     m.mine ? 'text-blue-100' : 'text-slate-400'}`}>
                                                     {timeOf(m.at)}
                                                 </p>
@@ -670,10 +670,10 @@ export default function MemberInbox() {
                             {!threadLoading && messages.length === 0 && !draft.trim() && (
                                 <div className="shrink-0 overflow-y-auto border-t border-slate-200
                                                 bg-white px-4 py-4">
-                                    <p className="mb-1 text-[1.25rem] font-bold text-slate-900">
+                                    <p className="mb-1 text-ui-body font-bold text-slate-900">
                                         What is it about?
                                     </p>
-                                    <p className="mb-3 text-[1.1875rem] text-slate-500">
+                                    <p className="mb-3 text-ui-small text-slate-500">
                                         Pick one to start. It goes in the box below for you to change
                                         before you send it.
                                     </p>
@@ -693,10 +693,10 @@ export default function MemberInbox() {
                                                            text-left transition-colors hover:border-blue-400
                                                            hover:bg-blue-50"
                                             >
-                                                <span className="block text-[1.1875rem] font-bold text-slate-900">
+                                                <span className="block text-ui-small font-bold text-slate-900">
                                                     {opener.label}
                                                 </span>
-                                                <span className="mt-0.5 block text-[1.0625rem] leading-snug
+                                                <span className="mt-0.5 block text-ui-caption leading-snug
                                                                  text-slate-500">
                                                     {opener.hint}
                                                 </span>
@@ -713,7 +713,7 @@ export default function MemberInbox() {
                             {!threadLoading && messages.length > 0 && !draft.trim() && !picture && (
                                 <div className="shrink-0 border-t border-slate-200 bg-white px-3 pb-1 pt-2.5">
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                        <span className="text-[1.0625rem] font-bold uppercase tracking-wider
+                                        <span className="text-ui-caption font-bold uppercase tracking-wider
                                                          text-slate-400">
                                             Start with
                                         </span>
@@ -729,7 +729,7 @@ export default function MemberInbox() {
                                                     ),
                                                 )}
                                                 className="rounded-full border border-slate-200 bg-white px-3 py-1.5
-                                                           text-[1.0625rem] font-semibold text-slate-600
+                                                           text-ui-caption font-semibold text-slate-600
                                                            transition-colors hover:border-blue-400
                                                            hover:bg-blue-50 hover:text-blue-700"
                                             >
@@ -758,10 +758,10 @@ export default function MemberInbox() {
                                             className="h-16 w-16 shrink-0 rounded-lg object-cover"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-[1.1875rem] font-semibold text-slate-800">
+                                            <p className="truncate text-ui-small font-semibold text-slate-800">
                                                 {picture.file.name}
                                             </p>
-                                            <p className="text-[1.0625rem] text-slate-500">
+                                            <p className="text-ui-caption text-slate-500">
                                                 Ready to send — a caption is optional.
                                             </p>
                                         </div>
@@ -866,7 +866,7 @@ export default function MemberInbox() {
                                        text. 18px here read as a smaller screen
                                        than the ones on either side of it. */
                                     className="flex-1 resize-none rounded-xl border border-slate-200 bg-white
-                                               px-4 py-3 text-[1.25rem] text-slate-900 outline-none
+                                               px-4 py-3 text-ui-body text-slate-900 outline-none
                                                transition-colors placeholder:text-slate-400
                                                focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                                                max-h-36"
@@ -879,7 +879,7 @@ export default function MemberInbox() {
                                     type="submit"
                                     disabled={(!draft.trim() && !picture) || sending}
                                     className="shrink-0 inline-flex items-center justify-center gap-2 h-11 px-4
-                                               rounded-xl bg-blue-600 text-[1.1875rem] font-bold text-white shadow-sm
+                                               rounded-xl bg-blue-600 text-ui-small font-bold text-white shadow-sm
                                                transition-colors hover:bg-blue-700 disabled:opacity-50"
                                 >
                                     {sending

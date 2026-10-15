@@ -466,7 +466,7 @@ export function GallerySection() {
                                       * reason: a missing name is information, and a
                                       * hole where a name goes reads as a broken card.
                                       */}
-                                    <h3 className="text-[1.0625rem] sm:text-[1.3125rem] font-extrabold text-[#111827] leading-snug break-words
+                                    <h3 className="text-ui-caption sm:text-[1.3125rem] font-extrabold text-[#111827] leading-snug break-words
                                                    line-clamp-2 group-hover:text-brand-600 transition-colors">
                                         {card.title || 'Untitled album'}
                                     </h3>
@@ -497,7 +497,7 @@ export function GallerySection() {
                                       * up whatever the editor filled in.
                                       */}
                                     <div className="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-1.5 border-t border-gray-100 pt-3 sm:pt-4">
-                                        <div className="min-w-0 flex flex-col gap-1.5 text-gray-500 text-[0.9375rem] sm:text-[1.0625rem] font-medium">
+                                        <div className="min-w-0 flex flex-col gap-1.5 text-gray-500 text-[0.9375rem] sm:text-ui-caption font-medium">
                                             {card.eventDate && (
                                                 <span className="flex items-center gap-1.5">
                                                     <Calendar size={15} className="shrink-0 text-gray-400" />

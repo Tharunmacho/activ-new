@@ -11,7 +11,7 @@ import { SectionFields } from '@/components/shared/SectionFields';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 
 /** The home page's band copy, for the rows added to those bands. */
-const BAND_PROSE = 'text-[1.125rem] sm:text-[1.25rem] font-medium leading-relaxed text-gray-600';
+const BAND_PROSE = 'text-[1.125rem] sm:text-ui-body font-medium leading-relaxed text-gray-600';
 
 /**
  * The home page.
@@ -74,14 +74,14 @@ export default function Hero() {
                 <div className="w-full border-b border-amber-200 bg-amber-50">
                     <div className="mx-auto flex w-full max-w-[90rem] flex-col gap-3 px-4 sm:px-6 py-4
                                     sm:flex-row sm:items-center sm:justify-between lg:px-10">
-                        <p className="text-[1.0625rem] font-semibold text-amber-900">
+                        <p className="text-ui-caption font-semibold text-amber-900">
                             The page content could not be loaded just now — the site is up but
                             its content service did not answer.
                         </p>
                         <button
                             type="button"
                             onClick={() => window.location.reload()}
-                            className="shrink-0 rounded-full bg-amber-900 px-5 py-2 text-[1.0625rem]
+                            className="shrink-0 rounded-full bg-amber-900 px-5 py-2 text-ui-caption
                                        font-bold text-white transition-colors hover:bg-amber-800"
                         >
                             Try again

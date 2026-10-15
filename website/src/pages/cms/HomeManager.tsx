@@ -357,7 +357,7 @@ export default function HomeManager() {
                     <CmsStep sectionKey="carousel.buttons" ownFields={false} step="Banner 2" title="Buttons" hint="Leave a label blank to hide that button.">
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-3 border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-3 sm:p-4">
-                                <p className="text-[1.0625rem] font-semibold uppercase tracking-wider text-neutral-400">Primary</p>
+                                <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400">Primary</p>
                                 <CmsField label="Label" hint="Leave blank to hide this button.">
                                     <CmsInput
                                         value={carousel.ctaLabel}
@@ -376,7 +376,7 @@ export default function HomeManager() {
                             </div>
 
                             <div className="space-y-3 border border-slate-200 dark:border-[#2a2a2a] rounded-lg p-3 sm:p-4">
-                                <p className="text-[1.0625rem] font-semibold uppercase tracking-wider text-neutral-400">Secondary</p>
+                                <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400">Secondary</p>
                                 <CmsField label="Label" hint="Leave blank to hide this button.">
                                     <CmsInput
                                         value={carousel.secondaryCtaLabel}
@@ -478,7 +478,7 @@ export default function HomeManager() {
                               opens that event's page. Manage which images qualify at /cms/gallery — the house button
                               on a row keeps it out of the banner."
                         actions={
-                            <label className="flex items-center gap-2 text-[1.1875rem] text-slate-600 dark:text-neutral-300 shrink-0">
+                            <label className="flex items-center gap-2 text-ui-small text-slate-600 dark:text-neutral-300 shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={carousel.galleryPosters.enabled}
@@ -503,7 +503,7 @@ export default function HomeManager() {
                           * the same field the Gallery screen's own button sets.
                           */}
                         <div className="mb-6 border-b border-slate-100 pb-6 dark:border-[#1a1a1a]">
-                            <p className="mb-3 text-[1.1875rem] font-extrabold text-slate-900 dark:text-white">
+                            <p className="mb-3 text-ui-small font-extrabold text-slate-900 dark:text-white">
                                 Which images ride the banner
                             </p>
                             <HomeGalleryPicker />
@@ -513,7 +513,7 @@ export default function HomeManager() {
                             event's banner switch is `showInBanner`, its own
                             field; the events strip lower down is `showOnHome`. */}
                         <div className="mb-6 border-b border-slate-100 pb-6 dark:border-[#1a1a1a]">
-                            <p className="mb-3 text-[1.1875rem] font-extrabold text-slate-900 dark:text-white">
+                            <p className="mb-3 text-ui-small font-extrabold text-slate-900 dark:text-white">
                                 Which events ride the banner
                             </p>
                             <HomeEventBannerPicker />
@@ -533,7 +533,7 @@ export default function HomeManager() {
                                         },
                                     })}
                                     className="w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a]
-                                               rounded-lg px-3 py-2 text-[1.1875rem] text-slate-900 dark:text-neutral-100"
+                                               rounded-lg px-3 py-2 text-ui-small text-slate-900 dark:text-neutral-100"
                                 >
                                     <option value="after">After the slides above</option>
                                     <option value="before">Before the slides above</option>
@@ -556,7 +556,7 @@ export default function HomeManager() {
                         title="Highlight card"
                         hint="Overlaps the bottom edge of the banner."
                         actions={
-                            <label className="flex items-center gap-2 text-[1.1875rem] text-slate-600 dark:text-neutral-300 shrink-0">
+                            <label className="flex items-center gap-2 text-ui-small text-slate-600 dark:text-neutral-300 shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={card.enabled}
@@ -596,7 +596,7 @@ export default function HomeManager() {
                                 </CmsField>
 
                                 <div>
-                                    <p className="text-[1.1875rem] font-medium text-slate-700 dark:text-neutral-300 mb-3">
+                                    <p className="text-ui-small font-medium text-slate-700 dark:text-neutral-300 mb-3">
                                         Figures on the right
                                     </p>
                                     <StatList
@@ -770,7 +770,7 @@ export default function HomeManager() {
                             actions={
                                 <a
                                     href="/cms/events"
-                                    className="shrink-0 rounded-lg px-3 py-1.5 text-[1.0625rem] font-semibold
+                                    className="shrink-0 rounded-lg px-3 py-1.5 text-ui-caption font-semibold
                                                text-blue-700 transition-colors hover:bg-blue-50
                                                dark:text-blue-400 dark:hover:bg-blue-950/40"
                                 >
@@ -788,7 +788,7 @@ export default function HomeManager() {
                                     hint="Every upcoming event on the Events page appears here automatically — post an event once, in Events, and it is on both pages. There is nothing to switch on or off."
                                 >
                                     <a href="/cms/events"
-                                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-[1.0625rem]
+                                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-ui-caption
                                                   font-semibold text-blue-700 transition-colors hover:bg-blue-50 dark:border-[#2a2a2a] dark:text-blue-400">
                                         Open the Events screen
                                     </a>
@@ -907,7 +907,7 @@ export default function HomeManager() {
                             title="Across India band"
                             hint="The region tiles above the footer — on every public page, not just this one."
                             actions={
-                                <label className="flex items-center gap-2 text-[1.1875rem] text-slate-600 dark:text-neutral-300 shrink-0">
+                                <label className="flex items-center gap-2 text-ui-small text-slate-600 dark:text-neutral-300 shrink-0">
                                     <input
                                         type="checkbox"
                                         checked={site.acrossIndia.enabled}

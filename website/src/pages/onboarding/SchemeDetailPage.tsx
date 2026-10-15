@@ -41,7 +41,7 @@ import { SCHEME_COLUMN, SchemeCard, externalHref, schemeWhere, slugifyRegion } f
  * is exactly what the editor wrote.
  */
 
-const PARAGRAPH = 'text-[1.125rem] sm:text-[1.1875rem] leading-[1.75] text-gray-700';
+const PARAGRAPH = 'text-[1.125rem] sm:text-ui-small leading-[1.75] text-gray-700';
 
 const paragraphs = (text?: string) => String(text || '')
     .split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -165,7 +165,7 @@ export default function SchemeDetailPage() {
                         type="button"
                         onClick={goBack}
                         className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2
-                                   text-[1.0625rem] font-bold text-brand-700 transition-colors hover:border-brand-200
+                                   text-ui-caption font-bold text-brand-700 transition-colors hover:border-brand-200
                                    hover:bg-brand-50"
                     >
                         <ArrowLeft size={16} /> Back
@@ -194,7 +194,7 @@ export default function SchemeDetailPage() {
                             It may have been withdrawn, or the link may be out of date.
                         </p>
                         <Link to="/schemes/central"
-                              className="mt-6 inline-flex rounded-full bg-brand-800 px-5 py-2.5 text-[1.0625rem] font-bold text-white hover:bg-brand-700">
+                              className="mt-6 inline-flex rounded-full bg-brand-800 px-5 py-2.5 text-ui-caption font-bold text-white hover:bg-brand-700">
                             Central schemes
                         </Link>
                     </div>
@@ -243,7 +243,7 @@ export default function SchemeDetailPage() {
                                 </h1>
 
                                 {scheme.summary && (
-                                    <p className="mt-5 border-l-4 border-brand-200 pl-4 sm:pl-5 text-[1.1875rem] sm:text-[1.25rem]
+                                    <p className="mt-5 border-l-4 border-brand-200 pl-4 sm:pl-5 text-ui-small sm:text-ui-body
                                                   font-semibold leading-relaxed text-gray-700">
                                         {scheme.summary}
                                     </p>
@@ -293,13 +293,13 @@ export default function SchemeDetailPage() {
                                         {docUrl && (
                                             <a href={docUrl} target="_blank" rel="noopener noreferrer"
                                                className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5
-                                                          text-[1.0625rem] font-bold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-50">
+                                                          text-ui-caption font-bold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-50">
                                                 <Download size={16} /> Notification / guidelines
                                             </a>
                                         )}
                                         <button type="button" onClick={share}
                                                 className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5
-                                                           text-[1.0625rem] font-bold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-50">
+                                                           text-ui-caption font-bold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-50">
                                             <Share2 size={16} /> Share this scheme
                                         </button>
                                     </div>
@@ -392,7 +392,7 @@ export default function SchemeDetailPage() {
                                             {docs.map((doc, i) => (
                                                 <li key={i} className="flex items-start gap-2.5 rounded-xl border border-gray-100 bg-gray-50/70 px-4 py-3">
                                                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-600" />
-                                                    <span className="text-[1.0625rem] leading-relaxed text-gray-700">{doc}</span>
+                                                    <span className="text-ui-caption leading-relaxed text-gray-700">{doc}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -457,7 +457,7 @@ export default function SchemeDetailPage() {
                                     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
                                         <h2 className="text-[1.5rem] sm:text-[1.75rem] font-black tracking-tight text-brand-900">More schemes like this</h2>
                                         <Link to={parent.to}
-                                              className="inline-flex items-center gap-1.5 text-[1.0625rem] font-bold text-brand-700 hover:text-brand-900">
+                                              className="inline-flex items-center gap-1.5 text-ui-caption font-bold text-brand-700 hover:text-brand-900">
                                             All {parent.label.toLowerCase()} <ArrowRight size={15} />
                                         </Link>
                                     </div>
@@ -482,7 +482,7 @@ function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; va
             <span className="mt-0.5 shrink-0 text-brand-500">{icon}</span>
             <div className="min-w-0">
                 <dt className="text-[0.9375rem] font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
-                <dd className="mt-0.5 whitespace-pre-line break-words text-[1.0625rem] font-semibold text-gray-800">{value}</dd>
+                <dd className="mt-0.5 whitespace-pre-line break-words text-ui-caption font-semibold text-gray-800">{value}</dd>
             </div>
         </div>
     );

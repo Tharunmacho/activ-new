@@ -257,8 +257,8 @@ const EditProduct = () => {
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-44 sm:h-52 px-4 text-center">
                                         <ImagePlus className="h-9 w-9 text-slate-400 mb-2.5" />
-                                        <p className="text-[1.25rem] font-semibold text-slate-700">Add a picture</p>
-                                        <p className="text-[1.1875rem] text-slate-500 mt-1">JPG or PNG, max 5MB</p>
+                                        <p className="text-ui-body font-semibold text-slate-700">Add a picture</p>
+                                        <p className="text-ui-small text-slate-500 mt-1">JPG or PNG, max 5MB</p>
                                     </div>
                                 )}
                             </label>
@@ -270,7 +270,7 @@ const EditProduct = () => {
                                 className="hidden"
                             />
                             {imagePreview ? (
-                                <p className="text-[1.1875rem] text-slate-500 mt-2 text-center">
+                                <p className="text-ui-small text-slate-500 mt-2 text-center">
                                     Click the image to change it
                                 </p>
                             ) : null}

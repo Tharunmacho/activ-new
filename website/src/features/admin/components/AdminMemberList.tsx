@@ -100,8 +100,8 @@ export default function AdminMemberList({
             <div className={`${shell} py-10 sm:py-16`}>
                 <div className="flex flex-col items-center px-4 text-center">
                     <Users className="mb-3 h-10 w-10 text-slate-300" />
-                    <p className="text-[1.25rem] font-semibold text-slate-700">No members here</p>
-                    {emptyHint ? <p className="mt-1 text-[1.0625rem] text-slate-500">{emptyHint}</p> : null}
+                    <p className="text-ui-body font-semibold text-slate-700">No members here</p>
+                    {emptyHint ? <p className="mt-1 text-ui-caption text-slate-500">{emptyHint}</p> : null}
                 </div>
             </div>
         );

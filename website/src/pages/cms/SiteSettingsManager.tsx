@@ -257,7 +257,7 @@ export default function SiteSettingsManager() {
                                 style={{ backgroundColor: site.header.background || '#ffffff' }}
                             >
                                 <span
-                                    className="text-[1.0625rem] font-bold uppercase tracking-wider whitespace-nowrap"
+                                    className="text-ui-caption font-bold uppercase tracking-wider whitespace-nowrap"
                                     style={{ color: site.header.textColor || '#1c2e68' }}
                                 >
                                     {site.brand.fullName || 'Your organisation'}
@@ -266,7 +266,7 @@ export default function SiteSettingsManager() {
                                     {(site.header.navLinks || []).slice(0, 4).map((item, i) => (
                                         <span
                                             key={i}
-                                            className="text-[1.0625rem] font-medium"
+                                            className="text-ui-caption font-medium"
                                             style={{ color: site.header.textColor || '#1c2e68' }}
                                         >
                                             {item.label || 'Link'}
@@ -274,7 +274,7 @@ export default function SiteSettingsManager() {
                                     ))}
                                     {site.header.ctaLabel && (
                                         <span
-                                            className="text-[1.0625rem] font-medium text-white px-4 py-1.5 rounded-full"
+                                            className="text-ui-caption font-medium text-white px-4 py-1.5 rounded-full"
                                             style={{ backgroundColor: site.header.textColor || '#1c2e68' }}
                                         >
                                             {site.header.ctaLabel}
@@ -329,13 +329,13 @@ export default function SiteSettingsManager() {
                                 </span>
 
                                 <div className="min-w-0 flex-1 basis-[12rem]">
-                                    <p className="text-[1.25rem] font-bold text-slate-900 dark:text-white">
+                                    <p className="text-ui-body font-bold text-slate-900 dark:text-white">
                                         Zones
-                                        <span className="ml-2 text-[1.0625rem] font-semibold text-slate-400">
+                                        <span className="ml-2 text-ui-caption font-semibold text-slate-400">
                                             always last
                                         </span>
                                     </p>
-                                    <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                                    <p className="text-ui-caption text-slate-500 dark:text-neutral-400">
                                         A menu of the national page, the five zones and their states —
                                         built from the pages themselves, so publishing one adds it here.
                                     </p>
@@ -343,7 +343,7 @@ export default function SiteSettingsManager() {
 
                                 <a
                                     href="/cms/regions"
-                                    className="shrink-0 rounded-lg px-3 py-1.5 text-[1.0625rem] font-semibold
+                                    className="shrink-0 rounded-lg px-3 py-1.5 text-ui-caption font-semibold
                                                text-blue-700 transition-colors hover:bg-blue-50
                                                dark:text-blue-400 dark:hover:bg-blue-950/40"
                                 >
@@ -414,9 +414,9 @@ export default function SiteSettingsManager() {
                                         className="h-10 w-auto max-w-[8.75rem] object-contain shrink-0"
                                     />
                                 ) : (
-                                    <span className="text-[1.0625rem] text-neutral-400 shrink-0">No logo set</span>
+                                    <span className="text-ui-caption text-neutral-400 shrink-0">No logo set</span>
                                 )}
-                                <span className="text-[1.0625rem] text-slate-600 dark:text-neutral-300 min-w-0 break-words">
+                                <span className="text-ui-caption text-slate-600 dark:text-neutral-300 min-w-0 break-words">
                                     {site.brand.fullName || 'No name set'}
                                 </span>
                             </div>
@@ -567,7 +567,7 @@ export default function SiteSettingsManager() {
                               * from the screen named after it.
                               */}
                             <div className="mt-5">
-                                <p className="text-[1.1875rem] font-medium text-slate-700 dark:text-neutral-300 mb-3">
+                                <p className="text-ui-small font-medium text-slate-700 dark:text-neutral-300 mb-3">
                                     Legal links
                                 </p>
 
@@ -581,20 +581,20 @@ export default function SiteSettingsManager() {
                                                 <Lock className="h-4 w-4" />
                                             </span>
                                             <div className="min-w-0 flex-1 basis-[12rem]">
-                                                <p className="text-[1.25rem] font-bold text-slate-900 dark:text-white">
+                                                <p className="text-ui-body font-bold text-slate-900 dark:text-white">
                                                     Your published policies
-                                                    <span className="ml-2 text-[1.0625rem] font-semibold text-slate-400">
+                                                    <span className="ml-2 text-ui-caption font-semibold text-slate-400">
                                                         always shown
                                                     </span>
                                                 </p>
-                                                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                                                <p className="text-ui-caption text-slate-500 dark:text-neutral-400">
                                                     One row per published policy. Publishing another adds it
                                                     to the footer on its own.
                                                 </p>
                                             </div>
                                             <a
                                                 href="/cms/legal"
-                                                className="shrink-0 rounded-lg px-3 py-1.5 text-[1.0625rem] font-semibold
+                                                className="shrink-0 rounded-lg px-3 py-1.5 text-ui-caption font-semibold
                                                            text-blue-700 transition-colors hover:bg-blue-50
                                                            dark:text-blue-400 dark:hover:bg-blue-950/40"
                                             >
@@ -610,7 +610,7 @@ export default function SiteSettingsManager() {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-flex max-w-full items-center gap-1.5 rounded-lg border
-                                                                   border-slate-200 bg-white px-3 py-2 sm:py-1.5 text-[1.0625rem]
+                                                                   border-slate-200 bg-white px-3 py-2 sm:py-1.5 text-ui-caption
                                                                    font-semibold text-slate-700 transition-colors
                                                                    hover:bg-slate-100 dark:border-[#2a2a2a]
                                                                    dark:bg-[#111] dark:text-neutral-300"
@@ -624,7 +624,7 @@ export default function SiteSettingsManager() {
                                     </div>
                                 )}
 
-                                <p className="mb-2 text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                                <p className="mb-2 text-ui-caption font-medium text-slate-500 dark:text-neutral-400">
                                     Anything else for that row — a regulator, a parent body. These are
                                     yours to type; the policies above look after themselves.
                                 </p>
@@ -644,7 +644,7 @@ export default function SiteSettingsManager() {
                                     (l) => !l.href || l.href.trim() === '#' || l.href.trim().startsWith('#'),
                                 ) && (
                                     <p className="mt-2.5 flex items-start gap-2 rounded-lg border border-amber-200
-                                                  bg-amber-50 px-3 py-2 text-[1.0625rem] font-medium text-amber-900
+                                                  bg-amber-50 px-3 py-2 text-ui-caption font-medium text-amber-900
                                                   dark:border-amber-900/60 dark:bg-amber-950/30
                                                   dark:text-amber-300">
                                         <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />

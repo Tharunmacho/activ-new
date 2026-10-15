@@ -321,7 +321,7 @@ export function HeaderSection() {
                                  * word; a measure just wraps the new words.
                                  */
                                 className="hidden md:block xl:hidden min-[1700px]:block shrink-0
-                                           text-[1rem] lg:text-[1.0625rem] font-bold uppercase
+                                           text-[1rem] lg:text-ui-caption font-bold uppercase
                                            leading-[1.35] tracking-[0.06em] max-w-[21.6em]"
                                 style={{ color: accent }}
                             >
@@ -360,7 +360,7 @@ export function HeaderSection() {
                                           button. With bottom padding only, the
                                           whole nav rode 3px high.
                                         */
-                                        className={`whitespace-nowrap text-[1.0625rem] pt-1.5 pb-1 border-b-2 transition ${
+                                        className={`whitespace-nowrap text-ui-caption pt-1.5 pb-1 border-b-2 transition ${
                                             isActive(item.href)
                                                 ? 'font-semibold'
                                                 : 'font-medium opacity-70 hover:opacity-100'
@@ -398,7 +398,7 @@ export function HeaderSection() {
                                     to={ctaHref}
                                     className="btn-shine group relative inline-flex items-center justify-center gap-2
                                                h-10 min-h-[44px] sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
-                                               text-white text-[0.95rem] sm:text-[1.0625rem] font-semibold whitespace-nowrap
+                                               text-white text-[0.95rem] sm:text-ui-caption font-semibold whitespace-nowrap
                                                shadow-[0_8px_20px_-8px_rgb(28_46_104/0.7)]
                                                transition-transform duration-200 active:scale-95 hover:-translate-y-0.5"
                                     style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
@@ -487,7 +487,7 @@ export function HeaderSection() {
                                             to={item.href || '/'}
                                             aria-current={isActive(item.href) ? 'page' : undefined}
                                             className={`group flex items-center justify-between rounded-2xl px-4 py-3.5
-                                                        text-[1.0625rem] transition-all active:scale-[0.98] ${
+                                                        text-ui-caption transition-all active:scale-[0.98] ${
                                                 isActive(item.href) ? 'font-bold text-white shadow-md' : 'font-semibold hover:bg-slate-50'
                                             }`}
                                             style={isActive(item.href)
@@ -546,7 +546,7 @@ export function HeaderSection() {
                                 <Link
                                     to={ctaHref}
                                     className="btn-shine relative flex items-center justify-center gap-2 overflow-hidden rounded-2xl
-                                               py-3.5 text-[1.0625rem] font-bold text-white shadow-lg transition active:scale-[0.97]"
+                                               py-3.5 text-ui-caption font-bold text-white shadow-lg transition active:scale-[0.97]"
                                     style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
                                 >
                                     <LogIn size={18} /> {ctaLabel}

@@ -37,7 +37,7 @@ import type { LeaderContext } from '@/services/cmsLeaderMessagesApi';
 
 /* The house scale, matched to the business-account and booking screens. */
 export const PANEL_HEADING = 'text-[1.375rem] sm:text-[1.75rem] font-extrabold tracking-tight text-brand-800';
-export const ROW_LABEL = 'text-[1.0625rem] font-bold uppercase tracking-wider text-gray-600';
+export const ROW_LABEL = 'text-ui-caption font-bold uppercase tracking-wider text-gray-600';
 export const CARD =
     'rounded-2xl border border-gray-200 bg-white '
     + 'shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-18px_rgba(28,46,104,0.28)]';
@@ -62,7 +62,7 @@ export function ReadMore({ short, full }: { short: string; full: string }) {
 
     return (
         <div className="max-w-4xl">
-            <p className="text-[1rem] sm:text-[1.0625rem] leading-relaxed font-semibold text-gray-600
+            <p className="text-[1rem] sm:text-ui-caption leading-relaxed font-semibold text-gray-600
                           whitespace-pre-line break-words">
                 {open && hasMore ? full : short || full}
             </p>
@@ -70,7 +70,7 @@ export function ReadMore({ short, full }: { short: string; full: string }) {
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
-                    className="mt-3 inline-flex items-center gap-2 text-[1.0625rem] font-bold
+                    className="mt-3 inline-flex items-center gap-2 text-ui-caption font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     {open ? 'Read Less' : 'Read More'}
@@ -154,7 +154,7 @@ export function HeroCarousel({ slides }: { slides: RegionSlide[] }) {
                        more useful than a blank rectangle that reads as a failed
                        image. */
                     <div className="absolute inset-0 flex items-center justify-center
-                                    text-[1.25rem] font-semibold text-gray-400 px-6 text-center">
+                                    text-ui-body font-semibold text-gray-400 px-6 text-center">
                         No photograph has been added to this slide yet.
                     </div>
                 )}
@@ -200,7 +200,7 @@ export function HeroCarousel({ slides }: { slides: RegionSlide[] }) {
             </div>
 
             {slide.caption && (
-                <p className="px-5 py-4 text-[1.0625rem] leading-relaxed font-semibold text-gray-600
+                <p className="px-5 py-4 text-ui-caption leading-relaxed font-semibold text-gray-600
                               border-t border-gray-100">
                     {slide.caption}
                 </p>
@@ -285,7 +285,7 @@ export function LeadershipPanel({ title, leaders }: { title: string; leaders: Re
 
                         <div className="min-w-0 break-words">
                         {person.name && (
-                            <p className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-900">
+                            <p className="text-ui-body sm:text-ui-caption font-extrabold text-brand-900">
                                 {person.name}
                             </p>
                         )}
@@ -306,12 +306,12 @@ export function LeadershipPanel({ title, leaders }: { title: string; leaders: Re
                             </span>
                         )}
                         {person.designation && (
-                            <p className="text-[1.0625rem] font-semibold text-gray-600 mt-1">
+                            <p className="text-ui-caption font-semibold text-gray-600 mt-1">
                                 {person.designation}
                             </p>
                         )}
                         {person.organisation && (
-                            <p className="text-[1.0625rem] font-semibold text-gray-600">
+                            <p className="text-ui-caption font-semibold text-gray-600">
                                 {/* "and" on its own line, the way the association
                                     prints it — the designation and the day job
                                     are two facts, not one sentence. */}
@@ -320,12 +320,12 @@ export function LeadershipPanel({ title, leaders }: { title: string; leaders: Re
                             </p>
                         )}
                         {person.bio && (
-                            <p className="text-[1.25rem] text-gray-500 mt-2 leading-relaxed line-clamp-2">
+                            <p className="text-ui-body text-gray-500 mt-2 leading-relaxed line-clamp-2">
                                 {person.bio}
                             </p>
                         )}
                         {person.bio && (
-                            <span className="mt-1.5 inline-block text-[1.0625rem] font-bold text-brand-600">
+                            <span className="mt-1.5 inline-block text-ui-caption font-bold text-brand-600">
                                 Read profile
                             </span>
                         )}
@@ -468,12 +468,12 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                     )}
 
                     {person.designation && (
-                        <p className="mt-2.5 text-[1.0625rem] font-semibold leading-snug text-brand-600">
+                        <p className="mt-2.5 text-ui-caption font-semibold leading-snug text-brand-600">
                             {person.designation}
                         </p>
                     )}
                     {person.organisation && (
-                        <p className="mt-1 text-[1.0625rem] font-medium leading-snug text-gray-500">
+                        <p className="mt-1 text-ui-caption font-medium leading-snug text-gray-500">
                             {person.organisation}
                         </p>
                     )}
@@ -486,7 +486,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                                 <p>
                                     <a
                                         href={`mailto:${person.email}`}
-                                        className="inline-flex max-w-full items-center gap-2 break-all text-[1.0625rem]
+                                        className="inline-flex max-w-full items-center gap-2 break-all text-ui-caption
                                                    font-semibold text-gray-600 transition-colors
                                                    hover:text-brand-700"
                                     >
@@ -499,7 +499,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                                 <p>
                                     <a
                                         href={`tel:${person.phone}`}
-                                        className="inline-flex items-center gap-2 text-[1.0625rem]
+                                        className="inline-flex items-center gap-2 text-ui-caption
                                                    font-semibold text-gray-600 transition-colors
                                                    hover:text-brand-700"
                                     >
@@ -509,7 +509,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                                 </p>
                             )}
                             {person.address && (
-                                <p className="text-[1rem] sm:text-[1.25rem] font-medium leading-relaxed text-gray-500
+                                <p className="text-[1rem] sm:text-ui-body font-medium leading-relaxed text-gray-500
                                               whitespace-pre-line">
                                     {person.address}
                                 </p>
@@ -518,7 +518,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                     )}
 
                     {person.bio && (
-                        <p className="mt-5 border-t border-gray-100 pt-4 text-[1.0625rem]
+                        <p className="mt-5 border-t border-gray-100 pt-4 text-ui-caption
                                       leading-relaxed font-medium text-gray-600 whitespace-pre-line">
                             {person.bio}
                         </p>
@@ -604,7 +604,7 @@ export function AchievementBand({ items, title = 'Achievements' }: {
                             {row.title}
                         </p>
                         {row.summary && (
-                            <p className="mt-2 sm:mt-2.5 break-words text-[0.9375rem] sm:text-[1.0625rem] font-semibold leading-relaxed text-gray-600">
+                            <p className="mt-2 sm:mt-2.5 break-words text-[0.9375rem] sm:text-ui-caption font-semibold leading-relaxed text-gray-600">
                                 {row.summary}
                             </p>
                         )}
@@ -653,7 +653,7 @@ export function GalleryStrip({ state, region, title = 'Photo Gallery', href }: {
                 <h2 className={PANEL_HEADING}>{title}</h2>
                 <Link
                     to={href}
-                    className="inline-flex items-center gap-2 text-[1.0625rem] font-bold
+                    className="inline-flex items-center gap-2 text-ui-caption font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     <Images size={15} /> See all photographs
@@ -676,7 +676,7 @@ export function GalleryStrip({ state, region, title = 'Photo Gallery', href }: {
                             />
                         </div>
                         {photo.title && (
-                            <p className="px-3 py-2.5 sm:px-4 sm:py-3 text-[0.9375rem] sm:text-[1.25rem] font-bold text-brand-800 line-clamp-2 break-words">
+                            <p className="px-3 py-2.5 sm:px-4 sm:py-3 text-[0.9375rem] sm:text-ui-body font-bold text-brand-800 line-clamp-2 break-words">
                                 {photo.title}
                             </p>
                         )}
@@ -730,7 +730,7 @@ export function FeedList({
             {title && <h2 className={`${PANEL_HEADING} mb-4`}>{title}</h2>}
 
             {!rows.length ? (
-                <p className="text-[1.0625rem] font-semibold text-gray-500">{emptyNote}</p>
+                <p className="text-ui-caption font-semibold text-gray-500">{emptyNote}</p>
             ) : (
                 <ul className={`${CARD} divide-y divide-gray-100 overflow-hidden`}>
                     {shown.map((row, i) => (
@@ -746,7 +746,7 @@ export function FeedList({
                                         {[row.date, row.location].filter(Boolean).join(' · ')}
                                     </p>
                                 )}
-                                <p className="text-[1.0625rem] font-extrabold text-brand-900
+                                <p className="text-ui-caption font-extrabold text-brand-900
                                               leading-snug flex items-start gap-2">
                                     <span className="min-w-0 break-words">{row.title}</span>
                                     {row.href && !row.href.startsWith('/') && (
@@ -754,7 +754,7 @@ export function FeedList({
                                     )}
                                 </p>
                                 {row.summary && (
-                                    <p className="mt-1.5 break-words text-[1rem] sm:text-[1.0625rem] leading-relaxed font-semibold
+                                    <p className="mt-1.5 break-words text-[1rem] sm:text-ui-caption leading-relaxed font-semibold
                                                   text-gray-600 line-clamp-3">
                                         {row.summary}
                                     </p>
@@ -768,7 +768,7 @@ export function FeedList({
             {readAllHref && (hasMore || rows.length > 0) && (
                 <Link
                     to={readAllHref}
-                    className="mt-3 inline-flex items-center gap-2 text-[1.0625rem] font-bold
+                    className="mt-3 inline-flex items-center gap-2 text-ui-caption font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     Read All <ArrowRight size={15} />
@@ -801,7 +801,7 @@ export function DatedList({ title, items, limit = 6, readAllHref }: {
                     <li key={row.id || i}>
                         <FeedLink
                             href={row.href}
-                            className={`block break-words px-4 sm:px-5 py-3.5 text-[1.0625rem] font-semibold text-gray-700
+                            className={`block break-words px-4 sm:px-5 py-3.5 text-ui-caption font-semibold text-gray-700
                                         transition-colors ${row.href ? 'hover:bg-brand-50/40' : ''}`}
                         >
                             {row.date && <span className="text-gray-400">{row.date} : </span>}
@@ -813,7 +813,7 @@ export function DatedList({ title, items, limit = 6, readAllHref }: {
             {readAllHref && (
                 <Link
                     to={readAllHref}
-                    className="mt-3 inline-flex items-center gap-2 text-[1.0625rem] font-bold
+                    className="mt-3 inline-flex items-center gap-2 text-ui-caption font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     Read All <ArrowRight size={15} />

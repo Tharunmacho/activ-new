@@ -441,7 +441,7 @@ export default function SuperAdminBookings() {
                                 type="button"
                                 onClick={downloadCsv}
                                 className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl
-                                           bg-emerald-600 text-[1.1875rem] font-semibold text-white shadow-sm
+                                           bg-emerald-600 text-ui-small font-semibold text-white shadow-sm
                                            transition-colors hover:bg-emerald-700 disabled:opacity-60"
                                 disabled={exporting || !eventId}
                             >
@@ -462,7 +462,7 @@ export default function SuperAdminBookings() {
 
                     {/* ---------------------------------------------- picker */}
                     <div className={`${ADMIN_CARD} p-4 sm:p-5`}>
-                        <label className="block text-[1.0625rem] font-semibold uppercase
+                        <label className="block text-ui-caption font-semibold uppercase
                                           tracking-wider text-slate-500 mb-2.5">
                             Event
                         </label>
@@ -552,7 +552,7 @@ export default function SuperAdminBookings() {
                                 onClick={() => setTab(value)}
                                 aria-pressed={tab === value}
                                 className={`flex-1 sm:flex-none min-w-0 inline-flex items-center justify-center gap-1.5 sm:gap-2
-                                            h-12 px-2 sm:px-5 rounded-xl text-[1.125rem] sm:text-[1.25rem] font-semibold whitespace-nowrap
+                                            h-12 px-2 sm:px-5 rounded-xl text-[1.125rem] sm:text-ui-body font-semibold whitespace-nowrap
                                             [&>svg]:hidden sm:[&>svg]:block transition-colors
                                             ${tab === value
                                         ? 'bg-white text-blue-600 shadow-sm'
@@ -561,7 +561,7 @@ export default function SuperAdminBookings() {
                                 {icon}
                                 {label}
                                 {!!count && (
-                                    <span className={`text-[1.1875rem] font-semibold tabular-nums px-2 py-0.5 rounded-lg
+                                    <span className={`text-ui-small font-semibold tabular-nums px-2 py-0.5 rounded-lg
                                                       ${tab === value ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
                                         {count}
                                     </span>
@@ -603,7 +603,7 @@ export default function SuperAdminBookings() {
                                     onClick={() => setPaymentStatus(value)}
                                     aria-pressed={paymentStatus === value}
                                     className={
-                                        'h-12 px-3 sm:px-5 rounded-xl text-[1.25rem] font-semibold transition-colors '
+                                        'h-12 px-3 sm:px-5 rounded-xl text-ui-body font-semibold transition-colors '
                                         + (paymentStatus === value
                                             ? 'bg-blue-600 text-white'
                                             : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50')
@@ -617,7 +617,7 @@ export default function SuperAdminBookings() {
 
                     {error && (
                         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words
-                                        text-[1.25rem] font-semibold text-rose-700">
+                                        text-ui-body font-semibold text-rose-700">
                             {error}
                         </div>
                     )}
@@ -738,7 +738,7 @@ export default function SuperAdminBookings() {
                                                     onClick={() => setPage(n)}
                                                     aria-current={n === pagination.page ? 'page' : undefined}
                                                     className={
-                                                        'h-10 min-w-10 px-2 sm:h-11 sm:min-w-[2.75rem] sm:px-3 rounded-xl text-[1.25rem] font-semibold '
+                                                        'h-10 min-w-10 px-2 sm:h-11 sm:min-w-[2.75rem] sm:px-3 rounded-xl text-ui-body font-semibold '
                                                         + 'transition-colors '
                                                         + (n === pagination.page
                                                             ? 'bg-blue-600 text-white'
@@ -845,7 +845,7 @@ function AttendeePanel({ rows, loading, seatsBooked = 0 }: {
                         {row.name}
                     </div>
                     {row.bookedByName && row.bookedByName !== row.name && (
-                        <div className="text-[1.0625rem] text-slate-500 mt-0.5 truncate">
+                        <div className="text-ui-caption text-slate-500 mt-0.5 truncate">
                             booked by {row.bookedByName}
                         </div>
                     )}
@@ -883,7 +883,7 @@ function AttendeePanel({ rows, loading, seatsBooked = 0 }: {
             hideOnMobile: true,
             sortValue: (row) => row.bookingRef,
             render: (row) => (
-                <span className="font-mono text-[1.0625rem] font-semibold text-slate-500">{row.bookingRef}</span>
+                <span className="font-mono text-ui-caption font-semibold text-slate-500">{row.bookingRef}</span>
             ),
         },
         {
@@ -912,7 +912,7 @@ function AttendeePanel({ rows, loading, seatsBooked = 0 }: {
                                 : row.paymentStatus === 'failed' ? 'Failed' : 'Unpaid'}
                     </AdminChip>
                     {row.isMemberRate && (
-                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-600">
+                        <span className="inline-flex items-center gap-1 text-ui-caption font-semibold text-emerald-600">
                             <BadgePercent className="w-3 h-3" /> Member rate
                         </span>
                     )}
@@ -952,7 +952,7 @@ function AttendeePanel({ rows, loading, seatsBooked = 0 }: {
             empty="Nobody has booked a seat on this event yet."
             footer={!loading && rows.length ? (
                 <div className="px-4 sm:px-5 py-3 sm:py-4 border-t border-slate-100 bg-blue-50/40
-                                text-[1.25rem] font-semibold text-slate-600 flex flex-wrap gap-x-6 gap-y-1">
+                                text-ui-body font-semibold text-slate-600 flex flex-wrap gap-x-6 gap-y-1">
                     <span>
                         <ListChecks className="inline w-4 h-4 mr-1 text-blue-600" />
                         {/* Names, not seats. The list holds the people who were
@@ -1063,11 +1063,11 @@ function BookingDetail(props: {
         if (empty) return null;
         return (
             <div className="py-3 border-b border-slate-100 last:border-0">
-                <dt className="text-[1.0625rem] font-semibold uppercase tracking-wider
+                <dt className="text-ui-caption font-semibold uppercase tracking-wider
                                text-slate-400 mb-1">
                     {label}
                 </dt>
-                <dd className="text-[1.25rem] font-semibold text-slate-800 break-words min-w-0">
+                <dd className="text-ui-body font-semibold text-slate-800 break-words min-w-0">
                     {value}
                 </dd>
             </div>
@@ -1129,7 +1129,7 @@ function BookingDetail(props: {
                         <h2 className={`${CARD_TITLE} text-slate-900 truncate`}>
                             {booking.eventTitle || 'Untitled event'}
                         </h2>
-                        <p className="text-[1.25rem] text-slate-500 mt-0.5 font-mono break-all">
+                        <p className="text-ui-body text-slate-500 mt-0.5 font-mono break-all">
                             {booking.bookingRef}
                         </p>
                     </div>
@@ -1226,7 +1226,7 @@ function BookingDetail(props: {
                                         {['S.No', 'Name', 'Email', 'Mobile'].map((head) => (
                                             <th
                                                 key={head}
-                                                className="px-5 py-4 text-[1.0625rem] font-semibold
+                                                className="px-5 py-4 text-ui-caption font-semibold
                                                            uppercase tracking-wider text-slate-500 whitespace-nowrap"
                                             >
                                                 {head}
@@ -1253,23 +1253,23 @@ function BookingDetail(props: {
                                     {named.map((person, i) => (
                                         <tr key={i} className={`border-b border-slate-100 last:border-0
                                                                 ${i % 2 === 1 ? 'bg-slate-50/60' : ''}`}>
-                                            <td className="px-5 py-4 text-[1.25rem] font-semibold text-slate-400 tabular-nums">
+                                            <td className="px-5 py-4 text-ui-body font-semibold text-slate-400 tabular-nums">
                                                 {i + 1}
                                             </td>
-                                            <td className="px-5 py-4 text-[1.25rem] font-semibold text-slate-900">
+                                            <td className="px-5 py-4 text-ui-body font-semibold text-slate-900">
                                                 {person.name}
                                             </td>
-                                            <td className="px-5 py-4 text-[1.25rem] text-slate-600 break-all">
+                                            <td className="px-5 py-4 text-ui-body text-slate-600 break-all">
                                                 {person.email}
                                             </td>
-                                            <td className="px-5 py-4 text-[1.25rem] text-slate-600 tabular-nums">
+                                            <td className="px-5 py-4 text-ui-body text-slate-600 tabular-nums">
                                                 {person.phone}
                                             </td>
                                         </tr>
                                     ))}
                                     {!named.length && (
                                         <tr>
-                                            <td colSpan={4} className="px-5 py-10 text-center text-[1.25rem]
+                                            <td colSpan={4} className="px-5 py-10 text-center text-ui-body
                                                                        font-semibold text-slate-400">
                                                 No participant details were given.
                                             </td>

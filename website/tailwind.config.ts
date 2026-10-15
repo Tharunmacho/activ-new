@@ -13,108 +13,19 @@ export default {
       },
     },
     extend: {
-      /*
-       * One family, POPPINS, for the whole product.
-       *
-       * `font-sans` is the default for everything, so setting it here changes
-       * every screen at once rather than leaving each one to remember.
-       *
-       * `display` and `serif` deliberately resolve to Inter as well. `display`
-       * used to be Plus Jakarta Sans, which stops at 800 and silently clamped
-       * every `font-black` heading on the site to 800. `serif` is mapped
-       * because the public headings were written with `font-serif` — Tailwind's
-       * stock serif stack, i.e. Georgia — so the About, Events, Gallery and
-       * Contact headings were rendering in a completely different typeface from
-       * the body text beneath them. Those classes are removed in the components,
-       * and this mapping is the backstop so a stray one can never fall back to
-       * Georgia again.
-       *
-       * The system stack stays behind all three as the fallback that renders
-       * while the web font is still in flight.
-       */
+      // One UI family and a small shared scale across public, member, admin and CMS screens.
+      // Document sheets can set --font-ui locally to preserve their artwork.
       fontFamily: {
-        /*
-         * THE BODY FACE: Poppins, with Inter directly behind it.
-         *
-         * Inter was the body face for most of this project's life and is a
-         * better one on the merits — it was drawn for screen UI and holds up at
-         * 15px in a card caption, where Poppins is a display face being asked
-         * to do text work. The association looked at both and chose Poppins for
-         * the whole product, headings and body together, which is a legitimate
-         * call: one warm, round voice everywhere beats a correct pairing nobody
-         * asked for.
-         *
-         * Inter stays SECOND in the stack, not deleted. It is what renders in
-         * the ~100ms before Poppins arrives (`display=swap`), and it is far
-         * closer in colour and width to Poppins than the system UI font is, so
-         * the reflow when the real face lands is barely visible.
-         *
-         * If body copy ever reads tiring on a long screen — the settings pages,
-         * the legal notices — putting Inter back is THIS LINE and nothing else.
-         * Do not do it one screen at a time.
-         */
-        sans: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        /*
-         * THE HEADING FACE: Poppins — the SAME family as the body.
-         *
-         * `display` is kept as its own key rather than deleted, and it matters
-         * that it still exists even while it names the same family as `sans`.
-         * Dozens of places across the product ask for `font-display` on a `<p>`
-         * or `<span>` that should read as a heading — a sub-head inside a card,
-         * a statistic — because the `h1..h4` rule in `index.css` keys off the
-         * TAG. Removing this key turns every one of those into a class that
-         * resolves to nothing, silently, on screens nobody is looking at.
-         *
-         * It also keeps the swap cheap. The face has moved four times now
-         * (Inter, Plus Jakarta Sans, Outfit, Manrope, Poppins) and every one of
-         * those moves was two lines in this file, because no screen names a
-         * family of its own.
-         *
-         * Poppins carries a real 900, so `font-black` is an actual cut here.
-         * Plus Jakarta Sans and Manrope both stop at 800 and were clamping it.
-         *
-         * WHAT IS LOST by using one family for both: contrast. A heading and
-         * the line beneath it are now distinguished by SIZE and WEIGHT alone,
-         * where two families would also have distinguished them by shape. That
-         * is why the size scale in `appTypography.ts` is stepped as widely as
-         * it is — 24px `font-black` over 17px `font-medium` — and why narrowing
-         * those steps would leave a card title reading as bigger body text.
-         */
-        display: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        /*
-         * NO SERIF IN THIS PRODUCT — `font-serif` resolves to the same sans as
-         * everything else, deliberately.
-         *
-         * Kept rather than deleted: removing the key hands `font-serif` and any
-         * `prose` block back to Tailwind's default Georgia stack, which would
-         * put a serif on pages nobody asked to change. Nothing should REACH for
-         * this class — the certificate did, and was the one page left on the
-         * old face when the display font changed. Use `font-display`.
-         */
-        serif: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        /*
-         * NO MONOSPACE EITHER — `font-mono` is Poppins, for the same reason
-         * `serif` is. It was left at Tailwind's default, so booking refs,
-         * pasted media URLs, env-var names and chart values rendered in the
-         * system's Consolas/Courier on screens that are otherwise all Poppins.
-         * Preflight also reads this key for `<code>`, `<pre>`, `<kbd>` and
-         * `<samp>`, so those follow. Where digits need to line up, use
-         * `tabular-nums` — Poppins has tabular figures.
-         */
-        mono: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        /*
-         * THE CERTIFICATE NAME, AND NOTHING ELSE ON THE PRODUCT.
-         *
-         * `font-certificate` exists so that the one place a second family is
-         * wanted can have it without `font-serif` becoming a live serif again
-         * — which is what this config spent three faces stamping out. The
-         * membership certificate's holder name is the only call site; a grep
-         * for `font-certificate` is the whole audit.
-         *
-         * Poppins sits behind it, not Georgia, so a failed font load degrades
-         * to the product's own face rather than to a system serif.
-         */
+        sans: ['var(--font-ui)'],
+        display: ['var(--font-ui)'],
+        serif: ['var(--font-ui)'],
+        mono: ['var(--font-ui)'],
         certificate: ['Playfair Display', 'Poppins', 'Georgia', 'serif'],
+      },
+      fontSize: {
+        'ui-body': ['1rem', { lineHeight: '1.5' }],
+        'ui-small': ['0.9375rem', { lineHeight: '1.5' }],
+        'ui-caption': ['0.875rem', { lineHeight: '1.5' }],
       },
       colors: {
         /**

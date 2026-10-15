@@ -54,7 +54,7 @@ const TYPES: { value: RegistrationField['type']; label: string }[] = [
 
 const SELECT_CLASS =
     'w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a] ' +
-    'rounded-lg px-3 py-2 text-[1.25rem] text-slate-900 dark:text-neutral-100';
+    'rounded-lg px-3 py-2 text-ui-body text-slate-900 dark:text-neutral-100';
 
 export default function RegistrationFormBuilder({
     fields,
@@ -95,7 +95,7 @@ export default function RegistrationFormBuilder({
                 + 'to the organiser — those four are always collected. Members see these in this order.'}
         >
             {list.length === 0 ? (
-                <p className="text-[1.1875rem] text-slate-500 dark:text-[#A1A1AA] mb-3">
+                <p className="text-ui-small text-slate-500 dark:text-[#A1A1AA] mb-3">
                     No extra questions yet. Members will be asked for their name, phone, organisation
                     and a note to the organiser.
                 </p>
@@ -111,7 +111,7 @@ export default function RegistrationFormBuilder({
                         {/* ---------------------------------- row header ---- */}
                         <div className="flex items-center gap-2 mb-3">
                             <GripVertical size={14} className="text-slate-400 shrink-0" />
-                            <span className="text-[1.1875rem] font-bold text-slate-500 dark:text-[#A1A1AA]">
+                            <span className="text-ui-small font-bold text-slate-500 dark:text-[#A1A1AA]">
                                 Question {index + 1}
                             </span>
 
@@ -233,7 +233,7 @@ export default function RegistrationFormBuilder({
                                 onChange={(e) => patch(index, { required: e.target.checked })}
                                 className="w-4 h-4 accent-blue-600"
                             />
-                            <span className="text-[1.1875rem] text-slate-700 dark:text-neutral-300">
+                            <span className="text-ui-small text-slate-700 dark:text-neutral-300">
                                 Members must answer this
                             </span>
                         </label>
@@ -245,7 +245,7 @@ export default function RegistrationFormBuilder({
                 type="button"
                 onClick={add}
                 className="mt-3 inline-flex items-center gap-1.5 px-4 h-9 rounded-lg border
-                           border-slate-300 dark:border-[#2a2a2a] text-[1.25rem] font-semibold
+                           border-slate-300 dark:border-[#2a2a2a] text-ui-body font-semibold
                            text-slate-700 dark:text-neutral-200 hover:bg-slate-50
                            dark:hover:bg-[#141414] transition-colors"
             >

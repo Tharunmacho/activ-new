@@ -94,7 +94,7 @@ function CardHead({ icon, title, viewAllHref, onViewAll, viewAllLabel = 'View Al
                 </span>
                 {/* 22px, the size every card heading on the platform is set
                     at — the business-account screens included. */}
-                <h2 className="text-[1.0625rem] sm:text-[1.1875rem] font-extrabold text-brand-800
+                <h2 className="text-ui-caption sm:text-ui-small font-extrabold text-brand-800
                                leading-tight">
                     {title}
                 </h2>
@@ -102,7 +102,7 @@ function CardHead({ icon, title, viewAllHref, onViewAll, viewAllLabel = 'View Al
             {viewAllHref ? (
                 <Link
                     to={viewAllHref}
-                    className="inline-flex shrink-0 items-center gap-1.5 text-[1rem] sm:text-[1.25rem] font-bold
+                    className="inline-flex shrink-0 items-center gap-1.5 text-[1rem] sm:text-ui-body font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     {viewAllLabel} <ArrowRight size={14} />
@@ -111,7 +111,7 @@ function CardHead({ icon, title, viewAllHref, onViewAll, viewAllLabel = 'View Al
                 <button
                     type="button"
                     onClick={onViewAll}
-                    className="inline-flex shrink-0 items-center gap-1.5 text-[1.0625rem] font-bold
+                    className="inline-flex shrink-0 items-center gap-1.5 text-ui-caption font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     {viewAllLabel} <ArrowRight size={15} />
@@ -160,7 +160,7 @@ export function DetailDialog({ title, onClose, children }: {
                            shadow-2xl border border-gray-200 flex flex-col"
             >
                 <header className="shrink-0 flex items-start gap-3 sm:gap-4 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
-                    <h2 className="flex-1 min-w-0 break-words text-[1.25rem] sm:text-[1.5625rem] font-extrabold text-brand-800">{title}</h2>
+                    <h2 className="flex-1 min-w-0 break-words text-ui-body sm:text-[1.5625rem] font-extrabold text-brand-800">{title}</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -191,7 +191,7 @@ export function AllLeaders({ leaders }: { leaders: RegionLeader[] }) {
                     </span>
 
                     <div className="min-w-0 break-words">
-                        <p className="text-[1.0625rem] font-extrabold text-brand-900">{person.name}</p>
+                        <p className="text-ui-caption font-extrabold text-brand-900">{person.name}</p>
                         {person.role && (
                             <span className="mt-1 inline-block rounded-full bg-brand-700 px-2.5 py-0.5
                                              text-[1rem] font-bold uppercase tracking-wide text-white">
@@ -199,17 +199,17 @@ export function AllLeaders({ leaders }: { leaders: RegionLeader[] }) {
                             </span>
                         )}
                         {person.designation && (
-                            <p className="mt-1.5 text-[1.25rem] font-semibold text-gray-600">
+                            <p className="mt-1.5 text-ui-body font-semibold text-gray-600">
                                 {person.designation}
                             </p>
                         )}
                         {person.organisation && (
-                            <p className="text-[1.25rem] font-semibold text-gray-600">
+                            <p className="text-ui-body font-semibold text-gray-600">
                                 {person.organisation}
                             </p>
                         )}
                         {person.bio && (
-                            <p className="mt-2 text-[1.25rem] leading-relaxed font-semibold text-gray-500">
+                            <p className="mt-2 text-ui-body leading-relaxed font-semibold text-gray-500">
                                 {person.bio}
                             </p>
                         )}
@@ -333,7 +333,7 @@ export function StateHeroBand({
                                 which is the judder that was reported. A solid
                                 translucent fill looks the same at this opacity. */
                             className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 py-1.5
-                                       text-[1.0625rem] font-bold text-white ring-1 ring-white/25
+                                       text-ui-caption font-bold text-white ring-1 ring-white/25
                                        transition-colors hover:bg-white/30"
                         >
                             <MapPin size={12} /> {backLabel} <ChevronRight size={12} />
@@ -364,7 +364,7 @@ export function StateHeroBand({
                       * not this component’s to lose.
                       */}
                     {lede && (
-                        <p className={`mt-3 ${BAND_MEASURE} text-[1.0625rem] sm:text-[1.1875rem] font-semibold
+                        <p className={`mt-3 ${BAND_MEASURE} text-ui-caption sm:text-ui-small font-semibold
                                       leading-relaxed text-white/80 line-clamp-3`}>
                             {lede}
                         </p>
@@ -448,7 +448,7 @@ export function StateHeroBand({
                                     claims with nothing between them read as one
                                     paragraph broken oddly; the rules are what
                                     make them three answers. */}
-                                <h2 className="text-[1.1875rem] font-extrabold text-brand-800 pb-3
+                                <h2 className="text-ui-small font-extrabold text-brand-800 pb-3
                                                mb-3 border-b border-gray-200">
                                     {glanceTitle}
                                 </h2>
@@ -461,12 +461,12 @@ export function StateHeroBand({
                                                 <CmsIcon name={row.icon} size={15} fallback="trending-up" />
                                             </span>
                                             <span className="min-w-0">
-                                                <span className="block text-[1.0625rem] font-extrabold
+                                                <span className="block text-ui-caption font-extrabold
                                                                  text-brand-900 leading-snug">
                                                     {row.title}
                                                 </span>
                                                 {row.subtitle && (
-                                                    <span className="block text-[1.25rem] font-semibold
+                                                    <span className="block text-ui-body font-semibold
                                                                      text-gray-500">
                                                         {row.subtitle}
                                                     </span>
@@ -502,7 +502,7 @@ export function GlanceRow({ items, title = 'State at a Glance' }: {
 
     return (
         <section className={`${CARD_SURFACE} px-4 py-4 sm:px-6 sm:py-5`}>
-            <p className="mb-4 text-center text-[1.0625rem] font-bold uppercase tracking-[0.16em]
+            <p className="mb-4 text-center text-ui-caption font-bold uppercase tracking-[0.16em]
                           text-brand-500">
                 {title}
             </p>
@@ -514,12 +514,12 @@ export function GlanceRow({ items, title = 'State at a Glance' }: {
                             <CmsIcon name={row.icon} size={16} fallback="trending-up" />
                         </span>
                         <span className="min-w-0">
-                            <span className="block text-[1.0625rem] font-extrabold leading-snug
+                            <span className="block text-ui-caption font-extrabold leading-snug
                                              text-brand-900">
                                 {row.title}
                             </span>
                             {row.subtitle && (
-                                <span className="block text-[1.25rem] font-semibold text-gray-500">
+                                <span className="block text-ui-body font-semibold text-gray-500">
                                     {row.subtitle}
                                 </span>
                             )}
@@ -571,7 +571,7 @@ export function AboutCard({ title, text, features, viewAllHref, places, placesLa
             <CardHead icon="user" title={title} viewAllHref={viewAllHref} viewAllLabel="View More" />
 
             {text && (
-                <p className="px-5 pb-4 text-[1.0625rem] leading-relaxed font-semibold
+                <p className="px-5 pb-4 text-ui-caption leading-relaxed font-semibold
                               text-gray-600 whitespace-pre-line">
                     {text}
                 </p>
@@ -591,7 +591,7 @@ export function AboutCard({ title, text, features, viewAllHref, places, placesLa
                                 key={row.slug || row.name}
                                 to={`/states/${row.slug}`}
                                 className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5
-                                           text-[1.0625rem] font-bold text-brand-700 transition-colors
+                                           text-ui-caption font-bold text-brand-700 transition-colors
                                            hover:bg-brand-100 hover:text-brand-800"
                             >
                                 <MapPin size={12} className="shrink-0 text-brand-400" />
@@ -604,7 +604,7 @@ export function AboutCard({ title, text, features, viewAllHref, places, placesLa
                             <span
                                 key={row.slug || row.name}
                                 className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5
-                                           text-[1.0625rem] font-bold text-gray-400"
+                                           text-ui-caption font-bold text-gray-400"
                             >
                                 <MapPin size={12} className="shrink-0" />
                                 {row.name}
@@ -623,7 +623,7 @@ export function AboutCard({ title, text, features, viewAllHref, places, placesLa
                                              rounded-lg bg-white text-brand-600 border border-brand-100">
                                 <CmsIcon name={feature.icon} size={16} fallback="star" />
                             </span>
-                            <span className="block text-[1.25rem] font-bold text-brand-800 leading-snug">
+                            <span className="block text-ui-body font-bold text-brand-800 leading-snug">
                                 {feature.label}
                             </span>
                         </div>
@@ -703,7 +703,7 @@ export function LeadersCard({ leaders, title, viewAllHref, onViewAll, onOpen }: 
                               */}
                             <span className="min-w-0 flex-1">
                                 <span className="flex items-center gap-2 min-w-0">
-                                    <span className="truncate text-[1.0625rem] sm:text-[1.25rem] font-extrabold
+                                    <span className="truncate text-ui-caption sm:text-ui-body font-extrabold
                                                      text-brand-900 group-hover:text-brand-600
                                                      transition-colors">
                                         {person.name}
@@ -717,13 +717,13 @@ export function LeadersCard({ leaders, title, viewAllHref, onViewAll, onOpen }: 
                                     )}
                                 </span>
                                 {person.designation && (
-                                    <span className="mt-1 block truncate text-[1.0625rem] font-semibold
+                                    <span className="mt-1 block truncate text-ui-caption font-semibold
                                                      text-gray-600">
                                         {person.designation}
                                     </span>
                                 )}
                                 {person.organisation && (
-                                    <span className="block truncate text-[1.0625rem] font-semibold
+                                    <span className="block truncate text-ui-caption font-semibold
                                                      text-gray-600">
                                         {person.organisation}
                                     </span>
@@ -928,7 +928,7 @@ export function LeadershipBoard({
                                 </span>
 
                                 <span className="flex flex-1 flex-col gap-0.5 px-3 py-3">
-                                    <span className="text-[1.25rem] font-extrabold leading-snug
+                                    <span className="text-ui-body font-extrabold leading-snug
                                                      text-brand-900 transition-colors
                                                      group-hover:text-brand-600">
                                         {person.name || 'Name to be confirmed'}
@@ -950,13 +950,13 @@ export function LeadershipBoard({
                                         reservation follows the type size. */}
                                     {person.designation && (
                                         <span className="line-clamp-2 min-h-[2.6em] text-balance
-                                                         text-[1.0625rem] font-semibold leading-snug text-gray-600">
+                                                         text-ui-caption font-semibold leading-snug text-gray-600">
                                             {person.designation}
                                         </span>
                                     )}
                                     {person.organisation && (
                                         <span className="line-clamp-2 min-h-[2.6em] text-balance
-                                                         text-[1.0625rem] font-semibold leading-snug text-gray-500">
+                                                         text-ui-caption font-semibold leading-snug text-gray-500">
                                             {person.organisation}
                                         </span>
                                     )}
@@ -982,7 +982,7 @@ export function FeedDetails({ items }: { items: RegionFeedItem[] }) {
     const rows = (items || []).filter((row) => row.title);
     if (!rows.length) {
         return (
-            <p className="text-[1.0625rem] font-semibold text-gray-500">
+            <p className="text-ui-caption font-semibold text-gray-500">
                 Nothing has been published here yet.
             </p>
         );
@@ -1014,18 +1014,18 @@ export function FeedDetails({ items }: { items: RegionFeedItem[] }) {
                                 </p>
                             )}
 
-                            <p className="text-[1.25rem] font-extrabold text-brand-900 leading-snug">
+                            <p className="text-ui-body font-extrabold text-brand-900 leading-snug">
                                 {row.title}
                             </p>
 
                             {row.summary && (
-                                <p className="mt-1.5 text-[1.0625rem] font-semibold leading-relaxed
+                                <p className="mt-1.5 text-ui-caption font-semibold leading-relaxed
                                               text-gray-600">
                                     {row.summary}
                                 </p>
                             )}
                             {row.body && (
-                                <p className="mt-2 text-[1.25rem] font-semibold leading-relaxed text-gray-500
+                                <p className="mt-2 text-ui-body font-semibold leading-relaxed text-gray-500
                                               whitespace-pre-line">
                                     {row.body}
                                 </p>
@@ -1070,7 +1070,7 @@ export function FeedDetails({ items }: { items: RegionFeedItem[] }) {
 }
 
 const PANEL_LINK =
-    'inline-flex items-center gap-1.5 text-[1.25rem] font-bold text-brand-600 '
+    'inline-flex items-center gap-1.5 text-ui-body font-bold text-brand-600 '
     + 'hover:text-brand-800 transition-colors';
 
 /* ----------------------------------------------------------------- gallery */
@@ -1138,7 +1138,7 @@ export function GalleryCard({ state, region, href, photos }: {
                                 className="group-hover:scale-105 transition-transform duration-500 transform-gpu"
                             />
                         </div>
-                        <p className="mt-2.5 text-[1.0625rem] font-bold text-brand-800 leading-snug
+                        <p className="mt-2.5 text-ui-caption font-bold text-brand-800 leading-snug
                                       line-clamp-2 group-hover:text-brand-600 transition-colors">
                             {photo.title}
                         </p>
@@ -1231,13 +1231,13 @@ export function PhotoLightbox({ photos, index, onIndex, onClose }: {
                     <div className="min-w-0 break-words">
                         <p className="text-[1.125rem] sm:text-[1.375rem] font-extrabold text-white">{photo.title}</p>
                         {(photo.category || photo.state) && (
-                            <p className="mt-0.5 text-[1rem] sm:text-[1.25rem] font-semibold text-white/60">
+                            <p className="mt-0.5 text-[1rem] sm:text-ui-body font-semibold text-white/60">
                                 {[photo.category, photo.state].filter(Boolean).join(' · ')}
                             </p>
                         )}
                     </div>
                     <div className="ml-auto flex items-center gap-2 sm:gap-3">
-                        <span className="text-[1.0625rem] font-bold text-white/60 tabular-nums">
+                        <span className="text-ui-caption font-bold text-white/60 tabular-nums">
                             {index + 1} / {photos.length}
                         </span>
                         <button type="button" aria-label="Previous"
@@ -1303,13 +1303,13 @@ export function StatisticsCard({ items, title = 'Statistics', icon = 'trending-u
                               * sentence survives.
                               */}
                             <span className={(row.title || '').length > 20
-                                ? 'block text-[1.1875rem] font-black tracking-tight text-brand-800 leading-snug'
+                                ? 'block text-ui-small font-black tracking-tight text-brand-800 leading-snug'
                                 : 'block text-[1.5625rem] font-black tracking-tight text-brand-800 leading-none'}
                             >
                                 {row.title}
                             </span>
                             {row.summary && (
-                                <span className="block mt-1.5 text-[1.0625rem] font-semibold text-gray-500">
+                                <span className="block mt-1.5 text-ui-caption font-semibold text-gray-500">
                                     {row.summary}
                                 </span>
                             )}
@@ -1370,7 +1370,7 @@ export function EventsCard({ items, viewAllHref, onViewAll, title = 'Events',
                                     <span className="text-[1rem] font-bold uppercase text-brand-500">
                                         {chip.top}
                                     </span>
-                                    <span className="text-[1.0625rem] font-black text-brand-800">
+                                    <span className="text-ui-caption font-black text-brand-800">
                                         {chip.bottom}
                                     </span>
                                 </span>
@@ -1382,12 +1382,12 @@ export function EventsCard({ items, viewAllHref, onViewAll, title = 'Events',
                             )}
 
                             <span className="min-w-0 flex-1">
-                                <span className="block text-[1.0625rem] font-bold text-brand-900
+                                <span className="block text-ui-caption font-bold text-brand-900
                                                  leading-snug line-clamp-2">
                                     {row.title}
                                 </span>
                                 {row.location && (
-                                    <span className="mt-1 block text-[1.25rem] font-semibold text-gray-500
+                                    <span className="mt-1 block text-ui-body font-semibold text-gray-500
                                                      truncate">
                                         {row.location}
                                     </span>
@@ -1396,7 +1396,7 @@ export function EventsCard({ items, viewAllHref, onViewAll, title = 'Events',
                                     browser could read — "every second Tuesday"
                                     is still worth printing. */}
                                 {!chip && row.date && (
-                                    <span className="mt-0.5 block text-[1.0625rem] font-semibold text-gray-500">
+                                    <span className="mt-0.5 block text-ui-caption font-semibold text-gray-500">
                                         {row.date}
                                     </span>
                                 )}
@@ -1461,12 +1461,12 @@ export function ThumbListCard({ icon, title, items, viewAllHref, onViewAll }: {
                                 )}
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className="block text-[1.0625rem] font-bold text-brand-700
+                                <span className="block text-ui-caption font-bold text-brand-700
                                                  leading-snug line-clamp-1">
                                     {row.title}
                                 </span>
                                 {row.summary && (
-                                    <span className="mt-1 block text-[1.25rem] font-semibold text-gray-500
+                                    <span className="mt-1 block text-ui-body font-semibold text-gray-500
                                                      line-clamp-2 leading-snug">
                                         {row.summary}
                                     </span>
@@ -1523,12 +1523,12 @@ export function IconListCard({ icon, title, items, viewAllHref, onViewAll, limit
                                 <CmsIcon name={row.icon} size={17} fallback="briefcase" />
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className="block text-[1.0625rem] font-bold text-brand-700
+                                <span className="block text-ui-caption font-bold text-brand-700
                                                  leading-snug">
                                     {row.title}
                                 </span>
                                 {row.summary && (
-                                    <span className="mt-1 block text-[1.25rem] font-semibold text-gray-500
+                                    <span className="mt-1 block text-ui-body font-semibold text-gray-500
                                                      line-clamp-2 leading-snug">
                                         {row.summary}
                                     </span>
@@ -1572,14 +1572,14 @@ export function ExploreCard({ card }: {
 
             <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5">
                 <div className="min-w-0">
-                    <p className="text-[1.0625rem] font-bold uppercase tracking-wider text-white/70">
+                    <p className="text-ui-caption font-bold uppercase tracking-wider text-white/70">
                         Explore
                     </p>
                     <p className="text-[1.5625rem] font-black tracking-tight text-white leading-tight">
                         {card.title}
                     </p>
                     {card.subtitle && (
-                        <p className="mt-1 text-[1.0625rem] font-semibold text-white/80 leading-snug">
+                        <p className="mt-1 text-ui-caption font-semibold text-white/80 leading-snug">
                             {card.subtitle}
                         </p>
                     )}
@@ -1615,7 +1615,7 @@ export function QuickLinksCard({ links, title = 'Quick Links' }: {
                                              bg-brand-50 text-brand-600">
                                 <ChevronRight size={13} />
                             </span>
-                            <span className="min-w-0 flex-1 text-[1.25rem] font-bold text-brand-700 truncate">
+                            <span className="min-w-0 flex-1 text-ui-body font-bold text-brand-700 truncate">
                                 {row.label}
                             </span>
                             <ChevronRight size={14} className="shrink-0 text-gray-300" />
@@ -1670,12 +1670,12 @@ export function PromoCards({ cards }: {
                         {(card.title || card.subtitle) && (
                             <div className="px-5 py-4">
                                 {card.title && (
-                                    <p className="text-[1.0625rem] font-extrabold text-brand-800">
+                                    <p className="text-ui-caption font-extrabold text-brand-800">
                                         {card.title}
                                     </p>
                                 )}
                                 {card.subtitle && (
-                                    <p className="mt-0.5 text-[1.0625rem] font-semibold text-gray-500">
+                                    <p className="mt-0.5 text-ui-caption font-semibold text-gray-500">
                                         {card.subtitle}
                                     </p>
                                 )}
@@ -1723,12 +1723,12 @@ export function PublicationsRail({ items, viewAllHref, onViewAll, title = 'Publi
                             )}
                         </span>
                         <span className="min-w-0">
-                            <span className="block text-[1.0625rem] font-bold text-brand-800 leading-snug
+                            <span className="block text-ui-caption font-bold text-brand-800 leading-snug
                                              line-clamp-2">
                                 {row.title}
                             </span>
                             {(row.summary || row.date) && (
-                                <span className="mt-1 block text-[1.0625rem] font-semibold text-gray-400
+                                <span className="mt-1 block text-ui-caption font-semibold text-gray-400
                                                  line-clamp-1">
                                     {[row.summary, row.date].filter(Boolean).join(' · ')}
                                 </span>
@@ -1761,7 +1761,7 @@ export function TextCard({ title, icon, text, viewAllHref, onViewAll }: {
                 onViewAll={onViewAll}
                 viewAllLabel="View More"
             />
-            <p className="px-5 pb-5 text-[1.0625rem] leading-relaxed font-semibold text-gray-600
+            <p className="px-5 pb-5 text-ui-caption leading-relaxed font-semibold text-gray-600
                           whitespace-pre-line">
                 {text}
             </p>
@@ -1895,9 +1895,9 @@ export function ContactCard({ contact, stateName, showForm, officeLabel = 'State
                                 width={240} fallbackSize={22} />
                         </span>
 
-                        <div className="min-w-0 text-[1.0625rem] leading-relaxed">
+                        <div className="min-w-0 text-ui-caption leading-relaxed">
                             {contact.personName && (
-                                <p className="text-[1.25rem] font-extrabold text-brand-900 leading-snug">
+                                <p className="text-ui-body font-extrabold text-brand-900 leading-snug">
                                     {contact.personName}
                                 </p>
                             )}
@@ -1933,7 +1933,7 @@ export function ContactCard({ contact, stateName, showForm, officeLabel = 'State
                 <div className="p-5">
                     <p className={COL_LABEL}>Reach Us</p>
 
-                    <ul className="space-y-2.5 text-[1.0625rem] font-semibold text-gray-600">
+                    <ul className="space-y-2.5 text-ui-caption font-semibold text-gray-600">
                         {contact.phone && (
                             <li>
                                 <a href={`tel:${contact.phone}`} className={REACH_LINK}>
@@ -2093,9 +2093,9 @@ export function ContactStrip({
                                     width={240} fallbackSize={22} />
                             </span>
 
-                            <div className="min-w-0 text-[1.25rem] leading-relaxed">
+                            <div className="min-w-0 text-ui-body leading-relaxed">
                                 {office.personName && (
-                                    <p className="text-[1.0625rem] font-extrabold text-brand-900
+                                    <p className="text-ui-caption font-extrabold text-brand-900
                                                   leading-snug">
                                         {office.personName}
                                     </p>
@@ -2207,7 +2207,7 @@ function ReachList({ rows }: { rows: ReachRow[] }) {
             {rows.map((row, i) => (
                 <li key={`${row.label}-${i}`} className="py-2.5">
                     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                        <span className="min-w-[7rem] flex-1 text-[1.25rem] font-bold text-brand-900">
+                        <span className="min-w-[7rem] flex-1 text-ui-body font-bold text-brand-900">
                             {row.href ? (
                                 <Link to={row.href} className="transition-colors hover:text-brand-600">
                                     {row.label}
@@ -2216,7 +2216,7 @@ function ReachList({ rows }: { rows: ReachRow[] }) {
                         </span>
 
                         <span className="flex flex-wrap items-center gap-x-4 gap-y-1
-                                         text-[1.0625rem] font-semibold text-gray-600">
+                                         text-ui-caption font-semibold text-gray-600">
                             {row.phone && (
                                 <a href={`tel:${row.phone}`} className={REACH_LINK}>
                                     <Phone size={12} className="shrink-0 text-brand-500" />
@@ -2261,7 +2261,7 @@ function WriteToUs({ state }: { state: string }) {
     const [sent, setSent] = useState(false);
     const [error, setError] = useState('');
 
-    const field = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-[1.0625rem] '
+    const field = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-ui-caption '
         + 'font-semibold text-brand-900 hover:border-gray-400 focus:outline-none focus:ring-2 '
         + 'focus:ring-brand-600 focus:border-transparent transition-colors '
         + 'placeholder:font-medium placeholder:text-gray-500';
@@ -2270,7 +2270,7 @@ function WriteToUs({ state }: { state: string }) {
         return (
             <div className="flex items-start gap-2.5 rounded-lg bg-emerald-50 px-4 py-4">
                 <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-600" />
-                <p className="text-[1.0625rem] font-semibold text-emerald-900">
+                <p className="text-ui-caption font-semibold text-emerald-900">
                     Thank you — your message has been sent. The {state} office will be in touch.
                 </p>
             </div>
@@ -2339,13 +2339,13 @@ function WriteToUs({ state }: { state: string }) {
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
             />
 
-            {error && <p className="text-[1.0625rem] font-bold text-red-600">{error}</p>}
+            {error && <p className="text-ui-caption font-bold text-red-600">{error}</p>}
 
             <button
                 type="submit"
                 disabled={sending}
                 className="inline-flex items-center gap-2 rounded-lg bg-brand-700 px-5 py-2.5
-                           text-[1.0625rem] font-bold text-white transition-colors
+                           text-ui-caption font-bold text-white transition-colors
                            hover:bg-brand-800 disabled:opacity-60"
             >
                 {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}

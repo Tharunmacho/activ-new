@@ -113,7 +113,7 @@ export function BackArrow({
                 onClick={goBack}
                 title={label}
                 aria-label={label}
-                className={`inline-flex items-center gap-2 text-[1.25rem] font-medium text-slate-600
+                className={`inline-flex items-center gap-2 text-ui-body font-medium text-slate-600
                             transition-colors hover:text-slate-900 ${className}`}
             >
                 <ArrowLeft className="h-4 w-4" /> Back

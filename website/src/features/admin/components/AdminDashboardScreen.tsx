@@ -194,7 +194,7 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                     >
                                         <div className="flex items-center gap-2 mb-2">
                                             <t.icon className={`w-5 h-5 shrink-0 ${t.sub}`} />
-                                            <p className={`${t.sub} text-[0.95rem] sm:text-[1.25rem] font-medium leading-tight`}>{t.label}</p>
+                                            <p className={`${t.sub} text-[0.95rem] sm:text-ui-body font-medium leading-tight`}>{t.label}</p>
                                         </div>
                                         <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">
                                             {loading ? "…" : t.value}
@@ -209,7 +209,7 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                             <div className="flex items-center justify-between flex-wrap gap-3">
                                 <div className="min-w-0">
                                     <h2 className={`${CARD_TITLE} text-slate-900`}>Recent Activity</h2>
-                                    <p className="text-slate-500 text-[1.25rem]">Latest application submissions</p>
+                                    <p className="text-slate-500 text-ui-body">Latest application submissions</p>
                                 </div>
                                 <Link to={`${config.base}/approvals`}>
                                     <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 shadow-sm">
@@ -219,7 +219,7 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                             </div>
 
                             <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
-                                <div className="hidden md:grid grid-cols-4 gap-4 px-5 py-4 text-[1.25rem] font-semibold text-slate-700 border-b border-slate-200 mb-4">
+                                <div className="hidden md:grid grid-cols-4 gap-4 px-5 py-4 text-ui-body font-semibold text-slate-700 border-b border-slate-200 mb-4">
                                     <div>Name</div>
                                     <div>Status</div>
                                     {/* These read "Size" and "Modified" — leftovers from a
@@ -244,10 +244,10 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                                 >
                                                     <div className="flex items-center gap-3 min-w-0">
                                                         <ApplicantAvatar name={displayName} photo={app.profilePhoto}
-                                                            className="w-10 h-10 ring-2 ring-blue-200" textClassName="text-[1.25rem]" />
+                                                            className="w-10 h-10 ring-2 ring-blue-200" textClassName="text-ui-body" />
                                                         <div className="min-w-0">
-                                                            <p className="font-semibold text-slate-900 text-[1.25rem] truncate">{displayName}</p>
-                                                            <p className="text-[1.1875rem] text-slate-500 truncate">
+                                                            <p className="font-semibold text-slate-900 text-ui-body truncate">{displayName}</p>
+                                                            <p className="text-ui-small text-slate-500 truncate">
                                                                 <span title={app.applicationId || undefined}>
                                                                     {formatApplicationRef(app).short || 'N/A'}
                                                                 </span>
@@ -259,10 +259,10 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                                             {app.statusLabel || stage}
                                                         </Badge>
                                                     </div>
-                                                    <div className="text-[1.0625rem] md:text-[1.25rem] text-slate-500 md:text-slate-700 capitalize truncate">
+                                                    <div className="text-ui-caption md:text-ui-body text-slate-500 md:text-slate-700 capitalize truncate">
                                                         {app.memberType || "—"}
                                                     </div>
-                                                    <div className="text-[1.0625rem] md:text-[1.25rem] text-slate-500 md:text-slate-700 text-right md:text-left whitespace-nowrap">
+                                                    <div className="text-ui-caption md:text-ui-body text-slate-500 md:text-slate-700 text-right md:text-left whitespace-nowrap">
                                                         {app.submittedAt
                                                             ? new Date(app.submittedAt).toLocaleDateString("en-GB", {
                                                                 day: "2-digit", month: "short", year: "numeric",
@@ -275,7 +275,7 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                     ) : (
                                         <div className="text-center py-10">
                                             <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                                            <p className="text-slate-500 text-[1.25rem]">
+                                            <p className="text-slate-500 text-ui-body">
                                                 {loading ? "Loading applications…" : "No applications yet"}
                                             </p>
                                         </div>

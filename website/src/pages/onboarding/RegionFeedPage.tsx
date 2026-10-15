@@ -108,7 +108,7 @@ export default function RegionFeedPage({ scope }: { scope: 'region' | 'state' })
                     )}
 
                     {!loading && failed && (
-                        <p className="text-[1.25rem] font-semibold text-gray-500">
+                        <p className="text-ui-body font-semibold text-gray-500">
                             This list could not be loaded.
                         </p>
                     )}

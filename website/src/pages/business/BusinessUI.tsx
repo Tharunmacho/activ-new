@@ -1,14 +1,8 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
-import { CARD_SUBTITLE } from '@/components/layout/appTypography';
-
-/**
- * `appTypography.CARD_TITLE` with a phone step. At 35px a card heading on a
- * 360px screen wraps a two-word company name onto three lines; from `sm` it is
- * the shared size exactly.
- */
-export const CARD_TITLE = 'text-[1.5rem] sm:text-[2.1875rem] font-bold tracking-tight leading-snug';
+import { CARD_SUBTITLE, CARD_TITLE } from '@/components/layout/appTypography';
+export { CARD_TITLE };
 /**
  * The business area's shared surface primitives.
  *
@@ -133,7 +127,7 @@ export function StatTile({
          */
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 min-w-0 transition-colors hover:border-slate-300 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_30px_-12px_rgba(16,24,40,0.28)]">
             <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
-                <span className="text-[1.1875rem] sm:text-[1.25rem] font-semibold text-slate-500 leading-snug break-words min-w-0">
+                <span className="text-ui-small sm:text-ui-body font-semibold text-slate-500 leading-snug break-words min-w-0">
                     {label}
                 </span>
                 {Icon ? (
@@ -142,9 +136,9 @@ export function StatTile({
                     </span>
                 ) : null}
             </div>
-            <div className="text-[1.875rem] sm:text-[2.5625rem] font-extrabold tracking-tight text-slate-900 tabular-nums leading-tight truncate">{value}</div>
+            <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 tabular-nums leading-tight truncate">{value}</div>
             {unit ? (
-                <p className="text-[1rem] sm:text-[1.1875rem] text-slate-500 font-bold mt-1.5 uppercase tracking-wider
+                <p className="text-[1rem] sm:text-ui-small text-slate-500 font-bold mt-1.5 uppercase tracking-wider
                               leading-snug break-words">{unit}</p>
             ) : null}
         </div>
@@ -177,12 +171,12 @@ export function Field({
 }) {
     return (
         <div className={full ? 'md:col-span-2' : undefined}>
-            <label className="block text-[1.25rem] font-bold text-slate-800 mb-2">
+            <label className="block text-ui-body font-bold text-slate-800 mb-2">
                 {label}
                 {required ? <span className="text-red-500 ml-0.5">*</span> : null}
             </label>
             {children}
-            {hint ? <p className="text-[1.1875rem] text-slate-500 mt-2">{hint}</p> : null}
+            {hint ? <p className="text-ui-small text-slate-500 mt-2">{hint}</p> : null}
         </div>
     );
 }
@@ -203,8 +197,8 @@ export function EmptyState({
             <span className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 flex items-center justify-center mb-3 sm:mb-4">
                 <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </span>
-            <p className="text-[1.375rem] sm:text-[1.5625rem] font-extrabold tracking-tight text-slate-900 mb-1.5 break-words">{title}</p>
-            {hint ? <p className="text-[1.25rem] text-slate-500 max-w-md break-words">{hint}</p> : null}
+            <p className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 mb-1.5 break-words">{title}</p>
+            {hint ? <p className="text-ui-body text-slate-500 max-w-md break-words">{hint}</p> : null}
             {action ? <div className="mt-4 sm:mt-5 flex flex-wrap justify-center gap-2">{action}</div> : null}
         </div>
     );
@@ -214,7 +208,7 @@ export function Loading({ label = 'Loading…' }: { label?: string }) {
     return (
         <div className="flex flex-col items-center justify-center py-12 sm:py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4" />
-            <p className="text-[1.25rem] font-medium text-slate-500">{label}</p>
+            <p className="text-ui-body font-medium text-slate-500">{label}</p>
         </div>
     );
 }
@@ -238,7 +232,7 @@ export function Chip({
     };
     return (
         <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[1.1875rem] font-bold ${tones[tone]}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-ui-small font-bold ${tones[tone]}`}
         >
             {Icon ? <Icon className="w-4 h-4" /> : null}
             {children}

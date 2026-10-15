@@ -160,7 +160,7 @@ const Pill = ({
     type="button"
     onClick={onClick}
     aria-pressed={selected}
-    className={`px-4 sm:px-5 py-2.5 sm:py-3 min-h-10 max-w-full break-words text-left rounded-xl text-[1.25rem] font-bold border transition-colors ${selected
+    className={`px-4 sm:px-5 py-2.5 sm:py-3 min-h-10 max-w-full break-words text-left rounded-xl text-ui-body font-bold border transition-colors ${selected
       ? 'bg-blue-600 text-white border-blue-600'
       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
       }`}
@@ -218,8 +218,8 @@ const CheckCard = ({
                  disabled:cursor-not-allowed"
     />
     <span className="min-w-0">
-      <span className="block text-[1.25rem] font-bold text-slate-800 break-words">{label}</span>
-      <span className="block text-[1.1875rem] text-slate-500 mt-1 break-words">{description}</span>
+      <span className="block text-ui-body font-bold text-slate-800 break-words">{label}</span>
+      <span className="block text-ui-small text-slate-500 mt-1 break-words">{description}</span>
       {lockedNote ? (
         <span className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-blue-100/70 px-2 py-1
                          text-[1rem] font-semibold text-blue-800">
@@ -237,7 +237,7 @@ const Subsection = ({
 }: { title: string; hint?: string; children: React.ReactNode }) => (
   <div className="pt-4 mt-4 sm:pt-5 sm:mt-5 border-t border-slate-100 first:pt-0 first:mt-0 first:border-t-0">
     <p className="text-[1.375rem] font-extrabold tracking-tight text-slate-900">{title}</p>
-    {hint ? <p className="text-[1.1875rem] text-slate-500 mt-1 mb-3.5">{hint}</p> : <div className="mb-3.5" />}
+    {hint ? <p className="text-ui-small text-slate-500 mt-1 mb-3.5">{hint}</p> : <div className="mb-3.5" />}
     {children}
   </div>
 );
@@ -809,8 +809,8 @@ const CompanyForm = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center h-28 px-4 text-center">
                     <Upload className="h-6 w-6 text-slate-400 mb-1.5" />
-                    <p className="text-[1.25rem] font-bold text-slate-700">Upload Cover Banner</p>
-                    <p className="text-[1.1875rem] text-slate-500">Wide image, max 4MB &middot; optional</p>
+                    <p className="text-ui-body font-bold text-slate-700">Upload Cover Banner</p>
+                    <p className="text-ui-small text-slate-500">Wide image, max 4MB &middot; optional</p>
                   </div>
                 )}
               </label>
@@ -846,8 +846,8 @@ const CompanyForm = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center h-32 sm:h-36 px-4 text-center">
                     <Upload className="h-9 w-9 text-slate-400 mb-3" />
-                    <p className="text-[1.25rem] font-bold text-slate-700">Upload Company Logo</p>
-                    <p className="text-[1.1875rem] text-slate-500 mt-1">JPG or PNG, max 2MB &middot; optional</p>
+                    <p className="text-ui-body font-bold text-slate-700">Upload Company Logo</p>
+                    <p className="text-ui-small text-slate-500 mt-1">JPG or PNG, max 2MB &middot; optional</p>
                   </div>
                 )}
               </label>
@@ -859,7 +859,7 @@ const CompanyForm = ({
                 className="hidden"
               />
               {logoPreview ? (
-                <p className="text-[1.1875rem] text-slate-500 mt-2 text-center">Click the image to change it</p>
+                <p className="text-ui-small text-slate-500 mt-2 text-center">Click the image to change it</p>
               ) : null}
 
               <Subsection title="Contact" hint="How other members reach this company">
@@ -881,7 +881,7 @@ const CompanyForm = ({
                     placeholder="Enter 10-digit mobile number"
                     value={formData.mobileNumber}
                     onChange={handleInputChange}
-                    className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
 
@@ -892,7 +892,7 @@ const CompanyForm = ({
                     placeholder="Enter email address"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
 
@@ -902,7 +902,7 @@ const CompanyForm = ({
                     placeholder="City, State"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
 
@@ -912,7 +912,7 @@ const CompanyForm = ({
                     placeholder="e.g. Guindy Industrial Estate"
                     value={formData.area}
                     onChange={handleInputChange}
-                    className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
               </FieldGrid>
@@ -933,7 +933,7 @@ const CompanyForm = ({
                     placeholder="Enter business name"
                     value={formData.businessName}
                     onChange={handleInputChange}
-                    className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
 
@@ -942,7 +942,7 @@ const CompanyForm = ({
                     value={formData.businessType}
                     onValueChange={(value) => setField('businessType', value)}
                   >
-                    <SelectTrigger className="h-12 !text-[1.25rem] font-semibold bg-slate-50 border-slate-200 data-[placeholder]:font-normal data-[placeholder]:text-slate-400 focus:bg-white focus:ring-blue-500">
+                    <SelectTrigger className="h-12 !text-ui-body font-semibold bg-slate-50 border-slate-200 data-[placeholder]:font-normal data-[placeholder]:text-slate-400 focus:bg-white focus:ring-blue-500">
                       <SelectValue placeholder="Select a business type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -958,7 +958,7 @@ const CompanyForm = ({
                     value={formData.constitutionType}
                     onValueChange={(value) => setField('constitutionType', value)}
                   >
-                    <SelectTrigger className="h-12 !text-[1.25rem] font-semibold bg-slate-50 border-slate-200 data-[placeholder]:font-normal data-[placeholder]:text-slate-400 focus:bg-white focus:ring-blue-500">
+                    <SelectTrigger className="h-12 !text-ui-body font-semibold bg-slate-50 border-slate-200 data-[placeholder]:font-normal data-[placeholder]:text-slate-400 focus:bg-white focus:ring-blue-500">
                       <SelectValue placeholder="Select a constitution" />
                     </SelectTrigger>
                     <SelectContent>
@@ -976,7 +976,7 @@ const CompanyForm = ({
                     placeholder="e.g. 25"
                     value={formData.numberOfEmployees}
                     onChange={handleInputChange}
-                    className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
 
@@ -990,7 +990,7 @@ const CompanyForm = ({
                     placeholder="e.g. Precision machining of automotive components"
                     value={formData.businessActivities}
                     onChange={handleInputChange}
-                    className="min-h-[5rem] !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="min-h-[5rem] !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
 
@@ -1004,7 +1004,7 @@ const CompanyForm = ({
                     placeholder="Describe your company offerings…"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="min-h-[6rem] !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                    className="min-h-[6rem] !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                   />
                 </Field>
               </FieldGrid>
@@ -1051,7 +1051,7 @@ const CompanyForm = ({
                       placeholder="Name the chamber"
                       value={formData.otherChamber}
                       onChange={handleInputChange}
-                      className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                      className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                     />
                   </Field>
                 </div>
@@ -1078,7 +1078,7 @@ const CompanyForm = ({
                       onChange={(e) => setField('panNumber', e.target.value.toUpperCase())}
                       placeholder="ABCDE1234F"
                       maxLength={10}
-                      className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                      className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                     />
                   </Field>
 
@@ -1088,7 +1088,7 @@ const CompanyForm = ({
                       onChange={(e) => setField('gstNumber', e.target.value.toUpperCase())}
                       placeholder="22AAAAA0000A1Z5"
                       maxLength={15}
-                      className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                      className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                     />
                   </Field>
                 </FieldGrid>
@@ -1139,7 +1139,7 @@ const CompanyForm = ({
                       value={formData.turnoverRange}
                       onValueChange={(v) => setField('turnoverRange', v)}
                     >
-                      <SelectTrigger className="h-12 !text-[1.25rem] font-semibold bg-slate-50 border-slate-200 data-[placeholder]:font-normal data-[placeholder]:text-slate-400 focus:bg-white focus:ring-blue-500">
+                      <SelectTrigger className="h-12 !text-ui-body font-semibold bg-slate-50 border-slate-200 data-[placeholder]:font-normal data-[placeholder]:text-slate-400 focus:bg-white focus:ring-blue-500">
                         <SelectValue placeholder="Select turnover range" />
                       </SelectTrigger>
                       {/* Thirteen slabs — capped so the list scrolls rather than
@@ -1169,14 +1169,14 @@ const CompanyForm = ({
                         value={formData.turnoverOther}
                         onChange={(e) => setField('turnoverOther', e.target.value)}
                         placeholder="Enter the annual turnover"
-                        className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                        className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                       />
                     </Field>
                   )}
                 </FieldGrid>
 
                 {formData.turnoverRange && !isManualTurnover ? (
-                  <p className="mt-3 inline-flex items-center gap-1.5 text-[1.1875rem] font-medium text-slate-500">
+                  <p className="mt-3 inline-flex items-center gap-1.5 text-ui-small font-medium text-slate-500">
                     <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
                     Recorded as {formData.turnoverRange}
                   </p>
@@ -1227,7 +1227,7 @@ const CompanyForm = ({
                           value={formData.msmeUdyamNumber}
                           onChange={(e) => setField('msmeUdyamNumber', e.target.value.toUpperCase())}
                           placeholder="UDYAM-XX-00-0000000"
-                          className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                          className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                         />
                       </Field>
                     </FieldGrid>
@@ -1246,7 +1246,7 @@ const CompanyForm = ({
                           onChange={(e) =>
                             setField('nsicRegistrationNumber', e.target.value.toUpperCase())}
                           placeholder="NSIC / SPRS number"
-                          className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                          className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                         />
                       </Field>
                     </FieldGrid>
@@ -1295,7 +1295,7 @@ const CompanyForm = ({
                           onChange={(e) =>
                             setField('exportCouncilRegNumber', e.target.value.toUpperCase())}
                           placeholder="Membership / RCMC number"
-                          className="h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                          className="h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                         />
                       </Field>
                     </FieldGrid>
@@ -1309,7 +1309,7 @@ const CompanyForm = ({
                         value={formData.otherRegistrationDetails}
                         onChange={(e) => setField('otherRegistrationDetails', e.target.value)}
                         placeholder="Name the body and the registration number"
-                        className="min-h-[5rem] !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                        className="min-h-[5rem] !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                       />
                     </Field>
                   </div>
@@ -1338,7 +1338,7 @@ const CompanyForm = ({
                         value={formData.schemeDetails}
                         onChange={(e) => setField('schemeDetails', e.target.value)}
                         placeholder="Name the scheme and the benefit availed"
-                        className="min-h-[5rem] !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                        className="min-h-[5rem] !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                       />
                     </Field>
                   </div>
@@ -1354,7 +1354,7 @@ const CompanyForm = ({
                 type="button"
                 variant="outline"
                 size="lg"
-                className="w-full sm:w-auto border-slate-200 text-slate-700 hover:bg-slate-50 text-[1.25rem] font-bold h-12"
+                className="w-full sm:w-auto border-slate-200 text-slate-700 hover:bg-slate-50 text-ui-body font-bold h-12"
                 onClick={() => navigate(cancelTo || returnTo)}
               >
                 Cancel
@@ -1362,7 +1362,7 @@ const CompanyForm = ({
               <Button
                 type="submit"
                 size="lg"
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-[1.25rem] font-bold h-12"
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-ui-body font-bold h-12"
                 disabled={loading}
               >
                 <Save className="h-4 w-4 mr-2" />

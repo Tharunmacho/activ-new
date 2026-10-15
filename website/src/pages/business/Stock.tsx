@@ -177,7 +177,7 @@ export default function Stock() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search your catalogue"
-                            className="w-full h-11 pl-9 pr-3 rounded-xl border border-slate-200 text-[1.1875rem]
+                            className="w-full h-11 pl-9 pr-3 rounded-xl border border-slate-200 text-ui-small
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/30
                                        focus:border-blue-400"
                         />
@@ -396,7 +396,7 @@ function StockCard({
                 )}
 
                 <span className="min-w-0 flex-1">
-                    <span className="block text-[1.0625rem] font-semibold text-slate-900 truncate">
+                    <span className="block text-ui-caption font-semibold text-slate-900 truncate">
                         {row.name}
                     </span>
                     <span className="block text-[0.9375rem] text-slate-500 truncate">
@@ -432,7 +432,7 @@ function StockCard({
                                 value={delta}
                                 onChange={(e) => setDelta(e.target.value)}
                                 placeholder="Quantity"
-                                className="w-28 h-11 px-3 rounded-xl border border-slate-200 text-[1.1875rem] bg-white
+                                className="w-28 h-11 px-3 rounded-xl border border-slate-200 text-ui-small bg-white
                                            focus:outline-none focus:ring-2 focus:ring-blue-500/30
                                            focus:border-blue-400"
                             />
@@ -441,7 +441,7 @@ function StockCard({
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value as StockReason)}
                                 className="flex-1 min-w-[9.375rem] max-w-full h-11 px-3 rounded-xl border border-slate-200
-                                           text-[1.1875rem] bg-white focus:outline-none focus:ring-2
+                                           text-ui-small bg-white focus:outline-none focus:ring-2
                                            focus:ring-blue-500/30 focus:border-blue-400"
                             >
                                 {REASONS.map((option) => (
@@ -455,7 +455,7 @@ function StockCard({
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
                             placeholder="Note (optional) — invoice number, who took it"
-                            className="w-full h-11 px-3 mt-2 rounded-xl border border-slate-200 text-[1.1875rem] bg-white
+                            className="w-full h-11 px-3 mt-2 rounded-xl border border-slate-200 text-ui-small bg-white
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/30
                                        focus:border-blue-400"
                         />
@@ -499,7 +499,7 @@ function StockCard({
                                 min={0}
                                 value={minimum}
                                 onChange={(e) => setMinimum(e.target.value)}
-                                className="w-28 h-11 px-3 rounded-xl border border-slate-200 text-[1.1875rem] bg-white
+                                className="w-28 h-11 px-3 rounded-xl border border-slate-200 text-ui-small bg-white
                                            focus:outline-none focus:ring-2 focus:ring-blue-500/30
                                            focus:border-blue-400"
                             />

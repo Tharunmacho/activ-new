@@ -57,7 +57,7 @@ export function FormCard({
                 </span>
                 <div className="min-w-0">
                     <h2 className={`${CARD_TITLE} text-slate-900`}>{title}</h2>
-                    {subtitle ? <p className="text-[1.1875rem] text-slate-500 mt-0.5">{subtitle}</p> : null}
+                    {subtitle ? <p className="text-ui-small text-slate-500 mt-0.5">{subtitle}</p> : null}
                 </div>
             </div>
             <div className="space-y-5">{children}</div>
@@ -83,13 +83,13 @@ export function FormField({
 }) {
     return (
         <div className={full ? "md:col-span-2" : undefined}>
-            <label className="block text-[1.1875rem] font-semibold text-slate-700 mb-2">
+            <label className="block text-ui-small font-semibold text-slate-700 mb-2">
                 {label}
                 {required ? <span className="text-red-500 ml-0.5">*</span> : null}
             </label>
             {children}
-            {error ? <p className="text-[1.0625rem] text-red-600 mt-1.5">{error}</p> : null}
-            {!error && hint ? <p className="text-[1.0625rem] text-slate-500 mt-1.5">{hint}</p> : null}
+            {error ? <p className="text-ui-caption text-red-600 mt-1.5">{error}</p> : null}
+            {!error && hint ? <p className="text-ui-caption text-slate-500 mt-1.5">{hint}</p> : null}
         </div>
     );
 }
@@ -109,7 +109,7 @@ function Stepper({ current }: { current: StepIndex }) {
                 return (
                     <div key={step} className="flex items-center">
                         <span
-                            className={`w-9 h-9 rounded-full flex items-center justify-center text-[1.1875rem] font-bold shrink-0 ${done
+                            className={`w-9 h-9 rounded-full flex items-center justify-center text-ui-small font-bold shrink-0 ${done
                                 ? "bg-blue-600 text-white"
                                 : active
                                     ? "bg-blue-600 text-white ring-4 ring-blue-100"
@@ -185,7 +185,7 @@ export default function RegistrationFormShell({
                         <h1 className={`${PAGE_TITLE} text-slate-900 truncate`}>{title}</h1>
                         <p className={`${PAGE_SUBTITLE} text-slate-500 mt-0.5 truncate hidden sm:block`}>{description}</p>
                     </div>
-                    <span className="ml-auto text-sm sm:text-[1.1875rem] font-medium text-slate-500 shrink-0">
+                    <span className="ml-auto text-sm sm:text-ui-small font-medium text-slate-500 shrink-0">
                         Step {step} of {TOTAL_STEPS}
                     </span>
                 </header>

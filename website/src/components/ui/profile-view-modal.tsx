@@ -173,8 +173,8 @@ const Section = ({
           <Icon className="w-[18px] h-[18px]" />
         </span>
         <div className="min-w-0">
-          <h3 className="text-[1.25rem] font-extrabold tracking-tight text-slate-900">{title}</h3>
-          <p className="text-[1.1875rem] font-medium text-slate-500">{subtitle}</p>
+          <h3 className="text-ui-body font-extrabold tracking-tight text-slate-900">{title}</h3>
+          <p className="text-ui-small font-medium text-slate-500">{subtitle}</p>
         </div>
       </header>
       <dl className="divide-y divide-slate-100">
@@ -183,8 +183,8 @@ const Section = ({
             key={r.label}
             className="grid grid-cols-1 gap-0.5 sm:grid-cols-[minmax(0,11rem)_1fr] items-baseline sm:gap-4 px-4 sm:px-5 py-2.5 sm:py-3"
           >
-            <dt className="text-[1.1875rem] font-semibold text-slate-500">{r.label}</dt>
-            <dd className="text-[1.25rem] font-semibold text-slate-900 break-words min-w-0">
+            <dt className="text-ui-small font-semibold text-slate-500">{r.label}</dt>
+            <dd className="text-ui-body font-semibold text-slate-900 break-words min-w-0">
               {show(r.value)}
             </dd>
           </div>
@@ -266,7 +266,7 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
           <DialogTitle className="text-[1.375rem] sm:text-[1.625rem] font-extrabold tracking-tight text-slate-900">
             Application Details
           </DialogTitle>
-          <DialogDescription className="text-[1.25rem] font-medium text-slate-500">
+          <DialogDescription className="text-ui-body font-medium text-slate-500">
             Complete application information submitted by the member
           </DialogDescription>
         </DialogHeader>
@@ -274,18 +274,18 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-3" />
-            <p className="text-[1.25rem] text-slate-500">Loading application…</p>
+            <p className="text-ui-body text-slate-500">Loading application…</p>
           </div>
         ) : !profile ? (
           <div className="py-20 text-center">
-            <p className="text-[1.25rem] text-slate-500">No application data to show.</p>
+            <p className="text-ui-body text-slate-500">No application data to show.</p>
           </div>
         ) : (
           <>
             {/* Identity, matching mobile's hero: name, role pill, status. */}
             <div className="shrink-0 px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center gap-3 sm:gap-3.5
                             border-b border-slate-200 bg-white">
-              <span className="w-12 h-12 rounded-full bg-blue-600 text-white text-[1.25rem] font-bold
+              <span className="w-12 h-12 rounded-full bg-blue-600 text-white text-ui-body font-bold
                                flex items-center justify-center shrink-0">
                 {displayName.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
               </span>
@@ -325,7 +325,7 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
                     <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest text-red-700">
                       Rejection reason
                     </p>
-                    <p className="mt-1.5 text-[1.25rem] font-semibold text-red-900 break-words">{p.rejectionReason}</p>
+                    <p className="mt-1.5 text-ui-body font-semibold text-red-900 break-words">{p.rejectionReason}</p>
                   </div>
                 )}
                 <Section
@@ -441,7 +441,7 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
               <div className="shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-white">
                 {rejecting ? (
                   <div className="space-y-3">
-                    <label className="text-[1.25rem] font-semibold text-slate-700">Reason for rejection</label>
+                    <label className="text-ui-body font-semibold text-slate-700">Reason for rejection</label>
                     <Textarea
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}

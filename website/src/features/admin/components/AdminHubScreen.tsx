@@ -418,7 +418,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                                             <p className={`text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight tabular-nums ${f.tone}`}>
                                                                 {Number(f.value || 0)}
                                                             </p>
-                                                            <p className="text-[1rem] sm:text-[1.1875rem] font-semibold text-slate-500 mt-0.5 truncate">{f.label}</p>
+                                                            <p className="text-[1rem] sm:text-ui-small font-semibold text-slate-500 mt-0.5 truncate">{f.label}</p>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -439,7 +439,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Filter regions"
-                                    className="h-11 w-full pl-9 pr-3.5 rounded-xl border border-slate-200 text-[1.25rem] outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
+                                    className="h-11 w-full pl-9 pr-3.5 rounded-xl border border-slate-200 text-ui-body outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                                                focus:outline-none focus:ring-2 focus:ring-blue-600"
                                 />
                             </div>
@@ -458,7 +458,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                         >
                                             <div className="min-w-0">
                                                 <p className="font-medium text-slate-900 break-words">{r.name}</p>
-                                                <p className="text-[1.1875rem] text-slate-500 mt-0.5">
+                                                <p className="text-ui-small text-slate-500 mt-0.5">
                                                     {[r.district, r.state].filter(Boolean).join(', ') || '—'}
                                                     {/*
                                                       Staffing, on every row rather than only when it
@@ -500,7 +500,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                     <button
                                         key={s}
                                         onClick={() => region && openRegion(region, s)}
-                                        className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1.5 sm:px-4 py-2 rounded-lg text-[1.0625rem] sm:text-[1.25rem] font-medium capitalize truncate transition-colors ${
+                                        className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1.5 sm:px-4 py-2 rounded-lg text-ui-caption sm:text-ui-body font-medium capitalize truncate transition-colors ${
                                             status === s
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -561,7 +561,7 @@ const Pill = ({ tone, children }: { tone: 'amber' | 'green' | 'red'; children: R
         green: 'text-green-700 bg-green-50',
         red: 'text-red-700 bg-red-50',
     }[tone];
-    return <span className={`text-[1.1875rem] px-2 py-1 rounded-full whitespace-nowrap ${tones}`}>{children}</span>;
+    return <span className={`text-ui-small px-2 py-1 rounded-full whitespace-nowrap ${tones}`}>{children}</span>;
 };
 
 const Busy = () => (

@@ -300,10 +300,10 @@ export default function EventDetailFields({
                 className="w-full flex items-center justify-between gap-3 text-left"
             >
                 <span className="min-w-0">
-                    <span className="block text-[1.25rem] font-semibold text-slate-900 dark:text-neutral-100">
+                    <span className="block text-ui-body font-semibold text-slate-900 dark:text-neutral-100">
                         Programme, speakers and registration
                     </span>
-                    <span className="block text-[1.1875rem] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    <span className="block text-ui-small text-neutral-500 dark:text-neutral-400 mt-0.5">
                         {summarise(value)}
                     </span>
                 </span>
@@ -350,10 +350,10 @@ export default function EventDetailFields({
                         <CmsSection title="Agenda">
                             <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 sm:p-4
                                             dark:border-blue-900 dark:bg-blue-950/30">
-                                <p className="text-[1.1875rem] font-semibold text-blue-900 dark:text-blue-200">
+                                <p className="text-ui-small font-semibold text-blue-900 dark:text-blue-200">
                                     This event runs over more than one day.
                                 </p>
-                                <p className="mt-1 text-[1.0625rem] text-blue-800 dark:text-blue-300">
+                                <p className="mt-1 text-ui-caption text-blue-800 dark:text-blue-300">
                                     Its programme is written day by day under the dates above —
                                     each day has its own hours and its own sessions, and that is
                                     what the event page prints.
@@ -377,7 +377,7 @@ export default function EventDetailFields({
                             <button
                                 type="button"
                                 onClick={() => set({ agenda: [...value.agenda, { ...BLANK_AGENDA }] })}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[1.1875rem]
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-ui-small
                                            font-medium text-blue-600 dark:text-blue-400 border
                                            border-blue-200 dark:border-blue-500/30 hover:bg-blue-500/10"
                             >
@@ -386,7 +386,7 @@ export default function EventDetailFields({
                         }
                     >
                         {value.agenda.length === 0 ? (
-                            <p className="text-[1.25rem] text-neutral-500 dark:text-neutral-400">
+                            <p className="text-ui-body text-neutral-500 dark:text-neutral-400">
                                 No agenda. The event page shows its description instead.
                             </p>
                         ) : (
@@ -489,7 +489,7 @@ export default function EventDetailFields({
                             <button
                                 type="button"
                                 onClick={() => set({ speakers: [...value.speakers, { ...BLANK_SPEAKER }] })}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[1.1875rem]
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-ui-small
                                            font-medium text-blue-600 dark:text-blue-400 border
                                            border-blue-200 dark:border-blue-500/30 hover:bg-blue-500/10"
                             >
@@ -498,7 +498,7 @@ export default function EventDetailFields({
                         }
                     >
                         {value.speakers.length === 0 ? (
-                            <p className="text-[1.25rem] text-neutral-500 dark:text-neutral-400">
+                            <p className="text-ui-body text-neutral-500 dark:text-neutral-400">
                                 No guests or speakers yet. The event page simply leaves the section out.
                             </p>
                         ) : (
@@ -663,7 +663,7 @@ export default function EventDetailFields({
                                 onChange={(e) => set({ registrationEnabled: e.target.checked })}
                                 className="w-4 h-4 rounded border-slate-300 text-blue-600"
                             />
-                            <span className="text-[1.25rem] text-slate-800 dark:text-neutral-200">
+                            <span className="text-ui-body text-slate-800 dark:text-neutral-200">
                                 Members can register for this event
                             </span>
                         </label>
@@ -778,7 +778,7 @@ export default function EventDetailFields({
                              * Naming the hidden fields costs one line and turns a
                              * missing-feature bug report into a tick.
                              */
-                            <p className="text-[1.25rem] text-slate-500 dark:text-[#A1A1AA] leading-relaxed">
+                            <p className="text-ui-body text-slate-500 dark:text-[#A1A1AA] leading-relaxed">
                                 This event is an announcement — nobody can book a seat on it.
                                 Tick the box above to set the{' '}
                                 <strong className="font-semibold text-slate-700 dark:text-neutral-300">

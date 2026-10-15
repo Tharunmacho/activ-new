@@ -116,7 +116,7 @@ function State({ loading, error }: { loading: boolean; error: string }) {
     return (
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-4 text-center">
             {loading ? <Loader2 className="h-9 w-9 animate-spin text-blue-600" /> : <AlertCircle className="h-10 w-10 text-amber-500" />}
-            <p className="max-w-md text-[1.0625rem] text-slate-600">{loading ? 'Loading your document…' : error}</p>
+            <p className="max-w-md text-ui-caption text-slate-600">{loading ? 'Loading your document…' : error}</p>
             {!loading ? (
                 <Link to="/donate" className="mt-2 inline-flex h-11 items-center rounded-xl bg-blue-600 px-5 font-bold text-white hover:bg-blue-700">
                     Go to donations

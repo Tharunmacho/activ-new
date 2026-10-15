@@ -71,7 +71,7 @@ const ApprovalCard = ({ member, onApprove, onReject, status = 'pending' }: Appro
           </div>
           <div className="flex items-center gap-1 text-muted-foreground mt-1">
             <Mail className="w-4 h-4" />
-            <span className="text-[1.1875rem]">{member.email}</span>
+            <span className="text-ui-small">{member.email}</span>
           </div>
         </div>
       </CardHeader>
@@ -89,7 +89,7 @@ const ApprovalCard = ({ member, onApprove, onReject, status = 'pending' }: Appro
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-muted-foreground" />
             <span className="font-medium">Location:</span>
-            <span className="text-[1.1875rem]">
+            <span className="text-ui-small">
               {[member.block, member.district, member.state].filter(Boolean).join(', ')}
             </span>
           </div>
@@ -99,7 +99,7 @@ const ApprovalCard = ({ member, onApprove, onReject, status = 'pending' }: Appro
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <span className="font-medium">Registered:</span>
-            <span className="text-[1.1875rem]">
+            <span className="text-ui-small">
               {new Date(member.registrationDate).toLocaleDateString('en-IN', {
                 day: 'numeric',
                 month: 'short',

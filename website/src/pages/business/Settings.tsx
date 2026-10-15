@@ -297,8 +297,8 @@ const Settings = () => {
                 <Icon className="h-5 w-5 text-blue-600" />
             </span>
             <span className="flex-1 min-w-0">
-                <span className="block font-bold text-[1.25rem] text-slate-900 break-words">{title}</span>
-                <span className="block text-[1.1875rem] text-slate-500">{subtitle}</span>
+                <span className="block font-bold text-ui-body text-slate-900 break-words">{title}</span>
+                <span className="block text-ui-small text-slate-500">{subtitle}</span>
             </span>
         </button>
     );
@@ -336,13 +336,13 @@ const Settings = () => {
                             </span>
                         )}
                         <div className="min-w-0">
-                            <p className="text-[1.0625rem] text-blue-600 font-semibold uppercase tracking-wider">
+                            <p className="text-ui-caption text-blue-600 font-semibold uppercase tracking-wider">
                                 Active company
                             </p>
                             <p className="text-[1.375rem] font-bold text-slate-900 truncate">
                                 {companyName || 'None selected'}
                             </p>
-                            <p className="text-[1.25rem] text-slate-500 truncate">
+                            <p className="text-ui-body text-slate-500 truncate">
                                 {activeCompany?.businessType || 'Business'}
                                 {activeCompany?.location ? ` · ${activeCompany.location}` : ''}
                             </p>
@@ -400,15 +400,15 @@ const Settings = () => {
                             <div className="grid grid-cols-3 rounded-xl bg-slate-50 border border-slate-200 py-3 sm:py-4 mb-3">
                                 <div className="text-center border-r border-slate-200">
                                     <p className="text-[1.5rem] sm:text-[1.75rem] font-bold text-slate-900 tabular-nums">{catalogStats.total}</p>
-                                    <p className="text-[1.0625rem] text-slate-500 uppercase tracking-wider mt-0.5">Items</p>
+                                    <p className="text-ui-caption text-slate-500 uppercase tracking-wider mt-0.5">Items</p>
                                 </div>
                                 <div className="text-center border-r border-slate-200">
                                     <p className="text-[1.5rem] sm:text-[1.75rem] font-bold text-slate-900 tabular-nums">{catalogStats.active}</p>
-                                    <p className="text-[1.0625rem] text-slate-500 uppercase tracking-wider mt-0.5">Live</p>
+                                    <p className="text-ui-caption text-slate-500 uppercase tracking-wider mt-0.5">Live</p>
                                 </div>
                                 <div className="text-center">
                                     <p className="text-[1.5rem] sm:text-[1.75rem] font-bold text-slate-900 tabular-nums">{catalogStats.featured}</p>
-                                    <p className="text-[1.0625rem] text-slate-500 uppercase tracking-wider mt-0.5">Featured</p>
+                                    <p className="text-ui-caption text-slate-500 uppercase tracking-wider mt-0.5">Featured</p>
                                 </div>
                             </div>
 
@@ -437,8 +437,8 @@ const Settings = () => {
                                     <Compass className="h-[1.125rem] w-[1.125rem] text-blue-600" />
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-[1.25rem] text-slate-900">List in ACTIV Network</p>
-                                    <p className="text-[1.0625rem] text-slate-500">
+                                    <p className="font-bold text-ui-body text-slate-900">List in ACTIV Network</p>
+                                    <p className="text-ui-caption text-slate-500">
                                         {isListed
                                             ? 'Other members can find this company and its products'
                                             : 'Hidden from search across the member network'}
@@ -493,8 +493,8 @@ const Settings = () => {
                                     <Trash2 className="h-[1.125rem] w-[1.125rem] text-red-500" />
                                 </span>
                                 <span className="flex-1 min-w-0">
-                                    <span className="block font-bold text-[1.25rem] text-red-600">Delete This Company</span>
-                                    <span className="block text-[1.0625rem] text-slate-500">
+                                    <span className="block font-bold text-ui-body text-red-600">Delete This Company</span>
+                                    <span className="block text-ui-caption text-slate-500">
                                         Removes {companyName || 'the company'} and its catalog permanently
                                     </span>
                                 </span>

@@ -168,7 +168,7 @@ export function HomeGalleryPicker({ onChanged }: {
 
     if (items === null) {
         return (
-            <p className="flex items-center gap-2 py-6 text-[1.0625rem] font-medium text-slate-400">
+            <p className="flex items-center gap-2 py-6 text-ui-caption font-medium text-slate-400">
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading the gallery…
             </p>
         );
@@ -201,7 +201,7 @@ export function HomeGalleryPicker({ onChanged }: {
                 />
             ) : (
                 <>
-                    <p className="mb-3 text-[1.0625rem] font-semibold text-slate-500 dark:text-neutral-400">
+                    <p className="mb-3 text-ui-caption font-semibold text-slate-500 dark:text-neutral-400">
                         {eligible.length} of {items.length} images are switched on.
                         {eligible.length > 0 && (
                             <span>
@@ -251,11 +251,11 @@ export function HomeGalleryPicker({ onChanged }: {
                                     </span>
 
                                     <div className="min-w-0 flex-1 basis-[10rem]">
-                                        <p className="truncate text-[1.1875rem] font-bold text-slate-900 dark:text-white">
+                                        <p className="truncate text-ui-small font-bold text-slate-900 dark:text-white">
                                             {item.title || 'Untitled image'}
                                         </p>
                                         <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5
-                                                      text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                                                      text-ui-caption font-medium text-slate-500 dark:text-neutral-400">
                                             {item.eventDate && (
                                                 <span className="inline-flex items-center gap-1">
                                                     <CalendarDays className="h-3.5 w-3.5 shrink-0" />
@@ -297,7 +297,7 @@ export function HomeGalleryPicker({ onChanged }: {
                                         aria-expanded={openId === item._id}
                                         title="The heading, subheading and side shown over this photo in the banner"
                                         className={`ml-auto sm:ml-0 inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-2 sm:py-1.5
-                                                    text-[1.0625rem] font-semibold transition-colors
+                                                    text-ui-caption font-semibold transition-colors
                                                     ${openId === item._id
                                             ? 'bg-blue-600 text-white'
                                             : 'text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40'}`}
@@ -309,7 +309,7 @@ export function HomeGalleryPicker({ onChanged }: {
                                         href="/cms/gallery"
                                         title="Open the Gallery screen to change the picture or its details"
                                         className="hidden shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5
-                                                   text-[1.0625rem] font-semibold text-blue-700 transition-colors
+                                                   text-ui-caption font-semibold text-blue-700 transition-colors
                                                    hover:bg-blue-50 sm:inline-flex
                                                    dark:text-blue-400 dark:hover:bg-blue-950/40"
                                     >
@@ -325,7 +325,7 @@ export function HomeGalleryPicker({ onChanged }: {
                                             ? 'Hidden from the gallery, so it cannot be in the banner'
                                             : on ? 'Take it out of the banner' : 'Allow it in the banner'}
                                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border
-                                                    px-3 py-2 sm:py-1.5 text-[1.0625rem] font-bold transition-colors
+                                                    px-3 py-2 sm:py-1.5 text-ui-caption font-bold transition-colors
                                                     disabled:opacity-40 ${on
                                                 ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                                                     + ' dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'
@@ -357,7 +357,7 @@ export function HomeGalleryPicker({ onChanged }: {
                                                   onClick={() => setOpenId(null)}
                                                   disabled={busy === item._id}
                                                   className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5
-                                                             text-[1.0625rem] font-semibold text-slate-600 hover:bg-slate-100
+                                                             text-ui-caption font-semibold text-slate-600 hover:bg-slate-100
                                                              dark:border-[#2a2a2a] dark:text-neutral-300"
                                               >
                                                   <X className="h-4 w-4" /> Cancel
@@ -367,7 +367,7 @@ export function HomeGalleryPicker({ onChanged }: {
                                                   onClick={() => saveWords(item)}
                                                   disabled={busy === item._id}
                                                   className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3.5 py-1.5
-                                                             text-[1.0625rem] font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+                                                             text-ui-caption font-bold text-white hover:bg-blue-700 disabled:opacity-60"
                                               >
                                                   {busy === item._id
                                                       ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -390,7 +390,7 @@ export function HomeGalleryPicker({ onChanged }: {
                       * different job, on the Gallery screen, which the Edit link
                       * on every row already reaches.
                       */}
-                    <p className="mt-4 text-[1.0625rem] font-medium text-slate-400">
+                    <p className="mt-4 text-ui-caption font-medium text-slate-400">
                         {ordered.length > Math.max(eligible.length + 4, 12)
                             ? `Showing the switched-on images and a few more, of ${items.length}. `
                             : ''}

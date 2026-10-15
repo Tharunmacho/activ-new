@@ -1,0 +1,215 @@
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { FileText, ImagePlus, Loader2, Paperclip, Send, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { resolveMediaUrl } from '@/config/api.config';
+import { errorMessage, getStates, getDistricts, getBlocks, listMembershipPlans, type MembershipPlanRow } from '@/services/activApi';
+import { uploadMedia, uploadEventAttachment } from '@/services/cmsApi';
+import { createAnnouncement, updateAnnouncement, type Announcement, type AnnouncementCategory } from '@/services/memberHubApi';
+import { UPDATE_AUDIENCES, type UpdateAudience } from '@/lib/memberAudience';
+
+const INPUT = 'w-full min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-ui-body leading-6 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-400';
+const SECONDARY = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50';
+const CATEGORIES: { value: AnnouncementCategory; label: string }[] = [
+    { value: 'general', label: 'General update' }, { value: 'notice', label: 'Notice' },
+    { value: 'policy', label: 'Policy' }, { value: 'scheme', label: 'Scheme' },
+    { value: 'achievement', label: 'Achievement' }, { value: 'urgent', label: 'Urgent' },
+];
+type Form = {
+    title: string; summary: string; body: string; category: AnnouncementCategory;
+    state: string; district: string; block: string; audience: UpdateAudience; planKeys: string[];
+    bannerUrl: string; bannerAlt: string; attachmentUrl: string; attachmentLabel: string;
+    pinned: boolean; expiresAt: string;
+};
+const dateInput = (value?: string | null) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+};
+const mediaLink = (value: string) => {
+    const url = resolveMediaUrl(value);
+    return /^(https?:\/\/|\/uploads\/)/i.test(url || '') ? url : '';
+};
+const plainText = (value: string) => value.replace(/<[^>]*>/g, ' ').trim();
+
+export default function UpdateComposer({ initial, onClose, onSaved }: {
+    initial: Announcement | null; onClose: () => void; onSaved: () => void;
+}) {
+    const [form, setForm] = useState<Form>(() => ({
+        title: initial?.title || '', summary: initial?.summary || '', body: initial?.body || '', category: initial?.category || 'general',
+        state: initial?.state || '', district: initial?.district || '', block: initial?.block || '',
+        audience: initial?.audience || 'all', planKeys: initial?.planKeys || [],
+        bannerUrl: initial?.bannerUrl || '', bannerAlt: initial?.bannerAlt || '',
+        attachmentUrl: initial?.attachmentUrl || '', attachmentLabel: initial?.attachmentLabel || '',
+        pinned: !!initial?.pinned, expiresAt: dateInput(initial?.expiresAt),
+    }));
+    const [states, setStates] = useState<string[]>([]);
+    const [districts, setDistricts] = useState<string[]>([]);
+    const [blocks, setBlocks] = useState<string[]>([]);
+    const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
+    const [plansLoading, setPlansLoading] = useState(true);
+    const [plansError, setPlansError] = useState('');
+    const [catalogueAttempt, setCatalogueAttempt] = useState(0);
+    const [uploading, setUploading] = useState({ poster: '', document: '' });
+    const [fileError, setFileError] = useState({ poster: '', document: '' });
+    const [error, setError] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [dirty, setDirty] = useState(false);
+    const mounted = useRef(true);
+    const uploadingRef = useRef(false);
+    const busy = saving || !!uploading.poster || !!uploading.document;
+    const selectedAudience = UPDATE_AUDIENCES.find(option => option.value === form.audience);
+    const planNames = form.planKeys.map(key => plans.find(plan => plan.key === key)?.name || key);
+    const recipients = form.audience === 'plans' ? (planNames.join(', ') || 'Choose at least one plan') : selectedAudience?.title;
+    const region = [form.state, form.district, form.block].filter(Boolean).join(' / ') || 'All regions';
+    const change = <K extends keyof Form>(key: K, value: Form[K]) => { setDirty(true); setForm(current => ({ ...current, [key]: value })); };
+
+    useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+    useEffect(() => {
+        let active = true;
+        getStates().then(data => { if (active) setStates((data?.states || []).map((s: any) => s.name).filter(Boolean)); }).catch(() => undefined);
+        return () => { active = false; };
+    }, []);
+    useEffect(() => {
+        let active = true; setDistricts([]);
+        if (form.state) getDistricts(form.state).then(data => { if (active) setDistricts((data?.districts || []).map((d: any) => d.name).filter(Boolean)); }).catch(() => undefined);
+        return () => { active = false; };
+    }, [form.state]);
+    useEffect(() => {
+        let active = true; setBlocks([]);
+        if (form.state && form.district) getBlocks(form.state, form.district).then(data => { if (active) setBlocks((data?.blocks || []).map((b: any) => b.name).filter(Boolean)); }).catch(() => undefined);
+        return () => { active = false; };
+    }, [form.state, form.district]);
+    useEffect(() => {
+        let active = true; setPlansLoading(true); setPlansError('');
+        listMembershipPlans().then(data => { if (active) setPlans(data?.plans || []); })
+            .catch(() => { if (active) setPlansError('Membership plans could not be loaded. Please retry.'); })
+            .finally(() => { if (active) setPlansLoading(false); });
+        return () => { active = false; };
+    }, [catalogueAttempt]);
+
+    const close = () => { if (!busy && (!dirty || window.confirm('Discard your unsaved update?'))) onClose(); };
+    const upload = async (kind: 'poster' | 'document', file?: File) => {
+        if (!file || busy || uploadingRef.current) return;
+        setFileError(current => ({ ...current, [kind]: '' }));
+        const poster = kind === 'poster';
+        const allowed = poster ? /\.(jpe?g|png|webp|gif)$/i : /\.(pdf|docx?|xlsx?|pptx?)$/i;
+        if (!allowed.test(file.name) || (poster && !/^image\/(jpeg|png|webp|gif)$/.test(file.type))) {
+            setFileError(current => ({ ...current, [kind]: poster ? 'Choose a JPG, PNG, WebP or GIF image.' : 'Choose a PDF, Word, Excel or PowerPoint document.' })); return;
+        }
+        if (file.size > (poster ? 10 : 20) * 1024 * 1024) {
+            setFileError(current => ({ ...current, [kind]: `Choose a file smaller than ${poster ? 10 : 20} MB.` })); return;
+        }
+        uploadingRef.current = true;
+        setUploading(current => ({ ...current, [kind]: 'Uploading…' }));
+        try {
+            const media = poster ? await uploadMedia(file, progress => { if (mounted.current) setUploading(current => ({ ...current, poster: progress })); }) : await uploadEventAttachment(file);
+            if (!mounted.current) return;
+            if (!mediaLink(media.url)) throw new Error('The upload did not return a usable file. Please retry.');
+            setDirty(true);
+            setForm(current => poster ? { ...current, bannerUrl: media.url } : { ...current, attachmentUrl: media.url, attachmentLabel: file.name });
+        } catch (err) { if (mounted.current) setFileError(current => ({ ...current, [kind]: errorMessage(err, 'Upload failed. Please try again.') })); }
+        finally { uploadingRef.current = false; if (mounted.current) setUploading(current => ({ ...current, [kind]: '' })); }
+    };
+    const submit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault(); if (busy || uploadingRef.current) return;
+        const status = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'published' ? 'published' : 'draft';
+        setError('');
+        if (!form.title.trim()) { setError('Add a title so members know what the update is about.'); return; }
+        if (status === 'published' && ![form.body, form.summary, form.bannerUrl, form.attachmentUrl].some(value => plainText(value))) {
+            setError('Write a message or add a poster or document before publishing.'); return;
+        }
+        if (form.audience === 'plans' && (plansLoading || plansError || !form.planKeys.length || form.planKeys.some(key => !plans.some(plan => plan.key === key)))) {
+            setError('Choose at least one available membership plan before saving.'); return;
+        }
+        const expiry = form.expiresAt ? new Date(`${form.expiresAt}T23:59:59`) : null;
+        if (expiry && (!Number.isFinite(expiry.getTime()) || dateInput(expiry.toISOString()) !== form.expiresAt)) { setError('Choose a valid end date.'); return; }
+        setSaving(true);
+        try {
+            const payload = { ...form, title: form.title.trim(), status, planKeys: form.audience === 'plans' ? form.planKeys : [], expiresAt: expiry?.toISOString() || '' };
+            if (initial) await updateAnnouncement(initial.id, payload); else await createAnnouncement(payload);
+            toast.success(status === 'draft' ? 'Draft saved' : initial?.status === 'published' ? 'Update saved' : 'Update published');
+            onSaved();
+        } catch (err) { setError(errorMessage(err, 'Could not save your update. Please try again.')); }
+        finally { if (mounted.current) setSaving(false); }
+    };
+
+    return <form aria-label="Update composer" onSubmit={submit} className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
+            <div><h2 className="text-2xl font-semibold text-slate-900">{initial ? 'Edit update' : 'Create an update'}</h2><p className="mt-1 text-sm leading-6 text-slate-500">Write your message, choose its audience and check the preview.</p></div>
+            <button type="button" aria-label="Close update editor" disabled={busy} onClick={close} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200 disabled:opacity-50"><X size={20} /></button>
+        </div>
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,1fr)]">
+            <div className="min-w-0 space-y-6">
+                <Section title="Write your update" detail="A clear title and a short message are enough. Media is optional.">
+                    <Field label="Title" required><input name="title" required maxLength={200} value={form.title} onChange={e => change('title', e.target.value)} placeholder="For example: New membership benefits" className={INPUT} /></Field>
+                    <Field label="Message"><textarea name="body" value={form.body} onChange={e => change('body', e.target.value)} rows={7} placeholder={'Dear members,\n\nShare the details of your update here.\n\nThank you for being part of ACTIV.'} className={`${INPUT} resize-y`} /></Field>
+                    <details className="rounded-xl border border-slate-200 px-4 py-3" open={!!form.summary || undefined}>
+                        <summary className="cursor-pointer text-sm font-medium text-slate-600">Short summary (optional)</summary>
+                        <div className="mt-3"><Field label="Summary" hint="Shown on the update card. If blank, we use the start of your message."><input name="summary" value={form.summary} maxLength={300} onChange={e => change('summary', e.target.value)} className={INPUT} /></Field></div>
+                    </details>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="Category"><select name="category" value={form.category} onChange={e => change('category', e.target.value as AnnouncementCategory)} className={INPUT}>{CATEGORIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>
+                        <Field label="Show until (optional)" hint="Visible through the end of this date."><input name="expiresAt" type="date" value={form.expiresAt} onChange={e => change('expiresAt', e.target.value)} className={INPUT} /></Field>
+                    </div>
+                    <div className="border-t border-slate-100 pt-5">
+                        <h4 className="text-base font-semibold text-slate-900">Poster or image <span className="font-normal text-slate-500">(optional)</span></h4>
+                        {form.bannerUrl && <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"><img src={mediaLink(form.bannerUrl)} alt={form.bannerAlt || 'Update poster preview'} className="mx-auto max-h-80 w-full object-contain" /></div>}
+                        <div className="mt-3 flex flex-wrap items-center gap-3"><label className={`${SECONDARY} relative cursor-pointer ${busy ? 'pointer-events-none opacity-50' : ''}`}><ImagePlus size={18} />{uploading.poster || (form.bannerUrl ? 'Replace image' : 'Upload image')}<input aria-label="Upload update image" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={busy} onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void upload('poster', file); }} /></label>{form.bannerUrl && <button type="button" className="min-h-11 px-2 text-sm font-medium text-red-700" disabled={busy} onClick={() => { change('bannerUrl', ''); change('bannerAlt', ''); }}>Remove image</button>}</div>
+                        <p className="mt-2 text-sm text-slate-500">JPG, PNG, WebP or GIF, up to 10 MB. Your full poster stays visible.</p>
+                        {fileError.poster && <p role="alert" className="mt-2 text-sm text-red-700">{fileError.poster}</p>}
+                        {form.bannerUrl && <div className="mt-3"><Field label="Image description (optional)" hint="Helps members who use a screen reader."><input name="bannerAlt" value={form.bannerAlt} onChange={e => change('bannerAlt', e.target.value)} className={INPUT} placeholder="Describe the important information in this image" /></Field></div>}
+                    </div>
+                    <div className="border-t border-slate-100 pt-5">
+                        <h4 className="text-base font-semibold text-slate-900">Document <span className="font-normal text-slate-500">(optional)</span></h4>
+                        {form.attachmentUrl && <div className="mt-3 flex min-w-0 items-center gap-3 rounded-xl border border-slate-200 p-3"><FileText className="shrink-0 text-blue-700" size={22} /><a href={mediaLink(form.attachmentUrl)} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 break-words text-sm font-medium text-blue-800">{form.attachmentLabel || 'View document'}</a><button type="button" disabled={busy} aria-label="Remove document" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-red-700 hover:bg-red-50" onClick={() => { change('attachmentUrl', ''); change('attachmentLabel', ''); }}><Trash2 size={17} /></button></div>}
+                        <label className={`${SECONDARY} relative mt-3 cursor-pointer ${busy ? 'pointer-events-none opacity-50' : ''}`}><Paperclip size={18} />{uploading.document || (form.attachmentUrl ? 'Replace document' : 'Upload document')}<input aria-label="Upload update document" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" disabled={busy} onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void upload('document', file); }} /></label>
+                        <p className="mt-2 text-sm text-slate-500">PDF, Word, Excel or PowerPoint, up to 20 MB.</p>
+                        {fileError.document && <p role="alert" className="mt-2 text-sm text-red-700">{fileError.document}</p>}
+                        {form.attachmentUrl && <div className="mt-3"><Field label="Document name"><input name="attachmentLabel" value={form.attachmentLabel} onChange={e => change('attachmentLabel', e.target.value)} className={INPUT} /></Field></div>}
+                    </div>
+                </Section>
+                <Section title="Choose recipients" detail="Only members who match both the audience and region can see this update.">
+                    <Field label="Audience" hint={selectedAudience?.detail}><select name="audience" value={form.audience} onChange={e => change('audience', e.target.value as UpdateAudience)} className={INPUT}>{UPDATE_AUDIENCES.map(option => <option key={option.value} value={option.value}>{option.title}</option>)}</select></Field>
+                    {form.audience === 'plans' && <fieldset className="rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold text-slate-700">Membership plans</legend>
+                        {plansLoading ? <p role="status" className="text-sm text-slate-500">Loading plans…</p> : plansError ? <div role="alert" className="text-sm text-red-700">{plansError}<button type="button" className="ml-2 min-h-11 underline" onClick={() => setCatalogueAttempt(v => v + 1)}>Retry</button></div> : <>
+                            <div className="mb-3 flex flex-wrap gap-3"><button type="button" className="min-h-10 text-sm font-semibold text-blue-700" onClick={() => change('planKeys', plans.filter(plan => plan.audience !== 'student').map(plan => plan.key))}>Select all except student plans</button><button type="button" className="min-h-10 text-sm text-slate-500" onClick={() => change('planKeys', [])}>Clear selection</button></div>
+                            <div className="grid gap-2 sm:grid-cols-2">{plans.map(plan => <label key={plan.key} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${form.planKeys.includes(plan.key) ? 'border-blue-400 bg-blue-50' : 'border-slate-200'}`}><input type="checkbox" name="planKeys" value={plan.key} checked={form.planKeys.includes(plan.key)} onChange={e => change('planKeys', e.target.checked ? [...form.planKeys, plan.key] : form.planKeys.filter(key => key !== plan.key))} className="mt-1 h-4 w-4 shrink-0 accent-blue-700" /><span className="min-w-0"><span className="block break-words text-sm font-semibold text-slate-800">{plan.name}</span><span className="block text-sm capitalize text-slate-500">{plan.audience === 'platinum' ? 'Lifetime' : plan.audience}{plan.active === false ? ' · Retired plan' : ''}</span></span></label>)}</div>
+                            {!plans.length && <p className="text-sm text-slate-500">No membership plans are available. Add them under Membership plans first.</p>}
+                        </>}
+                    </fieldset>}
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <Field label="State"><select name="state" value={form.state} className={INPUT} onChange={e => { setDirty(true); setForm(current => ({ ...current, state: e.target.value, district: '', block: '' })); }}><option value="">All states</option>{[...new Set([...states, form.state].filter(Boolean))].map(name => <option key={name}>{name}</option>)}</select></Field>
+                        <Field label="District"><select name="district" value={form.district} disabled={!form.state} className={INPUT} onChange={e => { setDirty(true); setForm(current => ({ ...current, district: e.target.value, block: '' })); }}><option value="">{form.state ? 'All districts' : 'Select a state first'}</option>{[...new Set([...districts, form.district].filter(Boolean))].map(name => <option key={name}>{name}</option>)}</select></Field>
+                        <Field label="Block"><select name="block" value={form.block} disabled={!form.district} className={INPUT} onChange={e => change('block', e.target.value)}><option value="">{form.district ? 'All blocks' : 'Select a district first'}</option>{[...new Set([...blocks, form.block].filter(Boolean))].map(name => <option key={name}>{name}</option>)}</select></Field>
+                    </div>
+                    <p className="text-sm leading-6 text-slate-500">Leave a region set to All to include everyone within the level above it.</p>
+                </Section>
+            </div>
+            <aside className="min-w-0 space-y-5 xl:sticky xl:top-5">
+                <section aria-label="Member preview" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-5 py-4"><h3 className="text-base font-semibold text-slate-800">Member preview</h3><p className="mt-1 text-sm text-slate-500">Check your content before publishing.</p></div>
+                    {form.bannerUrl && <img src={mediaLink(form.bannerUrl)} alt={form.bannerAlt || 'Update poster'} className="max-h-72 w-full bg-slate-50 object-contain" />}
+                    <div className="space-y-3 p-5"><span className="inline-block rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{CATEGORIES.find(c => c.value === form.category)?.label}</span><h4 className="break-words text-xl font-semibold leading-7 text-slate-900">{form.title.trim() || 'Your update title'}</h4>{form.summary && <p className="break-words text-sm leading-6 text-slate-500">{plainText(form.summary)}</p>}<p className="whitespace-pre-wrap break-words text-base leading-7 text-slate-700">{plainText(form.body) || (!form.bannerUrl && !form.attachmentUrl ? 'Your message will appear here.' : '')}</p>{form.attachmentUrl && <span className="flex items-center gap-2 break-words text-sm font-medium text-blue-700"><Paperclip size={16} className="shrink-0" />{form.attachmentLabel || 'View document'}</span>}</div>
+                </section>
+                <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
+                    <h3 className="text-base font-semibold text-slate-900">Review & publish</h3>
+                    <dl className="space-y-3 text-sm"><div><dt className="text-slate-500">Audience</dt><dd data-testid="recipient-summary" className="mt-1 break-words font-medium text-slate-800">{recipients}</dd></div><div><dt className="text-slate-500">Region</dt><dd className="mt-1 break-words font-medium text-slate-800">{region}</dd></div>{form.expiresAt && <div><dt className="text-slate-500">Visible through</dt><dd className="mt-1 font-medium text-slate-800">{form.expiresAt}</dd></div>}</dl>
+                    <label className="flex cursor-pointer items-start gap-3 border-t border-blue-100 pt-4"><input type="checkbox" name="pinned" checked={form.pinned} onChange={e => change('pinned', e.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-blue-700" /><span className="text-sm leading-6 text-slate-700">Pin this update at the top of eligible members’ feeds</span></label>
+                    <p className="text-sm leading-6 text-slate-500">Drafts stay private. Publishing makes the update visible to this audience; notifications follow their delivery settings.</p>
+                    {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">{error}</p>}
+                    <button type="submit" name="intent" value="published" disabled={busy} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-base font-semibold text-white hover:bg-blue-800 disabled:opacity-50">{saving ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}{initial?.status === 'published' ? 'Save published update' : 'Publish update'}</button>
+                    <button type="submit" name="intent" value="draft" disabled={busy} className={`${SECONDARY} w-full`}>Save as draft</button>
+                    {initial?.status === 'published' && <p className="text-sm text-slate-500">Saving as a draft removes it from members’ feeds.</p>}
+                </section>
+            </aside>
+        </div>
+    </form>;
+}
+
+function Section({ title, detail, children }: { title: string; detail: string; children: ReactNode }) {
+    return <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"><div><h3 className="text-xl font-semibold text-slate-900">{title}</h3><p className="mt-1 text-sm leading-6 text-slate-500">{detail}</p></div>{children}</section>;
+}
+function Field({ label, hint, required, children }: { label: string; hint?: string; required?: boolean; children: ReactNode }) {
+    return <label className="block min-w-0"><span className="mb-1.5 block text-sm font-semibold text-slate-700">{label}{required && <span className="text-red-600"> *</span>}</span>{children}{hint && <span className="mt-1.5 block text-sm leading-6 text-slate-500">{hint}</span>}</label>;
+}

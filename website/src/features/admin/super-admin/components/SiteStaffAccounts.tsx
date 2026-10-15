@@ -26,8 +26,8 @@ const formatWhen = (value: string | null) => {
     return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 };
 
-const INPUT = 'h-11 w-full px-3.5 rounded-xl border border-slate-200 text-[1.25rem] outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
-const LABEL = 'block text-[1.25rem] font-semibold text-slate-700 mb-2';
+const INPUT = 'h-11 w-full px-3.5 rounded-xl border border-slate-200 text-ui-body outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
+const LABEL = 'block text-ui-body font-semibold text-slate-700 mb-2';
 
 /** The same fields, in the same order, as the admin form in Manage Admins. */
 type Draft = {
@@ -193,14 +193,14 @@ export default function SiteStaffAccounts({ query = '', hidden = false, onCountC
                     <button
                         type="button"
                         onClick={close}
-                        className="h-11 w-full sm:w-auto px-6 rounded-xl border border-slate-200 text-[1.25rem] font-semibold text-slate-700 hover:border-slate-300"
+                        className="h-11 w-full sm:w-auto px-6 rounded-xl border border-slate-200 text-ui-body font-semibold text-slate-700 hover:border-slate-300"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={saving}
-                        className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 px-6 rounded-xl bg-blue-600 text-white text-[1.25rem] font-semibold disabled:opacity-60"
+                        className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 px-6 rounded-xl bg-blue-600 text-white text-ui-body font-semibold disabled:opacity-60"
                     >
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                         Save changes
@@ -216,7 +216,7 @@ export default function SiteStaffAccounts({ query = '', hidden = false, onCountC
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                     <h2 id="staff-accounts-title" className={`${CARD_TITLE} text-slate-900`}>Site staff accounts</h2>
-                    <p className="text-[1.25rem] text-slate-500 mt-0.5">
+                    <p className="text-ui-body text-slate-500 mt-0.5">
                         The CMS, events and mobile event-attendance sign-ins. Change their name, email or password here.
                     </p>
                 </div>
@@ -231,16 +231,16 @@ export default function SiteStaffAccounts({ query = '', hidden = false, onCountC
             </div>
 
             {loading && accounts.length === 0 ? (
-                <div className="flex items-center gap-3 py-6 text-slate-500 text-[1.25rem]">
+                <div className="flex items-center gap-3 py-6 text-slate-500 text-ui-body">
                     <Loader2 className="w-5 h-5 animate-spin" /> Loading staff accounts…
                 </div>
             ) : failed ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-[1.25rem] text-red-800 flex flex-wrap items-center justify-between gap-3">
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-ui-body text-red-800 flex flex-wrap items-center justify-between gap-3">
                     <span>Could not load the staff accounts.</span>
                     <button type="button" onClick={load} className="font-semibold underline">Try again</button>
                 </div>
             ) : visibleAccounts.length === 0 ? (
-                <p className="py-4 text-[1.25rem] text-slate-500">{needle.length >= 2 ? 'No staff accounts match this search.' : 'No CMS, events or attendance staff account exists yet.'}</p>
+                <p className="py-4 text-ui-body text-slate-500">{needle.length >= 2 ? 'No staff accounts match this search.' : 'No CMS, events or attendance staff account exists yet.'}</p>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {visibleAccounts.map((a) => {
@@ -254,13 +254,13 @@ export default function SiteStaffAccounts({ query = '', hidden = false, onCountC
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <p className="font-semibold text-slate-900 text-[1.3125rem] [overflow-wrap:anywhere]">{a.fullName || 'Unnamed account'}</p>
-                                            <span className="text-[1.0625rem] font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{a.roleLabel}</span>
+                                            <span className="text-ui-caption font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{a.roleLabel}</span>
                                             {!a.active && (
-                                                <span className="text-[1.0625rem] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Deactivated</span>
+                                                <span className="text-ui-caption font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Deactivated</span>
                                             )}
                                         </div>
-                                        <p className="text-[1.1875rem] text-slate-600 break-all">{a.email}</p>
-                                        <p className="text-[1.1875rem] text-slate-500">
+                                        <p className="text-ui-small text-slate-600 break-all">{a.email}</p>
+                                        <p className="text-ui-small text-slate-500">
                                             {a.phoneNumber ? `${a.phoneNumber} · ` : ''}Last sign-in: {formatWhen(a.lastLoginAt)}
                                         </p>
                                     </div>
@@ -268,7 +268,7 @@ export default function SiteStaffAccounts({ query = '', hidden = false, onCountC
                                         <button
                                             type="button"
                                             onClick={() => openEdit(a)}
-                                            className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border border-slate-200 text-[1.1875rem] font-semibold text-slate-700 hover:bg-slate-50 shrink-0"
+                                            className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border border-slate-200 text-ui-small font-semibold text-slate-700 hover:bg-slate-50 shrink-0"
                                         >
                                             <Pencil className="w-4 h-4" /> Edit
                                         </button>

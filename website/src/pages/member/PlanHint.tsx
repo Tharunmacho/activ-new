@@ -70,12 +70,12 @@ export default function PlanHint({ year }: { year: string }) {
     if (!result) return null;
 
     if ('error' in result) {
-        return <p className="mt-1.5 text-[1.0625rem] text-amber-600">{result.error}</p>;
+        return <p className="mt-1.5 text-ui-caption text-amber-600">{result.error}</p>;
     }
 
     if ('loading' in result) {
         return (
-            <p className="mt-1.5 flex items-center gap-1.5 text-[1.0625rem] text-slate-400">
+            <p className="mt-1.5 flex items-center gap-1.5 text-ui-caption text-slate-400">
                 <Loader2 className="w-3 h-3 animate-spin" /> Checking your membership plan…
             </p>
         );
@@ -83,7 +83,7 @@ export default function PlanHint({ year }: { year: string }) {
 
     if (!result.matched) {
         return (
-            <p className="mt-1.5 text-[1.0625rem] text-slate-500">
+            <p className="mt-1.5 text-ui-caption text-slate-500">
                 {result.years} {result.years === 1 ? 'year' : 'years'} trading. Your membership
                 plan will be confirmed at the payment step.
             </p>
@@ -91,7 +91,7 @@ export default function PlanHint({ year }: { year: string }) {
     }
 
     return (
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[1.0625rem] text-slate-600">
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-ui-caption text-slate-600">
             <span className="font-medium text-slate-700">
                 {result.years} {result.years === 1 ? 'year' : 'years'} trading
             </span>

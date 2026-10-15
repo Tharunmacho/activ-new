@@ -145,7 +145,7 @@ export default function ApplicantRegionFilter({
 
     return (
         <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[1.25rem] font-medium text-slate-500">
+            <span className="inline-flex items-center gap-1.5 text-ui-body font-medium text-slate-500">
                 <MapPin className="w-4 h-4 text-slate-400" />
                 Region
             </span>
@@ -163,7 +163,7 @@ export default function ApplicantRegionFilter({
                         aria-label={LABELS[group.level]}
                         value={selection[group.level]}
                         onChange={(e) => pick(group.level, e.target.value)}
-                        className="h-10 sm:h-9 min-w-0 max-w-full flex-1 basis-[10rem] sm:flex-none sm:basis-auto rounded-lg border border-slate-200 bg-white px-2.5 text-[1.25rem]
+                        className="h-10 sm:h-9 min-w-0 max-w-full flex-1 basis-[10rem] sm:flex-none sm:basis-auto rounded-lg border border-slate-200 bg-white px-2.5 text-ui-body
                                    font-medium text-slate-700 outline-none transition-colors
                                    hover:border-slate-300 focus:border-blue-600 focus:ring-2
                                    focus:ring-blue-600/15"
@@ -184,7 +184,7 @@ export default function ApplicantRegionFilter({
                     type="button"
                     onClick={() => onChange({ ...EMPTY_SELECTION })}
                     className="inline-flex h-10 sm:h-9 items-center gap-1.5 rounded-lg border border-slate-200
-                               px-3 text-[1.25rem] font-semibold text-slate-500 transition-colors
+                               px-3 text-ui-body font-semibold text-slate-500 transition-colors
                                hover:border-blue-600 hover:text-blue-600"
                 >
                     <X className="w-3.5 h-3.5" />

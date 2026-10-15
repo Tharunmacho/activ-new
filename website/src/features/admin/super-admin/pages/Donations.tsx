@@ -136,7 +136,7 @@ export default function SuperDonations() {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Search name, email, phone, PAN or receipt"
-                                    className="h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-[1.0625rem]
+                                    className="h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-ui-caption
                                                focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
                                 />
                             </div>
@@ -150,12 +150,12 @@ export default function SuperDonations() {
                             </div>
                         ) : tab === 'donors' ? (
                             donors.length === 0 ? (
-                                <p className="py-12 text-center text-[1.0625rem] text-slate-500">
+                                <p className="py-12 text-center text-ui-caption text-slate-500">
                                     No donors {fy ? `in FY ${fyLabel(fy)}` : 'yet'}{search ? ' match that search' : ''}.
                                 </p>
                             ) : (
                                 <div ref={donorsRef} className="card-table mt-4">
-                                    <table className="w-full text-left text-[1.0625rem] sm:table-fixed [&_td]:break-words">
+                                    <table className="w-full text-left text-ui-caption sm:table-fixed [&_td]:break-words">
                                         <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                                             <tr>
                                                 <th className="w-[28%] px-3 py-3 font-semibold">Donor</th>
@@ -204,10 +204,10 @@ export default function SuperDonations() {
                                 </div>
                             )
                         ) : filteredDonations.length === 0 ? (
-                            <p className="py-12 text-center text-[1.0625rem] text-slate-500">No donations {fy ? `in FY ${fyLabel(fy)}` : 'yet'}.</p>
+                            <p className="py-12 text-center text-ui-caption text-slate-500">No donations {fy ? `in FY ${fyLabel(fy)}` : 'yet'}.</p>
                         ) : (
                             <div ref={donationsRef} className="card-table mt-4">
-                                <table className="w-full text-left text-[1.0625rem] sm:table-fixed [&_td]:break-words">
+                                <table className="w-full text-left text-ui-caption sm:table-fixed [&_td]:break-words">
                                     <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                                         <tr>
                                             <th className="w-[11%] px-3 py-3 font-semibold">Date</th>

@@ -166,7 +166,7 @@ const CompanyDetails = () => {
           <div className="text-center py-10 sm:py-16">
             <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-3" />
             <p className="text-[1.375rem] font-semibold text-slate-800">Company not found</p>
-            <p className="text-[1.25rem] text-slate-500 mt-1">
+            <p className="text-ui-body text-slate-500 mt-1">
               The company you are looking for does not exist.
             </p>
           </div>
@@ -236,7 +236,7 @@ const CompanyDetails = () => {
 
           <div className="flex-1 min-w-0">
             <h2 className={`${CARD_TITLE} text-slate-900 truncate`}>{companyName(company)}</h2>
-            <p className="text-[1.25rem] text-slate-500 break-words">{company.businessType}</p>
+            <p className="text-ui-body text-slate-500 break-words">{company.businessType}</p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <Chip tone={tone.tone} icon={tone.Icon}>
                 <span className="capitalize">{status}</span>
@@ -273,7 +273,7 @@ const CompanyDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-start">
           <Card>
             <SectionHeading title="About" icon={Building2} />
-            <p className="text-[1.25rem] text-slate-600 leading-relaxed break-words whitespace-pre-line">
+            <p className="text-ui-body text-slate-600 leading-relaxed break-words whitespace-pre-line">
               {company.description || 'No description provided.'}
             </p>
 
@@ -287,7 +287,7 @@ const CompanyDetails = () => {
             */}
             {(company.productCategories || []).length > 0 && (
               <div className="mt-5 pt-5 border-t border-slate-100">
-                <p className="text-[1.1875rem] font-bold uppercase tracking-wider text-slate-400 mb-3">
+                <p className="text-ui-small font-bold uppercase tracking-wider text-slate-400 mb-3">
                   Product categories
                 </p>
                 <ul className="flex flex-wrap gap-2">
@@ -296,7 +296,7 @@ const CompanyDetails = () => {
                       key={`${category?.code || ''}-${index}`}
                       className="max-w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5"
                     >
-                      <span className="block text-[1.25rem] text-slate-700 break-words">
+                      <span className="block text-ui-body text-slate-700 break-words">
                         {category?.description || '—'}
                       </span>
                       <span className="block text-[1rem] text-slate-500 mt-0.5">
@@ -313,25 +313,25 @@ const CompanyDetails = () => {
 
           <Card>
             <SectionHeading title="Contact Information" icon={Phone} />
-            <dl className="space-y-3 text-[1.25rem]">
+            <dl className="space-y-3 text-ui-body">
               <div className="flex items-start gap-3">
                 <Phone className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <dt className="text-slate-500 text-[1.1875rem] uppercase tracking-wider">Mobile</dt>
+                  <dt className="text-slate-500 text-ui-small uppercase tracking-wider">Mobile</dt>
                   <dd className="text-slate-800 font-medium break-words">{company.mobileNumber || '—'}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <dt className="text-slate-500 text-[1.1875rem] uppercase tracking-wider">Email</dt>
+                  <dt className="text-slate-500 text-ui-small uppercase tracking-wider">Email</dt>
                   <dd className="text-slate-800 font-medium break-all">{company.email || '—'}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <dt className="text-slate-500 text-[1.1875rem] uppercase tracking-wider">Location</dt>
+                  <dt className="text-slate-500 text-ui-small uppercase tracking-wider">Location</dt>
                   <dd className="text-slate-800 font-medium break-words">
                     {[company.area, company.location].filter(Boolean).join(', ') || '—'}
                   </dd>
@@ -342,7 +342,7 @@ const CompanyDetails = () => {
 
           <Card className="lg:col-span-2">
             <SectionHeading title="Timeline" icon={Clock} />
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-[1.25rem]">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-ui-body">
               <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200 px-3 sm:px-4 py-3">
                 <dt className="text-slate-500">Registered</dt>
                 <dd className="text-slate-800 font-medium">{formatDate(company.createdAt)}</dd>

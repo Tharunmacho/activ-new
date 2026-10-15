@@ -320,7 +320,7 @@ export default function ManageAdmins() {
 
         return (
             <div className="space-y-1.5 min-w-0">
-                <label htmlFor={name} className="block text-[1.25rem] font-semibold text-slate-700 mb-2">{label}</label>
+                <label htmlFor={name} className="block text-ui-body font-semibold text-slate-700 mb-2">{label}</label>
 
                 <div className="relative">
                     <input
@@ -347,7 +347,7 @@ export default function ManageAdmins() {
                         autoComplete={isPassword ? 'new-password' : 'off'}
                         autoCorrect="off"
                         spellCheck={false}
-                        className={`h-11 w-full px-3.5 rounded-xl border border-slate-200 text-[1.25rem] outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
+                        className={`h-11 w-full px-3.5 rounded-xl border border-slate-200 text-ui-body outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                                     focus:outline-none focus:ring-2 focus:ring-blue-600
                                     focus:border-transparent ${isPassword ? 'pr-10' : ''}`}
                     />
@@ -369,7 +369,7 @@ export default function ManageAdmins() {
                     )}
                 </div>
 
-                {hint && <p className="text-[1.1875rem] text-slate-500">{hint}</p>}
+                {hint && <p className="text-ui-small text-slate-500">{hint}</p>}
             </div>
         );
     };
@@ -458,7 +458,7 @@ export default function ManageAdmins() {
                             onClick={openNew}
                             className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 h-11
                                        px-4 sm:px-5 rounded-xl bg-blue-600
-                                       text-white text-[1.25rem] font-semibold transition-colors hover:bg-blue-700"
+                                       text-white text-ui-body font-semibold transition-colors hover:bg-blue-700"
                         >
                             <Plus className="w-4 h-4" /> Add admin
                         </button>
@@ -467,28 +467,28 @@ export default function ManageAdmins() {
 
                 <main className={ADMIN_PAGE}>
                     <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5">
-                    <p className="mb-4 flex items-center gap-2 text-[1.25rem] font-bold text-blue-950"><Search className="h-5 w-5" /> Find an admin</p>
+                    <p className="mb-4 flex items-center gap-2 text-ui-body font-bold text-blue-950"><Search className="h-5 w-5" /> Find an admin</p>
                     {role !== 'staff' && <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-900">State
+                        <label className="min-w-0 text-ui-small font-semibold text-slate-900">State
                             <select aria-label="Filter by state" value={filterState} onChange={e => { setPage(1); setFilterState(e.target.value); setFilterDistrict(''); setFilterBlock(''); }} className={`${ADMIN_INPUT} mt-2 font-sans font-bold`}>
                                 <option value="">All states / UTs</option>
                                 {regionTree.states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                             </select>
                         </label>
-                        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-900">District
+                        <label className="min-w-0 text-ui-small font-semibold text-slate-900">District
                             <select aria-label="Filter by district" disabled={!filterState} value={filterDistrict} onChange={e => { setPage(1); setFilterDistrict(e.target.value); setFilterBlock(''); }} className={`${ADMIN_INPUT} mt-2 font-sans font-bold`}>
                                 <option value="">All districts</option>
                                 {districts.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
                             </select>
                         </label>
-                        <label className="min-w-0 text-[1.1875rem] font-semibold text-slate-900">Block
+                        <label className="min-w-0 text-ui-small font-semibold text-slate-900">Block
                             <select aria-label="Filter by block" disabled={!filterDistrict} value={filterBlock} onChange={e => { setPage(1); setFilterBlock(e.target.value); }} className={`${ADMIN_INPUT} mt-2 font-sans font-bold`}>
                                 <option value="">All blocks</option>
                                 {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
                             </select>
                         </label>
                     </div>}
-                    {role === 'staff' && <p className="text-[1.0625rem] font-medium text-blue-900">Staff accounts work across all regions. Search by name, email or staff role.</p>}
+                    {role === 'staff' && <p className="text-ui-caption font-medium text-blue-900">Staff accounts work across all regions. Search by name, email or staff role.</p>}
                     </div>
                     {/* Filters */}
                     <div className="flex flex-wrap items-center gap-3">
@@ -499,7 +499,7 @@ export default function ManageAdmins() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Name, email or region"
-                                className="h-12 w-full pl-9 pr-3.5 rounded-xl border-2 border-blue-200 bg-white font-bold text-slate-900 placeholder:font-semibold placeholder:text-slate-500 text-[1.25rem] outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
+                                className="h-12 w-full pl-9 pr-3.5 rounded-xl border-2 border-blue-200 bg-white font-bold text-slate-900 placeholder:font-semibold placeholder:text-slate-500 text-ui-body outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                                            focus:outline-none focus:ring-2 focus:ring-blue-600"
                             />
                         </div>
@@ -516,7 +516,7 @@ export default function ManageAdmins() {
                                     key={t.key}
                                     onClick={() => { setPage(1); setRole(t.key); }}
                                     aria-pressed={role === t.key}
-                                    className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[1.0625rem] sm:text-[1.25rem] leading-tight font-bold transition-colors ${
+                                    className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1 sm:px-3 py-1.5 sm:py-2 rounded-lg text-ui-caption sm:text-ui-body leading-tight font-bold transition-colors ${
                                         role === t.key
                                             ? 'bg-blue-700 text-white shadow-md ring-2 ring-blue-200'
                                             : 'bg-white border-2 border-blue-200 text-blue-950 hover:bg-blue-50'
@@ -543,7 +543,7 @@ export default function ManageAdmins() {
                             <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)] text-center py-10 sm:py-16 px-4 sm:px-6">
                                 <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                                 <p className="text-slate-900 font-medium">No admins match</p>
-                                <p className="text-[1.25rem] text-slate-500 mt-1">
+                                <p className="text-ui-body text-slate-500 mt-1">
                                     {query || role !== 'all'
                                         ? 'Try a different filter.'
                                         : 'Add one to open a region for registration.'}
@@ -551,14 +551,14 @@ export default function ManageAdmins() {
                             </div>
                         ) : (
                             <div ref={cardTableRef} className="overflow-x-auto card-table">
-                                <table className="w-full text-[1.25rem]">
+                                <table className="w-full text-ui-body">
                                     <thead className="bg-slate-50 text-left border-b border-slate-200">
                                         <tr>
-                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Name</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Role</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Region</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Queue</th>
-                                            <th className="px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-right">Actions</th>
+                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Name</th>
+                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Role</th>
+                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Region</th>
+                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Queue</th>
+                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -566,7 +566,7 @@ export default function ManageAdmins() {
                                             <tr key={a.id} className={a.active ? '' : 'opacity-60'}>
                                                 <td className="px-5 py-3">
                                                     <p className="font-medium text-slate-900 break-words">{a.fullName || '—'}</p>
-                                                    <p className="text-[1.1875rem] text-slate-500 break-all">{a.email}</p>
+                                                    <p className="text-ui-small text-slate-500 break-all">{a.email}</p>
                                                 </td>
                                                 <td className="px-5 py-3 text-slate-700">
                                                     {ROLES.find(r => r.value === a.role)?.label || a.role}
@@ -577,11 +577,11 @@ export default function ManageAdmins() {
                                                         geofenced by region string — so admins on one
                                                         region share one queue by construction. */}
                                                     {a.coAdmins > 0 ? (
-                                                        <span className="text-[1.1875rem] bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                                                        <span className="text-ui-small bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
                                                             shared with {a.coAdmins}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[1.1875rem] text-slate-500">sole owner</span>
+                                                        <span className="text-ui-small text-slate-500">sole owner</span>
                                                     )}
                                                 </td>
                                                 <td className="px-5 py-3 text-right whitespace-nowrap">
@@ -645,7 +645,7 @@ export default function ManageAdmins() {
 
                         <div className="p-4 sm:p-8 space-y-6">
                             <div className="space-y-1.5 md:max-w-md">
-                                <label htmlFor="role" className="block text-[1.25rem] font-semibold text-slate-700 mb-2">Role</label>
+                                <label htmlFor="role" className="block text-ui-body font-semibold text-slate-700 mb-2">Role</label>
                                 <select
                                     id="role"
                                     value={form.role}
@@ -662,14 +662,14 @@ export default function ManageAdmins() {
                                             block: keeps.includes('block') ? form.block : '',
                                         });
                                     }}
-                                    className="h-11 w-full px-3.5 rounded-xl border border-slate-200 text-[1.25rem] outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                                    className="h-11 w-full px-3.5 rounded-xl border border-slate-200 text-ui-body outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                                 >
                                     {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                                 </select>
                                 {/* Mobile shows this too. Which collection an account
                                     lands in is not incidental — it is how the platform
                                     finds it again. */}
-                                <p className="text-[1.1875rem] text-slate-500">
+                                <p className="text-ui-small text-slate-500">
                                     Saved into the{' '}
                                     <span className="font-mono">{form.role.replace('_admin', '')}admins</span>{' '}
                                     collection.
@@ -680,7 +680,7 @@ export default function ManageAdmins() {
                                 of the form hangs off, and the one that opens a region
                                 for registration. */}
                             <div className="space-y-4 pb-6 border-b">
-                                <p className="text-[1.25rem] font-semibold text-slate-800">Region</p>
+                                <p className="text-ui-body font-semibold text-slate-800">Region</p>
                                 <div className={`grid grid-cols-1 gap-4 ${
                                     needs.length >= 3 ? 'md:grid-cols-3' : needs.length === 2 ? 'md:grid-cols-2' : ''}`}>
                                     {needs.map(regionField)}
@@ -714,7 +714,7 @@ export default function ManageAdmins() {
                             <button
                                 type="button"
                                 onClick={() => setFormOpen(false)}
-                                className="h-11 w-full sm:w-auto px-6 rounded-xl border border-slate-200 text-[1.25rem] font-semibold text-slate-700 transition-colors hover:border-slate-300"
+                                className="h-11 w-full sm:w-auto px-6 rounded-xl border border-slate-200 text-ui-body font-semibold text-slate-700 transition-colors hover:border-slate-300"
                             >
                                 Cancel
                             </button>
@@ -722,7 +722,7 @@ export default function ManageAdmins() {
                                 type="submit"
                                 disabled={saving}
                                 className="flex h-11 w-full sm:w-auto sm:min-w-[14rem] items-center justify-center gap-2 px-6 rounded-xl
-                                           bg-blue-600 text-white text-[1.25rem] font-semibold disabled:opacity-60"
+                                           bg-blue-600 text-white text-ui-body font-semibold disabled:opacity-60"
                             >
                                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                                 {editingId ? 'Save changes' : 'Create admin'}
@@ -742,7 +742,7 @@ export default function ManageAdmins() {
                                 <h2 className={`${CARD_TITLE} text-slate-900`}>
                                     Delete {removing.admin.fullName}?
                                 </h2>
-                                <p className="text-[1.25rem] text-slate-500 mt-1">
+                                <p className="text-ui-body text-slate-500 mt-1">
                                     This removes the account permanently.
                                 </p>
                             </div>
@@ -751,7 +751,7 @@ export default function ManageAdmins() {
                         {/* What it costs, from the server, before the decision. */}
                         {removing.preview?.pendingApplications > 0 && (
                             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                                <p className="text-[1.25rem] text-amber-900">
+                                <p className="text-ui-body text-amber-900">
                                     <strong>{removing.preview.pendingApplications}</strong> pending
                                     application(s) sit in this region's queue.
                                     {removing.admin.coAdmins > 0
@@ -762,7 +762,7 @@ export default function ManageAdmins() {
                         )}
 
                         {removing.admin.coAdmins === 0 && (
-                            <div className="flex items-start gap-2 text-[1.25rem] text-slate-500 mb-4">
+                            <div className="flex items-start gap-2 text-ui-body text-slate-500 mb-4">
                                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-slate-400" />
                                 <p>
                                     Ownership is worked out at read time, so adding a replacement later
@@ -774,13 +774,13 @@ export default function ManageAdmins() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setRemoving(null)}
-                                className="flex-1 py-2.5 rounded-lg border border-slate-200 text-[1.25rem] font-medium"
+                                className="flex-1 py-2.5 rounded-lg border border-slate-200 text-ui-body font-medium"
                             >
                                 Keep
                             </button>
                             <button
                                 onClick={confirmRemove}
-                                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-[1.25rem] font-medium hover:bg-red-700"
+                                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-ui-body font-medium hover:bg-red-700"
                             >
                                 Delete permanently
                             </button>

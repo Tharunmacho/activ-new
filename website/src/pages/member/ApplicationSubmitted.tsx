@@ -188,7 +188,7 @@ export default function ApplicationSubmitted() {
                             Application Submitted
                         </h1>
 
-                        <p className="mt-3 text-[1.1875rem] text-blue-100/90 max-w-xl mx-auto as-rise"
+                        <p className="mt-3 text-ui-small text-blue-100/90 max-w-xl mx-auto as-rise"
                            style={{ ['--as-delay' as string]: '0.14s' }}>
                             Your membership application is in and moving through review.
                         </p>
@@ -208,11 +208,11 @@ export default function ApplicationSubmitted() {
                                 <div className="inline-flex max-w-full items-center gap-2 sm:gap-3 rounded-full
                                                 border border-white/25 bg-white/10 backdrop-blur
                                                 pl-4 pr-2 py-2">
-                                    <span className="text-[1.0625rem] font-bold uppercase
+                                    <span className="text-ui-caption font-bold uppercase
                                                      tracking-[0.1em] text-blue-100/80">
                                         Reference
                                     </span>
-                                    <span className="min-w-0 truncate text-[1.1875rem] font-semibold tracking-wide text-white tabular-nums"
+                                    <span className="min-w-0 truncate text-ui-small font-semibold tracking-wide text-white tabular-nums"
                                           title={appRef.full}>
                                         {appRef.short}
                                     </span>
@@ -340,14 +340,14 @@ export default function ApplicationSubmitted() {
                                                 <Icon className="w-[1.125rem] h-[1.125rem]" />
                                             </span>
                                             <div className="min-w-0">
-                                                <p className="font-display text-[1.1875rem] font-bold leading-tight"
+                                                <p className="font-display text-ui-small font-bold leading-tight"
                                                    style={{ color: PALETTE.ink }}>
                                                     <span className="tabular-nums" style={{ color: PALETTE.muted }}>
                                                         {i + 1}.{' '}
                                                     </span>
                                                     {step.title}
                                                 </p>
-                                                <p className="text-[1.0625rem] mt-1 leading-relaxed"
+                                                <p className="text-ui-caption mt-1 leading-relaxed"
                                                    style={{ color: PALETTE.muted }}>
                                                     {step.detail}
                                                 </p>
@@ -436,7 +436,7 @@ const PanelHeader = ({ title, pill }: { title: string; pill?: string }) => (
     <div className="flex items-center justify-between gap-3 mb-5">
         <h2 className={`font-display ${CARD_TITLE}`} style={{ color: PALETTE.ink }}>{title}</h2>
         {pill ? (
-            <span className="shrink-0 text-[1.0625rem] font-bold px-2.5 py-1 rounded-full"
+            <span className="shrink-0 text-ui-caption font-bold px-2.5 py-1 rounded-full"
                   style={{ backgroundColor: '#EEF2FF', color: PALETTE.primary }}>
                 {pill}
             </span>
@@ -472,7 +472,7 @@ const ProgressRail = ({ stages }: {
 
                     <span
                         className={`relative z-10 w-[1.875rem] h-[1.875rem] rounded-full shrink-0
-                                    flex items-center justify-center text-[1.0625rem] font-bold
+                                    flex items-center justify-center text-ui-caption font-bold
                                     ${stage.active ? 'as-pulse' : ''}`}
                         style={{
                             backgroundColor: stage.done || stage.active ? tone : '#F1F5F9',
@@ -483,11 +483,11 @@ const ProgressRail = ({ stages }: {
                     </span>
 
                     <div className="min-w-0 pt-0.5">
-                        <p className="font-display text-[1.1875rem] font-bold leading-tight"
+                        <p className="font-display text-ui-small font-bold leading-tight"
                            style={{ color: stage.done || stage.active ? PALETTE.ink : PALETTE.muted }}>
                             {stage.label}
                         </p>
-                        <p className="text-[1.0625rem] mt-0.5 font-semibold" style={{ color: tone }}>
+                        <p className="text-ui-caption mt-0.5 font-semibold" style={{ color: tone }}>
                             {stage.caption}
                         </p>
                     </div>
@@ -503,7 +503,7 @@ const Notice = ({ icon, children, tone = PALETTE.primary, soft = '#EEF2FF' }: {
     tone?: string;
     soft?: string;
 }) => (
-    <div className="flex items-start gap-3 rounded-xl px-4 py-3 text-[1.0625rem]"
+    <div className="flex items-start gap-3 rounded-xl px-4 py-3 text-ui-caption"
          style={{ backgroundColor: soft, color: tone }}>
         <span className="shrink-0 mt-0.5">{icon}</span>
         <p className="leading-relaxed">{children}</p>
@@ -526,9 +526,9 @@ const FactCell = ({ icon, label, value, title }: {
     <div className="px-5 py-4 min-w-0">
         <div className="flex items-center gap-1.5" style={{ color: PALETTE.muted }}>
             <span className="shrink-0">{icon}</span>
-            <p className="text-[1.0625rem] font-bold uppercase tracking-[0.06em] truncate">{label}</p>
+            <p className="text-ui-caption font-bold uppercase tracking-[0.06em] truncate">{label}</p>
         </div>
-        <p className="font-display text-[1.1875rem] font-bold truncate mt-1"
+        <p className="font-display text-ui-small font-bold truncate mt-1"
            style={{ color: PALETTE.ink }}
            title={title || value}>
             {value}

@@ -108,7 +108,7 @@ export default function OfficesEditor({ offices, onChange }: { offices: ContactO
 
             {list.length > 1 ? (
                 <div>
-                    <p className="mb-2 text-[1.0625rem] font-bold text-slate-800 dark:text-neutral-200">Head office</p>
+                    <p className="mb-2 text-ui-caption font-bold text-slate-800 dark:text-neutral-200">Head office</p>
                     <CmsChoice
                         label="Head office"
                         value={head?.id || ''}
@@ -176,7 +176,7 @@ export default function OfficesEditor({ offices, onChange }: { offices: ContactO
                                     placeholder={'https://maps.app.goo.gl/…\nor <iframe src="https://www.google.com/maps/embed?pb=…">\nor 6, Ilayaperumal Apartments, Guindy, Chennai'} />
                             </CmsField>
                             <div>
-                                <p className="mb-1.5 text-[1.0625rem] font-bold text-slate-800 dark:text-neutral-200">Preview</p>
+                                <p className="mb-1.5 text-ui-caption font-bold text-slate-800 dark:text-neutral-200">Preview</p>
                                 <MapPreview input={o.mapInput} address={o.addressLines.join(', ')} />
                             </div>
                         </div>
@@ -192,7 +192,7 @@ export default function OfficesEditor({ offices, onChange }: { offices: ContactO
             ))}
 
             <button type="button" onClick={add}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-blue-300 px-4 text-[1.0625rem] font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-500/40 dark:text-blue-300 dark:hover:bg-blue-500/10">
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-blue-300 px-4 text-ui-caption font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-500/40 dark:text-blue-300 dark:hover:bg-blue-500/10">
                 <Plus className="h-4 w-4" /> Add an office
             </button>
         </div>

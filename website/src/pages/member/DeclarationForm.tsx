@@ -251,7 +251,7 @@ const DeclarationForm = () => {
         subtitle="Other businesses under the same ownership"
       >
                   <div>
-                    <Label htmlFor="sisterConcerns" className="text-[1.1875rem] font-medium mb-2 block">
+                    <Label htmlFor="sisterConcerns" className="text-ui-small font-medium mb-2 block">
                       Number of Sister Concerns
                     </Label>
                     <Input
@@ -314,8 +314,8 @@ const DeclarationForm = () => {
         subtitle="Read and accept before submitting"
       >
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-          <p className="text-[1.1875rem] font-semibold text-slate-800 mb-2">I hereby declare that:</p>
-          <ul className="list-disc list-inside space-y-1 ml-1 text-[1.1875rem] text-slate-700">
+          <p className="text-ui-small font-semibold text-slate-800 mb-2">I hereby declare that:</p>
+          <ul className="list-disc list-inside space-y-1 ml-1 text-ui-small text-slate-700">
             <li>All the information provided by me is true and correct to the best of my knowledge.</li>
             <li>I understand that any false information may lead to rejection of my application.</li>
             <li>I agree to abide by the rules and regulations of the organization.</li>
@@ -330,7 +330,7 @@ const DeclarationForm = () => {
             onCheckedChange={(checked) => setFormData({ ...formData, agreeToDeclaration: checked as boolean })}
             className="mt-1"
           />
-          <span className="text-[1.1875rem] text-slate-700">
+          <span className="text-ui-small text-slate-700">
             I have read and agree to the above declaration. I understand that this submission
             is final and any false information may result in termination of membership.
             <span className="text-red-500 ml-0.5">*</span>

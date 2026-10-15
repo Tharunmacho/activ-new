@@ -37,7 +37,7 @@ import { getArticle, type NewsArticle } from '@/services/cmsNewsApi';
  * article.
  */
 
-const PARAGRAPH = 'text-[1.1875rem] sm:text-[1.25rem] leading-[1.75] text-gray-700';
+const PARAGRAPH = 'text-ui-small sm:text-ui-body leading-[1.75] text-gray-700';
 
 /** The body, as paragraphs. Blank lines are the editor's own breaks. */
 function Body({ text }: { text: string }) {
@@ -108,7 +108,7 @@ export default function NewsDetailPage() {
                     <Link
                         to="/news"
                         className="inline-flex items-center gap-2 rounded-full border border-gray-200
-                                   bg-white px-4 py-2 text-[1.0625rem] font-bold text-brand-700
+                                   bg-white px-4 py-2 text-ui-caption font-bold text-brand-700
                                    transition-colors hover:border-brand-200 hover:bg-brand-50"
                     >
                         <ArrowLeft size={15} /> All news
@@ -138,7 +138,7 @@ export default function NewsDetailPage() {
                         <Link
                             to="/news"
                             className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-800
-                                       px-5 py-2.5 text-[1.0625rem] font-bold text-white
+                                       px-5 py-2.5 text-ui-caption font-bold text-white
                                        transition-colors hover:bg-brand-700"
                         >
                             Back to the newsroom
@@ -209,7 +209,7 @@ export default function NewsDetailPage() {
                                 )}
 
                                 {article.summary && (
-                                    <p className="mt-8 border-l-4 border-brand-200 pl-4 sm:pl-5 text-[1.25rem]
+                                    <p className="mt-8 border-l-4 border-brand-200 pl-4 sm:pl-5 text-ui-body
                                                   font-semibold leading-relaxed text-gray-700">
                                         {article.summary}
                                     </p>
@@ -233,7 +233,7 @@ export default function NewsDetailPage() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand-800 px-5 py-2.5
-                                                       text-[1.0625rem] font-bold text-white transition-colors hover:bg-brand-700"
+                                                       text-ui-caption font-bold text-white transition-colors hover:bg-brand-700"
                                         >
                                             Read the full story <ArrowUpRight size={16} />
                                         </a>
@@ -241,7 +241,7 @@ export default function NewsDetailPage() {
                                 )}
 
                                 {/* In the article's own reading type. */}
-                                <div className="text-[1.1875rem] leading-[1.8] text-slate-700">
+                                <div className="text-ui-small leading-[1.8] text-slate-700">
                                     <CmsExtraFields
                                         fields={article.extraFields}
                                         variant="list"
@@ -280,7 +280,7 @@ export default function NewsDetailPage() {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white
-                                                           px-5 py-3 text-[1.0625rem] font-bold text-brand-900 transition-colors
+                                                           px-5 py-3 text-ui-caption font-bold text-brand-900 transition-colors
                                                            hover:bg-brand-50"
                                             >
                                                 Read the full story <ArrowUpRight size={17} />
@@ -312,7 +312,7 @@ export default function NewsDetailPage() {
                                             <Link
                                                 to="/news"
                                                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border
-                                                           border-gray-200 px-4 py-2.5 text-[1.0625rem] font-bold text-brand-700
+                                                           border-gray-200 px-4 py-2.5 text-ui-caption font-bold text-brand-700
                                                            transition-colors hover:border-brand-300 hover:bg-brand-50"
                                             >
                                                 More news
@@ -335,7 +335,7 @@ function Fact({ label, value }: { label: string; value: string }) {
     return (
         <div>
             <dt className="text-[0.9375rem] font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
-            <dd className="mt-0.5 text-[1.0625rem] font-semibold text-gray-800 break-words">{value}</dd>
+            <dd className="mt-0.5 text-ui-caption font-semibold text-gray-800 break-words">{value}</dd>
         </div>
     );
 }

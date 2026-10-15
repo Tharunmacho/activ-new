@@ -153,12 +153,12 @@ export default function RichTextEditor({ value, onChange, rows = 5, placeholder 
                 rows={rows}
                 placeholder={placeholder}
                 className="w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a]
-                           rounded-lg px-3 py-2 text-[1.25rem] text-slate-900 dark:text-neutral-100
+                           rounded-lg px-3 py-2 text-ui-body text-slate-900 dark:text-neutral-100
                            placeholder:text-neutral-400 focus:outline-none focus:border-blue-600
                            focus:ring-2 focus:ring-blue-600/30 transition-colors resize-y"
             />
 
-            <p className="mt-1 text-[1.0625rem] text-neutral-500">
+            <p className="mt-1 text-ui-caption text-neutral-500">
                 Leave a blank line between paragraphs. A web address becomes a link.
             </p>
         </div>

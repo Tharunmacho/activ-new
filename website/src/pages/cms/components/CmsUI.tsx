@@ -44,7 +44,7 @@ export function CmsCard({ title, description, children, actions }: {
                         {title}
                     </h2>
                     {description && (
-                        <p className="text-[1.25rem] font-medium text-slate-600 dark:text-[#A1A1AA] mt-1.5
+                        <p className="text-ui-body font-medium text-slate-600 dark:text-[#A1A1AA] mt-1.5
                                       leading-relaxed max-w-4xl">
                             {description}
                         </p>
@@ -235,7 +235,7 @@ export function SaveNow({ className = '', always = false, block = false }: {
             disabled={ctx.saving}
             className={`inline-flex items-center justify-center gap-2 rounded-lg font-semibold
                         transition-colors disabled:opacity-60
-                        ${block ? 'w-full px-4 py-3 text-[1.1875rem]' : 'shrink-0 px-3 py-1.5 text-[1.0625rem]'}
+                        ${block ? 'w-full px-4 py-3 text-ui-small' : 'shrink-0 px-3 py-1.5 text-ui-caption'}
                         ${idle
                             /*
                              * IDLE IS BLUE TOO, just quieter.
@@ -436,11 +436,11 @@ export function RepeatableList<T>({
             disabled={atLimit}
             className={subtle
                 ? `inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5
-                   text-[1.0625rem] font-semibold text-slate-600 transition-colors
+                   text-ui-caption font-semibold text-slate-600 transition-colors
                    hover:border-[#2563EB] hover:text-[#2563EB] disabled:opacity-40
                    dark:border-[#2a2a2a] dark:text-neutral-300`
                 : `inline-flex items-center gap-1.5 rounded-lg border border-blue-200 px-3.5 py-2
-                   text-[1.1875rem] font-semibold text-blue-600 transition-colors
+                   text-ui-small font-semibold text-blue-600 transition-colors
                    hover:bg-blue-500/10 disabled:opacity-40 dark:border-blue-500/30
                    dark:text-blue-400`}
         >
@@ -459,7 +459,7 @@ export function RepeatableList<T>({
             {items.length === 0 && (
                 <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center
                                 dark:border-[#2a2a2a]">
-                    <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                    <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                         No {noun}s yet.
                     </p>
                 </div>
@@ -478,7 +478,7 @@ export function RepeatableList<T>({
                         {/* ---------------- closed: what this row IS ---------------- */}
                         <div className="flex flex-wrap items-center gap-3 p-3.5">
                             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
-                                             bg-blue-50 text-[1.0625rem] font-bold text-[#2563EB]
+                                             bg-blue-50 text-ui-caption font-bold text-[#2563EB]
                                              dark:bg-blue-950/40">
                                 {index + 1}
                             </span>
@@ -503,12 +503,12 @@ export function RepeatableList<T>({
                             ) : null}
 
                             <div className="!min-w-[9rem] flex-1">
-                                <p className="truncate text-[1.25rem] font-bold text-slate-900
+                                <p className="truncate text-ui-body font-bold text-slate-900
                                               dark:text-white">
                                     {said.title || `Untitled ${noun}`}
                                 </p>
                                 {said.subtitle && (
-                                    <p className="truncate text-[1.0625rem] text-slate-500
+                                    <p className="truncate text-ui-caption text-slate-500
                                                   dark:text-neutral-400">
                                         {said.subtitle}
                                     </p>
@@ -523,7 +523,7 @@ export function RepeatableList<T>({
                                         setOpenIndex(open ? null : index);
                                     }}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1.0625rem] font-semibold transition-colors ${open
+                                                text-ui-caption font-semibold transition-colors ${open
                                         ? 'bg-blue-50 text-[#2563EB] dark:bg-blue-950/40'
                                         : 'text-blue-700 hover:bg-blue-50 dark:text-blue-400'}`}
                                 >
@@ -576,7 +576,7 @@ export function RepeatableList<T>({
                                     onClick={() => remove(index)}
                                     aria-label={`Delete ${noun} ${index + 1}`}
                                     className="inline-flex items-center gap-1.5 rounded-lg border
-                                               border-red-200 px-2.5 py-1.5 text-[1.0625rem]
+                                               border-red-200 px-2.5 py-1.5 text-ui-caption
                                                font-semibold text-red-600 transition-colors
                                                hover:bg-red-50 dark:border-red-500/30
                                                dark:text-red-400 dark:hover:bg-red-500/10"
@@ -612,7 +612,7 @@ export function RepeatableList<T>({
                                         type="button"
                                         onClick={() => setOpenIndex(null)}
                                         className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2
-                                                   text-[1.0625rem] font-semibold text-white transition-colors hover:bg-blue-700"
+                                                   text-ui-caption font-semibold text-white transition-colors hover:bg-blue-700"
                                     >
                                         <Check className="w-4 h-4" /> Done
                                     </button>
@@ -648,7 +648,7 @@ export function RepeatableList<T>({
                         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-4 py-4 sm:px-6 dark:border-[#2a2a2a]">
                             {editorBusy && <span role="status" className="text-[1rem] text-slate-500">Finishing upload…</span>}
                             <button type="button" disabled={editorBusy} onClick={() => setOpenIndex(null)}
-                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2 text-[1.0625rem] font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+                                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2 text-ui-caption font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
                                 <Check className="h-4 w-4" /> Done
                             </button>
                         </div>
@@ -792,7 +792,7 @@ export function CmsStep({
                             <EyeOff className="h-4 w-4" />
                         </span>
                         <div className="min-w-0">
-                            <p className="truncate text-[1.1875rem] font-bold text-slate-600
+                            <p className="truncate text-ui-small font-bold text-slate-600
                                           dark:text-neutral-300">
                                 {/* The editor's name, if they gave the card
                                     one — a collapsed card that reverts to the
@@ -800,7 +800,7 @@ export function CmsStep({
                                     again by the name they know it by. */}
                                 {tools.title || title || step || 'Section'}
                             </p>
-                            <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                            <p className="text-ui-caption text-slate-500 dark:text-neutral-400">
                                 Removed — this section is not shown on the public page.
                                 {tools.fields.length > 0 && ' Your fields in it are kept.'}
                             </p>
@@ -811,7 +811,7 @@ export function CmsStep({
                         type="button"
                         onClick={() => tools.setHidden(false)}
                         className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border
-                                   border-slate-300 bg-white px-3 py-1.5 text-[1.0625rem] font-semibold
+                                   border-slate-300 bg-white px-3 py-1.5 text-ui-caption font-semibold
                                    text-slate-700 transition-colors hover:bg-slate-100
                                    dark:border-[#2a2a2a] dark:bg-[#111] dark:text-neutral-200
                                    dark:hover:bg-[#1a1a1a]"
@@ -858,7 +858,7 @@ export function CmsStep({
                                    dark:border-[#1a1a1a] dark:bg-[#0F0F0F]">
                     <div className="min-w-0">
                         {step ? (
-                            <p className="text-[1.0625rem] font-bold uppercase tracking-[0.16em]
+                            <p className="text-ui-caption font-bold uppercase tracking-[0.16em]
                                           text-blue-600 dark:text-blue-400">
                                 {step}
                             </p>
@@ -893,7 +893,7 @@ export function CmsStep({
                             </h3>
                         )}
                         {hint && (
-                            <p className="mt-1.5 text-[1.1875rem] leading-snug text-slate-500
+                            <p className="mt-1.5 text-ui-small leading-snug text-slate-500
                                           dark:text-neutral-400">
                                 {hint}
                             </p>
@@ -981,7 +981,7 @@ function StepTitle({ shipped, value, onChange }: {
                     title="Rename this section"
                     aria-label={`Rename the section “${value || shipped}”`}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1
-                               text-[1.0625rem] font-semibold text-slate-400 transition-colors
+                               text-ui-caption font-semibold text-slate-400 transition-colors
                                hover:bg-blue-50 hover:text-blue-700
                                dark:text-neutral-500 dark:hover:bg-blue-950/40 dark:hover:text-blue-300"
                 >
@@ -1012,7 +1012,7 @@ function StepTitle({ shipped, value, onChange }: {
                 type="button"
                 onClick={commit}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3 py-1.5
-                           text-[1.0625rem] font-semibold text-white transition-colors
+                           text-ui-caption font-semibold text-white transition-colors
                            hover:bg-[#1d4ed8]"
             >
                 <Check className="h-3.5 w-3.5" /> Done
@@ -1021,7 +1021,7 @@ function StepTitle({ shipped, value, onChange }: {
                 type="button"
                 onClick={() => setEditing(false)}
                 className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5
-                           text-[1.0625rem] font-semibold text-slate-500 transition-colors
+                           text-ui-caption font-semibold text-slate-500 transition-colors
                            hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-[#161616]"
             >
                 Cancel
@@ -1032,7 +1032,7 @@ function StepTitle({ shipped, value, onChange }: {
                     onClick={() => { onChange(''); setEditing(false); }}
                     title={`Put back “${shipped}”`}
                     className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5
-                               text-[1.0625rem] font-semibold text-slate-500 transition-colors
+                               text-ui-caption font-semibold text-slate-500 transition-colors
                                hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-[#161616]"
                 >
                     <Undo2 className="h-3.5 w-3.5" /> Reset
@@ -1066,7 +1066,7 @@ function RemoveSection({ onRemove }: { onRemove: () => void }) {
                     setTimeout(() => setArmed(false), 4000);
                 }}
                 title="Remove this section from the page"
-                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[1.0625rem]
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-ui-caption
                            font-semibold text-slate-500 transition-colors hover:bg-red-50
                            hover:text-red-600 dark:text-neutral-400 dark:hover:bg-red-950/40
                            dark:hover:text-red-400"
@@ -1083,7 +1083,7 @@ function RemoveSection({ onRemove }: { onRemove: () => void }) {
                 type="button"
                 onClick={() => { setArmed(false); onRemove(); }}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1.5
-                           text-[1.0625rem] font-semibold text-white transition-colors hover:bg-red-700"
+                           text-ui-caption font-semibold text-white transition-colors hover:bg-red-700"
             >
                 <Trash2 className="h-4 w-4" /> Remove it
             </button>
@@ -1144,7 +1144,7 @@ export function CmsBlock({ title, hint }: { title: string; hint?: string }) {
                 {title}
             </h2>
             {hint && (
-                <p className="mt-1 text-[1.1875rem] font-medium leading-snug text-slate-600
+                <p className="mt-1 text-ui-small font-medium leading-snug text-slate-600
                               dark:text-[#A1A1AA]">
                     {hint}
                 </p>
@@ -1295,7 +1295,7 @@ function SectionFields({ fields, onChange, mode = 'both', noun = 'detail' }: {
               * from the card (`fieldNoun`), so a card about people says
               * "+ Add person" and not "+ Add field".
               */}
-            <p className="mb-3 text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+            <p className="mb-3 text-ui-caption text-slate-500 dark:text-neutral-400">
                 {mode === 'content'
                     ? `Each ${noun} appears inside this section on the public page, as a piece of `
                       + 'writing under the heading you give it.'
@@ -1411,7 +1411,7 @@ export function CmsSection({ title, hint, actions, children }: {
                         {title}
                     </h3>
                     {hint && (
-                        <p className="text-[1.1875rem] font-medium text-slate-600 dark:text-[#A1A1AA]
+                        <p className="text-ui-small font-medium text-slate-600 dark:text-[#A1A1AA]
                                       mt-1.5 leading-snug max-w-3xl">
                             {hint}
                         </p>
@@ -1523,13 +1523,13 @@ export function CmsField({ label, hint, children, onClear, canClear = true }: {
         <label className="block">
             {(label || showClear) ? (
                 <span className="flex items-center justify-between gap-2 mb-2">
-                    <span className="min-w-0 text-[1.25rem] font-semibold text-slate-800 dark:text-neutral-100">{label}</span>
+                    <span className="min-w-0 text-ui-body font-semibold text-slate-800 dark:text-neutral-100">{label}</span>
                     {showClear && (
                         <button
                             type="button"
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); clear!(); }}
                             title="Empty this field — it is then not shown on the site"
-                            className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold
+                            className="inline-flex items-center gap-1 text-ui-caption font-semibold
                                        text-slate-500 dark:text-[#A1A1AA] hover:text-red-600
                                        dark:hover:text-red-400 transition-colors shrink-0"
                         >
@@ -1540,7 +1540,7 @@ export function CmsField({ label, hint, children, onClear, canClear = true }: {
             ) : null}
             {children}
             {hint && (
-                <span className="block text-[1.0625rem] font-medium text-slate-600 dark:text-[#A1A1AA]
+                <span className="block text-ui-caption font-medium text-slate-600 dark:text-[#A1A1AA]
                                  mt-2 leading-snug">
                     {hint}
                 </span>
@@ -1561,7 +1561,7 @@ export function CmsField({ label, hint, children, onClear, canClear = true }: {
  */
 const inputBase =
     'w-full bg-white dark:bg-[#0b0b0b] border border-slate-200 dark:border-[#262626] rounded-lg px-4 py-3 '
-    + 'text-[1.25rem] font-medium text-slate-900 dark:text-white '
+    + 'text-ui-body font-medium text-slate-900 dark:text-white '
     + 'placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-[#52525B] '
     + 'hover:border-slate-300 dark:hover:border-[#3a3a3a] focus:outline-none focus:ring-2 '
     + 'focus:ring-blue-500 focus:border-transparent transition-colors';
@@ -1633,7 +1633,7 @@ export function CmsButton({
             // Disabled while saving: a second click would fire a second write,
             // and for the singletons that is a race over the same document.
             disabled={rest.disabled || loading}
-            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[1.25rem]
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-ui-body
                         font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed
                         ${styles} ${rest.className || ''}`}
         >
@@ -1656,7 +1656,7 @@ export function CmsLoading({ label = 'Loading…' }: { label?: string }) {
     return (
         <div className="flex items-center gap-3 text-slate-500 dark:text-[#A1A1AA] py-10 justify-center">
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-[1.25rem]">{label}</span>
+            <span className="text-ui-body">{label}</span>
         </div>
     );
 }
@@ -1674,9 +1674,9 @@ export function CmsError({ message, onRetry }: { message: string; onRetry?: () =
         <div className="flex items-start gap-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg p-4 mb-4">
             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
-                <p className="text-[1.25rem] text-red-800 dark:text-red-200">{message}</p>
+                <p className="text-ui-body text-red-800 dark:text-red-200">{message}</p>
                 {onRetry && (
-                    <button onClick={onRetry} className="text-[1.1875rem] text-red-700 dark:text-red-300 underline mt-1">
+                    <button onClick={onRetry} className="text-ui-small text-red-700 dark:text-red-300 underline mt-1">
                         Try again
                     </button>
                 )}
@@ -1689,7 +1689,7 @@ export function CmsEmpty({ title, hint }: { title: string; hint?: string }) {
     return (
         <div className="text-center py-8 sm:py-12">
             <p className="text-slate-700 dark:text-[#D4D4D8] font-medium">{title}</p>
-            {hint && <p className="text-[1.25rem] text-slate-500 dark:text-[#A1A1AA] mt-1">{hint}</p>}
+            {hint && <p className="text-ui-body text-slate-500 dark:text-[#A1A1AA] mt-1">{hint}</p>}
         </div>
     );
 }
@@ -1830,7 +1830,7 @@ export function CmsChoice<T extends string>({
 
                             <span className="min-w-0">
                                 <span className={`flex items-center gap-2 ${
-                                    size === 'lg' ? 'text-[1.25rem] font-bold' : 'text-[1.25rem] font-semibold'
+                                    size === 'lg' ? 'text-ui-body font-bold' : 'text-ui-body font-semibold'
                                 } ${
                                     selected
                                         ? 'text-blue-700 dark:text-blue-400'
@@ -1841,7 +1841,7 @@ export function CmsChoice<T extends string>({
                                 </span>
 
                                 {option.detail && (
-                                    <span className="block text-[1.1875rem] text-slate-500 dark:text-[#A1A1AA]
+                                    <span className="block text-ui-small text-slate-500 dark:text-[#A1A1AA]
                                                      mt-1 leading-snug">
                                         {option.detail}
                                     </span>
@@ -1920,7 +1920,7 @@ export function CmsCheck({
                 </span>
 
                 <span className="min-w-0">
-                    <span className={`flex items-center gap-2 text-[1.25rem] font-semibold ${
+                    <span className={`flex items-center gap-2 text-ui-body font-semibold ${
                         checked
                             ? 'text-blue-700 dark:text-blue-400'
                             : 'text-slate-800 dark:text-neutral-200'
@@ -1930,7 +1930,7 @@ export function CmsCheck({
                     </span>
 
                     {detail && (
-                        <span className="block text-[1.1875rem] text-slate-500 dark:text-[#A1A1AA] mt-1 leading-snug">
+                        <span className="block text-ui-small text-slate-500 dark:text-[#A1A1AA] mt-1 leading-snug">
                             {detail}
                         </span>
                     )}
@@ -1983,13 +1983,13 @@ export function CmsModeCard({
                     : 'border-slate-200 dark:border-[#2a2a2a] hover:border-slate-300'
             }`}
         >
-            <span className={`inline-flex items-center gap-2 text-[1.25rem] font-bold ${
+            <span className={`inline-flex items-center gap-2 text-ui-body font-bold ${
                 checked ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-neutral-200'
             }`}>
                 {icon}
                 {title}
             </span>
-            <span className="block text-[1.1875rem] text-slate-500 dark:text-[#A1A1AA] mt-1 leading-snug">
+            <span className="block text-ui-small text-slate-500 dark:text-[#A1A1AA] mt-1 leading-snug">
                 {detail}
             </span>
         </div>
@@ -2014,7 +2014,7 @@ function StepFieldPlacement({ value, onChange }: {
 
     return (
         <div role="radiogroup" aria-label="Where it appears" className="flex flex-wrap items-center gap-2">
-            <span className="text-[1.0625rem] font-semibold text-slate-500 dark:text-neutral-400">
+            <span className="text-ui-caption font-semibold text-slate-500 dark:text-neutral-400">
                 Show it as
             </span>
             {options.map(opt => {
@@ -2027,7 +2027,7 @@ function StepFieldPlacement({ value, onChange }: {
                         aria-checked={on}
                         onClick={() => onChange(opt.value)}
                         className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1
-                                    text-[1.0625rem] font-semibold transition-colors ${on
+                                    text-ui-caption font-semibold transition-colors ${on
                             ? 'border-blue-600 bg-blue-50 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200'
                             : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-[#2a2a2a] dark:text-neutral-300'}`}
                     >
@@ -2100,7 +2100,7 @@ export function IconPicker({ value, onChange, label = 'Icon' }: {
 
     return (
         <div className="relative">
-            <span className="block text-[1.25rem] font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
+            <span className="block text-ui-body font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
                 {label}
             </span>
 
@@ -2127,7 +2127,7 @@ export function IconPicker({ value, onChange, label = 'Icon' }: {
                     aria-label={label}
                     spellCheck={false}
                     autoComplete="off"
-                    className="min-w-0 flex-1 bg-transparent text-[1.25rem] text-slate-900 outline-none
+                    className="min-w-0 flex-1 bg-transparent text-ui-body text-slate-900 outline-none
                                placeholder:text-slate-400 dark:text-neutral-100
                                dark:placeholder:text-neutral-600"
                 />
@@ -2152,7 +2152,7 @@ export function IconPicker({ value, onChange, label = 'Icon' }: {
               * server will quietly replace it with a fallback otherwise.
               */}
             {typed && !known && (
-                <p className="mt-1 text-[1.0625rem] font-medium text-amber-700 dark:text-amber-500">
+                <p className="mt-1 text-ui-caption font-medium text-amber-700 dark:text-amber-500">
                     No icon is called “{typed}”. Saved as it is, the page draws the
                     plain note mark instead — open the list to see the names.
                 </p>
@@ -2169,12 +2169,12 @@ export function IconPicker({ value, onChange, label = 'Icon' }: {
                                 bg-white dark:bg-[#0a0a0a]
                                 border border-slate-200 dark:border-[#2a2a2a] rounded-lg shadow-xl p-3 space-y-3">
                     {groups.length === 0 ? (
-                        <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                        <p className="text-ui-caption text-slate-500 dark:text-neutral-400">
                             No icon name contains “{typed}”.
                         </p>
                     ) : groups.map(group => (
                         <div key={group.label}>
-                            <p className="text-[1.0625rem] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">
+                            <p className="text-ui-caption font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">
                                 {group.label}
                             </p>
                             <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">

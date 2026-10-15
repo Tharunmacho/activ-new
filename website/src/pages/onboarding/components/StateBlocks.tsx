@@ -79,7 +79,7 @@ export function StateHero({ hero, fallbackTitle }: {
                 <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-center">
                     <div className="max-w-2xl">
                         {hero.eyebrow && (
-                            <p className="text-[1rem] sm:text-[1.0625rem] font-bold uppercase
+                            <p className="text-[1rem] sm:text-ui-caption font-bold uppercase
                                           tracking-[0.2em] text-white/70 mb-4">
                                 {hero.eyebrow}
                             </p>
@@ -117,7 +117,7 @@ export function StateHero({ hero, fallbackTitle }: {
                           * bands, because they are the same band.
                           */}
                         {hero.blurb && (
-                            <p className="mt-4 text-[1.0625rem] sm:text-[1.25rem] font-semibold leading-relaxed
+                            <p className="mt-4 text-ui-caption sm:text-ui-body font-semibold leading-relaxed
                                           text-white/75 whitespace-pre-line line-clamp-3 sm:line-clamp-4">
                                 {hero.blurb}
                             </p>
@@ -131,7 +131,7 @@ export function StateHero({ hero, fallbackTitle }: {
                                                          bg-white/10 text-white ring-1 ring-white/20">
                                             <CmsIcon name={feature.icon} size={18} />
                                         </span>
-                                        <span className="text-[1.0625rem] font-bold text-white/90">
+                                        <span className="text-ui-caption font-bold text-white/90">
                                             {feature.label}
                                         </span>
                                     </li>
@@ -176,7 +176,7 @@ export function KeyAchievements({ items, title = 'Key Achievements' }: {
 
     return (
         <div className={`${CARD} p-5 sm:p-6`}>
-            <h2 className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-800 mb-5">
+            <h2 className="text-ui-body sm:text-ui-caption font-extrabold text-brand-800 mb-5">
                 {title}
             </h2>
             <ul className="space-y-5">
@@ -191,7 +191,7 @@ export function KeyAchievements({ items, title = 'Key Achievements' }: {
                                 {row.title}
                             </p>
                             {row.summary && (
-                                <p className="mt-1 text-[1.25rem] font-semibold text-gray-500 leading-snug">
+                                <p className="mt-1 text-ui-body font-semibold text-gray-500 leading-snug">
                                     {row.summary}
                                 </p>
                             )}
@@ -231,11 +231,11 @@ export function CardRow({ title, items, viewAllHref, viewAllLabel, ratio = 'land
     return (
         <section className={`${CARD} p-5 sm:p-6`}>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-                <h2 className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-800">{title}</h2>
+                <h2 className="text-ui-body sm:text-ui-caption font-extrabold text-brand-800">{title}</h2>
                 {viewAllHref && (
                     <Link
                         to={viewAllHref}
-                        className="inline-flex items-center gap-1.5 text-[1.0625rem] font-bold
+                        className="inline-flex items-center gap-1.5 text-ui-caption font-bold
                                    text-brand-600 hover:text-brand-800 transition-colors"
                     >
                         {viewAllLabel || `View all ${title.toLowerCase()}`}
@@ -272,12 +272,12 @@ export function CardRow({ title, items, viewAllHref, viewAllLabel, ratio = 'land
                                 )}
                             </div>
 
-                            <p className="mt-3 text-[1.25rem] font-extrabold text-brand-900 leading-snug
+                            <p className="mt-3 text-ui-body font-extrabold text-brand-900 leading-snug
                                           line-clamp-2 group-hover:text-brand-600 transition-colors">
                                 {row.title}
                             </p>
                             {row.location && (
-                                <p className="mt-1 flex items-start gap-1 text-[1.0625rem] font-semibold
+                                <p className="mt-1 flex items-start gap-1 text-ui-caption font-semibold
                                               text-gray-500">
                                     <MapPin size={11} className="mt-0.5 shrink-0" />
                                     <span className="line-clamp-1">{row.location}</span>
@@ -320,9 +320,9 @@ export function ConsultingGrid({ items, intro, cta, title = 'Consulting Services
 
     return (
         <section className={`${CARD} p-5 sm:p-6`}>
-            <h2 className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-800">{title}</h2>
+            <h2 className="text-ui-body sm:text-ui-caption font-extrabold text-brand-800">{title}</h2>
             {intro && (
-                <p className="mt-1.5 text-[1.25rem] font-semibold text-gray-500">{intro}</p>
+                <p className="mt-1.5 text-ui-body font-semibold text-gray-500">{intro}</p>
             )}
 
             <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -335,7 +335,7 @@ export function ConsultingGrid({ items, intro, cta, title = 'Consulting Services
                                          rounded-xl bg-white text-brand-600 border border-brand-100">
                             <CmsIcon name={row.icon} size={19} fallback="briefcase" />
                         </span>
-                        <p className="text-[1.0625rem] font-bold text-brand-800 leading-snug">
+                        <p className="text-ui-caption font-bold text-brand-800 leading-snug">
                             {row.title}
                         </p>
                     </div>
@@ -346,7 +346,7 @@ export function ConsultingGrid({ items, intro, cta, title = 'Consulting Services
                 <Link
                     to={cta.href}
                     className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-800 px-6 py-3
-                               text-[1.0625rem] font-bold uppercase tracking-[0.1em] text-white
+                               text-ui-caption font-bold uppercase tracking-[0.1em] text-white
                                transition-colors hover:bg-brand-700"
                 >
                     {cta.label} <ArrowRight size={14} />
@@ -374,7 +374,7 @@ export function VisionBand({ vision }: {
                         </h2>
                     )}
                     {vision.text && (
-                        <p className="mt-2.5 text-[1.0625rem] font-semibold leading-relaxed text-white/75
+                        <p className="mt-2.5 text-ui-caption font-semibold leading-relaxed text-white/75
                                       whitespace-pre-line">
                             {vision.text}
                         </p>
@@ -389,7 +389,7 @@ export function VisionBand({ vision }: {
                                                  rounded-xl bg-white/10 text-white ring-1 ring-white/20">
                                     <CmsIcon name={pillar.icon} size={18} />
                                 </span>
-                                <span className="block text-[1.0625rem] font-bold text-white/85 leading-snug">
+                                <span className="block text-ui-caption font-bold text-white/85 leading-snug">
                                     {pillar.label}
                                 </span>
                             </li>
@@ -450,10 +450,10 @@ export function GalleryMarquee({ state, region, href, title = 'Photo Gallery' }:
     return (
         <section className={`${CARD} p-5 sm:p-6 overflow-hidden`}>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-                <h2 className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-800">{title}</h2>
+                <h2 className="text-ui-body sm:text-ui-caption font-extrabold text-brand-800">{title}</h2>
                 <Link
                     to={href}
-                    className="inline-flex items-center gap-1.5 text-[1.0625rem] font-bold
+                    className="inline-flex items-center gap-1.5 text-ui-caption font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     <Images size={14} /> View all photographs
@@ -498,7 +498,7 @@ export function GalleryMarquee({ state, region, href, title = 'Photo Gallery' }:
                                 <CmsMediaFrame media={photo.media} width={320} priority />
                             </div>
                             {photo.title && (
-                                <p className="px-3 py-2.5 text-[1.0625rem] font-bold text-brand-900
+                                <p className="px-3 py-2.5 text-ui-caption font-bold text-brand-900
                                               line-clamp-1">
                                     {photo.title}
                                 </p>
@@ -583,14 +583,14 @@ function Lightbox({ photos, index, onIndex, onClose }: {
                     <div className="min-w-0">
                         <p className="text-[1.375rem] font-extrabold text-white">{photo.title}</p>
                         {(photo.category || photo.state) && (
-                            <p className="text-[1.25rem] font-semibold text-white/60 mt-0.5">
+                            <p className="text-ui-body font-semibold text-white/60 mt-0.5">
                                 {[photo.category, photo.state].filter(Boolean).join(' · ')}
                             </p>
                         )}
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="text-[1.0625rem] font-bold text-white/60 tabular-nums">
+                        <span className="text-ui-caption font-bold text-white/60 tabular-nums">
                             {index + 1} / {photos.length}
                         </span>
                         <button

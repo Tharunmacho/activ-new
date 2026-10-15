@@ -234,7 +234,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                             role="tab"
                             aria-selected={on}
                             onClick={() => switchGroup(key)}
-                            className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-[1.0625rem] sm:text-[1.125rem] font-semibold transition-colors ${on
+                            className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-ui-caption sm:text-[1.125rem] font-semibold transition-colors ${on
                                 ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
                                 : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'}`}
                         >
@@ -375,7 +375,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                     role="radio"
                                     aria-checked={on}
                                     onClick={() => setChannel(value)}
-                                    className={`flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-[1.0625rem] font-semibold whitespace-nowrap transition-colors ${on
+                                    className={`flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-ui-caption font-semibold whitespace-nowrap transition-colors ${on
                                         ? 'bg-white text-slate-900 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-800'}`}
                                 >
@@ -435,7 +435,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             </div>
 
             {error ? (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[1.1875rem] font-semibold text-rose-700 break-words">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-ui-small font-semibold text-rose-700 break-words">
                     {error}
                 </div>
             ) : null}
@@ -468,7 +468,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                             ) : null}
                             {!loading && !rows.length ? (
                                 <tr><td colSpan={4} className="px-4 py-14 text-center">
-                                    <p className="text-[1.1875rem] font-semibold text-slate-600">
+                                    <p className="text-ui-small font-semibold text-slate-600">
                                         {filtered ? 'No messages match these filters.' : 'No messages here yet.'}
                                     </p>
                                 </td></tr>
@@ -519,7 +519,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 px-4 py-3.5">
-                    <p className="text-[1.0625rem] text-slate-500">
+                    <p className="text-ui-caption text-slate-500">
                         {pagination.total
                             ? `Showing ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} of ${fmt(pagination.total)}`
                             : 'No entries'}

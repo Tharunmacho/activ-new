@@ -119,7 +119,7 @@ export function RegionGallery() {
         <main className="flex-grow">
             <div className={`${SCREEN_CONTAINER} py-6 sm:py-10 md:py-14`}>
                 <h1 className={`${SECTION_HEADING} text-brand-800 mb-2`}>Photo Gallery</h1>
-                <p className="text-[1rem] sm:text-[1.0625rem] font-semibold text-gray-600 mb-5 sm:mb-8">
+                <p className="text-[1rem] sm:text-ui-caption font-semibold text-gray-600 mb-5 sm:mb-8">
                     Photographs from ACTIV events, meetings and programmes.
                 </p>
 
@@ -204,7 +204,7 @@ export function RegionGallery() {
                                     type="button"
                                     onClick={() => setFilter(chip.key, '')}
                                     className="inline-flex max-w-full min-w-0 items-center gap-1.5 break-words text-left rounded-full bg-brand-50 px-3 py-1.5
-                                               text-[1.0625rem] font-bold text-brand-700 transition-colors
+                                               text-ui-caption font-bold text-brand-700 transition-colors
                                                hover:bg-brand-100"
                                 >
                                     {chip.label}
@@ -214,7 +214,7 @@ export function RegionGallery() {
                             <button
                                 type="button"
                                 onClick={clearAll}
-                                className="text-[1.0625rem] font-bold text-gray-500 hover:text-brand-700
+                                className="text-ui-caption font-bold text-gray-500 hover:text-brand-700
                                            transition-colors ml-1"
                             >
                                 Clear all
@@ -249,13 +249,13 @@ export function RegionGallery() {
                                 <div className="px-3 py-2.5 sm:px-4 sm:py-3.5">
                                     {/* Title only, as the reference prints it.
                                         The rest is on the photograph's own page. */}
-                                    <p className="text-[0.9375rem] sm:text-[1.0625rem] font-extrabold text-brand-900 line-clamp-2 break-words">
+                                    <p className="text-[0.9375rem] sm:text-ui-caption font-extrabold text-brand-900 line-clamp-2 break-words">
                                         {photo.title || 'Untitled'}
                                     </p>
                                     {/* The state, not the category — see the note
                                         in `GallerySection`. */}
                                     {photo.state && (
-                                        <p className="mt-1 truncate text-[0.875rem] sm:text-[1.0625rem] font-semibold text-gray-500">
+                                        <p className="mt-1 truncate text-[0.875rem] sm:text-ui-caption font-semibold text-gray-500">
                                             {photo.state}
                                         </p>
                                     )}
@@ -266,7 +266,7 @@ export function RegionGallery() {
                 ) : (
                     <div className={`${CARD} px-4 py-10 sm:px-6 sm:py-16 text-center`}>
                         <Images size={28} className="mx-auto text-gray-300 mb-4" />
-                        <p className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-900">
+                        <p className="text-ui-body sm:text-ui-caption font-extrabold text-brand-900">
                             No photographs match these filters
                         </p>
                         {chips.length > 0 && (
@@ -274,7 +274,7 @@ export function RegionGallery() {
                                 type="button"
                                 onClick={clearAll}
                                 className="mt-4 inline-flex items-center gap-2 rounded-full border border-brand-200
-                                           px-6 py-3 text-[1.0625rem] font-bold uppercase tracking-[0.1em]
+                                           px-6 py-3 text-ui-caption font-bold uppercase tracking-[0.1em]
                                            text-brand-700 transition-colors hover:bg-brand-50"
                             >
                                 Clear the filters
@@ -286,7 +286,7 @@ export function RegionGallery() {
                 {/* ---------------------------------------------- paging */}
                 {total > PAGE_SIZE && (
                     <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-                        <p className="text-[1.0625rem] font-semibold text-gray-500">
+                        <p className="text-ui-caption font-semibold text-gray-500">
                             Showing <span className="font-extrabold text-brand-800">{from}–{to}</span>
                             {' '}of <span className="font-extrabold text-brand-800">{total}</span>
                         </p>
@@ -301,7 +301,7 @@ export function RegionGallery() {
                                     setParams(next);
                                 }}
                                 className="inline-flex items-center gap-2 rounded-full border border-brand-200 px-4 sm:px-5
-                                           py-2.5 text-[1.0625rem] font-bold uppercase tracking-[0.1em]
+                                           py-2.5 text-ui-caption font-bold uppercase tracking-[0.1em]
                                            text-brand-700 transition-colors hover:bg-brand-50
                                            disabled:opacity-40 disabled:cursor-not-allowed
                                            disabled:hover:bg-transparent"
@@ -317,7 +317,7 @@ export function RegionGallery() {
                                     setParams(next);
                                 }}
                                 className="inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 sm:px-5 py-2.5
-                                           text-[1.0625rem] font-bold uppercase tracking-[0.1em] text-white
+                                           text-ui-caption font-bold uppercase tracking-[0.1em] text-white
                                            transition-colors hover:bg-brand-700 disabled:opacity-40
                                            disabled:cursor-not-allowed disabled:hover:bg-brand-800"
                             >

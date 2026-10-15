@@ -157,10 +157,10 @@ const Products = () => {
                                 </span>
                             )}
                             <div className="min-w-0">
-                                <p className="text-[1.1875rem] text-blue-600 font-semibold uppercase tracking-wider">
+                                <p className="text-ui-small text-blue-600 font-semibold uppercase tracking-wider">
                                     Active catalog
                                 </p>
-                                <p className="text-[1.25rem] font-bold text-slate-800 truncate">
+                                <p className="text-ui-body font-bold text-slate-800 truncate">
                                     {activeCompany.businessName}
                                 </p>
                             </div>
@@ -173,7 +173,7 @@ const Products = () => {
                             placeholder="Search products by name or description…"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-11 h-12 !text-[1.25rem] bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
+                            className="pl-11 h-12 !text-ui-body bg-slate-50 border-slate-200 placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-blue-500"
                         />
                     </div>
 
@@ -259,16 +259,16 @@ const Products = () => {
                                             <Package className="h-10 w-10 sm:h-14 sm:w-14 text-slate-300" strokeWidth={1.5} />
                                         </div>
                                     )}
-                                    <span className="absolute top-2 right-2 sm:top-3 sm:right-3 max-w-[calc(100%-1rem)] truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 shadow-sm text-[1rem] sm:text-[1.1875rem] font-semibold text-blue-600">
+                                    <span className="absolute top-2 right-2 sm:top-3 sm:right-3 max-w-[calc(100%-1rem)] truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 shadow-sm text-[1rem] sm:text-ui-small font-semibold text-blue-600">
                                         ₹{Number(product.price || 0).toLocaleString('en-IN')}
                                     </span>
                                 </div>
 
                                 <div className="p-3 sm:p-5 flex flex-col flex-1 min-w-0">
-                                    <h3 className="text-[1.25rem] sm:text-[2.1875rem] font-bold tracking-tight leading-snug text-slate-900 line-clamp-1 break-all mb-1 sm:mb-1.5">
+                                    <h3 className="text-xl sm:text-2xl font-semibold tracking-tight leading-snug text-slate-900 line-clamp-1 break-all mb-1 sm:mb-1.5">
                                         {product.name}
                                     </h3>
-                                    <p className="text-[1.0625rem] sm:text-[1.25rem] text-slate-500 mb-3 sm:mb-4 line-clamp-2 flex-1 break-words">
+                                    <p className="text-ui-caption sm:text-ui-body text-slate-500 mb-3 sm:mb-4 line-clamp-2 flex-1 break-words">
                                         {product.description || 'No description'}
                                     </p>
 
@@ -363,7 +363,7 @@ const Products = () => {
                                             </TableCell>
                                             <TableCell className="max-w-xs">
                                                 <p className="font-semibold text-slate-900 truncate">{product.name}</p>
-                                                <p className="text-[1.1875rem] text-slate-500 truncate">
+                                                <p className="text-ui-small text-slate-500 truncate">
                                                     {product.description || 'No description'}
                                                 </p>
                                             </TableCell>

@@ -42,6 +42,7 @@ export interface Announcement {
     /** "Tamil Nadu › Ariyalur", or empty when it went to every member. */
     targetLabel: string;
     audience: import('@/lib/memberAudience').UpdateAudience;
+    planKeys?: string[];
     bannerUrl: string;
     bannerAlt: string;
     attachmentUrl: string;
@@ -86,7 +87,7 @@ const announcementForm = (fields: Record<string, any>, banner?: File | null) => 
 
     const form = new FormData();
     Object.entries(fields).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) form.append(key, String(value));
+        if (value !== undefined && value !== null) form.append(key, Array.isArray(value) ? JSON.stringify(value) : String(value));
     });
     form.append('banner', banner);
     return form;

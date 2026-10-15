@@ -152,7 +152,7 @@ export default function SchemesPage({ view }: { view: View }) {
                                     <div className="space-y-8 sm:space-y-10">
                                         {byDistrict.map((g) => (
                                             <div key={g.name}>
-                                                <h3 className="mb-4 text-[1.0625rem] font-bold uppercase tracking-[0.16em] text-brand-500">
+                                                <h3 className="mb-4 text-ui-caption font-bold uppercase tracking-[0.16em] text-brand-500">
                                                     {g.name}
                                                 </h3>
                                                 <SchemeGrid schemes={g.rows} empty={empty} showWhere={false} />

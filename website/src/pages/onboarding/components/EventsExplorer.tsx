@@ -1027,14 +1027,14 @@ export function EventsExplorer({ events, settings }: Props) {
                                                                     : 'Free'}
                                                             </span>
                                                             {Number(event?.registrationFee) > 0 && (
-                                                                <span className="text-[1.0625rem] font-semibold text-gray-400">
+                                                                <span className="text-ui-caption font-semibold text-gray-400">
                                                                     per seat
                                                                 </span>
                                                             )}
                                                             {event?.hasMemberRate
                                                                 && Number(event?.memberPrice) < Number(event?.registrationFee) && (
                                                                 <span className="rounded-full bg-emerald-50 px-2.5 py-0.5
-                                                                                 text-[1.0625rem] font-bold text-emerald-700">
+                                                                                 text-ui-caption font-bold text-emerald-700">
                                                                     Members ₹{Number(event.memberPrice).toLocaleString('en-IN')}
                                                                 </span>
                                                             )}
@@ -1190,7 +1190,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                         </p>
                                     )}
                                     {banner?.subtitle && (
-                                        <p className="mt-1.5 text-[1.1875rem] font-medium text-white/70">{banner.subtitle}</p>
+                                        <p className="mt-1.5 text-ui-small font-medium text-white/70">{banner.subtitle}</p>
                                     )}
                                 </div>
                             </div>
@@ -1199,7 +1199,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                 <Link
                                     to={banner.ctaHref || '/contact'}
                                     className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white
-                                               px-7 py-3.5 text-[1.1875rem] font-extrabold text-brand-800
+                                               px-7 py-3.5 text-ui-small font-extrabold text-brand-800
                                                transition-transform duration-300 hover:-translate-y-0.5
                                                shadow-[0_14px_30px_-12px_rgb(0,0,0,0.6)]"
                                 >

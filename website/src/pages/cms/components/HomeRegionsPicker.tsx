@@ -57,7 +57,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
 
     if (regions === null) {
         return (
-            <p className="flex items-center gap-2 py-6 text-[1.0625rem] font-medium text-slate-400">
+            <p className="flex items-center gap-2 py-6 text-ui-caption font-medium text-slate-400">
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading the zones…
             </p>
         );
@@ -88,7 +88,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                 />
             ) : (
                 <>
-                    <p className="mb-3 text-[1.0625rem] font-semibold text-slate-500 dark:text-neutral-400">
+                    <p className="mb-3 text-ui-caption font-semibold text-slate-500 dark:text-neutral-400">
                         {shown.length} of {regions.length} tiles are drawn.
                         {shown.length === 0 && (
                             <span className="text-amber-700 dark:text-amber-400">
@@ -117,10 +117,10 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                                     </span>
 
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-[1.1875rem] font-bold text-slate-900 dark:text-white">
+                                        <p className="truncate text-ui-small font-bold text-slate-900 dark:text-white">
                                             {region.label || region.key}
                                         </p>
-                                        <p className="text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                                        <p className="text-ui-caption font-medium text-slate-500 dark:text-neutral-400">
                                             {region.national
                                                 ? 'The whole country'
                                                 : `${states} ${states === 1 ? 'state' : 'states'}`}
@@ -138,7 +138,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                                         onClick={() => toggle(region)}
                                         title={on ? 'Leave it out of the band' : 'Draw its tile'}
                                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border
-                                                    px-3 py-1.5 text-[1.0625rem] font-bold transition-colors ${on
+                                                    px-3 py-1.5 text-ui-caption font-bold transition-colors ${on
                                                 ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
                                                     + ' dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'
                                                 : 'border-slate-300 bg-white text-slate-500 hover:bg-slate-100'
@@ -152,7 +152,7 @@ export function HomeRegionsPicker({ hidden, onChange }: {
                         })}
                     </ul>
 
-                    <p className="mt-3 text-[1.0625rem] font-medium text-slate-400">
+                    <p className="mt-3 text-ui-caption font-medium text-slate-400">
                         The tiles and their state counts come from the published pages. A zone
                         published under{' '}
                         <a href="/cms/regions" className="font-semibold text-blue-700 dark:text-blue-400">

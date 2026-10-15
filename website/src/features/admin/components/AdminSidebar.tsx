@@ -222,7 +222,7 @@ export default function AdminSidebar({
                 <div className="flex items-center gap-3">
                     <Avatar className="w-14 h-14 ring-2 ring-white/30 shadow-lg flex-shrink-0">
                         {!!avatarUrl && <AvatarImage src={avatarUrl} className="object-cover" />}
-                        <AvatarFallback className="bg-white/20 backdrop-blur-sm text-white text-[1.25rem] font-extrabold">
+                        <AvatarFallback className="bg-white/20 backdrop-blur-sm text-white text-ui-body font-extrabold">
                             {initials}
                         </AvatarFallback>
                     </Avatar>
@@ -230,10 +230,10 @@ export default function AdminSidebar({
                         {/* 17px / 14px, in step with the page headings the rail
                             sits beside. At 14px / 12px the signed-in name read as
                             a caption rather than as who you are. */}
-                        <div className="text-[1.25rem] font-extrabold tracking-tight text-white truncate">
+                        <div className="text-ui-body font-extrabold tracking-tight text-white truncate">
                             {userName}
                         </div>
-                        <div className="text-[1.1875rem] text-blue-100 font-semibold truncate mt-0.5">{roleLabel}</div>
+                        <div className="text-ui-small text-blue-100 font-semibold truncate mt-0.5">{roleLabel}</div>
                     </div>
                 </div>
             </div>
@@ -287,11 +287,11 @@ export default function AdminSidebar({
                                                 ? 'bg-white/25 text-white backdrop-blur-sm'
                                                 : 'text-white hover:bg-white/20 backdrop-blur-sm'}`}
                                     >
-                                        <span className="w-[1.375rem] h-[1.375rem] text-[1.25rem] text-white
+                                        <span className="w-[1.375rem] h-[1.375rem] text-ui-body text-white
                                                          flex items-center justify-center">
                                             {ICONS[item.icon]}
                                         </span>
-                                        <span className="font-bold text-[1.25rem] flex-1 text-left">{item.label}</span>
+                                        <span className="font-bold text-ui-body flex-1 text-left">{item.label}</span>
                                         <FaChevronDown
                                             className={`w-3.5 h-3.5 text-white/70 transition-transform duration-200
                                                         ${open ? 'rotate-180' : ''}`}
@@ -321,13 +321,13 @@ export default function AdminSidebar({
                                                                 ? 'bg-white text-blue-600 shadow-md font-semibold'
                                                                 : 'text-blue-50 hover:bg-white/15 font-medium'}`}
                                                     >
-                                                        <span className={`w-5 h-5 text-[1.25rem] flex items-center justify-center
+                                                        <span className={`w-5 h-5 text-ui-body flex items-center justify-center
                                                                           ${active ? 'text-blue-600' : 'text-blue-100'}`}>
                                                             {ICONS[child.icon]}
                                                         </span>
                                                         {/* One step under its parent, not two. A child at
                                                             13px beside a 16px parent read as a footnote. */}
-                                                        <span className="text-[1.1875rem]">{child.label}</span>
+                                                        <span className="text-ui-small">{child.label}</span>
                                                     </Link>
                                                 );
                                             })}
@@ -350,11 +350,11 @@ export default function AdminSidebar({
                                     : 'text-white hover:bg-white/20 backdrop-blur-sm'
                                     }`}
                             >
-                                <span className={`w-[1.375rem] h-[1.375rem] text-[1.25rem] flex items-center
+                                <span className={`w-[1.375rem] h-[1.375rem] text-ui-body flex items-center
                                                   justify-center ${active ? 'text-blue-600' : 'text-white'}`}>
                                     {ICONS[item.icon]}
                                 </span>
-                                <span className="font-bold text-[1.25rem]">{item.label}</span>
+                                <span className="font-bold text-ui-body">{item.label}</span>
                             </Link>
                         );
                     })}
@@ -370,7 +370,7 @@ export default function AdminSidebar({
                                transition-all duration-200 backdrop-blur-sm"
                 >
                     <FaSignOutAlt className="w-[1.375rem] h-[1.375rem]" />
-                    <span className="font-bold text-[1.25rem]">Log out</span>
+                    <span className="font-bold text-ui-body">Log out</span>
                 </Button>
             </div>
         </div>

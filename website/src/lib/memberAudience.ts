@@ -1,10 +1,14 @@
-export type UpdateAudience = 'all' | 'paid' | 'unpaid' | 'student' | 'lifetime';
+export type UpdateAudience = 'all' | 'paid' | 'paid_non_student' | 'unpaid' | 'business' | 'aspirant' | 'student' | 'lifetime' | 'plans';
 export const UPDATE_AUDIENCES: { value: UpdateAudience; title: string; detail: string; icon: string }[] = [
   { value: 'all', title: 'All members', detail: 'Every member, including paid and unpaid accounts.', icon: 'groups' },
   { value: 'paid', title: 'Paid members', detail: 'All active memberships, including students and lifetime members.', icon: 'verified' },
+  { value: 'paid_non_student', title: 'Paid members except students', detail: 'Active business, aspirant and lifetime members. Student memberships are excluded.', icon: 'business-center' },
   { value: 'unpaid', title: 'Unpaid members', detail: 'Members without an active membership, including expired memberships.', icon: 'schedule' },
-  { value: 'student', title: 'Student members', detail: 'Student memberships only. Other members cannot see this update.', icon: 'school' },
+  { value: 'business', title: 'Business members', detail: 'Active business memberships across every business plan.', icon: 'business' },
+  { value: 'aspirant', title: 'Aspirant members', detail: 'Active aspirant memberships only.', icon: 'lightbulb-outline' },
+  { value: 'student', title: 'Student members', detail: 'Active student memberships only. Other members cannot see this update.', icon: 'school' },
   { value: 'lifetime', title: 'Lifetime members', detail: 'Active lifetime memberships only.', icon: 'workspace-premium' },
+  { value: 'plans', title: 'Choose membership plans', detail: 'Active members holding any of the plans you select below.', icon: 'checklist' },
 ];
 export const updateAudienceLabel = (value: string) => UPDATE_AUDIENCES.find(a => a.value === value)?.title || 'All members';
 export const isStudentMembership = (profile: any) => profile?.capabilities?.isStudent ?? (

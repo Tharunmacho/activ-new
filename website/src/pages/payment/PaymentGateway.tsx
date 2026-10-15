@@ -263,10 +263,10 @@ export default function PaymentGateway() {
                 <p className="text-3xl sm:text-[2.1875rem] font-bold text-blue-600 break-words">₹{paymentDetails.totalAmount}</p>
               </div>
               <div className="sm:text-right">
-                <p className="text-[1.0625rem] text-slate-600">{paymentDetails.planType === 'annual' ? 'Annual' : 'Lifetime'} Membership</p>
-                <p className="text-[1.0625rem] text-slate-600">₹{paymentDetails.planAmount}</p>
+                <p className="text-ui-caption text-slate-600">{paymentDetails.planType === 'annual' ? 'Annual' : 'Lifetime'} Membership</p>
+                <p className="text-ui-caption text-slate-600">₹{paymentDetails.planAmount}</p>
                 {paymentDetails.supportAmount > 0 && (
-                  <p className="text-[1.0625rem] text-slate-600">+ Support: ₹{paymentDetails.supportAmount}</p>
+                  <p className="text-ui-caption text-slate-600">+ Support: ₹{paymentDetails.supportAmount}</p>
                 )}
               </div>
             </div>
@@ -301,7 +301,7 @@ export default function PaymentGateway() {
                 onClick={() => setPaymentMethod('card')}
               >
                 <CreditCard className="w-6 h-6 mb-1" />
-                <span className="text-[1.0625rem]">Card</span>
+                <span className="text-ui-caption">Card</span>
               </Button>
               <Button
                 variant={paymentMethod === 'upi' ? 'default' : 'outline'}
@@ -311,7 +311,7 @@ export default function PaymentGateway() {
                 <svg className="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
                 </svg>
-                <span className="text-[1.0625rem]">UPI</span>
+                <span className="text-ui-caption">UPI</span>
               </Button>
               <Button
                 variant={paymentMethod === 'netbanking' ? 'default' : 'outline'}
@@ -321,7 +321,7 @@ export default function PaymentGateway() {
                 <svg className="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
                 </svg>
-                <span className="text-sm sm:text-[1.0625rem] whitespace-normal leading-tight text-center">Net Banking</span>
+                <span className="text-sm sm:text-ui-caption whitespace-normal leading-tight text-center">Net Banking</span>
               </Button>
             </div>
 
@@ -329,7 +329,7 @@ export default function PaymentGateway() {
             {paymentMethod === 'card' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
+                  <label className="block text-ui-caption font-medium text-slate-700 mb-2">
                     Card Number
                   </label>
                   <Input
@@ -338,11 +338,11 @@ export default function PaymentGateway() {
                     value={cardNumber}
                     onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                     maxLength={19}
-                    className="text-[1.1875rem]"
+                    className="text-ui-small"
                   />
                 </div>
                 <div>
-                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
+                  <label className="block text-ui-caption font-medium text-slate-700 mb-2">
                     Cardholder Name
                   </label>
                   <Input
@@ -354,7 +354,7 @@ export default function PaymentGateway() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
+                    <label className="block text-ui-caption font-medium text-slate-700 mb-2">
                       Expiry Date
                     </label>
                     <Input
@@ -366,7 +366,7 @@ export default function PaymentGateway() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
+                    <label className="block text-ui-caption font-medium text-slate-700 mb-2">
                       CVV
                     </label>
                     <Input
@@ -385,7 +385,7 @@ export default function PaymentGateway() {
             {paymentMethod === 'upi' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
+                  <label className="block text-ui-caption font-medium text-slate-700 mb-2">
                     UPI ID
                   </label>
                   <Input
@@ -398,7 +398,7 @@ export default function PaymentGateway() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-[1.0625rem] text-blue-900">
+                    <p className="text-ui-caption text-blue-900">
                       You will receive a payment request on your UPI app. 
                       Please approve it to complete the payment.
                     </p>
@@ -411,7 +411,7 @@ export default function PaymentGateway() {
             {paymentMethod === 'netbanking' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[1.0625rem] font-medium text-slate-700 mb-2">
+                  <label className="block text-ui-caption font-medium text-slate-700 mb-2">
                     Select Your Bank
                   </label>
                   <select
@@ -430,7 +430,7 @@ export default function PaymentGateway() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-[1.0625rem] text-blue-900">
+                    <p className="text-ui-caption text-blue-900">
                       You will be redirected to your bank's secure login page to complete the payment.
                     </p>
                   </div>
@@ -447,7 +447,7 @@ export default function PaymentGateway() {
               <Lock className="w-6 h-6 text-green-600 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="font-semibold text-green-900">Secure Payment</p>
-                <p className="text-[1.0625rem] text-green-700">
+                <p className="text-ui-caption text-green-700">
                   Your payment information is encrypted and secure. We never store your card details.
                 </p>
               </div>
@@ -466,7 +466,7 @@ export default function PaymentGateway() {
             <CardContent>
               <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <Lock className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" />
-                <div className="text-[1.0625rem] leading-relaxed text-blue-900">
+                <div className="text-ui-caption leading-relaxed text-blue-900">
                   <p className="font-semibold">
                     You will be taken to Instamojo to pay.
                   </p>
@@ -486,14 +486,14 @@ export default function PaymentGateway() {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button
             variant="outline"
-            className="flex-1 py-4 sm:py-6 text-base sm:text-[1.1875rem]"
+            className="flex-1 py-4 sm:py-6 text-base sm:text-ui-small"
             onClick={() => navigate('/payment/membership-plans')}
             disabled={processing}
           >
             Cancel
           </Button>
           <Button
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 sm:py-6 text-base sm:text-[1.1875rem]"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 sm:py-6 text-base sm:text-ui-small"
             onClick={handlePayment}
             /* Disabled until the server has said which checkout is live —
                see `payConfig`. A click before then has no flow to run. */

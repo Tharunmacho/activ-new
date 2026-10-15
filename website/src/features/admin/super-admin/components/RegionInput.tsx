@@ -190,12 +190,12 @@ export default function RegionInput({
             <div key={title}>
                 <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 sticky top-0">
                     <Icon className={`w-3.5 h-3.5 shrink-0 ${tone}`} />
-                    <span className="min-w-0 truncate text-[1.0625rem] font-semibold uppercase
+                    <span className="min-w-0 truncate text-ui-caption font-semibold uppercase
                                      tracking-wider text-slate-500">
                         {title}
                     </span>
                     {/* The count is here so it is obvious nothing was truncated. */}
-                    <span className="shrink-0 text-[1.0625rem] text-slate-400">{names.length}</span>
+                    <span className="shrink-0 text-ui-caption text-slate-400">{names.length}</span>
                 </div>
 
                 {names.map(name => (
@@ -212,7 +212,7 @@ export default function RegionInput({
                               panel past the card and the dialog — which has no
                               horizontal scroll — simply clipped it.
                             */
-                            className={`flex-1 min-w-0 text-left px-3 py-2 text-[1.25rem] break-words hover:bg-blue-50 ${
+                            className={`flex-1 min-w-0 text-left px-3 py-2 text-ui-body break-words hover:bg-blue-50 ${
                                 name === value ? 'bg-blue-50 font-medium text-blue-700' : 'text-slate-800'
                             }`}
                         >
@@ -253,7 +253,7 @@ export default function RegionInput({
           edge of every field on the form was simply clipped.
         */
         <div className="space-y-1.5 min-w-0" ref={wrap}>
-            <label className="block text-[1.25rem] font-medium text-slate-700">{label}</label>
+            <label className="block text-ui-body font-medium text-slate-700">{label}</label>
 
             <div className="relative">
                 <input
@@ -264,7 +264,7 @@ export default function RegionInput({
                     onFocus={() => setOpen(true)}
                     placeholder={disabled ? 'Pick the level above first' : `Type or pick a ${label.toLowerCase()}`}
                     autoComplete="off"
-                    className="w-full px-3 py-2 pr-16 border border-slate-200 rounded-lg text-[1.25rem]
+                    className="w-full px-3 py-2 pr-16 border border-slate-200 rounded-lg text-ui-body
                                focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent
                                disabled:bg-slate-50 disabled:text-slate-400"
                 />
@@ -319,7 +319,7 @@ export default function RegionInput({
                           how `karanataka` came to exist as a region of its own.
                         */}
                         {approximate && (
-                            <p className="px-3 py-2 text-[1.1875rem] text-amber-700 bg-amber-50 border-b border-amber-100">
+                            <p className="px-3 py-2 text-ui-small text-amber-700 bg-amber-50 border-b border-amber-100">
                                 Nothing matches “{typed}” exactly. Closest names below — pick one, or
                                 press <strong>+</strong> to open “{typed}” as a new region.
                             </p>
@@ -333,7 +333,7 @@ export default function RegionInput({
                         )}
 
                         {nothing && (
-                            <p className="px-3 py-4 text-[1.25rem] text-slate-500 break-words">
+                            <p className="px-3 py-4 text-ui-body text-slate-500 break-words">
                                 {typed
                                     ? <>Nothing matches “{typed}”. Press <strong>+</strong> to open it as a new region.</>
                                     : 'No regions to show yet.'}
@@ -343,7 +343,7 @@ export default function RegionInput({
                 )}
             </div>
 
-            {hint && <p className="text-[1.1875rem] text-slate-500">{hint}</p>}
+            {hint && <p className="text-ui-small text-slate-500">{hint}</p>}
         </div>
     );
 }

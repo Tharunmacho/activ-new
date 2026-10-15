@@ -255,7 +255,7 @@ export default function ApprovalQueue({
                                 {applicant?.fullName || 'Name not provided'}
                             </p>
                             {!!applicant?.email && (
-                                <p className="text-[1.25rem] text-slate-500 truncate">{applicant.email}</p>
+                                <p className="text-ui-body text-slate-500 truncate">{applicant.email}</p>
                             )}
                         </div>
 
@@ -298,7 +298,7 @@ export default function ApprovalQueue({
                         </div>
                     </div>
 
-                    <div className="mt-3 space-y-1 text-[1.25rem]">
+                    <div className="mt-3 space-y-1 text-ui-body">
                         <div className="flex flex-wrap items-center gap-x-1">
                             <span className="text-slate-500">Role:</span>
                             <span className={isAspirant ? 'text-emerald-600 font-semibold' : 'text-blue-600 font-semibold'}>
@@ -330,10 +330,10 @@ export default function ApprovalQueue({
                     */}
                     <div className="mt-3 grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                         <div>
-                            <p className="text-[1.0625rem] uppercase tracking-wider text-slate-400 font-semibold">
+                            <p className="text-ui-caption uppercase tracking-wider text-slate-400 font-semibold">
                                 Applied on
                             </p>
-                            <p className="text-[1.25rem] text-slate-800 font-medium">
+                            <p className="text-ui-body text-slate-800 font-medium">
                                 {applicant?.submittedAt
                                     ? new Date(applicant.submittedAt).toLocaleDateString('en-GB', {
                                         day: '2-digit', month: 'short', year: 'numeric',
@@ -342,10 +342,10 @@ export default function ApprovalQueue({
                             </p>
                         </div>
                         <div>
-                            <p className="text-[1.0625rem] uppercase tracking-wider text-slate-400 font-semibold">
+                            <p className="text-ui-caption uppercase tracking-wider text-slate-400 font-semibold">
                                 Membership Type
                             </p>
-                            <p className="text-[1.25rem] text-slate-800 font-medium capitalize break-words">
+                            <p className="text-ui-body text-slate-800 font-medium capitalize break-words">
                                 {applicant?.memberType || applicant?.role || 'Member'}
                             </p>
                         </div>
@@ -357,13 +357,13 @@ export default function ApprovalQueue({
                     {!!applicant?.orphaned && !!applicant?.fallbackReason && (
                         <div className="mt-3 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 p-2">
                             <TrendingUp className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                            <p className="text-[1.1875rem] text-amber-800">{applicant.fallbackReason}</p>
+                            <p className="text-ui-small text-amber-800">{applicant.fallbackReason}</p>
                         </div>
                     )}
 
                     {!!applicant?.approvedByText && (
                         <p
-                            className={`mt-2 text-[1.1875rem] ${
+                            className={`mt-2 text-ui-small ${
                                 stage === 'rejected' ? 'text-red-600' : 'text-slate-500'
                             }`}
                         >
@@ -391,7 +391,7 @@ export default function ApprovalQueue({
                       * printed under it.
                       */}
                     {(!!endorsement || (enrolled && stage !== 'approved') || (declined && stage !== 'rejected')) && (
-                        <p className="mt-2 text-[1.1875rem] text-slate-500">
+                        <p className="mt-2 text-ui-small text-slate-500">
                             {[
                                 endorsement,
                                 enrolled && stage !== 'approved' ? 'Approved — the member profile exists' : '',
@@ -407,13 +407,13 @@ export default function ApprovalQueue({
                       Approve button on this screen.
                     */}
                     {canAct && !grantsMembership && (
-                        <p className="mt-2 text-[1.1875rem] text-slate-500">
+                        <p className="mt-2 text-ui-small text-slate-500">
                             Your decision is recorded for the file. The State Admin grants the membership.
                         </p>
                     )}
 
                     {!!applicant?.rejectionReason && stage !== 'pending' && (
-                        <p className="mt-2 text-[1.1875rem] text-red-600 line-clamp-3">
+                        <p className="mt-2 text-ui-small text-red-600 line-clamp-3">
                             Reason: {applicant.rejectionReason}
                         </p>
                     )}
@@ -467,7 +467,7 @@ export default function ApprovalQueue({
                                 disabled={isBusy}
                                 onClick={() => submit(applicant, 'approve')}
                                 className="inline-flex h-10 w-full sm:flex-1 items-center justify-center
-                                           gap-2 rounded-lg bg-green-600 px-4 text-[1.1875rem] font-bold text-white
+                                           gap-2 rounded-lg bg-green-600 px-4 text-ui-small font-bold text-white
                                            transition-colors hover:bg-green-700
                                            disabled:opacity-60 disabled:cursor-not-allowed"
                             >
@@ -485,7 +485,7 @@ export default function ApprovalQueue({
                                     setRejectReason('');
                                 }}
                                 className="inline-flex h-10 w-full sm:flex-1 items-center justify-center
-                                           gap-2 rounded-lg border border-red-200 bg-white px-4 text-[1.1875rem]
+                                           gap-2 rounded-lg border border-red-200 bg-white px-4 text-ui-small
                                            font-bold text-red-600 transition-colors hover:bg-red-50
                                            disabled:opacity-60 disabled:cursor-not-allowed"
                             >
@@ -501,7 +501,7 @@ export default function ApprovalQueue({
                             className="mt-4 pt-4 border-t border-slate-100 space-y-2"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <label className="text-[1.1875rem] font-bold text-slate-800">Reason for rejection</label>
+                            <label className="text-ui-small font-bold text-slate-800">Reason for rejection</label>
                             <Textarea
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
@@ -544,7 +544,7 @@ export default function ApprovalQueue({
 
     return (
         <div>
-            <h2 className="text-[1.25rem] font-bold tracking-tight text-slate-900 mb-3">{copy.title}</h2>
+            <h2 className="text-ui-body font-bold tracking-tight text-slate-900 mb-3">{copy.title}</h2>
 
             {/*
               AN INSET TRACK, not four free-floating pills.
@@ -579,7 +579,7 @@ export default function ApprovalQueue({
                             key={tab.key}
                             type="button"
                             onClick={() => setActiveFilter(tab.key)}
-                            className={`sm:flex-1 min-h-10 px-2 py-2 rounded-lg text-[1.1875rem] font-semibold truncate
+                            className={`sm:flex-1 min-h-10 px-2 py-2 rounded-lg text-ui-small font-semibold truncate
                                         transition-colors ${
                                 isActive
                                     ? TAB_ACTIVE[tab.key]
@@ -610,13 +610,13 @@ export default function ApprovalQueue({
                     <span className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3 sm:mb-4">
                         <Inbox className="w-6 h-6 sm:w-7 sm:h-7 text-slate-400" />
                     </span>
-                    <p className="text-[1.25rem] font-bold tracking-tight text-slate-900">
+                    <p className="text-ui-body font-bold tracking-tight text-slate-900">
                         {/* `No all applications` is not a sentence. The `all`
                             bucket is the absence of a filter, so it has no
                             adjective to put in front of the noun. */}
                         No {activeFilter === 'all' ? '' : `${activeFilter} `}applications
                     </p>
-                    <p className="text-[1.25rem] text-slate-500 mt-1 max-w-sm">
+                    <p className="text-ui-body text-slate-500 mt-1 max-w-sm">
                         {activeFilter === 'pending' ? copy.waitingOn : 'Nothing to show in this bucket yet.'}
                     </p>
                 </div>

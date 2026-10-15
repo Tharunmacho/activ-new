@@ -32,7 +32,7 @@ const MIN = 100;
 const MAX = 1000000;
 
 const INPUT =
-    'h-[3.25rem] w-full min-w-0 rounded-xl border bg-white px-4 text-[1.0625rem] text-slate-900 ' +
+    'h-[3.25rem] w-full min-w-0 rounded-xl border bg-white px-4 text-ui-caption text-slate-900 ' +
     'placeholder:text-slate-400 transition-colors focus:outline-none focus:border-blue-600 ' +
     'focus:ring-4 focus:ring-blue-600/15 disabled:bg-slate-50';
 const LABEL = 'mb-1.5 block text-[1rem] font-semibold text-slate-800';
@@ -128,7 +128,7 @@ function AmountPicker({ preset, custom, onPreset, onCustom, error }: {
                             role="radio"
                             aria-checked={on}
                             onClick={() => onPreset(n)}
-                            className={`h-12 rounded-xl border text-[1.0625rem] font-bold transition-all ${on
+                            className={`h-12 rounded-xl border text-ui-caption font-bold transition-all ${on
                                 ? 'border-blue-600 bg-blue-600 text-white shadow-[0_8px_20px_-10px_rgb(37_99_235/0.9)]'
                                 : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300 hover:bg-blue-50'}`}
                         >
@@ -138,7 +138,7 @@ function AmountPicker({ preset, custom, onPreset, onCustom, error }: {
                 })}
             </div>
             <div className="relative mt-3">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[1.0625rem] font-bold text-slate-500">₹</span>
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ui-caption font-bold text-slate-500">₹</span>
                 <input
                     type="text"
                     inputMode="numeric"
@@ -180,7 +180,7 @@ function DonorTypeChoice({ value, onChange }: { value: DonorType; onChange: (v: 
                                 {on ? <span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> : null}
                             </span>
                             <Icon className="h-5 w-5 shrink-0" />
-                            <span className="text-[1.0625rem] font-semibold">{label}</span>
+                            <span className="text-ui-caption font-semibold">{label}</span>
                         </button>
                     );
                 })}
@@ -196,7 +196,7 @@ function Promise_({ icon: Icon, title, body }: { icon: typeof ShieldCheck; title
                 <Icon className="h-5 w-5" />
             </span>
             <span className="min-w-0">
-                <span className="block text-[1.0625rem] font-bold text-white">{title}</span>
+                <span className="block text-ui-caption font-bold text-white">{title}</span>
                 <span className="block text-[0.9375rem] leading-snug text-blue-100">{body}</span>
             </span>
         </li>
@@ -306,7 +306,7 @@ export default function DonatePage() {
                         <h1 className="mt-4 max-w-4xl text-[2rem] font-extrabold leading-[1.1] tracking-tight sm:text-[3rem] xl:text-[3.5rem]">
                             Support ACTIV — with an 80G tax benefit
                         </h1>
-                        <p className="mt-4 max-w-3xl text-[1.125rem] leading-relaxed text-blue-100 sm:text-[1.25rem]">
+                        <p className="mt-4 max-w-3xl text-[1.125rem] leading-relaxed text-blue-100 sm:text-ui-body">
                             Your gift helps SC/ST entrepreneurs start, grow and be heard. You get an 80G receipt for
                             every donation, and a consolidated certificate for the whole financial year.
                         </p>
@@ -383,7 +383,7 @@ export default function DonatePage() {
                                     value={form.message}
                                     onChange={(e) => set('message', e.target.value)}
                                     placeholder="A note to the association, or what you would like your gift to support"
-                                    className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[1.0625rem] text-slate-900
+                                    className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-ui-caption text-slate-900
                                                placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-600/15"
                                 />
                             </div>
@@ -406,7 +406,7 @@ export default function DonatePage() {
 
                     <aside className="min-w-0 space-y-4 lg:pt-0">
                         <div className="rounded-2xl bg-gradient-to-br from-[#0e1f4d] to-[#1c2e68] p-5 shadow-lg sm:p-6">
-                            <h2 className="text-[1.25rem] font-bold text-white">What you receive</h2>
+                            <h2 className="text-ui-body font-bold text-white">What you receive</h2>
                             <ul className="mt-4 space-y-4">
                                 <Promise_ icon={FileCheck2} title="A receipt for every gift"
                                     body="An 80G receipt by email the moment each payment goes through." />

@@ -149,14 +149,14 @@ export default function MemberDocuments() {
                                             <Icon className="h-6 w-6" />
                                         </span>
                                         <span className="min-w-0">
-                                            <span className="block truncate text-[1.1875rem] font-semibold text-slate-900">
+                                            <span className="block truncate text-ui-small font-semibold text-slate-900">
                                                 {label}
                                             </span>
-                                            <span className="mt-0.5 block text-[1.0625rem] text-slate-500">
+                                            <span className="mt-0.5 block text-ui-caption text-slate-500">
                                                 {detail}
                                             </span>
                                             <span className="mt-2 inline-flex items-center gap-1.5 rounded-full
-                                                             bg-emerald-50 px-2.5 py-1 text-[1.0625rem]
+                                                             bg-emerald-50 px-2.5 py-1 text-ui-caption
                                                              font-bold text-emerald-700">
                                                 <BadgeCheck className="h-4 w-4" /> Issued
                                             </span>
@@ -184,10 +184,10 @@ export default function MemberDocuments() {
                                         <Lock className="h-5 w-5" />
                                     </span>
                                     <span className="min-w-0 flex-1">
-                                        <span className="block text-[1.1875rem] font-semibold text-slate-700">
+                                        <span className="block text-ui-small font-semibold text-slate-700">
                                             {label}
                                         </span>
-                                        <span className="mt-1 block text-[1.0625rem] leading-snug text-slate-500">
+                                        <span className="mt-1 block text-ui-caption leading-snug text-slate-500">
                                             {detail}
                                         </span>
                                     </span>
@@ -221,10 +221,10 @@ export default function MemberDocuments() {
                                     </span>
 
                                     <span className="min-w-0 flex-1">
-                                        <span className="block text-[1.1875rem] font-semibold text-slate-900">
+                                        <span className="block text-ui-small font-semibold text-slate-900">
                                             {label}
                                         </span>
-                                        <span className="block text-[1.0625rem] text-slate-400 mt-0.5">
+                                        <span className="block text-ui-caption text-slate-400 mt-0.5">
                                             {done ? 'Submitted' : 'Not submitted yet'}
                                         </span>
                                     </span>
@@ -240,7 +240,7 @@ export default function MemberDocuments() {
                                     {done ? (
                                         <Link
                                             to="/member/profile-view"
-                                            className="shrink-0 text-[1.0625rem] font-semibold text-blue-600
+                                            className="shrink-0 text-ui-caption font-semibold text-blue-600
                                                        hover:underline"
                                         >
                                             View
@@ -248,7 +248,7 @@ export default function MemberDocuments() {
                                     ) : (
                                         <Link
                                             to={to}
-                                            className="shrink-0 inline-flex items-center gap-0.5 text-[1.0625rem]
+                                            className="shrink-0 inline-flex items-center gap-0.5 text-ui-caption
                                                        font-semibold text-blue-600 hover:underline"
                                         >
                                             Complete <ChevronRight className="w-3.5 h-3.5" />

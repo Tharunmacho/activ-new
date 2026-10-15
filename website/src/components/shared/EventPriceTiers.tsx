@@ -128,7 +128,7 @@ export function EventPriceTiers({
                     {standard > 0 ? rupees(standard) : 'Free'}
                 </span>
                 {standard > 0 && (
-                    <span className="ml-2 text-[1.1875rem] font-semibold text-slate-500">
+                    <span className="ml-2 text-ui-small font-semibold text-slate-500">
                         per seat
                     </span>
                 )}
@@ -172,7 +172,7 @@ export function EventPriceTiers({
                                   text-slate-900 tabular-nums break-all">
                         {rupees(standard)}
                     </p>
-                    <p className="mt-1.5 text-[1.0625rem] sm:text-[1.1875rem] font-semibold text-slate-500">per seat</p>
+                    <p className="mt-1.5 text-ui-caption sm:text-ui-small font-semibold text-slate-500">per seat</p>
                     {/* The Standard column's half of the chip row — see above. */}
                     <span aria-hidden="true" className="mt-3 block h-[1.375rem]" />
                 </div>
@@ -186,7 +186,7 @@ export function EventPriceTiers({
                                   text-emerald-700 tabular-nums break-all">
                         {rupees(member)}
                     </p>
-                    <p className="mt-1.5 text-[1.0625rem] sm:text-[1.1875rem] font-semibold text-emerald-700/80">
+                    <p className="mt-1.5 text-ui-caption sm:text-ui-small font-semibold text-emerald-700/80">
                         per seat
                     </p>
                     <span className="mt-3 inline-flex h-[1.375rem] w-fit items-center gap-1
@@ -212,7 +212,7 @@ export function EventPriceTiers({
               */}
             {memberRateApplies && (
                 <p className="flex items-center justify-center gap-2 border-t border-emerald-100
-                              bg-emerald-50/80 px-4 py-2.5 text-center text-[1.0625rem]
+                              bg-emerald-50/80 px-4 py-2.5 text-center text-ui-caption
                               font-bold text-emerald-800 sm:px-5">
                     <Check size={16} className="shrink-0" />
                     Members price applied — you save {rupees(bookingSaving)}

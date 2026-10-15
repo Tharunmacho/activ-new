@@ -176,7 +176,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
             <Shell>
                 <div className={`${SCREEN_CONTAINER} py-16 sm:py-24 text-center`}>
                     <h1 className={`${SECTION_HEADING} text-brand-800 mb-4`}>Not published yet</h1>
-                    <p className="text-[1.25rem] sm:text-[1.0625rem] font-semibold text-gray-500 mb-8">
+                    <p className="text-ui-body sm:text-ui-caption font-semibold text-gray-500 mb-8">
                         This page has not been published.
                     </p>
                     <Link to="/" className={BACK_BTN}><ArrowLeft size={15} /> Back to home</Link>
@@ -201,7 +201,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Link
             to={parentHref}
-            className="inline-flex items-center gap-2 text-[1.0625rem] font-bold uppercase
+            className="inline-flex items-center gap-2 text-ui-caption font-bold uppercase
                        tracking-[0.1em] text-gray-500 hover:text-brand-700 transition-colors"
         >
             <ArrowLeft size={14} /> Back to {parentName}
@@ -234,7 +234,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                     <div className={`${DASH_CARD} overflow-hidden`}>
                         <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
                             <div className="order-2 lg:order-1 min-w-0 p-4 sm:p-8">
-                                <p className="text-[1.0625rem] sm:text-[1.25rem] leading-relaxed font-semibold
+                                <p className="text-ui-caption sm:text-ui-body leading-relaxed font-semibold
                                               text-gray-700 whitespace-pre-line break-words">
                                     {full}
                                 </p>
@@ -247,12 +247,12 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                                 className="rounded-xl border border-gray-200 bg-[#f7f9fc]
                                                            px-4 py-3.5"
                                             >
-                                                <dt className="flex items-center gap-2 text-[1.0625rem] font-bold
+                                                <dt className="flex items-center gap-2 text-ui-caption font-bold
                                                                uppercase tracking-wider text-gray-500">
                                                     <CmsIcon name={fact.icon} size={13} fallback="map-pin" />
                                                     {fact.label}
                                                 </dt>
-                                                <dd className="mt-1 text-[1.0625rem] font-extrabold
+                                                <dd className="mt-1 text-ui-caption font-extrabold
                                                                text-brand-900">
                                                     {fact.value}
                                                 </dd>
@@ -274,7 +274,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                                                  text-brand-600 border border-brand-100">
                                                     <CmsIcon name={feature.icon} size={16} fallback="star" />
                                                 </span>
-                                                <span className="text-[1.0625rem] font-bold text-brand-800
+                                                <span className="text-ui-caption font-bold text-brand-800
                                                                  leading-snug">
                                                     {feature.label}
                                                 </span>
@@ -311,8 +311,8 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                                 <div className="absolute inset-x-0 bottom-0 h-2/5
                                                                 bg-gradient-to-t from-brand-900/85
                                                                 to-transparent" />
-                                                <p className="absolute inset-x-0 bottom-0 p-4 sm:p-5 text-[1.0625rem]
-                                                              sm:text-[1.25rem] font-bold text-white leading-snug">
+                                                <p className="absolute inset-x-0 bottom-0 p-4 sm:p-5 text-ui-caption
+                                                              sm:text-ui-body font-bold text-white leading-snug">
                                                     {page.hero.tagline}
                                                 </p>
                                             </>
@@ -363,12 +363,12 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                         />
                                     </div>
                                     <div className="px-3 py-2.5 sm:px-4 sm:py-3.5">
-                                        <p className="text-[0.9375rem] sm:text-[1.0625rem] font-extrabold text-brand-900
+                                        <p className="text-[0.9375rem] sm:text-ui-caption font-extrabold text-brand-900
                                                       line-clamp-2 leading-snug break-words">
                                             {photo.title || 'Untitled'}
                                         </p>
                                         {(photo.location || photo.eventDate) && (
-                                            <p className="mt-1 flex min-w-0 items-center gap-1 text-[0.875rem] sm:text-[1.0625rem]
+                                            <p className="mt-1 flex min-w-0 items-center gap-1 text-[0.875rem] sm:text-ui-caption
                                                           font-semibold text-gray-500">
                                                 <MapPin size={11} className="shrink-0 text-brand-400" />
                                                 <span className="truncate">
@@ -387,7 +387,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
 
                     {photoTotal > GALLERY_PER && (
                         <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-                            <p className="text-[1.0625rem] font-semibold text-gray-500">
+                            <p className="text-ui-caption font-semibold text-gray-500">
                                 Showing{' '}
                                 <span className="font-extrabold text-brand-800">
                                     {photos.length ? offset + 1 : 0}&ndash;{offset + photos.length}
@@ -453,22 +453,22 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                                 {person.role}
                                             </span>
                                         )}
-                                        <p className="text-[1.0625rem] sm:text-[1.25rem] font-extrabold
+                                        <p className="text-ui-caption sm:text-ui-body font-extrabold
                                                       text-brand-900">
                                             {person.name}
                                         </p>
                                         {person.designation && (
-                                            <p className="mt-1 text-[1.25rem] font-semibold text-gray-600">
+                                            <p className="mt-1 text-ui-body font-semibold text-gray-600">
                                                 {person.designation}
                                             </p>
                                         )}
                                         {person.organisation && (
-                                            <p className="text-[1.25rem] font-semibold text-gray-600">
+                                            <p className="text-ui-body font-semibold text-gray-600">
                                                 {person.organisation}
                                             </p>
                                         )}
                                         {person.bio && (
-                                            <p className="mt-2.5 text-[1.25rem] leading-relaxed font-semibold
+                                            <p className="mt-2.5 text-ui-body leading-relaxed font-semibold
                                                           text-gray-500">
                                                 {person.bio}
                                             </p>
@@ -522,11 +522,11 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                     <Heading heading={custom.title} />
                     <div className={`${DASH_CARD} p-4 sm:p-8 break-words`}>
                         {custom.intro && (
-                            <p className="text-[1.25rem] sm:text-[1.0625rem] font-bold text-brand-800 mb-4">
+                            <p className="text-ui-body sm:text-ui-caption font-bold text-brand-800 mb-4">
                                 {custom.intro}
                             </p>
                         )}
-                        <p className="max-w-4xl text-[1.0625rem] sm:text-[1.25rem] leading-relaxed
+                        <p className="max-w-4xl text-ui-caption sm:text-ui-body leading-relaxed
                                       font-semibold text-gray-700 whitespace-pre-line">
                             {custom.text}
                         </p>
@@ -567,7 +567,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                 <Heading heading={custom ? custom.title : heading} />
 
                 {custom && custom.intro && (
-                    <p className="-mt-4 mb-7 max-w-3xl text-[1.25rem] font-semibold text-gray-600">
+                    <p className="-mt-4 mb-7 max-w-3xl text-ui-body font-semibold text-gray-600">
                         {custom.intro}
                     </p>
                 )}
@@ -576,7 +576,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                     edited and saved and printed nowhere; this list is the only
                     place consulting is drawn, so its words belong here. */}
                 {!custom && key === 'consultingServices' && (page.consultingIntro || '').trim() && (
-                    <p className="-mt-4 mb-7 max-w-3xl text-[1.25rem] font-semibold text-gray-600">
+                    <p className="-mt-4 mb-7 max-w-3xl text-ui-body font-semibold text-gray-600">
                         {page.consultingIntro}
                     </p>
                 )}
@@ -628,7 +628,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
 
                 {all.length > PER_PAGE && (
                     <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-                        <p className="text-[1.0625rem] font-semibold text-gray-500">
+                        <p className="text-ui-caption font-semibold text-gray-500">
                             Showing <span className="font-extrabold text-brand-800">{from}–{to}</span>
                             {' '}of <span className="font-extrabold text-brand-800">{all.length}</span>
                         </p>
@@ -662,15 +662,15 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
 
 const BACK_BTN =
     'inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white px-6 sm:px-8 py-3.5 '
-    + 'rounded-full font-bold text-[0.9375rem] sm:text-[1.0625rem] uppercase tracking-[0.1em] transition-colors';
+    + 'rounded-full font-bold text-[0.9375rem] sm:text-ui-caption uppercase tracking-[0.1em] transition-colors';
 
 const PAGE_BTN =
-    'inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 sm:px-5 py-2.5 text-[0.9375rem] sm:text-[1.0625rem] font-bold '
+    'inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 sm:px-5 py-2.5 text-[0.9375rem] sm:text-ui-caption font-bold '
     + 'uppercase tracking-[0.1em] text-white transition-colors hover:bg-brand-700 '
     + 'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-800';
 
 const PAGE_BTN_GHOST =
-    'inline-flex items-center gap-2 rounded-full border border-brand-200 px-4 sm:px-5 py-2.5 text-[0.9375rem] sm:text-[1.0625rem] '
+    'inline-flex items-center gap-2 rounded-full border border-brand-200 px-4 sm:px-5 py-2.5 text-[0.9375rem] sm:text-ui-caption '
     + 'font-bold uppercase tracking-[0.1em] text-brand-700 transition-colors hover:bg-brand-50 '
     + 'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent';
 
@@ -704,10 +704,10 @@ function Heading({ heading }: { heading: string }) {
 function Empty() {
     return (
         <div className={`${DASH_CARD} px-4 py-10 sm:px-6 sm:py-16 text-center`}>
-            <p className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-900">
+            <p className="text-ui-body sm:text-ui-caption font-extrabold text-brand-900">
                 Nothing has been published here yet
             </p>
-            <p className="mt-2 text-[1.0625rem] font-semibold text-gray-500">
+            <p className="mt-2 text-ui-caption font-semibold text-gray-500">
                 This list is written in the CMS and will appear as soon as it has something in it.
             </p>
         </div>
@@ -774,18 +774,18 @@ function DetailCard({ row, hasMedia }: { row: RegionFeedItem; hasMedia: boolean 
                     </p>
                 )}
 
-                <h2 className="text-[1.25rem] sm:text-[1.0625rem] font-extrabold text-brand-900 leading-snug">
+                <h2 className="text-ui-body sm:text-ui-caption font-extrabold text-brand-900 leading-snug">
                     {row.title}
                 </h2>
 
                 {row.summary && (
-                    <p className="mt-2 text-[1.0625rem] leading-relaxed font-semibold text-gray-600">
+                    <p className="mt-2 text-ui-caption leading-relaxed font-semibold text-gray-600">
                         {row.summary}
                     </p>
                 )}
 
                 {row.body && (
-                    <p className="mt-2 text-[1.25rem] leading-relaxed font-semibold text-gray-500
+                    <p className="mt-2 text-ui-body leading-relaxed font-semibold text-gray-500
                                   whitespace-pre-line">
                         {row.body}
                     </p>
@@ -871,12 +871,12 @@ function TileCard({ row, hasMedia }: { row: RegionFeedItem; hasMedia: boolean })
                     </p>
                 )}
 
-                <h2 className="text-[1.0625rem] sm:text-[1.25rem] font-extrabold text-brand-900 leading-snug">
+                <h2 className="text-ui-caption sm:text-ui-body font-extrabold text-brand-900 leading-snug">
                     {row.title}
                 </h2>
 
                 {row.summary && (
-                    <p className="mt-1.5 text-[1.25rem] leading-relaxed font-semibold text-gray-600
+                    <p className="mt-1.5 text-ui-body leading-relaxed font-semibold text-gray-600
                                   line-clamp-3">
                         {row.summary}
                     </p>
@@ -913,5 +913,5 @@ function TileCard({ row, hasMedia }: { row: RegionFeedItem; hasMedia: boolean })
 }
 
 const DETAIL_LINK =
-    'inline-flex items-center gap-1.5 text-[1.25rem] font-bold text-brand-600 '
+    'inline-flex items-center gap-1.5 text-ui-body font-bold text-brand-600 '
     + 'hover:text-brand-800 transition-colors';

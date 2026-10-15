@@ -96,7 +96,7 @@ export function SchemesMenu({ accent, label, active }: { accent: string; label: 
     }, [open]);
 
     const row = (on: boolean) => `flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left
-        text-[1.0625rem] font-bold transition-colors ${on ? 'bg-brand-50 text-brand-800' : 'text-brand-700 hover:bg-brand-50/60'}`;
+        text-ui-caption font-bold transition-colors ${on ? 'bg-brand-50 text-brand-800' : 'text-brand-700 hover:bg-brand-50/60'}`;
 
     return (
         <div ref={holder} className="relative">
@@ -109,7 +109,7 @@ export function SchemesMenu({ accent, label, active }: { accent: string; label: 
                 /* The same box as the plain links beside it — see `HeaderSection`:
                    the 2px rule is always drawn, transparent unless this page is
                    under /schemes, so the row does not shift between pages. */
-                className={`whitespace-nowrap text-[1.0625rem] pt-1.5 pb-1 border-b-2 transition inline-flex
+                className={`whitespace-nowrap text-ui-caption pt-1.5 pb-1 border-b-2 transition inline-flex
                             items-center gap-1.5 ${active || open ? 'font-semibold' : 'font-medium opacity-70 hover:opacity-100'}`}
                 style={{ color: accent, borderColor: active ? accent : 'transparent' }}
             >
@@ -164,13 +164,13 @@ export function SchemesMenu({ accent, label, active }: { accent: string; label: 
                             <Link
                                 to="/schemes/central"
                                 onClick={() => setOpen(false)}
-                                className="block px-4 py-2.5 text-[1.0625rem] font-semibold text-brand-700
+                                className="block px-4 py-2.5 text-ui-caption font-semibold text-brand-700
                                            transition-colors hover:bg-brand-50/60"
                             >
                                 All central schemes
                             </Link>
                         ) : states.length === 0 ? (
-                            <p className="px-4 py-2.5 text-[1.0625rem] font-semibold text-gray-400">
+                            <p className="px-4 py-2.5 text-ui-caption font-semibold text-gray-400">
                                 No state schemes yet.
                             </p>
                         ) : (
@@ -182,7 +182,7 @@ export function SchemesMenu({ accent, label, active }: { accent: string; label: 
                                             <Link
                                                 to={stateHref(s.slug)}
                                                 onClick={() => setOpen(false)}
-                                                className={`flex items-center justify-between gap-3 px-4 py-2.5 text-[1.0625rem]
+                                                className={`flex items-center justify-between gap-3 px-4 py-2.5 text-ui-caption
                                                             font-semibold transition-colors hover:bg-brand-50/60 ${n ? 'text-brand-700' : 'text-gray-400'}`}
                                             >
                                                 <span className="truncate">{s.name}</span>
@@ -221,7 +221,7 @@ export function SchemesAccordion({ accent, label, onNavigate }: {
                 /* The same box as the drawer's plain links (HeaderSection) —
                    px-4 / py-3.5 / semibold / 18px chevron — or this row sits
                    visibly left of, and lighter than, its neighbours. */
-                className="flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-[1.0625rem]
+                className="flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-ui-caption
                            font-semibold transition-all hover:bg-slate-50 active:scale-[0.98]"
                 style={{ color: accent }}
             >
@@ -234,7 +234,7 @@ export function SchemesAccordion({ accent, label, onNavigate }: {
                     <Link
                         to="/schemes/central"
                         onClick={onNavigate}
-                        className="flex items-center gap-2 border-b border-gray-100 py-2.5 text-[1.0625rem] font-extrabold"
+                        className="flex items-center gap-2 border-b border-gray-100 py-2.5 text-ui-caption font-extrabold"
                         style={{ color: accent }}
                     >
                         <Landmark size={15} className="shrink-0 opacity-60" /> Central schemes
@@ -243,7 +243,7 @@ export function SchemesAccordion({ accent, label, onNavigate }: {
                         type="button"
                         onClick={() => setStatesOpen((v) => !v)}
                         aria-expanded={statesOpen}
-                        className="flex w-full items-center justify-between py-2.5 text-left text-[1.0625rem] font-bold"
+                        className="flex w-full items-center justify-between py-2.5 text-left text-ui-caption font-bold"
                         style={{ color: accent }}
                     >
                         <span className="inline-flex items-center gap-2">
@@ -254,7 +254,7 @@ export function SchemesAccordion({ accent, label, onNavigate }: {
                     {statesOpen && <Link to="/schemes/state" onClick={onNavigate}
                         className="block py-2 pl-3 font-semibold text-brand-700">All state schemes</Link>}
                     {statesOpen && states.length === 0 && (
-                        <p className="pb-2 pl-3 text-[1.0625rem] font-semibold text-gray-400">No state schemes yet.</p>
+                        <p className="pb-2 pl-3 text-ui-caption font-semibold text-gray-400">No state schemes yet.</p>
                     )}
                     {statesOpen && states.length > 0 && (
                         <div className="space-y-1 pb-2 pl-3">
@@ -265,7 +265,7 @@ export function SchemesAccordion({ accent, label, onNavigate }: {
                                         key={st.slug || st.name}
                                         to={stateHref(st.slug)}
                                         onClick={onNavigate}
-                                        className={`flex items-center justify-between py-2 text-[1.0625rem] font-semibold
+                                        className={`flex items-center justify-between py-2 text-ui-caption font-semibold
                                                     ${n ? 'text-gray-700' : 'text-gray-400'}`}
                                     >
                                         {st.name}

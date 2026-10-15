@@ -328,7 +328,7 @@ export default function Hub() {
                                 <div className="flex items-start gap-3 bg-amber-50 border border-amber-200
                                                 rounded-lg p-4">
                                     <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                                    <p className="text-[1.25rem] text-amber-900">
+                                    <p className="text-ui-body text-amber-900">
                                         The overview could not be loaded, so the figures below are not
                                         current. The drill-down still works.
                                     </p>
@@ -445,7 +445,7 @@ export default function Hub() {
                                                         <p className={`text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight tabular-nums ${f.tone}`}>
                                                             {Number(f.value || 0)}
                                                         </p>
-                                                        <p className="text-[0.9375rem] md:text-[1.1875rem] leading-tight font-semibold text-slate-500 mt-1">
+                                                        <p className="text-[0.9375rem] md:text-ui-small leading-tight font-semibold text-slate-500 mt-1">
                                                             {f.label}
                                                         </p>
                                                     </div>
@@ -467,7 +467,7 @@ export default function Hub() {
                                     </div>
                                     <div className="min-w-0">
                                         <p className="font-semibold text-slate-900">Staff a region</p>
-                                        <p className="text-[1.25rem] text-slate-500">
+                                        <p className="text-ui-body text-slate-500">
                                             Adding a block admin is what opens a region for registration.
                                         </p>
                                     </div>
@@ -486,7 +486,7 @@ export default function Hub() {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Filter regions"
-                                    className="h-11 w-full pl-9 pr-3.5 rounded-xl border border-slate-200 text-[1.25rem] outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
+                                    className="h-11 w-full pl-9 pr-3.5 rounded-xl border border-slate-200 text-ui-body outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                                                focus:outline-none focus:ring-2 focus:ring-blue-600"
                                 />
                             </div>
@@ -507,7 +507,7 @@ export default function Hub() {
                                         >
                                             <div className="min-w-0">
                                                 <p className="font-medium text-slate-900 break-words">{r.name}</p>
-                                                <p className="text-[1.1875rem] text-slate-500 mt-0.5">
+                                                <p className="text-ui-small text-slate-500 mt-0.5">
                                                     {[r.district, r.state].filter(Boolean).join(', ') || '—'}
                                                     {/* An unstaffed region is the one worth chasing:
                                                         its applications escalate to the tier above. */}
@@ -522,10 +522,10 @@ export default function Hub() {
                                                 about 110px, which truncates most Indian
                                                 block names to two words. */}
                                             <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-                                                <span className="text-[1.1875rem] text-amber-700 bg-amber-50 px-2 py-1 rounded-full">
+                                                <span className="text-ui-small text-amber-700 bg-amber-50 px-2 py-1 rounded-full">
                                                     {r.pending} pending
                                                 </span>
-                                                <span className="text-[1.1875rem] text-slate-500">{r.applications} total</span>
+                                                <span className="text-ui-small text-slate-500">{r.applications} total</span>
                                                 <ChevronRight className="w-4 h-4 text-slate-400" />
                                             </div>
                                         </button>
@@ -547,7 +547,7 @@ export default function Hub() {
                                     <button
                                         key={s}
                                         onClick={() => region && openRegion(region, s)}
-                                        className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1.5 sm:px-4 py-2 rounded-lg text-[1.0625rem] sm:text-[1.25rem] font-medium capitalize truncate transition-colors ${
+                                        className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1.5 sm:px-4 py-2 rounded-lg text-ui-caption sm:text-ui-body font-medium capitalize truncate transition-colors ${
                                             status === s
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'

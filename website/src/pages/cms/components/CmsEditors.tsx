@@ -323,7 +323,7 @@ function FieldPlacement({ value, onChange }: {
 
     return (
         <div role="radiogroup" aria-label="Where it appears">
-            <span className="mb-1.5 block text-[1.25rem] font-medium text-slate-700 dark:text-neutral-300">
+            <span className="mb-1.5 block text-ui-body font-medium text-slate-700 dark:text-neutral-300">
                 Where it appears
             </span>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -345,11 +345,11 @@ function FieldPlacement({ value, onChange }: {
                                     ? 'border-blue-600' : 'border-slate-400'}`}>
                                     {on && <span className="h-2 w-2 rounded-full bg-blue-600" />}
                                 </span>
-                                <span className="text-[1.1875rem] font-bold text-slate-900 dark:text-white">
+                                <span className="text-ui-small font-bold text-slate-900 dark:text-white">
                                     {opt.label}
                                 </span>
                             </span>
-                            <span className="mt-1 block pl-6 text-[1.0625rem] leading-snug text-slate-500 dark:text-neutral-400">
+                            <span className="mt-1 block pl-6 text-ui-caption leading-snug text-slate-500 dark:text-neutral-400">
                                 {opt.hint}
                             </span>
                         </button>

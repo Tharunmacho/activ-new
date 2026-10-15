@@ -65,7 +65,7 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
     return (
         <div className={compact ? 'shrink-0 w-28' : 'block'}>
             {label && (
-                <span className="block text-[1.1875rem] font-semibold text-slate-800 dark:text-neutral-100 mb-1.5">
+                <span className="block text-ui-small font-semibold text-slate-800 dark:text-neutral-100 mb-1.5">
                     {label}
                 </span>
             )}
@@ -108,7 +108,7 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
                         disabled={busy}
                         className="inline-flex items-center gap-2 rounded-lg border border-blue-200
                                    dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 px-4 py-2.5
-                                   text-[1.1875rem] font-semibold text-blue-700 dark:text-blue-300
+                                   text-ui-small font-semibold text-blue-700 dark:text-blue-300
                                    transition-colors hover:bg-blue-100 disabled:opacity-50"
                     >
                         {busy ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />} {busy ? status || 'Preparing…' : compact ? 'Choose photo' : url ? 'Choose a different picture' : 'Upload a picture'}
@@ -120,14 +120,14 @@ export function UploadField({ url, onChange, label, hint, aspect = 'aspect-[16/9
                             onClick={() => onChange('')}
                             disabled={busy}
                             className="inline-flex items-center gap-2 rounded-lg px-4 py-2
-                                       text-[1.0625rem] font-semibold text-slate-500 dark:text-neutral-400
+                                       text-ui-caption font-semibold text-slate-500 dark:text-neutral-400
                                        transition-colors hover:text-red-600"
                         >
                             <Trash2 size={14} /> Remove this picture
                         </button>
                     )}
 
-                    {(!compact || hint) && <span className="text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400">
+                    {(!compact || hint) && <span className="text-ui-caption font-medium text-slate-500 dark:text-neutral-400">
                         {hint || 'JPG or PNG. It is uploaded and used straight away.'}
                     </span>}
 

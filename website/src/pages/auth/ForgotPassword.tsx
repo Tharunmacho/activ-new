@@ -36,11 +36,11 @@ type Audience = 'member' | 'admin';
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const FIELD =
-    'h-[3.25rem] w-full rounded-xl border bg-white pl-11 pr-4 text-[1.0625rem] font-medium text-slate-900 ' +
+    'h-[3.25rem] w-full rounded-xl border bg-white pl-11 pr-4 text-ui-caption font-medium text-slate-900 ' +
     'placeholder:font-normal placeholder:text-slate-400 transition-colors focus:outline-none ' +
     'focus:border-blue-600 focus:ring-4 focus:ring-blue-600/15 disabled:bg-slate-50';
 const PRIMARY =
-    'flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-[1.0625rem] ' +
+    'flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-ui-caption ' +
     'font-semibold text-white shadow-[0_12px_26px_-12px_rgb(37_99_235/0.9)] transition-colors ' +
     'hover:bg-blue-700 disabled:opacity-60';
 
@@ -95,7 +95,7 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
                     <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                         <MailCheck className="h-8 w-8" />
                     </div>
-                    <p className="text-[1.0625rem] leading-relaxed text-slate-600">
+                    <p className="text-ui-caption leading-relaxed text-slate-600">
                         If <span className="break-all font-semibold text-slate-900">{(email || '').trim().toLowerCase()}</span>{' '}
                         belongs to {forAdmins ? 'an administrator account' : 'a member account'}, a reset link is on its
                         way. It expires in one hour and can be used once.

@@ -131,13 +131,13 @@ export default function RegionPage() {
                 <HeaderSection />
                 <div className={`${SCREEN_CONTAINER} py-16 sm:py-24 flex-grow text-center`}>
                     <h1 className={`${SECTION_HEADING} text-brand-800 mb-4`}>Not published yet</h1>
-                    <p className="text-[1rem] sm:text-[1.0625rem] font-semibold text-gray-500 mb-8 break-words">
+                    <p className="text-[1rem] sm:text-ui-caption font-semibold text-gray-500 mb-8 break-words">
                         {missing || 'This zone page could not be loaded.'}
                     </p>
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white
-                                   px-6 sm:px-8 py-3.5 rounded-full font-bold text-[0.9375rem] sm:text-[1.0625rem] uppercase
+                                   px-6 sm:px-8 py-3.5 rounded-full font-bold text-[0.9375rem] sm:text-ui-caption uppercase
                                    tracking-[0.1em] transition-colors"
                     >
                         <ArrowLeft size={15} /> Back to home

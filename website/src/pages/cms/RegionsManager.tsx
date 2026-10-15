@@ -282,14 +282,14 @@ export default function RegionsManager() {
                             key={key}
                             type="button"
                             onClick={() => { setTab(key); }}
-                            className={`-mb-px px-3 sm:px-5 py-3 text-[1.25rem] font-semibold border-b-2 transition-colors ${
+                            className={`-mb-px px-3 sm:px-5 py-3 text-ui-body font-semibold border-b-2 transition-colors ${
                                 tab === key
                                     ? 'border-blue-600 text-blue-700 dark:text-blue-400'
                                     : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-neutral-200'
                             }`}
                         >
                             {label}
-                            <span className="ml-2 text-[1.1875rem] text-slate-400">
+                            <span className="ml-2 text-ui-small text-slate-400">
                                 {key === 'regions' ? regions.length : states.length}
                             </span>
                         </button>
@@ -320,7 +320,7 @@ export default function RegionsManager() {
                                             setTab('states');
                                            
                                         }}
-                                        className="shrink-0 rounded-full px-3 py-1.5 text-[1.0625rem]
+                                        className="shrink-0 rounded-full px-3 py-1.5 text-ui-caption
                                                    font-semibold text-blue-700 dark:text-blue-400
                                                    transition-colors hover:bg-blue-50 dark:hover:bg-blue-950/40"
                                     >
@@ -364,7 +364,7 @@ export default function RegionsManager() {
                                         type="button"
                                         onClick={() => { setRegionFilter(chip.key); }}
                                         className={`inline-flex items-center gap-2 rounded-full px-4 py-2
-                                                    text-[1.1875rem] font-semibold transition-colors ${
+                                                    text-ui-small font-semibold transition-colors ${
                                             regionFilter === chip.key
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-slate-100 dark:bg-[#141414] text-slate-600 '
@@ -516,7 +516,7 @@ function EditorScreen({ title, subtitle, href, status, onBack, children }: {
                             {title}
                         </h2>
                         {subtitle ? (
-                            <p className="truncate text-[1.0625rem] leading-tight text-slate-500
+                            <p className="truncate text-ui-caption leading-tight text-slate-500
                                           dark:text-neutral-400">
                                 {subtitle}
                             </p>
@@ -524,7 +524,7 @@ function EditorScreen({ title, subtitle, href, status, onBack, children }: {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
-                    <span className={`shrink-0 rounded-full px-3 py-1 text-[1.0625rem] font-semibold ${
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-ui-caption font-semibold ${
                         live
                             ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                             : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
@@ -537,7 +537,7 @@ function EditorScreen({ title, subtitle, href, status, onBack, children }: {
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2
-                                   text-[1.0625rem] font-semibold text-blue-700 transition-colors
+                                   text-ui-caption font-semibold text-blue-700 transition-colors
                                    hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
                     >
                         <ExternalLink className="h-4 w-4" /> View page
@@ -568,11 +568,11 @@ function PageRow({ title, subtitle, status, href, onToggle, action }: {
                     onClick={onToggle}
                     className="flex-1 !min-w-[9rem] text-left"
                 >
-                    <p className="text-[1.25rem] font-bold text-slate-900 dark:text-neutral-100">
+                    <p className="text-ui-body font-bold text-slate-900 dark:text-neutral-100">
                         {title}
                     </p>
                     {subtitle && (
-                        <p className="text-[1.0625rem] font-medium text-slate-500 dark:text-neutral-400 mt-0.5">
+                        <p className="text-ui-caption font-medium text-slate-500 dark:text-neutral-400 mt-0.5">
                             {subtitle}
                         </p>
                     )}
@@ -580,7 +580,7 @@ function PageRow({ title, subtitle, status, href, onToggle, action }: {
 
                 {action}
 
-                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[1.0625rem] font-semibold ${
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-ui-caption font-semibold ${
                     status === 'published'
                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                         : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
@@ -606,7 +606,7 @@ function PageRow({ title, subtitle, status, href, onToggle, action }: {
                     type="button"
                     onClick={onToggle}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5
-                               text-[1.0625rem] font-semibold text-[#2563EB] transition-colors
+                               text-ui-caption font-semibold text-[#2563EB] transition-colors
                                hover:bg-blue-50 dark:hover:bg-blue-950/30"
                 >
                     <Pencil className="w-3.5 h-3.5" /> Edit
@@ -625,7 +625,7 @@ function AddState({ options, onAdded }: {
 
     if (!options.length) {
         return (
-            <p className="text-[1.1875rem] text-slate-500 dark:text-neutral-400 pt-2">
+            <p className="text-ui-small text-slate-500 dark:text-neutral-400 pt-2">
                 Every state in the map already has a page.
             </p>
         );
@@ -639,7 +639,7 @@ function AddState({ options, onAdded }: {
                         value={slug}
                         onChange={(e) => setSlug(e.target.value)}
                         className="w-full h-12 px-4 rounded-lg border border-slate-300 dark:border-[#2a2a2a]
-                                   bg-white dark:bg-[#0b0b0b] text-[1.25rem] text-slate-900 dark:text-neutral-100"
+                                   bg-white dark:bg-[#0b0b0b] text-ui-body text-slate-900 dark:text-neutral-100"
                     >
                         <option value="">Choose a state…</option>
                         {options.map((row) => (
@@ -715,11 +715,11 @@ function CmsNotDrawn({ where }: { where: string }) {
     return (
         <div className="mt-12 rounded-xl border border-amber-300/70 bg-amber-50 p-4
                         dark:border-amber-500/30 dark:bg-amber-500/10">
-            <p className="text-[1.0625rem] font-bold uppercase tracking-[0.16em] text-amber-700
+            <p className="text-ui-caption font-bold uppercase tracking-[0.16em] text-amber-700
                           dark:text-amber-400">
                 Stored, but not shown on the {where} page
             </p>
-            <p className="mt-1.5 text-[1.1875rem] text-slate-600 dark:text-neutral-300">
+            <p className="mt-1.5 text-ui-small text-slate-600 dark:text-neutral-300">
                 The association asked for a {where} page that is the leadership and the contacts
                 and nothing else, so the panels below are no longer drawn on it. What you write
                 here is still saved and still served — each list has its own screen at
@@ -868,7 +868,7 @@ function BadgeRows({ label, rows, onChange }: {
     return (
         <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                <p className="text-[1.1875rem] font-semibold text-slate-700 dark:text-neutral-200">{label}</p>
+                <p className="text-ui-small font-semibold text-slate-700 dark:text-neutral-200">{label}</p>
                 <AddRowButton
                     label="Add"
                     onClick={() => onChange([...rows, { icon: '', label: '' }])}
@@ -876,7 +876,7 @@ function BadgeRows({ label, rows, onChange }: {
             </div>
 
             {!rows.length ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                     None yet - the band leaves this row out.
                 </p>
             ) : (
@@ -888,7 +888,7 @@ function BadgeRows({ label, rows, onChange }: {
                                 onChange={(e) => patch(i, { icon: e.target.value })}
                                 className="h-11 w-28 sm:w-40 shrink-0 rounded-lg border border-slate-300
                                            dark:border-[#2a2a2a] bg-white dark:bg-[#0b0b0b] px-3
-                                           text-[1.1875rem] text-slate-900 dark:text-neutral-100"
+                                           text-ui-small text-slate-900 dark:text-neutral-100"
                             >
                                 <option value="">No icon</option>
                                 {BAND_ICONS.map((name) => (
@@ -940,7 +940,7 @@ function FactRows({ rows, onChange }: { rows: Fact[]; onChange: (rows: Fact[]) =
     return (
         <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                <p className="text-[1.1875rem] font-semibold text-slate-700 dark:text-neutral-200">
+                <p className="text-ui-small font-semibold text-slate-700 dark:text-neutral-200">
                     Fact chips
                 </p>
                 <AddRowButton
@@ -950,7 +950,7 @@ function FactRows({ rows, onChange }: { rows: Fact[]; onChange: (rows: Fact[]) =
             </div>
 
             {!rows.length ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                     None yet - the hero leaves this row out.
                 </p>
             ) : (
@@ -962,7 +962,7 @@ function FactRows({ rows, onChange }: { rows: Fact[]; onChange: (rows: Fact[]) =
                                 onChange={(e) => patch(i, { icon: e.target.value })}
                                 className="h-11 w-24 sm:w-36 shrink-0 rounded-lg border border-slate-300
                                            dark:border-[#2a2a2a] bg-white dark:bg-[#0b0b0b] px-3
-                                           text-[1.1875rem] text-slate-900 dark:text-neutral-100"
+                                           text-ui-small text-slate-900 dark:text-neutral-100"
                             >
                                 <option value="">No icon</option>
                                 {BAND_ICONS.map((name) => (
@@ -1005,7 +1005,7 @@ function GlanceRows({ rows, onChange }: { rows: Glance[]; onChange: (rows: Glanc
     return (
         <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                <p className="text-[1.1875rem] font-semibold text-slate-700 dark:text-neutral-200">
+                <p className="text-ui-small font-semibold text-slate-700 dark:text-neutral-200">
                     State at a Glance
                 </p>
                 <AddRowButton
@@ -1015,7 +1015,7 @@ function GlanceRows({ rows, onChange }: { rows: Glance[]; onChange: (rows: Glanc
             </div>
 
             {!rows.length ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                     None yet - the card is left off.
                 </p>
             ) : (
@@ -1028,7 +1028,7 @@ function GlanceRows({ rows, onChange }: { rows: Glance[]; onChange: (rows: Glanc
                                 onChange={(e) => patch(i, { icon: e.target.value })}
                                 className="h-11 min-w-0 flex-1 sm:flex-none sm:w-36 shrink-0 rounded-lg border border-slate-300
                                            dark:border-[#2a2a2a] bg-white dark:bg-[#0b0b0b] px-3
-                                           text-[1.1875rem] text-slate-900 dark:text-neutral-100"
+                                           text-ui-small text-slate-900 dark:text-neutral-100"
                             >
                                 <option value="">No icon</option>
                                 {BAND_ICONS.map((name) => (
@@ -1077,7 +1077,7 @@ function CardRows({ label, rows, onChange }: {
     return (
         <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                <p className="text-[1.1875rem] font-semibold text-slate-700 dark:text-neutral-200">{label}</p>
+                <p className="text-ui-small font-semibold text-slate-700 dark:text-neutral-200">{label}</p>
                 <AddRowButton
                     label="Add"
                     onClick={() => onChange([...rows, { imageUrl: '', title: '', subtitle: '', href: '' }])}
@@ -1085,7 +1085,7 @@ function CardRows({ label, rows, onChange }: {
             </div>
 
             {!rows.length ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                     None yet - nothing is drawn here.
                 </p>
             ) : (
@@ -1121,7 +1121,7 @@ function CardRows({ label, rows, onChange }: {
                             <button
                                 type="button"
                                 onClick={() => onChange(rows.filter((_, index) => index !== i))}
-                                className="mt-2 inline-flex items-center gap-1.5 text-[1.1875rem] font-medium text-red-500"
+                                className="mt-2 inline-flex items-center gap-1.5 text-ui-small font-medium text-red-500"
                             >
                                 <Trash2 className="w-4 h-4" /> Remove
                             </button>
@@ -1341,7 +1341,7 @@ function TierBelow({ title, hint, rows, emptyText, order, onOrder, children }: {
         <CmsSection title={title} hint={hint}>
             {!rows.length ? (
                 <p className="rounded-xl border border-dashed border-slate-300 p-4 sm:p-6 text-center
-                              text-[1.25rem] text-slate-500 dark:border-[#2a2a2a]">
+                              text-ui-body text-slate-500 dark:border-[#2a2a2a]">
                     {emptyText}
                 </p>
             ) : (
@@ -1360,18 +1360,18 @@ function TierBelow({ title, hint, rows, emptyText, order, onOrder, children }: {
                             </span>
 
                             <div className="min-w-0 flex-1 basis-[12rem]">
-                                <p className="truncate text-[1.25rem] font-bold text-slate-900
+                                <p className="truncate text-ui-body font-bold text-slate-900
                                               dark:text-white">
                                     {row.label}
                                 </p>
-                                <p className="truncate text-[1.0625rem] text-slate-500
+                                <p className="truncate text-ui-caption text-slate-500
                                               dark:text-neutral-400">
                                     {row.subtitle}
                                 </p>
                             </div>
 
                             {row.status && (
-                                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[1.0625rem]
+                                <span className={`shrink-0 rounded-full px-2.5 py-1 text-ui-caption
                                                   font-bold ${row.status === 'published'
                                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
                                     : 'bg-slate-100 text-slate-500 dark:bg-[#161616] dark:text-neutral-400'}`}
@@ -1429,7 +1429,7 @@ function TierBelow({ title, hint, rows, emptyText, order, onOrder, children }: {
                                 type="button"
                                 onClick={row.onOpen}
                                 className="inline-flex shrink-0 items-center gap-1.5 rounded-lg
-                                           px-3 py-1.5 text-[1.0625rem] font-semibold text-blue-700
+                                           px-3 py-1.5 text-ui-caption font-semibold text-blue-700
                                            transition-colors hover:bg-blue-50 dark:text-blue-400
                                            dark:hover:bg-blue-950/40"
                             >
@@ -2267,7 +2267,7 @@ function EditorShell({ draft, set, save, onSaved, children }: {
                     value={String(draft.status || 'draft')}
                     onChange={(e) => set({ status: e.target.value })}
                     className="h-12 w-full sm:w-auto min-w-0 px-4 rounded-lg border border-slate-300 dark:border-[#2a2a2a]
-                               bg-white dark:bg-[#0b0b0b] text-[1.25rem] font-medium
+                               bg-white dark:bg-[#0b0b0b] text-ui-body font-medium
                                text-slate-900 dark:text-neutral-100"
                 >
                     <option value="draft">Draft — not on the public site</option>
@@ -2282,7 +2282,7 @@ function EditorShell({ draft, set, save, onSaved, children }: {
 
                 {dirty && !saving && (
                     <span className="inline-flex items-center gap-2 rounded-full bg-amber-50
-                                     dark:bg-amber-950/30 px-3.5 py-2 text-[1.0625rem] font-semibold
+                                     dark:bg-amber-950/30 px-3.5 py-2 text-ui-caption font-semibold
                                      text-amber-700 dark:text-amber-400">
                         <span className="h-2 w-2 rounded-full bg-amber-500" />
                         Unsaved changes — press Save page
@@ -2301,7 +2301,7 @@ function AddRowButton({ label, onClick }: { label: string; onClick: () => void }
         <button
             type="button"
             onClick={onClick}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[1.1875rem] font-medium
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-ui-small font-medium
                        text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30
                        hover:bg-blue-500/10"
         >
@@ -2348,7 +2348,7 @@ function RowTools<T>({ rows, index, onChange }: {
 
 function SlideRows({ rows, onChange }: { rows: RegionSlide[]; onChange: (rows: RegionSlide[]) => void }) {
     if (!rows.length) {
-        return <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">No slides yet.</p>;
+        return <p className="text-ui-body text-slate-500 dark:text-neutral-400">No slides yet.</p>;
     }
 
     const patch = (i: number, next: Partial<RegionSlide>) =>
@@ -2690,7 +2690,7 @@ function DistrictNameInput({ value, shapes, placeholder, onPick, onType }: {
                                     aria-selected={!!chosen}
                                     onClick={() => { onPick(shape); setOpen(false); }}
                                     className={`flex w-full items-center justify-between gap-3 px-3 py-2
-                                                text-left text-[1.1875rem] hover:bg-blue-50
+                                                text-left text-ui-small hover:bg-blue-50
                                                 dark:hover:bg-blue-950/30 ${chosen
                                         ? 'font-bold text-[#2563EB]'
                                         : 'font-medium text-slate-700 dark:text-neutral-200'}`}
@@ -2699,7 +2699,7 @@ function DistrictNameInput({ value, shapes, placeholder, onPick, onType }: {
                                     {/* The quarter of the state, so an editor can see the
                                         region is about to be set and to what. */}
                                     {shape.zone && (
-                                        <span className="shrink-0 text-[1.0625rem] font-semibold uppercase
+                                        <span className="shrink-0 text-ui-caption font-semibold uppercase
                                                          tracking-wide text-slate-400">
                                             {shape.zone}
                                         </span>
@@ -2837,12 +2837,12 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
     if (!rows.length) {
         return (
             <div className="rounded-xl border border-dashed border-slate-300 dark:border-[#2a2a2a] p-4 sm:p-6 text-center">
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">{words.emptyText}</p>
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">{words.emptyText}</p>
                 <button
                     type="button"
                     onClick={() => insertAt(0)}
                     className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3.5 py-2
-                               text-[1.0625rem] font-semibold text-white hover:bg-[#1d4ed8]"
+                               text-ui-caption font-semibold text-white hover:bg-[#1d4ed8]"
                 >
                     <Plus className="w-4 h-4" /> {words.addLabel}
                 </button>
@@ -2872,10 +2872,10 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                             </span>
 
                             <div className="min-w-0 flex-1 basis-[10rem]">
-                                <p className="text-[1.25rem] font-bold text-slate-900 dark:text-white truncate">
+                                <p className="text-ui-body font-bold text-slate-900 dark:text-white truncate">
                                     {row.name || `Untitled ${words.nameLabel.toLowerCase()}`}
                                 </p>
-                                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400 truncate">
+                                <p className="text-ui-caption text-slate-500 dark:text-neutral-400 truncate">
                                     {bench} office-bearer{bench === 1 ? '' : 's'}
                                     {row.activeMembers ? ` · ${row.activeMembers} members` : ''}
                                     {row.regionName ? ` · ${row.regionName}` : ''}
@@ -2889,7 +2889,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : i)}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1.0625rem] font-semibold transition-colors ${
+                                                text-ui-caption font-semibold transition-colors ${
                                         open
                                             ? 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-neutral-200'
                                             : 'text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/30'
@@ -2908,7 +2908,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                 type="button"
                                 onClick={() => insertAt(i)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-ui-caption font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -2918,7 +2918,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                 type="button"
                                 onClick={() => insertAt(i + 1)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-ui-caption font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -2999,7 +2999,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                     {shapes && row.name && !exactShape(row.name, shapes) ? (
                                             <div className="sm:col-span-2 -mt-1 space-y-2">
                                                 <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2
-                                                              text-[1.0625rem] font-medium text-amber-800
+                                                              text-ui-caption font-medium text-amber-800
                                                               dark:bg-amber-950/30 dark:text-amber-300">
                                                     <AlertTriangle className="mt-1 h-4 w-4 shrink-0" />
                                                     <span>
@@ -3015,7 +3015,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                                     should not then have to guess the right one. */}
                                                 {nearestShapes(row.name, shapes).length > 0 && (
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="text-[1.0625rem] font-medium text-slate-500
+                                                        <span className="text-ui-caption font-medium text-slate-500
                                                                          dark:text-neutral-400">
                                                             Did you mean
                                                         </span>
@@ -3032,7 +3032,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                                                         : { name: shape.name });
                                                                 }}
                                                                 className="rounded-lg border border-amber-300 bg-white px-2.5 py-1
-                                                                           text-[1.0625rem] font-semibold text-amber-800
+                                                                           text-ui-caption font-semibold text-amber-800
                                                                            hover:bg-amber-50 dark:border-amber-800
                                                                            dark:bg-transparent dark:text-amber-300"
                                                             >
@@ -3048,7 +3048,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                         && row.name.replace(/\s+/g, '').toLowerCase()
                                            === pageName.replace(/\s+/g, '').toLowerCase() ? (
                                             <div className="sm:col-span-2 -mt-1">
-                                                <p className="rounded-lg bg-amber-50 px-3 py-2 text-[1.0625rem]
+                                                <p className="rounded-lg bg-amber-50 px-3 py-2 text-ui-caption
                                                               font-medium text-amber-800 dark:bg-amber-950/30
                                                               dark:text-amber-300">
                                                     This {words.nameLabel.toLowerCase()} has the same name as the
@@ -3097,7 +3097,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
                                                 value={row.regionName || ''}
                                                 onChange={(e) => patch(i, { regionName: e.target.value })}
                                                 className="mt-1.5 h-12 w-full rounded-lg border border-slate-300
-                                                           bg-white px-3 text-[1.1875rem] text-slate-900
+                                                           bg-white px-3 text-ui-small text-slate-900
                                                            dark:border-[#2a2a2a] dark:bg-[#0b0b0b]
                                                            dark:text-neutral-100"
                                             >
@@ -3167,7 +3167,7 @@ function DistrictRows({ rows, onChange, words, regionOptions, pageName, shapes }
 
                                 <div className="border-t border-slate-100 dark:border-[#1f1f1f] pt-4">
                                     <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                        <p className="text-[1.1875rem] font-semibold text-slate-600 dark:text-neutral-300">
+                                        <p className="text-ui-small font-semibold text-slate-600 dark:text-neutral-300">
                                             {row.name
                                                 ? `${row.name} — office bearers`
                                                 : `${words.nameLabel} — office bearers`}
@@ -3313,14 +3313,14 @@ function ContactGroups({ field, draft, set, label, placeholder }: {
             {!rows.length ? (
                 <div className="rounded-xl border border-dashed border-slate-300 p-4 sm:p-6 text-center
                                 dark:border-[#2a2a2a]">
-                    <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                    <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                         No {label} groups yet.
                     </p>
                     <button
                         type="button"
                         onClick={addGroup}
                         className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3.5 py-2
-                                   text-[1.0625rem] font-semibold text-white hover:bg-[#1d4ed8]"
+                                   text-ui-caption font-semibold text-white hover:bg-[#1d4ed8]"
                     >
                         <Plus className="w-4 h-4" /> Add a {label}
                     </button>
@@ -3441,14 +3441,14 @@ function ContactRows({ rows, onChange }: {
                     details are listed already", which described the leadership list to
                     somebody looking at the contacts list. The two are separate and the
                     copy here should not imply one stands in for the other. */}
-                <p className="text-[1.1875rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-small text-slate-500 dark:text-neutral-400">
                     No contacts yet.
                 </p>
                 <button
                     type="button"
                     onClick={() => insertAt(0)}
                     className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3.5 py-2
-                               text-[1.0625rem] font-semibold text-white hover:bg-[#1d4ed8]"
+                               text-ui-caption font-semibold text-white hover:bg-[#1d4ed8]"
                 >
                     <Plus className="w-4 h-4" /> Add a contact
                 </button>
@@ -3476,10 +3476,10 @@ function ContactRows({ rows, onChange }: {
                             </span>
 
                             <div className="min-w-0 flex-1 basis-[10rem]">
-                                <p className="text-[1.1875rem] font-bold text-slate-900 dark:text-white truncate">
+                                <p className="text-ui-small font-bold text-slate-900 dark:text-white truncate">
                                     {row.name || 'Untitled contact'}
                                 </p>
-                                <p className="text-[1.0625rem] text-slate-500 dark:text-neutral-400 truncate">
+                                <p className="text-ui-caption text-slate-500 dark:text-neutral-400 truncate">
                                     {[row.designation, row.organisation, row.email || row.phone]
                                         .filter(Boolean).join(' · ')
                                         || 'Empty — anything you type here will be published'}
@@ -3492,7 +3492,7 @@ function ContactRows({ rows, onChange }: {
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : i)}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1.0625rem] font-semibold transition-colors ${
+                                                text-ui-caption font-semibold transition-colors ${
                                         open
                                             ? 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-neutral-200'
                                             : 'text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/30'
@@ -3510,7 +3510,7 @@ function ContactRows({ rows, onChange }: {
                                 type="button"
                                 onClick={() => insertAt(i)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-ui-caption font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3520,7 +3520,7 @@ function ContactRows({ rows, onChange }: {
                                 type="button"
                                 onClick={() => insertAt(i + 1)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-ui-caption font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3701,12 +3701,12 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
     if (!rows.length) {
         return (
             <div className="rounded-xl border border-dashed border-slate-300 dark:border-[#2a2a2a] p-4 sm:p-6 text-center">
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">No office-bearers yet.</p>
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">No office-bearers yet.</p>
                 <button
                     type="button"
                     onClick={() => insertAt(0)}
                     className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3.5 py-2
-                               text-[1.0625rem] font-semibold text-white hover:bg-[#1d4ed8]"
+                               text-ui-caption font-semibold text-white hover:bg-[#1d4ed8]"
                 >
                     <Plus className="w-4 h-4" /> Add the first leader
                 </button>
@@ -3737,12 +3737,12 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                             </span>
 
                             <div className="min-w-0 flex-1 basis-[10rem]">
-                                <p className="text-[1.1875rem] font-bold text-slate-900 dark:text-white truncate">
+                                <p className="text-ui-small font-bold text-slate-900 dark:text-white truncate">
                                     {row.name || 'Untitled leader'}
                                 </p>
                                 {row.role ? (
                                     <span className="inline-block mt-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40
-                                                     px-2 py-0.5 text-[1.0625rem] font-semibold text-blue-700
+                                                     px-2 py-0.5 text-ui-caption font-semibold text-blue-700
                                                      dark:text-blue-300">
                                         {row.role}
                                     </span>
@@ -3756,7 +3756,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                     type="button"
                                     onClick={() => setOpenIndex(open ? null : i)}
                                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5
-                                                text-[1.0625rem] font-semibold transition-colors ${
+                                                text-ui-caption font-semibold transition-colors ${
                                         open
                                             ? 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-neutral-200'
                                             : 'text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/30'
@@ -3776,7 +3776,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                 type="button"
                                 onClick={() => insertAt(i)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-ui-caption font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3786,7 +3786,7 @@ function LeaderRows({ rows, onChange }: { rows: RegionLeader[]; onChange: (rows:
                                 type="button"
                                 onClick={() => insertAt(i + 1)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200
-                                           dark:border-[#2a2a2a] px-2.5 py-1 text-[1.0625rem] font-semibold
+                                           dark:border-[#2a2a2a] px-2.5 py-1 text-ui-caption font-semibold
                                            text-slate-600 dark:text-neutral-300 hover:border-[#2563EB]
                                            hover:text-[#2563EB] transition-colors"
                             >
@@ -3960,7 +3960,7 @@ function FeedRows({ rows, onChange, withDate = false, figures = false }: {
 
     if (!rows.length) {
         return (
-            <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+            <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                 Nothing here yet. This section is left off the public page until it has something in it.
             </p>
         );
@@ -4030,7 +4030,7 @@ function FeedRows({ rows, onChange, withDate = false, figures = false }: {
 
                             <div className={full ? 'sm:col-span-2' : 'hidden'}>
                                 <details className="rounded-lg bg-slate-50 dark:bg-[#141414] px-3 py-2">
-                                    <summary className="cursor-pointer text-[1.1875rem] font-semibold
+                                    <summary className="cursor-pointer text-ui-small font-semibold
                                                         text-slate-700 dark:text-neutral-200">
                                         More details — long text, picture, tags
                                     </summary>
@@ -4116,7 +4116,7 @@ function IconSelect({ value, onChange }: { value: string; onChange: (value: stri
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             className="h-12 w-full rounded-lg border border-slate-300 dark:border-[#2a2a2a]
-                       bg-white dark:bg-[#0b0b0b] px-3 text-[1.25rem] text-slate-900 dark:text-neutral-100"
+                       bg-white dark:bg-[#0b0b0b] px-3 text-ui-body text-slate-900 dark:text-neutral-100"
         >
             <option value="">No icon</option>
             {BAND_ICONS.map((name) => (
@@ -4296,7 +4296,7 @@ function CustomSections({ draft, set, basePath }: {
             }
         >
             {!rows.length ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                     No sections of your own yet. Add one for anything this page does not already
                     cover — scholarships, trade delegations, a ACTIV Network — and choose how it
                     should be drawn.
@@ -4336,7 +4336,7 @@ function CustomSections({ draft, set, basePath }: {
                                                     })}
                                                     className="h-12 w-full rounded-lg border border-slate-300
                                                                dark:border-[#2a2a2a] bg-white dark:bg-[#0b0b0b]
-                                                               px-3 text-[1.25rem] text-slate-900
+                                                               px-3 text-ui-body text-slate-900
                                                                dark:text-neutral-100"
                                                 >
                                                     {SECTION_LAYOUTS.map((layout) => (
@@ -4374,7 +4374,7 @@ function CustomSections({ draft, set, basePath }: {
                                     ) : (
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between gap-3">
-                                                <p className="text-[1.1875rem] font-semibold text-slate-700
+                                                <p className="text-ui-small font-semibold text-slate-700
                                                               dark:text-neutral-200">
                                                     Items
                                                 </p>
@@ -4395,7 +4395,7 @@ function CustomSections({ draft, set, basePath }: {
                                     )}
 
                                     {keyOf(row) && (
-                                        <p className="text-[1.0625rem] font-semibold text-slate-500
+                                        <p className="text-ui-caption font-semibold text-slate-500
                                                       dark:text-neutral-400">
                                             Its own screen:{' '}
                                             <code className="rounded bg-slate-100 dark:bg-[#141414] px-1.5 py-0.5">
@@ -4540,9 +4540,9 @@ function PagePhotos({ state, region, label }: {
             }
         >
             {loading ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">Loading photographs…</p>
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">Loading photographs…</p>
             ) : !rows.length ? (
-                <p className="text-[1.25rem] text-slate-500 dark:text-neutral-400">
+                <p className="text-ui-body text-slate-500 dark:text-neutral-400">
                     No photographs yet. The Photo Gallery card is left off the page until there is one.
                 </p>
             ) : (
@@ -4569,7 +4569,7 @@ function PagePhotos({ state, region, label }: {
                                     type="button"
                                     onClick={() => remove(photo)}
                                     disabled={busy}
-                                    className="inline-flex items-center gap-1.5 text-[1.0625rem] font-bold
+                                    className="inline-flex items-center gap-1.5 text-ui-caption font-bold
                                                text-slate-500 transition-colors hover:text-red-600
                                                disabled:opacity-50"
                                 >

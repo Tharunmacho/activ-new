@@ -377,7 +377,7 @@ export default function CmsLayout() {
      * miss; the bar is what makes "where am I" answerable without reading.
      */
     const linkClass = ({ isActive }: { isActive: boolean }) =>
-        `relative flex items-center gap-3.5 pl-4 pr-3 py-3 rounded-lg text-[1.25rem] font-medium
+        `relative flex items-center gap-3.5 pl-4 pr-3 py-3 rounded-lg text-ui-body font-medium
          transition-colors ${isActive
             ? `${t.active} before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2
                before:h-5 before:w-[3px] before:rounded-full before:bg-[#2563EB]`
@@ -388,7 +388,7 @@ export default function CmsLayout() {
 
     const NavGroup = ({ label, items }: { label: string; items: NavItem[] }) => (
         <div className="mb-6 last:mb-0">
-            <p className={`px-4 pb-2.5 text-[1.0625rem] font-semibold uppercase tracking-[0.14em] ${t.faint}`}>
+            <p className={`px-4 pb-2.5 text-ui-caption font-semibold uppercase tracking-[0.14em] ${t.faint}`}>
                 {label}
             </p>
             <div className="space-y-0.5">
@@ -397,13 +397,13 @@ export default function CmsLayout() {
                         <Icon className="w-[1.25rem] h-[1.25rem] shrink-0" />
                         <span className="truncate flex-1">{text}</span>
                         {badge === 'unread' && unread > 0 && (
-                            <span className="text-[1.0625rem] font-bold bg-[#DC2626] text-white
+                            <span className="text-ui-caption font-bold bg-[#DC2626] text-white
                                              rounded-full min-w-[1.25rem] text-center px-1.5 py-0.5 shrink-0">
                                 {unread}
                             </span>
                         )}
                         {badge === 'leaderUnread' && leaderUnread > 0 && (
-                            <span className="text-[1.0625rem] font-bold bg-[#DC2626] text-white
+                            <span className="text-ui-caption font-bold bg-[#DC2626] text-white
                                              rounded-full min-w-[1.25rem] text-center px-1.5 py-0.5 shrink-0">
                                 {leaderUnread}
                             </span>
@@ -456,7 +456,7 @@ export default function CmsLayout() {
                     ) : (
                         // Only until the mark loads or if none is uploaded yet.
                         <span className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center
-                                         justify-center font-display font-extrabold text-[1.25rem] shrink-0">
+                                         justify-center font-display font-extrabold text-ui-body shrink-0">
                             A
                         </span>
                     )}
@@ -491,14 +491,14 @@ export default function CmsLayout() {
                             className="w-full flex items-center gap-3 p-3 text-left"
                         >
                             <span className="w-9 h-9 rounded-lg bg-[#2563EB] text-white flex items-center
-                                             justify-center text-[1.0625rem] font-bold shrink-0">
+                                             justify-center text-ui-caption font-bold shrink-0">
                                 {initial}
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className={`block text-[1.1875rem] font-semibold truncate ${t.title}`}>
+                                <span className={`block text-ui-small font-semibold truncate ${t.title}`}>
                                     {displayName}
                                 </span>
-                                <span className={`block text-[1.0625rem] truncate ${t.muted}`}>
+                                <span className={`block text-ui-caption truncate ${t.muted}`}>
                                     {email || 'Administrator'}
                                 </span>
                             </span>
@@ -510,7 +510,7 @@ export default function CmsLayout() {
                                 <button
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg
-                                               text-[1.0625rem] font-medium text-[#F87171]
+                                               text-ui-caption font-medium text-[#F87171]
                                                hover:bg-[#DC2626]/10 transition-colors"
                                 >
                                     <LogOut className="w-4 h-4" />
@@ -530,7 +530,7 @@ export default function CmsLayout() {
                                 onClick={() => setDark(wants)}
                                 aria-pressed={dark === wants}
                                 className={`flex items-center justify-center gap-2 py-2 rounded-lg
-                                            text-[1.0625rem] font-medium transition-colors
+                                            text-ui-caption font-medium transition-colors
                                             ${dark === wants ? t.toggleOn : t.muted}`}
                             >
                                 <Icon className="w-4 h-4" />
@@ -562,10 +562,10 @@ export default function CmsLayout() {
                             }}
                             placeholder="Search sections…"
                             aria-label="Search CMS sections"
-                            className={`w-full h-12 pl-11 pr-16 rounded-xl border text-[1.1875rem]
+                            className={`w-full h-12 pl-11 pr-16 rounded-xl border text-ui-small
                                         outline-none focus:border-[#2563EB] transition-colors ${t.field}`}
                         />
-                        <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 text-[1.0625rem]
+                        <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 text-ui-caption
                                          font-medium px-1.5 py-0.5 rounded border ${t.divide} ${t.faint}`}>
                             ⌘K
                         </kbd>
@@ -579,7 +579,7 @@ export default function CmsLayout() {
                                         type="button"
                                         onClick={() => navigate(to)}
                                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left
-                                                    text-[1.0625rem] ${t.item}`}
+                                                    text-ui-caption ${t.item}`}
                                     >
                                         <Icon className="w-4 h-4 shrink-0" />
                                         <span className="flex-1 truncate">{label}</span>
@@ -598,7 +598,7 @@ export default function CmsLayout() {
                         {/* The public site is live and this panel edits it — worth
                             saying on every screen, because that is the whole risk. */}
                         <span className={`hidden md:inline-flex items-center gap-2 h-9 px-3 rounded-full
-                                          border text-[1.0625rem] font-semibold ${t.card} ${t.muted}`}>
+                                          border text-ui-caption font-semibold ${t.card} ${t.muted}`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
                             Live
                         </span>
@@ -693,7 +693,7 @@ export default function CmsLayout() {
                             rel="noreferrer"
                             aria-label="View site"
                             className="inline-flex items-center justify-center gap-2 h-10 sm:h-11 min-w-[2.5rem] px-3 sm:px-5 rounded-xl bg-[#2563EB]
-                                       hover:bg-[#1D4ED8] text-white text-[1.1875rem] font-semibold
+                                       hover:bg-[#1D4ED8] text-white text-ui-small font-semibold
                                        transition-colors"
                         >
                             <ExternalLink className="w-4 h-4" />

@@ -77,7 +77,7 @@ export default function DonateThankYou() {
             <Shell>
                 <XCircle className="mx-auto h-14 w-14 text-amber-500" />
                 <h1 className="mt-4 text-[1.625rem] font-bold text-slate-900">We could not find that donation</h1>
-                <p className="mt-2 text-[1.0625rem] text-slate-600">If you were charged, your receipt will reach your email shortly.</p>
+                <p className="mt-2 text-ui-caption text-slate-600">If you were charged, your receipt will reach your email shortly.</p>
                 <Link to="/donate" className="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-blue-600 px-6 font-bold text-white hover:bg-blue-700">
                     Back to donations
                 </Link>
@@ -92,7 +92,7 @@ export default function DonateThankYou() {
             <Shell>
                 <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
                 <h1 className="mt-4 text-[1.5rem] font-bold text-slate-900">Confirming your donation…</h1>
-                <p className="mt-2 text-[1.0625rem] text-slate-600">This usually takes a few seconds. Please keep this page open.</p>
+                <p className="mt-2 text-ui-caption text-slate-600">This usually takes a few seconds. Please keep this page open.</p>
             </Shell>
         );
     }
@@ -106,7 +106,7 @@ export default function DonateThankYou() {
                 <h1 className="mt-4 text-[1.75rem] font-extrabold tracking-tight text-slate-900 sm:text-[2rem]">
                     Thank you{result?.donorName ? `, ${result.donorName}` : ''}!
                 </h1>
-                <p className="mt-2 text-[1.0625rem] leading-relaxed text-slate-600">
+                <p className="mt-2 text-ui-caption leading-relaxed text-slate-600">
                     Your donation of <strong className="text-slate-900">{inr(result?.amount)}</strong> to ACTIV has been received.
                     Your 80G receipt is on its way to your email.
                 </p>
@@ -148,7 +148,7 @@ export default function DonateThankYou() {
             <Shell>
                 <XCircle className="mx-auto h-14 w-14 text-red-500" />
                 <h1 className="mt-4 text-[1.625rem] font-bold text-slate-900">The payment did not go through</h1>
-                <p className="mt-2 text-[1.0625rem] text-slate-600">The gateway reported an unsuccessful payment. If money was deducted, check with your bank or contact ACTIV before trying again.</p>
+                <p className="mt-2 text-ui-caption text-slate-600">The gateway reported an unsuccessful payment. If money was deducted, check with your bank or contact ACTIV before trying again.</p>
                 <Link to="/donate" className="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-blue-600 px-6 font-bold text-white hover:bg-blue-700">
                     Try again
                 </Link>
@@ -160,7 +160,7 @@ export default function DonateThankYou() {
         <Shell>
             <Clock className="mx-auto h-14 w-14 text-amber-500" />
             <h1 className="mt-4 text-[1.625rem] font-bold text-slate-900">Still confirming your payment</h1>
-            <p className="mt-2 text-[1.0625rem] text-slate-600">
+            <p className="mt-2 text-ui-caption text-slate-600">
                 The gateway has not confirmed it yet. If you were charged, your receipt will be emailed to you as soon as it does.
             </p>
             <button type="button" onClick={retry}

@@ -185,7 +185,7 @@ export default function FloatingLaunchers() {
                             draggable={false}
                         >
                             <HeartHandshake className="h-7 w-7 sm:h-6 sm:w-6" aria-hidden="true" />
-                            <span className="hidden text-[1.0625rem] font-bold tracking-wide sm:inline">Donate</span>
+                            <span className="hidden text-ui-caption font-bold tracking-wide sm:inline">Donate</span>
                         </Link>
                         <CloseDot label="Close donate button" onClose={() => { setDonateClosed(true); writeClosed('activ-donate-closed'); }} />
                     </div>}

@@ -109,79 +109,9 @@
 <script defer src="https://app.botbee.io/script/webchat-link.js?code=1787443396160769"></script>
 <!-- The Meta Pixel's <noscript> fallback is at the top of <body>: an <img>
      inside <noscript> in <head> is invalid HTML and Vite refuses to serve it. -->
-    <!--
-      One family, POPPINS, at the full weight range the design actually uses.
-    
-      The weight list is not decorative. The public pages use `font-black` and
-      `font-extrabold` throughout; when only 400-700 were served the browser
-      synthesised 800 and 900 by smearing the 700 outlines, which is what made
-      the headings look soft and slightly blurred rather than heavy. 800 and 900
-      are real cuts now.
-
-      NOTHING ELSE IS LOADED HERE, so a `fontFamily` naming a face that is not
-      in this link does not fall back to Poppins — it falls through to whatever
-      the generic keyword after it resolves to. One such declaration named
-      Caveat and painted a note on the gallery in Comic Sans for as long as it
-      stood. If a new face is genuinely wanted, it is added to THIS link first.
-
-      POPPINS IS THE WHOLE PRODUCT — headings and body both. The association
-      picked it on sight for its roundness and warmth, and asked for it
-      everywhere rather than as a heading face over an Inter body, so the
-      sidebar, the card copy, the form fields and the buttons are all Poppins.
-      `sans` and `display` both resolve to it in `tailwind.config`.
-
-      It carries a real 900, so `font-black` is an actual cut and not a browser
-      smearing 700 or 800 outlines — which is what made the headings look soft
-      under two of the faces tried before it.
-
-      WHY SIX WEIGHTS AND NOT A RANGE: Poppins is a STATIC family on Google
-      Fonts, not a variable one. Each weight is its own file, so `400;...;900`
-      is six downloads where a variable face would have been one. They are all
-      genuinely in use — 400 and 500 in body copy, 600 and 700 on labels and
-      buttons, 800 and 900 on headings — and dropping one does not save the
-      request, it makes the browser synthesise that weight from a neighbour.
-
-      INTER STAYS IN THE STACK, directly behind Poppins, as the fallback that
-      renders while Poppins is still in flight. It is no longer the body face,
-      but it is a far better stand-in for one than the system UI font.
-
-      One consequence to know about: `tnum` and `cv11` in `index.css` are INTER
-      features. Poppins ships neither, so those two settings are inert now.
-      `tnum` mattered because it stopped "100%" and "33%" being different widths
-      in the progress figures — Poppins draws its digits at a uniform width
-      anyway, so the figures still do not jitter, but it is luck rather than the
-      setting doing it.
-
-      `preconnect` on both hosts because the stylesheet on fonts.googleapis.com
-      immediately pulls files from fonts.gstatic.com; without the second hint
-      that connection is opened only after the CSS has parsed.
-
-      `display=swap` so text paints in the fallback immediately and never leaves
-      a page blank while a font loads.
-    -->
+    <!-- Inter is the UI face. Poppins and Playfair preserve printed certificate artwork. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!--
-      PLAYFAIR DISPLAY IS THE ONE EXCEPTION TO THE ONE-FAMILY RULE, and it is
-      scoped to a single element: the member's name on the membership
-      certificate (`font-certificate` in `tailwind.config`).
-
-      The association chose a certificate template whose whole character comes
-      from a high-contrast serif holding the holder's name, with everything
-      round it in a grotesque. That contrast is the design; setting the name in
-      Poppins like the rest of the product produces a competent certificate and
-      not that one.
-
-      It is loaded here and NOWHERE ELSE has access to it beyond that one
-      Tailwind key, because a second family available everywhere is a second
-      family that turns up everywhere. 700 only — a certificate name is one
-      weight.
-
-      The lesson from the gallery note applies: a `font-family` naming a face
-      this link does not request does not fall back to Poppins, it falls through
-      to whatever generic keyword follows it. Adding a face means adding it HERE
-      first.
-    -->
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700&display=swap"
       rel="stylesheet"
@@ -207,7 +137,7 @@
       render.
     -->
     <div id="root">
-      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#ffffff;font-family:Poppins,Inter,system-ui,sans-serif">
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#ffffff;font-family:Inter,system-ui,sans-serif">
         <img src="/logo_ACTIVian-removebg-preview.png" alt="ACTIV" width="180" style="width:180px;height:auto" />
         <div style="width:34px;height:34px;border:3px solid #dbe4fb;border-top-color:#1c2e68;border-radius:50%;animation:activspin .8s linear infinite"></div>
         <style>@keyframes activspin{to{transform:rotate(360deg)}}</style>

@@ -983,7 +983,7 @@ const UnpaidDashboard = () => {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="shrink-0 gap-1.5 text-[1.1875rem] font-semibold rounded-xl"
+                                    className="shrink-0 gap-1.5 text-ui-small font-semibold rounded-xl"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         navigate('/member/application-status');
@@ -1079,7 +1079,7 @@ const UnpaidDashboard = () => {
                                                             )}
                                                         </span>
                                                         <span className="flex-1 min-w-0">
-                                                            <span className={`block text-[1.25rem] leading-tight ${
+                                                            <span className={`block text-ui-body leading-tight ${
                                                                 row.state === 'pending'
                                                                     ? 'font-normal text-slate-400'
                                                                     : 'font-semibold text-slate-800'
@@ -1482,7 +1482,7 @@ const HeaderFact = ({ icon, tone, label, value, valueTone, fullValue }: {
                 </p>
                 <div className="flex items-center gap-1.5 mt-1.5 min-w-0">
                     <p title={fullValue || value}
-                       className={`font-display font-semibold text-[1.25rem] leading-none truncate ${valueTone}`}>
+                       className={`font-display font-semibold text-ui-body leading-none truncate ${valueTone}`}>
                         {value}
                     </p>
                     {fullValue ? (

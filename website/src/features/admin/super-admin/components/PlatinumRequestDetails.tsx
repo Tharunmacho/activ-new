@@ -23,7 +23,7 @@ const yesNo = (v: boolean) => (v ? 'Yes' : 'No');
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
     return (
         <section className="min-w-0 rounded-xl bg-white p-3 sm:p-4 ring-1 ring-slate-200">
-            <h4 className="mb-2 flex items-center gap-2 text-[1.0625rem] font-bold text-slate-900">
+            <h4 className="mb-2 flex items-center gap-2 text-ui-caption font-bold text-slate-900">
                 <span className="grid h-7 w-7 place-items-center rounded-lg bg-blue-50 text-blue-700">{icon}</span>{title}
             </h4>
             <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-2">{children}</dl>

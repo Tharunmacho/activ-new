@@ -26,11 +26,11 @@ import AuthSplitLayout from '@/shared/components/AuthSplitLayout';
 type Audience = 'member' | 'admin';
 
 const FIELD =
-    'h-[3.25rem] w-full rounded-xl border border-slate-200 bg-white pl-11 pr-12 text-[1.0625rem] font-medium ' +
+    'h-[3.25rem] w-full rounded-xl border border-slate-200 bg-white pl-11 pr-12 text-ui-caption font-medium ' +
     'text-slate-900 placeholder:font-normal placeholder:text-slate-400 transition-colors focus:outline-none ' +
     'focus:border-blue-600 focus:ring-4 focus:ring-blue-600/15 disabled:bg-slate-50';
 const PRIMARY =
-    'flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-[1.0625rem] ' +
+    'flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-ui-caption ' +
     'font-semibold text-white shadow-[0_12px_26px_-12px_rgb(37_99_235/0.9)] transition-colors ' +
     'hover:bg-blue-700 disabled:opacity-60';
 
@@ -192,12 +192,12 @@ export default function ResetPassword({ audience = 'member' }: { audience?: Audi
             assurance="Your new password is stored encrypted. Nobody at ACTIV can read it."
         >
             {checking ? (
-                <div className="flex items-center justify-center gap-3 py-8 text-[1.0625rem] text-slate-500">
+                <div className="flex items-center justify-center gap-3 py-8 text-ui-caption text-slate-500">
                     <Loader2 className="h-5 w-5 animate-spin" /> Checking your link…
                 </div>
             ) : !valid ? (
                 <Centered tone="amber" icon={<AlertCircle className="h-8 w-8" />}>
-                    <p className="text-[1.0625rem] leading-relaxed text-slate-600">
+                    <p className="text-ui-caption leading-relaxed text-slate-600">
                         Reset links last one hour and work once. Request a new one and it will work
                         straight away.
                     </p>
@@ -208,7 +208,7 @@ export default function ResetPassword({ audience = 'member' }: { audience?: Audi
                 </Centered>
             ) : done ? (
                 <Centered tone="green" icon={<CheckCircle2 className="h-8 w-8" />}>
-                    <p className="text-[1.0625rem] leading-relaxed text-slate-600">
+                    <p className="text-ui-caption leading-relaxed text-slate-600">
                         Your password has been updated. Sign in with your new password.
                     </p>
                     <button type="button" onClick={() => navigate(signIn, { replace: true })} className={`${PRIMARY} mt-7`}>

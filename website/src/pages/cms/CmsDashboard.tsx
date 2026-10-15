@@ -79,7 +79,7 @@ function Stat({ label, value, caption, icon: Icon, to, dark, tone = 'plain' }: {
                 <span className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center shrink-0 ${chip}`}>
                     <Icon className="w-[1.125rem] h-[1.125rem]" />
                 </span>
-                <p className={`min-w-0 text-[1.0625rem] leading-tight font-bold uppercase tracking-[0.1em]
+                <p className={`min-w-0 text-ui-caption leading-tight font-bold uppercase tracking-[0.1em]
                                ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
                     {label}
                 </p>
@@ -89,7 +89,7 @@ function Stat({ label, value, caption, icon: Icon, to, dark, tone = 'plain' }: {
                            ${dark ? 'text-white' : 'text-slate-900'}`}>
                 {value}
             </p>
-            <p className={`text-[1.0625rem] mt-2.5 ${dark ? 'text-[#71717A]' : 'text-slate-400'}`}>
+            <p className={`text-ui-caption mt-2.5 ${dark ? 'text-[#71717A]' : 'text-slate-400'}`}>
                 {caption}
             </p>
         </Link>
@@ -114,15 +114,15 @@ function SectionRow({ label, to, ready, detail, icon: Icon, dark }: {
             </span>
 
             <span className="min-w-0 flex-1">
-                <span className={`block text-[1.25rem] font-semibold truncate ${dark ? 'text-white' : 'text-slate-900'}`}>
+                <span className={`block text-ui-body font-semibold truncate ${dark ? 'text-white' : 'text-slate-900'}`}>
                     {label}
                 </span>
-                <span className={`block text-[1.0625rem] truncate ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
+                <span className={`block text-ui-caption truncate ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
                     {detail}
                 </span>
             </span>
 
-            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[1.0625rem]
+            <span className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-ui-caption
                               font-bold shrink-0 ${ready
                     ? 'bg-[#16A34A]/12 text-[#4ADE80]'
                     : 'bg-[#F59E0B]/12 text-[#FBBF24]'}`}>
@@ -231,7 +231,7 @@ export default function CmsDashboard() {
             {/* An eyebrow above the title, as the reference lays it out — it says
                 which part of the console you are in before the title says what. */}
             <header>
-                <p className={`text-[1.0625rem] font-bold uppercase tracking-[0.14em] mb-2
+                <p className={`text-ui-caption font-bold uppercase tracking-[0.14em] mb-2
                                ${dark ? 'text-[#52525B]' : 'text-slate-400'}`}>
                     Workspace
                 </p>
@@ -239,7 +239,7 @@ export default function CmsDashboard() {
                                 ${dark ? 'text-white' : 'text-slate-900'}`}>
                     Overview
                 </h1>
-                <p className={`text-[1.25rem] mt-2.5 max-w-[64ch] ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
+                <p className={`text-ui-body mt-2.5 max-w-[64ch] ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
                     {notReady === 0
                         ? 'Every section is authored. This is what the public site is serving.'
                         : `${notReady} of ${sections.length} sections still need content before they render.`}
@@ -282,7 +282,7 @@ export default function CmsDashboard() {
                                     ${dark ? 'text-white' : 'text-slate-900'}`}>
                         Site content
                     </h2>
-                    <p className={`text-[1.1875rem] mt-1.5 ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
+                    <p className={`text-ui-small mt-1.5 ${dark ? 'text-[#A1A1AA]' : 'text-slate-500'}`}>
                         What each public page is reading, and whether it has anything to read.
                     </p>
                 </header>

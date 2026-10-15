@@ -173,7 +173,7 @@ const Analytics = () => {
                         </span>
                     )}
                     <div className="min-w-0 flex-1">
-                        <p className="text-[1.1875rem] text-blue-600 font-semibold uppercase tracking-wider">
+                        <p className="text-ui-small text-blue-600 font-semibold uppercase tracking-wider">
                             Analytics for
                         </p>
                         <p className="text-[1.375rem] font-bold text-slate-900 truncate">
@@ -190,7 +190,7 @@ const Analytics = () => {
                           company to see its a…" is the one case where the
                           ellipsis costs the reader the answer.
                         */}
-                        <p className={`text-[1.25rem] text-slate-500 ${activeCompany ? 'truncate' : ''}`}>
+                        <p className={`text-ui-body text-slate-500 ${activeCompany ? 'truncate' : ''}`}>
                             {activeCompany
                                 ? `${activeCompany.businessType || '—'}${activeCompany.location ? ` · ${activeCompany.location}` : ''}`
                                 : 'Create a company to see its analytics'}
@@ -217,7 +217,7 @@ const Analytics = () => {
                             <h2 className="text-[1.5rem] sm:text-[1.75rem] font-bold text-slate-900">
                                 Analytics opens with membership
                             </h2>
-                            <p className="mx-auto mt-2 max-w-xl text-[1.25rem] text-slate-600">
+                            <p className="mx-auto mt-2 max-w-xl text-ui-body text-slate-600">
                                 Your products are already being counted. Membership is what lets
                                 you read the figures.
                             </p>
@@ -244,7 +244,7 @@ const Analytics = () => {
                                         <Icon className="h-4 w-4" />
                                     </span>
                                     <span className="min-w-0">
-                                        <span className="block text-[1.25rem] font-bold text-slate-900">
+                                        <span className="block text-ui-body font-bold text-slate-900">
                                             {title}
                                         </span>
                                         <span className="block text-[1.125rem] leading-relaxed text-slate-600">
@@ -257,7 +257,7 @@ const Analytics = () => {
 
                         <div className="mt-5 sm:mt-8 text-center">
                             <Button
-                                className="h-12 w-full sm:w-auto bg-blue-600 px-8 text-[1.25rem] font-bold hover:bg-blue-700"
+                                className="h-12 w-full sm:w-auto bg-blue-600 px-8 text-ui-body font-bold hover:bg-blue-700"
                                 /* The unpaid dashboard, not the plans — the same
                                    destination Discover uses. The plans screen is a
                                    Pay button with no idea whether an admin has
@@ -375,7 +375,7 @@ const Analytics = () => {
                                 <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-4 rounded-xl
                                                 bg-slate-50 border border-slate-200">
                                     <BarChart3 className="h-10 w-10 sm:h-12 sm:w-12 text-blue-300 mb-3" />
-                                    <p className="text-[1.25rem] text-slate-500 text-center max-w-md">
+                                    <p className="text-ui-body text-slate-500 text-center max-w-md">
                                         Nobody has opened one of your products yet. Each time somebody
                                         outside your company does, it is counted here.
                                     </p>

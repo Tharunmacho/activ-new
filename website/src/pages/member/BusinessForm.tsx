@@ -67,7 +67,7 @@ const Pill = ({
   <button
     type="button"
     onClick={onClick}
-    className={`flex-1 sm:flex-none min-h-[2.75rem] px-4 sm:px-5 py-2.5 rounded-xl text-[1.1875rem] font-semibold border transition-colors ${selected
+    className={`flex-1 sm:flex-none min-h-[2.75rem] px-4 sm:px-5 py-2.5 rounded-xl text-ui-small font-semibold border transition-colors ${selected
       ? "bg-blue-600 text-white border-blue-600"
       : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
       }`}
@@ -247,7 +247,7 @@ const BusinessInformationForm = () => {
                 onClick={() => setField("nonBusinessKind", "student")}
               />
             </div>
-            <p className="mt-2 text-[1.0625rem] text-slate-500">
+            <p className="mt-2 text-ui-caption text-slate-500">
               Aspirant — planning to start a business. Student — currently studying.
             </p>
           </FormField>
@@ -255,7 +255,7 @@ const BusinessInformationForm = () => {
 
         {isAspirant && kind && (
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <p className="text-[1.1875rem] text-blue-900">
+            <p className="text-ui-small text-blue-900">
               {kind === "student" ? (
                 <>You are registering as a <strong>student</strong>. You will be offered the Student
                 membership. Continue to the declaration to submit your application.</>
@@ -313,7 +313,7 @@ const BusinessInformationForm = () => {
             <div className="hidden md:block" aria-hidden="true" />
           </FormGrid>
 
-          <p className="text-[1.1875rem] text-slate-500">
+          <p className="text-ui-small text-slate-500">
             Everything else about your company — constitution, activities, GSTIN,
             turnover and government registrations — is asked once in your{" "}
             <strong className="font-semibold text-slate-700">Business Account</strong>,

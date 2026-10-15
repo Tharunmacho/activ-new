@@ -135,12 +135,12 @@ const RAIL = [
  */
 const FIELD =
   'mt-1.5 h-[3.25rem] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 ' +
-  'text-[1.1875rem] font-medium text-slate-900 placeholder:font-medium placeholder:text-slate-400 ' +
+  'text-ui-small font-medium text-slate-900 placeholder:font-medium placeholder:text-slate-400 ' +
   'transition-colors hover:border-slate-300 focus:bg-white focus:border-transparent ' +
   'focus:ring-2 focus:ring-blue-600 disabled:bg-slate-100 disabled:text-slate-500';
 
 /** Its label — the size `Label` has always been on this form. */
-const FIELD_LABEL = 'block text-[1.1875rem] font-medium text-slate-800';
+const FIELD_LABEL = 'block text-ui-small font-medium text-slate-800';
 
 const STEP_WORDS: Record<number, string> = { 2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five' };
 
@@ -189,7 +189,7 @@ function Section({
         </span>
         <div className="min-w-0">
           <h3 className={`${CARD_TITLE} text-[#0F172A]`}>{title}</h3>
-          {subtitle ? <p className="text-[1.0625rem] text-[#64748B] mt-1 leading-snug">{subtitle}</p> : null}
+          {subtitle ? <p className="text-ui-caption text-[#64748B] mt-1 leading-snug">{subtitle}</p> : null}
         </div>
       </div>
       {children}
@@ -1290,7 +1290,7 @@ export default function Profile() {
           {/* The form is deliberately NOT rendered behind this. Empty boxes a
               member fills in and saves would overwrite the record that failed
               to load — the one outcome worse than showing nothing. */}
-          <p className="mt-2 text-[1.1875rem] font-semibold text-amber-800">
+          <p className="mt-2 text-ui-small font-semibold text-amber-800">
             Nothing is shown here rather than an empty form, which you could
             save over the details you already have.
           </p>
@@ -1298,7 +1298,7 @@ export default function Profile() {
             type="button"
             onClick={() => setLoadAttempt((n) => n + 1)}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-6 py-3.5
-                       text-[1.1875rem] font-bold text-white transition-colors hover:bg-amber-700"
+                       text-ui-small font-bold text-white transition-colors hover:bg-amber-700"
           >
             Try again
           </button>
@@ -1370,7 +1370,7 @@ export default function Profile() {
           landed level with the middle of the first form card. Nothing was
           mis-set — they were being measured from different starting points.
         */}
-        <p className="text-[1.1875rem] text-[#64748B] mb-4 sm:mb-6 max-w-[68ch]">{heading.blurb}</p>
+        <p className="text-ui-small text-[#64748B] mb-4 sm:mb-6 max-w-[68ch]">{heading.blurb}</p>
 
         <div className="grid gap-4 sm:gap-6 lg:gap-7 lg:grid-cols-[23rem_minmax(0,1fr)] items-start">
 
@@ -1408,7 +1408,7 @@ export default function Profile() {
               {/* Brand and progress, in one block, so "how far am I" is answered
                   before the eye reaches the steps. */}
               <div className="shrink-0 bg-blue-600 text-white p-4 sm:p-5 lg:p-6">
-                <p className="text-[1.0625rem] font-bold uppercase tracking-[0.14em] text-white/70">
+                <p className="text-ui-caption font-bold uppercase tracking-[0.14em] text-white/70">
                   Membership application
                 </p>
                 <h2 className={`${CARD_TITLE} mt-1.5`}>
@@ -1423,7 +1423,7 @@ export default function Profile() {
                   `RAIL.length` means the sentence cannot disagree with the
                   list underneath it again.
                 */}
-                <p className="text-[1.0625rem] text-white/80 mt-1 leading-snug">
+                <p className="text-ui-caption text-white/80 mt-1 leading-snug">
                   {alreadyApplied
                     ? 'Your membership record. Everything saves as you go.'
                     : `${STEP_WORDS[RAIL.length] || RAIL.length} steps. Everything saves as you go.`}
@@ -1436,7 +1436,7 @@ export default function Profile() {
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <span className="font-display text-[1.0625rem] font-extrabold tabular shrink-0">
+                  <span className="font-display text-ui-caption font-extrabold tabular shrink-0">
                     {progress}%
                   </span>
                 </div>
@@ -1481,7 +1481,7 @@ export default function Profile() {
                     >
                       <span className="flex flex-col items-center shrink-0 pt-2.5">
                         <span className={`w-7 h-7 rounded-full flex items-center justify-center
-                                          text-[1.0625rem] font-bold transition-colors ${done
+                                          text-ui-caption font-bold transition-colors ${done
                             ? 'bg-[#16A34A] text-white'
                             : active
                               ? 'bg-[#1E50E6] text-white ring-4 ring-[#DBE6FD]'
@@ -1500,13 +1500,13 @@ export default function Profile() {
                           ? 'bg-[#EEF3FE]'
                           : reachable ? 'group-hover:bg-slate-50' : ''
                         }`}>
-                        <span className={`block text-[1.1875rem] font-bold leading-tight ${active
+                        <span className={`block text-ui-small font-bold leading-tight ${active
                             ? 'text-[#1E50E6]'
                             : done ? 'text-[#0F172A]' : 'text-[#94A3B8]'
                           }`}>
                           {s.name}
                         </span>
-                        <span className={`hidden sm:block text-[1.0625rem] mt-0.5 leading-snug ${active ? 'text-[#475569]' : 'text-[#94A3B8]'
+                        <span className={`hidden sm:block text-ui-caption mt-0.5 leading-snug ${active ? 'text-[#475569]' : 'text-[#94A3B8]'
                           }`}>
                           {s.hint}
                         </span>
@@ -1517,14 +1517,14 @@ export default function Profile() {
               </nav>
 
               <div className="hidden sm:block shrink-0 px-5 py-4 border-t border-[#F1F5F9] bg-slate-50/70">
-                <p className="text-[1.0625rem] font-bold uppercase tracking-[0.08em] text-[#64748B]">
+                <p className="text-ui-caption font-bold uppercase tracking-[0.08em] text-[#64748B]">
                   Need help?
                 </p>
                 <a
                   href="https://activ.org.in"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[1.0625rem] font-semibold text-[#1E50E6] hover:underline"
+                  className="text-ui-caption font-semibold text-[#1E50E6] hover:underline"
                 >
                   activ.org.in
                 </a>
@@ -1538,7 +1538,7 @@ export default function Profile() {
             {isLocked && currentStep === 1 && (
               <div className="rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] p-4
                               flex flex-wrap items-center justify-between gap-3">
-                <p className="font-display text-[1.1875rem] font-bold text-[#15803D]">
+                <p className="font-display text-ui-small font-bold text-[#15803D]">
                   Profile saved successfully
                 </p>
                 <Button
@@ -1562,7 +1562,7 @@ export default function Profile() {
                 <h3 className={`${CARD_TITLE} text-[#92400E] mb-1`}>
                   This account has no member profile
                 </h3>
-                <p className="text-[1.0625rem] text-[#B45309] leading-relaxed">
+                <p className="text-ui-caption text-[#B45309] leading-relaxed">
                   You are signed in with an administrator account, which is stored
                   separately from member records — so there are no personal details to
                   load here, and saving this form would not work. Use an admin dashboard
@@ -1586,7 +1586,7 @@ export default function Profile() {
                         className={FIELD}
                         disabled={isLocked}
                       />
-                      {errors.name && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">Name is required</p>}
+                      {errors.name && <p className="mt-1.5 text-ui-small font-semibold text-red-600">Name is required</p>}
                     </div>
 
                     <div>
@@ -1599,7 +1599,7 @@ export default function Profile() {
                         className={FIELD}
                         disabled={isLocked}
                       />
-                      {errors.phone && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">Phone number is required</p>}
+                      {errors.phone && <p className="mt-1.5 text-ui-small font-semibold text-red-600">Phone number is required</p>}
                     </div>
 
                     <div>
@@ -1612,7 +1612,7 @@ export default function Profile() {
                         className={FIELD}
                         disabled={isLocked}
                       />
-                      {errors.email && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">Email is required</p>}
+                      {errors.email && <p className="mt-1.5 text-ui-small font-semibold text-red-600">Email is required</p>}
                     </div>
                   </Fields>
                 </Section>
@@ -1648,7 +1648,7 @@ export default function Profile() {
                           </Select>
                         )}
                       />
-                      {errors.state && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">State is required</p>}
+                      {errors.state && <p className="mt-1.5 text-ui-small font-semibold text-red-600">State is required</p>}
                     </div>
 
                     <div>
@@ -1680,7 +1680,7 @@ export default function Profile() {
                           </Select>
                         )}
                       />
-                      {errors.district && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">District is required</p>}
+                      {errors.district && <p className="mt-1.5 text-ui-small font-semibold text-red-600">District is required</p>}
                     </div>
 
                     <div>
@@ -1702,13 +1702,13 @@ export default function Profile() {
                                   </SelectItem>
                                 ))
                               ) : (
-                                <div className="px-2 py-1.5 text-[1.1875rem] text-[#64748B]">No blocks available</div>
+                                <div className="px-2 py-1.5 text-ui-small text-[#64748B]">No blocks available</div>
                               )}
                             </SelectContent>
                           </Select>
                         )}
                       />
-                      {errors.block && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">Block is required</p>}
+                      {errors.block && <p className="mt-1.5 text-ui-small font-semibold text-red-600">Block is required</p>}
                     </div>
 
                     <div>
@@ -1720,7 +1720,7 @@ export default function Profile() {
                         className={FIELD}
                         disabled={isLocked}
                       />
-                      {errors.city && <p className="mt-1.5 text-[1.1875rem] font-semibold text-red-600">City is required</p>}
+                      {errors.city && <p className="mt-1.5 text-ui-small font-semibold text-red-600">City is required</p>}
                     </div>
                   </Fields>
                 </Section>
@@ -1751,7 +1751,7 @@ export default function Profile() {
                         {...register("currentPassword")}
                         disabled={isLocked}
                       />
-                      <p className="text-[1.0625rem] text-[#64748B] mt-1">The password you use to sign in.</p>
+                      <p className="text-ui-caption text-[#64748B] mt-1">The password you use to sign in.</p>
                     </div>
 
                     <div>
@@ -1764,7 +1764,7 @@ export default function Profile() {
                         {...register("password")}
                         disabled={isLocked}
                       />
-                      <p className="text-[1.0625rem] text-[#64748B] mt-1">At least 8 characters.</p>
+                      <p className="text-ui-caption text-[#64748B] mt-1">At least 8 characters.</p>
                     </div>
 
                     <div>
@@ -1876,7 +1876,7 @@ export default function Profile() {
                         )}
                       />
                       {/* Only the disabled-state prompt — see PersonalForm. */}
-                      <p className="text-[1.0625rem] text-[#64748B] mt-1">
+                      <p className="text-ui-caption text-[#64748B] mt-1">
                         {!watch("socialCategory") ? "Choose a social category first." : " "}
                       </p>
                     </div>
@@ -1916,7 +1916,7 @@ export default function Profile() {
                 */}
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3">
-                  <p className="text-[1.0625rem] text-[#64748B] hidden sm:block">Step 1 of 3</p>
+                  <p className="text-ui-caption text-[#64748B] hidden sm:block">Step 1 of 3</p>
                   <Button
                     type="button"
                     onClick={handleNext}
@@ -1949,7 +1949,7 @@ export default function Profile() {
                 >
                   <div className="space-y-6">
                     <div>
-                      <Label className="text-[1.1875rem] font-medium">
+                      <Label className="text-ui-small font-medium">
                         Are you currently doing business? <span className="text-red-500">*</span>
                       </Label>
                       <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2">
@@ -2019,7 +2019,7 @@ export default function Profile() {
 
                     {watch("doingBusiness") === "no" && (
                       <div>
-                        <Label className="text-[1.1875rem] font-medium">
+                        <Label className="text-ui-small font-medium">
                           Which describes you? <span className="text-red-500">*</span>
                         </Label>
                         <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2">
@@ -2057,7 +2057,7 @@ export default function Profile() {
                               recorded. Both kinds of applicant continue to step 3
                               and sign the same thing.
                             */}
-                            <p className="text-[1.1875rem] text-blue-800">
+                            <p className="text-ui-small text-blue-800">
                               {watch("nonBusinessKind") === "student"
                                 ? "You will be offered the Student membership."
                                 : "You will be offered the Aspirant membership."}{" "}
@@ -2074,7 +2074,7 @@ export default function Profile() {
 
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3">
-                  <p className="text-[1.0625rem] text-[#64748B] hidden sm:block">Step 2 of 3</p>
+                  <p className="text-ui-caption text-[#64748B] hidden sm:block">Step 2 of 3</p>
                   <div className="ml-auto flex w-full sm:w-auto items-center gap-2 sm:gap-3">
                     <Button
                       type="button"
@@ -2145,7 +2145,7 @@ export default function Profile() {
                     onChange={(e) => handleSisterCountChange(e.target.value)}
                     className={FIELD}
                   />
-                  <p className="text-[1.0625rem] text-[#64748B] mt-1">
+                  <p className="text-ui-caption text-[#64748B] mt-1">
                     Positive integers only — a name box appears for each one
                   </p>
                 </div>
@@ -2215,7 +2215,7 @@ export default function Profile() {
 
                 <Section icon={ScrollText} title="The undertaking" subtitle="Read this before you submit — it is the agreement your application is reviewed under.">
                   <div className="rounded-xl bg-[#FFFBEB] border border-[#FDE68A] p-4 sm:p-5">
-                    <p className="text-[1.1875rem] text-[#92400E] leading-relaxed">
+                    <p className="text-ui-small text-[#92400E] leading-relaxed">
                       This application is under the Verification and Screening Process. We have every
                       right to ACCEPT or REJECT this application according to our membership policy.
                     </p>
@@ -2228,7 +2228,7 @@ export default function Profile() {
                         onChange={(e) => setDeclarationAccepted(e.target.checked)}
                         className="mt-0.5 w-4 h-4 accent-[#B45309] shrink-0"
                       />
-                      <span className="text-[1.1875rem] font-semibold text-[#92400E]">
+                      <span className="text-ui-small font-semibold text-[#92400E]">
                         I confirm the above information is true and correct
                         <span className="text-red-600 ml-0.5">*</span>
                       </span>
@@ -2239,7 +2239,7 @@ export default function Profile() {
 
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3">
-                  <p className="text-[1.0625rem] text-[#64748B] hidden sm:block">
+                  <p className="text-ui-caption text-[#64748B] hidden sm:block">
                     {alreadyApplied ? 'Save your changes' : 'Last step'}
                   </p>
                   <div className="ml-auto flex w-full sm:w-auto items-center gap-2 sm:gap-3">

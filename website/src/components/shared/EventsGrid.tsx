@@ -174,7 +174,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                         {subtitle && (
                             <div className="flex items-center space-x-3 sm:space-x-4 max-w-full">
                                 <div className="h-px w-6 sm:w-10 shrink-0 bg-brand-300" />
-                                <span className="min-w-0 text-[1.0625rem] sm:text-[1.25rem] font-semibold text-gray-500 lowercase tracking-wider">
+                                <span className="min-w-0 text-ui-caption sm:text-ui-body font-semibold text-gray-500 lowercase tracking-wider">
                                     {subtitle}
                                 </span>
                                 <div className="h-px w-6 sm:w-10 shrink-0 bg-brand-300" />

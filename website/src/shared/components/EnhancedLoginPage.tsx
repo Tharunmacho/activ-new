@@ -43,11 +43,11 @@ import AuthSplitLayout from "./AuthSplitLayout";
  */
 const FIELD =
   'h-[3.75rem] w-full rounded-none border-0 border-b-2 border-slate-200 bg-transparent px-0 pl-11 ' +
-  'text-[1.4375rem] font-medium text-slate-900 placeholder:text-[1.25rem] placeholder:font-normal placeholder:text-slate-400 ' +
+  'text-[1.4375rem] font-medium text-slate-900 placeholder:text-ui-body placeholder:font-normal placeholder:text-slate-400 ' +
   'shadow-none transition-colors focus:border-blue-600 focus:ring-0 focus-visible:ring-0 ' +
   'focus-visible:ring-offset-0';
 
-const FIELD_LABEL = 'mb-3 block text-[1.25rem] font-semibold text-slate-800';
+const FIELD_LABEL = 'mb-3 block text-ui-body font-semibold text-slate-800';
 
 /*
  * `z-10` matters. `PasswordInput` wraps its field in its own `relative` div,
@@ -404,14 +404,14 @@ export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 
         account yet.
       */}
       {forAdmins ? (
-        <p className="mt-7 text-center text-[1.25rem] font-normal text-slate-500">
+        <p className="mt-7 text-center text-ui-body font-normal text-slate-500">
           Not an administrator?{' '}
           <Link to="/login" className="font-semibold text-blue-700 transition-colors hover:text-blue-900">
             Member sign in
           </Link>
         </p>
       ) : (
-        <p className="mt-7 text-center text-[1.25rem] font-normal text-slate-500">
+        <p className="mt-7 text-center text-ui-body font-normal text-slate-500">
           New to ACTIV?{' '}
           <Link to="/register" className="font-semibold text-blue-700 transition-colors hover:text-blue-900">
             Create an account

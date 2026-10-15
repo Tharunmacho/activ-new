@@ -83,10 +83,10 @@ function AttendanceEvents() {
             sortValue: (r) => r.title || '',
             render: (r) => (
                 <div className="min-w-0">
-                    <div className="text-[1.25rem] font-semibold tracking-tight text-slate-900 truncate">
+                    <div className="text-ui-body font-semibold tracking-tight text-slate-900 truncate">
                         {r.title || 'Untitled event'}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[1.1875rem] text-slate-500">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-ui-small text-slate-500">
                         <span className="inline-flex items-center gap-1">
                             <CalendarDays className="w-4 h-4" />{formatDay(r.startAt)}
                         </span>
@@ -139,7 +139,7 @@ function AttendanceEvents() {
                 <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); open(r); }}
-                    className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-blue-600 text-[1.1875rem]
+                    className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-blue-600 text-ui-small
                                font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors whitespace-nowrap"
                 >
                     <UserCheck className="w-4 h-4" /> Attendance
@@ -158,7 +158,7 @@ function AttendanceEvents() {
             </div>
 
             {error && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words text-[1.25rem] font-semibold text-rose-700">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words text-ui-body font-semibold text-rose-700">
                     {error}
                 </div>
             )}
@@ -170,7 +170,7 @@ function AttendanceEvents() {
                         type="button"
                         onClick={() => setScope(value)}
                         aria-pressed={scope === value}
-                        className={`flex-1 sm:flex-none h-11 sm:h-12 px-3 sm:px-6 rounded-xl text-[1.0625rem] sm:text-[1.25rem] font-semibold whitespace-nowrap transition-colors
+                        className={`flex-1 sm:flex-none h-11 sm:h-12 px-3 sm:px-6 rounded-xl text-ui-caption sm:text-ui-body font-semibold whitespace-nowrap transition-colors
                                     ${scope === value ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                     >
                         {label}
@@ -190,7 +190,7 @@ function AttendanceEvents() {
                 empty={scope === 'past' ? 'No past events.' : 'No published events from the last two days onward.'}
             />
 
-            <p className="text-[1.25rem] text-slate-500 leading-relaxed max-w-3xl">
+            <p className="text-ui-body text-slate-500 leading-relaxed max-w-3xl">
                 <strong className="font-semibold text-slate-700">Registered</strong> counts seats on paid or free
                 confirmed bookings — the people entitled to walk in. Unpaid, cancelled and waitlisted bookings are
                 not counted, and their passes are refused at the door.
@@ -249,13 +249,13 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             sortValue: (r) => r.name || '',
             render: (r) => (
                 <div className="min-w-0">
-                    <div className="text-[1.25rem] font-semibold text-slate-900 truncate">{r.name || 'Attendee'}</div>
-                    <div className="mt-1 text-[1.1875rem] text-slate-500 font-mono break-all">{r.registrationNo}</div>
+                    <div className="text-ui-body font-semibold text-slate-900 truncate">{r.name || 'Attendee'}</div>
+                    <div className="mt-1 text-ui-small text-slate-500 font-mono break-all">{r.registrationNo}</div>
                     {withContact && (r.email || r.phone) ? (
-                        <div className="mt-1 text-[1.1875rem] text-slate-500 break-words">
+                        <div className="mt-1 text-ui-small text-slate-500 break-words">
                             {[r.phone, r.email].filter(Boolean).join(' · ')}
                         </div>
-                    ) : (!!r.phoneMasked && <div className="mt-1 text-[1.1875rem] text-slate-400">{r.phoneMasked}</div>)}
+                    ) : (!!r.phoneMasked && <div className="mt-1 text-ui-small text-slate-400">{r.phoneMasked}</div>)}
                 </div>
             ),
         },
@@ -267,8 +267,8 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             sortValue: (r) => r.bookedBy || '',
             render: (r) => (
                 <div className="min-w-0">
-                    <div className="text-[1.1875rem] text-slate-700 truncate">{r.bookedBy || '—'}</div>
-                    <div className="mt-1 text-[1.0625rem] text-slate-400">Seat {r.participantNumber}{r.payment ? ` · ${r.payment}` : ''}</div>
+                    <div className="text-ui-small text-slate-700 truncate">{r.bookedBy || '—'}</div>
+                    <div className="mt-1 text-ui-caption text-slate-400">Seat {r.participantNumber}{r.payment ? ` · ${r.payment}` : ''}</div>
                 </div>
             ),
         },
@@ -290,8 +290,8 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             sortValue: (r) => (r.admittedAt ? new Date(r.admittedAt).getTime() : 0),
             render: (r) => (r.checkedIn ? (
                 <div className="min-w-0">
-                    <div className="text-[1.1875rem] font-semibold text-slate-800 tabular-nums">{r.admittedAtLabel}</div>
-                    <div className="mt-1 inline-flex items-center gap-1 text-[1.0625rem] text-slate-500 min-w-0">
+                    <div className="text-ui-small font-semibold text-slate-800 tabular-nums">{r.admittedAtLabel}</div>
+                    <div className="mt-1 inline-flex items-center gap-1 text-ui-caption text-slate-500 min-w-0">
                         {r.method === 'manual' ? <Keyboard className="w-3.5 h-3.5 shrink-0" /> : <QrCode className="w-3.5 h-3.5 shrink-0" />}
                         <span className="truncate">by {r.admittedBy || 'events staff'}</span>
                     </div>
@@ -308,7 +308,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
                 <div className="text-[1.5rem] font-semibold tracking-tight text-slate-900 break-words">
                     {data?.event?.title || (loading ? 'Loading…' : 'Untitled event')}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[1.1875rem] text-slate-500">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-ui-small text-slate-500">
                     <span className="inline-flex items-center gap-1"><CalendarDays className="w-4 h-4" />{formatDay(data?.event?.startAt || null)}</span>
                     {!!data?.event?.venue && (
                         <span className="inline-flex items-center gap-1 min-w-0"><MapPin className="w-4 h-4 shrink-0" />
@@ -327,7 +327,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             </div>
 
             {error && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words text-[1.25rem] font-semibold text-rose-700">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words text-ui-body font-semibold text-rose-700">
                     {error}
                 </div>
             )}
@@ -350,7 +350,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
                                 type="button"
                                 onClick={() => setStatus(value)}
                                 aria-pressed={status === value}
-                                className={`h-10 px-4 rounded-lg text-[1.1875rem] font-semibold whitespace-nowrap transition-colors
+                                className={`h-10 px-4 rounded-lg text-ui-small font-semibold whitespace-nowrap transition-colors
                                             ${status === value ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                             >
                                 {label}
@@ -360,7 +360,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
                 }
             />
 
-            <p className="text-[1.25rem] text-slate-500 leading-relaxed max-w-3xl">
+            <p className="text-ui-body text-slate-500 leading-relaxed max-w-3xl">
                 <Smartphone className="inline w-4 h-4 mr-1 -mt-0.5" />
                 Entry is recorded only by events staff scanning passes in the ACTIV app. Times are IST.
                 {' '}A <strong className="font-semibold text-slate-700">*</strong> marks someone who was let in on a

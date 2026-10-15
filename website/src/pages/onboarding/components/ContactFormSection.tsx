@@ -149,7 +149,7 @@ export function ContactFormSection() {
     };
 
     const inputClass =
-        'w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-[1.25rem] focus:outline-none ' +
+        'w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-ui-body focus:outline-none ' +
         'focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all '
         + 'font-semibold text-[#111827] placeholder:font-medium placeholder:text-gray-500';
 
@@ -165,7 +165,7 @@ export function ContactFormSection() {
                     </div>
                     <div className="min-w-0">
                         {label && (
-                            <h4 className="text-[1.0625rem] font-bold text-[#111827] mb-1.5">{label}</h4>
+                            <h4 className="text-ui-caption font-bold text-[#111827] mb-1.5">{label}</h4>
                         )}
                         {body}
                     </div>
@@ -388,7 +388,7 @@ export function ContactFormSection() {
                             <div className="pt-2">
                                 <button
                                     type="submit" disabled={sending}
-                                    className="bg-brand-900 hover:bg-brand-900 text-white px-6 sm:px-9 py-3.5 sm:py-4 rounded-xl text-[1.25rem]
+                                    className="bg-brand-900 hover:bg-brand-900 text-white px-6 sm:px-9 py-3.5 sm:py-4 rounded-xl text-ui-body
                                                font-semibold transition-all inline-flex w-full sm:w-auto justify-center items-center gap-2 shadow-lg
                                                shadow-brand-900/20 disabled:opacity-70"
                                 >
@@ -397,16 +397,16 @@ export function ContactFormSection() {
                                 </button>
                             </div>
 
-                            {error && <p className="text-[1.25rem] text-red-600 mt-2 font-medium">{error}</p>}
+                            {error && <p className="text-ui-body text-red-600 mt-2 font-medium">{error}</p>}
                             {sent && !error && (
-                                <p className="text-[1.25rem] text-green-600 mt-2 font-medium">
+                                <p className="text-ui-body text-green-600 mt-2 font-medium">
                                     {formCard?.successMessage || 'Thank you — your message has been sent.'}
                                 </p>
                             )}
 
                             {/* The editor's own rows on the form card, in the
                                 form's own type. */}
-                            <div className="text-[1.0625rem] font-medium leading-relaxed text-gray-600">
+                            <div className="text-ui-caption font-medium leading-relaxed text-gray-600">
                                 <CmsExtraFields fields={formFields} variant="list" className="pt-2" />
                             </div>
                         </form>
@@ -471,7 +471,7 @@ export function ContactFormSection() {
                                 {detail(
                                     offices.length > 1 && office ? officeName(office) : (infoCard?.addressLabel || ''),
                                     <MapPin size={18} />,
-                                    <p className="text-[1.25rem] font-semibold text-gray-700 leading-relaxed
+                                    <p className="text-ui-body font-semibold text-gray-700 leading-relaxed
                                                   max-w-md">
                                         {addressLines.map((line, i) => (
                                             <React.Fragment key={i}>
@@ -607,7 +607,7 @@ export function ContactFormSection() {
                                     ) : (
                                         <div className="flex items-start gap-3 rounded-2xl border border-dashed border-brand-200 bg-brand-50/60 p-4">
                                             <MapPin size={18} className="mt-1 shrink-0 text-brand-600" />
-                                            <p className="text-[1.0625rem] font-semibold text-gray-700">{addressLines.join(', ') || 'Location'}</p>
+                                            <p className="text-ui-caption font-semibold text-gray-700">{addressLines.join(', ') || 'Location'}</p>
                                         </div>
                                     )}
                                     <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -617,7 +617,7 @@ export function ContactFormSection() {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-brand-200
-                                                           bg-white px-4 text-[1.0625rem] font-semibold text-brand-700 hover:bg-brand-50 transition-colors"
+                                                           bg-white px-4 text-ui-caption font-semibold text-brand-700 hover:bg-brand-50 transition-colors"
                                             >
                                                 <ExternalLink size={16} /> Open in Google Maps
                                             </a>
@@ -632,7 +632,7 @@ export function ContactFormSection() {
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand-900 px-4
-                                                           text-[1.0625rem] font-semibold text-white shadow-md hover:brightness-110 transition"
+                                                           text-ui-caption font-semibold text-white shadow-md hover:brightness-110 transition"
                                             >
                                                 <Navigation size={16} /> Get directions
                                             </a>
@@ -680,7 +680,7 @@ export function ContactFormSection() {
                                 ? (
                                     <Link
                                         to={banner.ctaHref}
-                                        className="relative bg-white text-brand-900 hover:bg-blue-50 px-7 py-3.5 rounded-xl text-[1.25rem] text-center
+                                        className="relative bg-white text-brand-900 hover:bg-blue-50 px-7 py-3.5 rounded-xl text-ui-body text-center
                                                    font-bold transition-all hover:-translate-y-0.5 sm:whitespace-nowrap shrink-0 shadow-lg"
                                     >
                                         {banner.ctaLabel}
@@ -688,7 +688,7 @@ export function ContactFormSection() {
                                 ) : (
                                     <a
                                         href={banner.ctaHref || '#'}
-                                        className="relative bg-white text-brand-900 hover:bg-blue-50 px-7 py-3.5 rounded-xl text-[1.25rem] text-center
+                                        className="relative bg-white text-brand-900 hover:bg-blue-50 px-7 py-3.5 rounded-xl text-ui-body text-center
                                                    font-bold transition-all hover:-translate-y-0.5 sm:whitespace-nowrap shrink-0 shadow-lg"
                                     >
                                         {banner.ctaLabel}

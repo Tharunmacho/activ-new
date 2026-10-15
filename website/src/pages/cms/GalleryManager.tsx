@@ -298,7 +298,7 @@ function ItemFields({ value, onChange, categories }: {
                         value={value.category}
                         onChange={e => set({ category: e.target.value })}
                         className="w-full bg-slate-50 dark:bg-black border border-slate-300 dark:border-[#2a2a2a]
-                                   rounded-lg px-3 py-2 text-[1.1875rem] text-slate-900 dark:text-neutral-100"
+                                   rounded-lg px-3 py-2 text-ui-small text-slate-900 dark:text-neutral-100"
                     >
                         <option value="">No category</option>
                         {categories.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
@@ -948,12 +948,12 @@ export default function GalleryManager() {
                                 key={key}
                                 type="button"
                                 onClick={() => setTab(key)}
-                                className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-[1.25rem] font-semibold transition-colors ${tab === key
+                                className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-ui-body font-semibold transition-colors ${tab === key
                                     ? 'border-blue-600 text-blue-700 dark:text-blue-400'
                                     : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-neutral-200'}`}
                             >
                                 {label}
-                                {count !== null && <span className="ml-2 text-[1.1875rem] text-slate-400">{count}</span>}
+                                {count !== null && <span className="ml-2 text-ui-small text-slate-400">{count}</span>}
                             </button>
                         ))}
                 </div>
@@ -1282,7 +1282,7 @@ export default function GalleryManager() {
                         type="button"
                         onClick={() => { setAddOpen(false); cancelEdit(); }}
                         className="mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2
-                                   text-[1.0625rem] font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
+                                   text-ui-caption font-semibold text-slate-600 transition-colors hover:border-[#2563EB]
                                    hover:text-[#2563EB] dark:border-[#2a2a2a] dark:text-neutral-300"
                     >
                         <ArrowLeft className="h-4 w-4" /> Back to the albums
@@ -1352,10 +1352,10 @@ export default function GalleryManager() {
                                             <CmsMediaFrame media={item.media} />
                                         </button>
                                         <button type="button" onClick={() => startEdit(item)} className="min-w-0 flex-1 basis-[10rem] text-left">
-                                            <p className="truncate text-[1.25rem] font-bold text-slate-900 dark:text-neutral-100">
+                                            <p className="truncate text-ui-body font-bold text-slate-900 dark:text-neutral-100">
                                                 {item.title || 'Untitled album'}
                                             </p>
-                                            <p className="mt-0.5 truncate text-[1.0625rem] text-neutral-500">
+                                            <p className="mt-0.5 truncate text-ui-caption text-neutral-500">
                                                 {[item.eventDate, item.location, `${photoCount} ${photoCount === 1 ? 'photo' : 'photos'}`]
                                                     .filter(Boolean).join(' · ')}
                                             </p>
@@ -1393,7 +1393,7 @@ export default function GalleryManager() {
                                                 </a>
                                             )}
                                             <button type="button" onClick={() => startEdit(item)}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 sm:py-1.5 text-[1.0625rem] font-semibold
+                                                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 sm:py-1.5 text-ui-caption font-semibold
                                                                text-blue-700 transition-colors hover:bg-blue-50 dark:text-blue-400">
                                                 <Pencil className="h-3.5 w-3.5" /> Edit
                                             </button>

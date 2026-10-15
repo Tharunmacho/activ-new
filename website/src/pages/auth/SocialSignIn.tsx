@@ -99,14 +99,14 @@ export default function SocialSignIn() {
                     <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                         <UserPlus className="h-8 w-8" />
                     </div>
-                    <p className="text-[1.0625rem] leading-relaxed text-slate-600">
+                    <p className="text-ui-caption leading-relaxed text-slate-600">
                         No ACTIV member account uses{' '}
                         <span className="break-all font-semibold text-slate-900">{noAccount.email || 'that email'}</span>
                         {PROVIDER_NAME[noAccount.provider] ? ` (from ${PROVIDER_NAME[noAccount.provider]})` : ''}.
                         Create one and it will be linked automatically next time.
                     </p>
                     <Link to={registerHref}
-                        className="mt-7 flex h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 text-[1.0625rem]
+                        className="mt-7 flex h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 text-ui-caption
                                    font-semibold text-white transition-colors hover:bg-blue-700">
                         Create an account
                     </Link>
@@ -119,20 +119,20 @@ export default function SocialSignIn() {
                     <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
                         <AlertCircle className="h-8 w-8" />
                     </div>
-                    <p className="text-[1.0625rem] leading-relaxed text-slate-600">{error}</p>
+                    <p className="text-ui-caption leading-relaxed text-slate-600">{error}</p>
                     {facebookRecovery && <a href={socialStartUrl('facebook')}
-                        className="mt-7 flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-[1.0625rem] font-semibold text-white hover:bg-blue-700">
+                        className="mt-7 flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-ui-caption font-semibold text-white hover:bg-blue-700">
                         Try Facebook again
                     </a>}
                     <Link to="/login"
                         className={facebookRecovery
-                            ? 'mt-4 flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border border-blue-200 px-4 py-3 text-[1.0625rem] font-semibold text-blue-700 hover:bg-blue-50'
-                            : 'mt-7 flex h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 text-[1.0625rem] font-semibold text-white transition-colors hover:bg-blue-700'}>
+                            ? 'mt-4 flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border border-blue-200 px-4 py-3 text-ui-caption font-semibold text-blue-700 hover:bg-blue-50'
+                            : 'mt-7 flex h-[3.25rem] w-full items-center justify-center rounded-xl bg-blue-600 text-ui-caption font-semibold text-white transition-colors hover:bg-blue-700'}>
                         {facebookRecovery ? 'Use email and password' : 'Back to sign in'}
                     </Link>
                 </div>
             ) : (
-                <div className="flex items-center justify-center gap-3 py-8 text-[1.0625rem] text-slate-500">
+                <div className="flex items-center justify-center gap-3 py-8 text-ui-caption text-slate-500">
                     <Loader2 className="h-5 w-5 animate-spin" /> Signing you in…
                 </div>
             )}

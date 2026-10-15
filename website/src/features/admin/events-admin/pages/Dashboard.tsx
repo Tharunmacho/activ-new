@@ -155,7 +155,7 @@ export default function EventsAdminDashboard() {
                 <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
                     {error && (
                         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words
-                                        text-[1.25rem] font-semibold text-rose-700">
+                                        text-ui-body font-semibold text-rose-700">
                             {error}
                         </div>
                     )}
@@ -242,7 +242,7 @@ export default function EventsAdminDashboard() {
                                     {s.icon}
                                 </span>
                                 <span className="min-w-0 flex-1">
-                                    <span className="block text-[1.25rem] font-semibold text-slate-900">{s.label}</span>
+                                    <span className="block text-ui-body font-semibold text-slate-900">{s.label}</span>
                                     <span className="block text-[1.125rem] leading-snug text-slate-500 mt-0.5">{s.hint}</span>
                                 </span>
                                 <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 shrink-0" />
@@ -268,7 +268,7 @@ export default function EventsAdminDashboard() {
                             {loading ? (
                                 <div className="p-6 sm:p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-blue-600" /></div>
                             ) : upcoming.length === 0 ? (
-                                <p className="px-4 sm:px-6 py-6 sm:py-8 text-[1.25rem] text-slate-500">
+                                <p className="px-4 sm:px-6 py-6 sm:py-8 text-ui-body text-slate-500">
                                     Nothing upcoming. Create an event under <strong className="text-slate-700">All events</strong>.
                                 </p>
                             ) : (
@@ -290,7 +290,7 @@ export default function EventsAdminDashboard() {
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <div className="text-[1.25rem] font-semibold text-slate-900 truncate">
+                                                    <div className="text-ui-body font-semibold text-slate-900 truncate">
                                                         {e.title || 'Untitled event'}
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[1.125rem] text-slate-500">
@@ -325,7 +325,7 @@ export default function EventsAdminDashboard() {
                             {loading ? (
                                 <div className="p-6 sm:p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-blue-600" /></div>
                             ) : drafts.length === 0 ? (
-                                <div className="px-4 sm:px-6 py-6 sm:py-8 flex items-start gap-3 text-[1.1875rem] text-slate-500">
+                                <div className="px-4 sm:px-6 py-6 sm:py-8 flex items-start gap-3 text-ui-small text-slate-500">
                                     <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                                     No drafts — every event you have written is published.
                                 </div>
@@ -338,7 +338,7 @@ export default function EventsAdminDashboard() {
                                                 onClick={() => navigate(editLink(e.id))}
                                                 className="w-full text-left px-5 sm:px-6 py-4 hover:bg-slate-50"
                                             >
-                                                <div className="text-[1.1875rem] font-semibold text-slate-900 truncate">
+                                                <div className="text-ui-small font-semibold text-slate-900 truncate">
                                                     {e.title || 'Untitled event'}
                                                 </div>
                                                 <div className="mt-1 flex flex-wrap items-center gap-2 text-[1.125rem] text-slate-500">
@@ -355,7 +355,7 @@ export default function EventsAdminDashboard() {
                                     type="button"
                                     onClick={() => navigate('/events-admin/events')}
                                     className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl
-                                               bg-blue-600 text-white text-[1.1875rem] font-semibold hover:bg-blue-700"
+                                               bg-blue-600 text-white text-ui-small font-semibold hover:bg-blue-700"
                                 >
                                     <FileEdit className="w-4 h-4" /> Open the event editor
                                 </button>

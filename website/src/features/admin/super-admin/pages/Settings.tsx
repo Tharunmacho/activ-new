@@ -223,18 +223,18 @@ const Settings = () => {
                                     </Avatar>
                                     <div className="flex-1 min-w-0 w-full">
                                         <h1 className="text-[1.5rem] sm:text-[1.75rem] md:text-[2.125rem] font-bold text-slate-900 break-words">{userName}</h1>
-                                        <p className="text-slate-500 text-[1.25rem] md:text-[1.375rem] flex items-center gap-2 justify-center md:justify-start mt-1">
+                                        <p className="text-slate-500 text-ui-body md:text-[1.375rem] flex items-center gap-2 justify-center md:justify-start mt-1">
                                             <Shield className="w-5 h-5 shrink-0" />
                                             {roleLabel}
                                         </p>
                                         <div className="flex flex-col sm:flex-row sm:flex-wrap items-center md:items-start gap-x-3 gap-y-1.5 mt-3">
                                             <div className="flex items-center gap-2 text-slate-500 min-w-0 max-w-full">
                                                 <Mail className="w-4 h-4 shrink-0" />
-                                                <span className="text-[1.25rem] break-all">{userEmail}</span>
+                                                <span className="text-ui-body break-all">{userEmail}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-slate-500 min-w-0 max-w-full">
                                                 <MapPin className="w-4 h-4 shrink-0" />
-                                                <span className="text-[1.25rem] break-words">{adminLocation}</span>
+                                                <span className="text-ui-body break-words">{adminLocation}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 mt-4 justify-center md:justify-start">
@@ -258,21 +258,21 @@ const Settings = () => {
                                     <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 shadow-[0_10px_28px_-6px_rgba(37,99,235,0.55)]">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Users className="w-5 h-5 text-blue-100" />
-                                            <p className="text-blue-100 text-[1.0625rem] sm:text-[1.25rem] font-medium leading-tight">Total members</p>
+                                            <p className="text-blue-100 text-ui-caption sm:text-ui-body font-medium leading-tight">Total members</p>
                                         </div>
                                         <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">{stats.totalMembers}</p>
                                     </div>
                                     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Clock className="w-5 h-5 text-amber-500" />
-                                            <p className="text-slate-500 text-[1.0625rem] sm:text-[1.25rem] font-medium leading-tight">Applications</p>
+                                            <p className="text-slate-500 text-ui-caption sm:text-ui-body font-medium leading-tight">Applications</p>
                                         </div>
                                         <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-slate-900">{stats.totalApplications}</p>
                                     </div>
                                     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
                                         <div className="flex items-center gap-2 mb-2">
                                             <CheckCircle className="w-5 h-5 text-emerald-500" />
-                                            <p className="text-slate-500 text-[1.0625rem] sm:text-[1.25rem] font-medium leading-tight">Admin accounts</p>
+                                            <p className="text-slate-500 text-ui-caption sm:text-ui-body font-medium leading-tight">Admin accounts</p>
                                         </div>
                                         <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-slate-900">{stats.totalAdmins}</p>
                                     </div>

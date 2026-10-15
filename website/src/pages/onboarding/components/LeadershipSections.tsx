@@ -154,7 +154,7 @@ export function SectionHead({ eyebrow, title }: {
      */
     return (
         <Reveal as="header" className="mb-5 sm:mb-6 text-center">
-            <p className="text-[1.0625rem] font-bold uppercase
+            <p className="text-ui-caption font-bold uppercase
                           tracking-[0.18em] text-brand-500">
                 {eyebrow}
             </p>
@@ -276,7 +276,7 @@ export function LeaderCard({ person, onOpen, context }: {
                       * 1920). `line-clamp` on the name and the firm caps the
                       * worst case; the DESIGNATION is never clamped — see below.
                       */}
-                    <span className="text-balance text-[1.125rem] sm:text-[1.1875rem] font-extrabold break-words
+                    <span className="text-balance text-[1.125rem] sm:text-ui-small font-extrabold break-words
                                      leading-snug text-brand-900 line-clamp-2 min-h-[1.4em]
                                      transition-colors group-hover:text-brand-700">
                         {person.name || 'Name to be confirmed'}
@@ -292,20 +292,20 @@ export function LeaderCard({ person, onOpen, context }: {
                       * three-line designation costs the row three lines once.
                       */}
                     {person.role && (
-                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-[1rem] sm:text-[1.1875rem] font-semibold
+                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-[1rem] sm:text-ui-small font-semibold
                                          leading-snug text-brand-600 break-words">
                             {person.designation || person.role}
                         </span>
                     )}
                     {!person.role && person.designation && (
-                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-[1rem] sm:text-[1.1875rem] font-semibold
+                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-[1rem] sm:text-ui-small font-semibold
                                          leading-snug text-brand-600 break-words">
                             {person.designation}
                         </span>
                     )}
 
                     {person.organisation && (
-                        <span className="mt-1.5 sm:mt-2 min-h-[2.8em] text-balance text-[0.9375rem] sm:text-[1.0625rem] font-medium
+                        <span className="mt-1.5 sm:mt-2 min-h-[2.8em] text-balance text-[0.9375rem] sm:text-ui-caption font-medium
                                          leading-snug text-gray-500 line-clamp-2">
                             {person.organisation}
                         </span>
@@ -317,7 +317,7 @@ export function LeaderCard({ person, onOpen, context }: {
                         divider to divide, and a hairline across open background
                         is a line drawn for its own sake. */}
                     <span className="mt-auto pt-3 sm:pt-4 inline-flex min-h-10 items-center justify-center gap-1.5
-                                     text-[1rem] sm:text-[1.0625rem] font-bold text-brand-600
+                                     text-[1rem] sm:text-ui-caption font-bold text-brand-600
                                      transition-colors group-hover:text-brand-800">
                         Read More
                         <ArrowRight
@@ -621,7 +621,7 @@ export function TierPanel({
  */
 function Line({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
     return (
-        <li className="flex items-start justify-center gap-2 sm:gap-2.5 text-[1.0625rem] sm:text-[1.1875rem] font-medium
+        <li className="flex items-start justify-center gap-2 sm:gap-2.5 text-ui-caption sm:text-ui-small font-medium
                        leading-relaxed text-gray-600">
             <span className="mt-[3px] shrink-0 text-brand-500">{icon}</span>
             <span className="min-w-0 text-center">{children}</span>
@@ -683,7 +683,7 @@ export function ContactPerson({ entry, delay = 0 }: { entry: ContactEntry; delay
                        text-center transition-shadow duration-300
                        hover:shadow-[0_2px_6px_rgba(16,24,40,0.05),0_18px_40px_-28px_rgba(28,46,104,0.5)]"
         >
-            <p className="text-balance text-[1.1875rem] font-extrabold leading-snug text-brand-900">
+            <p className="text-balance text-ui-small font-extrabold leading-snug text-brand-900">
                 {entry.name}
             </p>
             {/*
@@ -698,7 +698,7 @@ export function ContactPerson({ entry, delay = 0 }: { entry: ContactEntry; delay
               * still visible one level in.
               */}
             {entry.role && (
-                <p className="mt-1 min-h-[2.6em] text-balance text-[1.0625rem] sm:text-[1.1875rem] font-semibold leading-snug text-brand-600">
+                <p className="mt-1 min-h-[2.6em] text-balance text-ui-caption sm:text-ui-small font-semibold leading-snug text-brand-600">
                     {entry.role}
                 </p>
             )}
@@ -727,7 +727,7 @@ export function ContactPerson({ entry, delay = 0 }: { entry: ContactEntry; delay
             </ul>
 
             {(entry.organisation || entry.address) && (
-                <p className="mt-3 border-t border-gray-100 pt-3 text-[1.0625rem] font-medium
+                <p className="mt-3 border-t border-gray-100 pt-3 text-ui-caption font-medium
                               leading-relaxed text-gray-500 whitespace-pre-line break-words">
                     {[entry.organisation, entry.address].filter(Boolean).join('\n')}
                 </p>
@@ -891,7 +891,7 @@ export function ContactLabel({ children }: { children: React.ReactNode }) {
     return (
         <Reveal
             as="p"
-            className="mb-3 text-[1.0625rem] sm:text-[1.25rem] font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500"
+            className="mb-3 text-ui-caption sm:text-ui-body font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500"
         >
             {children}
         </Reveal>
@@ -942,7 +942,7 @@ export function OfficeCard({ title, office, wide = false, delay = 0 }: {
             className="h-full rounded-[1.25rem] border border-gray-200/70 bg-white/70 p-4 sm:p-5
                        text-center"
         >
-            <h3 className="text-[1.1875rem] font-extrabold text-brand-900">{title}</h3>
+            <h3 className="text-ui-small font-extrabold text-brand-900">{title}</h3>
 
             <ul className={`mt-3.5 gap-x-8 gap-y-2.5 ${wide ? 'grid sm:grid-cols-2' : 'space-y-2.5'}`}>
                 {o.personName && (

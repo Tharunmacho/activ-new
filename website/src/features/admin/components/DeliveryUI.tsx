@@ -77,7 +77,7 @@ export function DeliveryBadge({ state, compact = false }: { state: string; compa
         <span
             title={meta.hint}
             className={`inline-flex items-center rounded-full border font-semibold whitespace-nowrap
-                        ${compact ? 'px-2 py-0.5 text-[1rem]' : 'px-2.5 py-1 text-[1.0625rem]'} ${meta.className}`}
+                        ${compact ? 'px-2 py-0.5 text-[1rem]' : 'px-2.5 py-1 text-ui-caption'} ${meta.className}`}
         >
             {meta.label}
         </span>
@@ -224,7 +224,7 @@ export function ResendButton({ row, onDone, size = 'sm' }: {
                     type="button"
                     onClick={send}
                     disabled={busy}
-                    className={`inline-flex items-center gap-1.5 rounded-lg bg-blue-600 ${h} text-[1.0625rem]
+                    className={`inline-flex items-center gap-1.5 rounded-lg bg-blue-600 ${h} text-ui-caption
                                 font-semibold text-white hover:bg-blue-700 disabled:opacity-60 whitespace-nowrap`}
                 >
                     {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
@@ -235,7 +235,7 @@ export function ResendButton({ row, onDone, size = 'sm' }: {
                     onClick={() => setAsking(false)}
                     disabled={busy}
                     className={`inline-flex items-center rounded-lg border border-slate-200 bg-white ${h}
-                                text-[1.0625rem] font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap`}
+                                text-ui-caption font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap`}
                 >
                     Cancel
                 </button>
@@ -249,7 +249,7 @@ export function ResendButton({ row, onDone, size = 'sm' }: {
             onClick={(e) => { e.stopPropagation(); setAsking(true); }}
             title={`Send this ${row.channel === 'whatsapp' ? 'WhatsApp message' : 'email'} again to ${row.recipient}`}
             className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white ${h}
-                        text-[1.0625rem] font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap`}
+                        text-ui-caption font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap`}
         >
             <RotateCcw className="w-3.5 h-3.5" /> Resend
         </button>
@@ -319,7 +319,7 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => {
     return (
         <div className="py-2.5 border-b border-slate-100 last:border-0">
             <dt className="text-[1rem] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">{label}</dt>
-            <dd className="text-[1.1875rem] text-slate-800 [overflow-wrap:anywhere] min-w-0">{children}</dd>
+            <dd className="text-ui-small text-slate-800 [overflow-wrap:anywhere] min-w-0">{children}</dd>
         </div>
     );
 };
@@ -339,12 +339,12 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                 <div className="flex flex-wrap items-center gap-2">
                     <ChannelIcon channel={row.channel} />
-                    <span className="text-[1.1875rem] font-semibold text-slate-900">{messageLabel(row.event)}</span>
+                    <span className="text-ui-small font-semibold text-slate-900">{messageLabel(row.event)}</span>
                     <DeliveryBadge state={state} />
                 </div>
-                <p className="text-[1.0625rem] text-slate-500 mt-2">{(STATE_META[state] || STATE_META.queued).hint}</p>
+                <p className="text-ui-caption text-slate-500 mt-2">{(STATE_META[state] || STATE_META.queued).hint}</p>
                 {row.channel === 'email' ? (
-                    <p className="text-[1.0625rem] text-slate-500 mt-1">
+                    <p className="text-ui-caption text-slate-500 mt-1">
                         Email has no delivery receipts: the furthest an email can be shown is "accepted" by the mail
                         server, or "failed" with the server's reason.
                     </p>
@@ -372,16 +372,16 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
                             : row.provider === 'smtp' ? 'SMTP mail server' : row.provider}
                 </Field>
                 <Field label="Provider message id">
-                    {row.providerMessageId ? <span className="font-mono text-[1.0625rem]">{row.providerMessageId}</span> : null}
+                    {row.providerMessageId ? <span className="font-mono text-ui-caption">{row.providerMessageId}</span> : null}
                 </Field>
                 <Field label="First attempted">{whenLabel(row.createdAt)}</Field>
                 <Field label="Attempts">{row.attempts ? String(row.attempts) : ''}</Field>
-                <Field label="Resent as">{row.resentAs ? <span className="font-mono text-[1.0625rem]">{row.resentAs}</span> : null}</Field>
-                <Field label="Resend of">{row.resendOf ? <span className="font-mono text-[1.0625rem]">{row.resendOf}</span> : null}</Field>
+                <Field label="Resent as">{row.resentAs ? <span className="font-mono text-ui-caption">{row.resentAs}</span> : null}</Field>
+                <Field label="Resend of">{row.resendOf ? <span className="font-mono text-ui-caption">{row.resendOf}</span> : null}</Field>
             </dl>
 
             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                <h3 className="text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-500 mb-3">Timeline</h3>
+                <h3 className="text-ui-caption font-semibold uppercase tracking-wider text-slate-500 mb-3">Timeline</h3>
                 {history.length ? (
                     <ol className="space-y-3">
                         {history.map((h, i) => (
@@ -395,7 +395,7 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
                                         <span className="ml-2 font-normal text-slate-500">{whenLabel(h?.at)}</span>
                                     </p>
                                     {h?.code || h?.title || h?.detail ? (
-                                        <p className="text-[1.0625rem] text-slate-600 [overflow-wrap:anywhere]">
+                                        <p className="text-ui-caption text-slate-600 [overflow-wrap:anywhere]">
                                             {[h?.code, h?.title, h?.detail].filter(Boolean).join(' · ')}
                                         </p>
                                     ) : null}
@@ -511,7 +511,7 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                             const s = data?.summary?.[ch];
                             return (
                                 <div key={ch} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm min-w-0">
-                                    <div className="flex items-center gap-1.5 text-[1.0625rem] font-semibold text-slate-600">
+                                    <div className="flex items-center gap-1.5 text-ui-caption font-semibold text-slate-600">
                                         <ChannelIcon channel={ch} /> {ch === 'email' ? 'Email' : 'WhatsApp'}
                                     </div>
                                     <div className="mt-2">
@@ -542,11 +542,11 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                                             <p className="text-[1.125rem] font-semibold text-slate-900 [overflow-wrap:anywhere]">
                                                 {messageLabel(row.event)}
                                             </p>
-                                            <p className="text-[1.0625rem] text-slate-500 [overflow-wrap:anywhere]">
+                                            <p className="text-ui-caption text-slate-500 [overflow-wrap:anywhere]">
                                                 {[row.recipientName, row.recipient].filter(Boolean).join(' · ')} · {whenLabel(row.createdAt)}
                                             </p>
                                             {reason ? (
-                                                <p className="text-[1.0625rem] text-rose-700 mt-0.5 [overflow-wrap:anywhere]">{reason}</p>
+                                                <p className="text-ui-caption text-rose-700 mt-0.5 [overflow-wrap:anywhere]">{reason}</p>
                                             ) : null}
                                         </div>
                                         <DeliveryBadge state={stateOf(row)} compact />
@@ -563,7 +563,7 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                             );
                         })}
                     </ul>
-                    <p className="flex items-start gap-2 text-[1.0625rem] text-slate-500">
+                    <p className="flex items-start gap-2 text-ui-caption text-slate-500">
                         <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-slate-400" />
                         Resend rebuilds the message from the booking as it stands now and sends it only to that
                         recipient, on that channel.

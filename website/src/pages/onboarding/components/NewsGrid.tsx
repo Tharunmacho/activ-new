@@ -103,7 +103,7 @@ function Picture({ article, tall = false }: { article: NewsArticle; tall?: boole
             ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br
                                 from-brand-50 to-brand-100">
-                    <span className="text-[1.0625rem] font-bold uppercase tracking-[0.18em]
+                    <span className="text-ui-caption font-bold uppercase tracking-[0.18em]
                                      text-brand-300">
                         ACTIV
                     </span>
@@ -214,14 +214,14 @@ export function NewsGrid({ articles }: { articles: NewsArticle[] }) {
                                 <Picture article={article} />
 
                                 <div className="flex flex-1 flex-col p-4 sm:p-6">
-                                    <h3 className="text-[1.1875rem] sm:text-[1.3125rem] font-extrabold leading-snug
+                                    <h3 className="text-ui-small sm:text-[1.3125rem] font-extrabold leading-snug
                                                    tracking-tight text-brand-900 line-clamp-3
                                                    transition-colors group-hover:text-brand-700">
                                         {article.title || 'Untitled article'}
                                     </h3>
 
                                     {article.summary && (
-                                        <p className="mt-2.5 text-[1.0625rem] leading-relaxed
+                                        <p className="mt-2.5 text-ui-caption leading-relaxed
                                                       text-gray-600 line-clamp-3">
                                             {article.summary}
                                         </p>

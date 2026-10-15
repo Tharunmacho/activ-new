@@ -156,13 +156,13 @@ export default function SuperAdminBookingEvents() {
                 <div className="min-w-0">
                     {/* An untitled event reads as "Untitled event", never as a
                         blank cell — a blank reads as a broken row. */}
-                    <div className="text-[1.25rem] font-semibold tracking-tight text-slate-900 break-words">
+                    <div className="text-ui-body font-semibold tracking-tight text-slate-900 break-words">
                         {row.title || 'Untitled event'}
                     </div>
                     {/* The meta line steps down but stays legible: 15px, not the
                         12px it was, which was a caption under a caption. */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5
-                                    text-[1.1875rem] text-slate-500">
+                                    text-ui-small text-slate-500">
                         <span className="inline-flex items-center gap-1">
                             <CalendarDays className="w-4 h-4" />
                             {/* An undated event says so. Omitting the line leaves
@@ -199,7 +199,7 @@ export default function SuperAdminBookingEvents() {
             sortValue: (row) => row.price,
             render: (row) => (
                 <div className="text-right">
-                    <div className="text-[1.25rem] font-semibold text-slate-900 tabular-nums">
+                    <div className="text-ui-body font-semibold text-slate-900 tabular-nums">
                         {row.bookingHistoryOnly ? '—' : row.price > 0 ? rupees(row.price) : 'Free'}
                     </div>
                     {row.hasMemberRate && (
@@ -207,7 +207,7 @@ export default function SuperAdminBookingEvents() {
                            one and not showing it here would leave the organiser
                            reconciling two different totals with no explanation
                            on screen for why some seats cost less. */
-                        <div className="mt-1 inline-flex items-center gap-1 text-[1.1875rem] font-semibold text-emerald-600">
+                        <div className="mt-1 inline-flex items-center gap-1 text-ui-small font-semibold text-emerald-600">
                             <BadgePercent className="w-4 h-4" />
                             Members {rupees(row.memberPrice)}
                         </div>
@@ -223,7 +223,7 @@ export default function SuperAdminBookingEvents() {
             sortValue: (row) => row.totalSeats,
             render: (row) => (row.totalSeats > 0
                 ? <AdminCount tone="rose">{row.totalSeats}</AdminCount>
-                : <span className="text-[1.1875rem] font-semibold text-slate-400">{row.bookingHistoryOnly ? '—' : 'Unlimited'}</span>),
+                : <span className="text-ui-small font-semibold text-slate-400">{row.bookingHistoryOnly ? '—' : 'Unlimited'}</span>),
         },
         {
             key: 'booked',
@@ -261,7 +261,7 @@ export default function SuperAdminBookingEvents() {
                             </div>
                         )}
                         {!!row.waitlistedSeats && (
-                            <span className="text-[1.0625rem] font-semibold text-amber-600">
+                            <span className="text-ui-caption font-semibold text-amber-600">
                                 +{row.waitlistedSeats} waiting
                             </span>
                         )}
@@ -277,14 +277,14 @@ export default function SuperAdminBookingEvents() {
             sortValue: (row) => row.collected,
             render: (row) => (
                 <div className="text-right">
-                    <div className="text-[1.25rem] font-semibold text-slate-900 tabular-nums">
+                    <div className="text-ui-body font-semibold text-slate-900 tabular-nums">
                         {rupees(row.collected)}
                     </div>
                     {row.pendingAmount > 0 && (
                         /* Owed, and labelled as owed. Adding it to the takings
                            would tell an organiser they hold money that is still
                            in somebody's wallet. */
-                        <div className="text-[1.1875rem] font-semibold text-amber-600 mt-1">
+                        <div className="text-ui-small font-semibold text-amber-600 mt-1">
                             {rupees(row.pendingAmount)} unpaid
                         </div>
                     )}
@@ -306,7 +306,7 @@ export default function SuperAdminBookingEvents() {
                        inside the button and the row grows a line taller than
                        every other row in the table. */
                     className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-blue-600
-                               text-[1.1875rem] font-semibold text-white shadow-sm hover:bg-blue-700
+                               text-ui-small font-semibold text-white shadow-sm hover:bg-blue-700
                                transition-colors whitespace-nowrap"
                 >
                     <Eye className="w-4 h-4" /> Booking Details
@@ -377,7 +377,7 @@ export default function SuperAdminBookingEvents() {
 
                     {error && (
                         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words
-                                        text-[1.25rem] font-semibold text-rose-700">
+                                        text-ui-body font-semibold text-rose-700">
                             {error}
                         </div>
                     )}
@@ -394,7 +394,7 @@ export default function SuperAdminBookingEvents() {
                                 onClick={() => setTab(value)}
                                 aria-pressed={tab === value}
                                 className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2
-                                            h-12 px-6 rounded-xl text-[1.25rem] font-semibold transition-colors
+                                            h-12 px-6 rounded-xl text-ui-body font-semibold transition-colors
                                             ${tab === value
                                         ? 'bg-white text-blue-600 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-800'}`}
@@ -441,7 +441,7 @@ export default function SuperAdminBookingEvents() {
                         toolbar={
                             <label className="inline-flex items-center gap-2.5 h-12 px-4 rounded-xl
                                               border border-slate-200 bg-white cursor-pointer
-                                              text-[1.25rem] font-semibold text-slate-600 whitespace-nowrap">
+                                              text-ui-body font-semibold text-slate-600 whitespace-nowrap">
                                 <input
                                     type="checkbox"
                                     checked={includeDrafts}
@@ -454,7 +454,7 @@ export default function SuperAdminBookingEvents() {
                         }
                     />
 
-                    <p className="text-[1.25rem] text-slate-500 leading-relaxed max-w-3xl">
+                    <p className="text-ui-body text-slate-500 leading-relaxed max-w-3xl">
                         <strong className="font-semibold text-slate-700">Booked</strong> counts seats on live
                         bookings taken through the public Book&nbsp;Now page together with members' own
                         registrations — both fill the same room. A checkout somebody abandoned holds its

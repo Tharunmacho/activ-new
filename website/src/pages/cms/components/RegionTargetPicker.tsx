@@ -378,11 +378,11 @@ export default function RegionTargetPicker({
             {!everyone ? (
                 <div className="mt-4">
                     {loading ? (
-                        <p className="flex items-center gap-2 text-[1.25rem] text-slate-500 dark:text-[#A1A1AA]">
+                        <p className="flex items-center gap-2 text-ui-body text-slate-500 dark:text-[#A1A1AA]">
                             <Loader2 size={14} className="animate-spin" /> Loading regions…
                         </p>
                     ) : loadError ? (
-                        <p className="flex items-start gap-2 text-[1.25rem] text-amber-700 dark:text-amber-400">
+                        <p className="flex items-start gap-2 text-ui-body text-amber-700 dark:text-amber-400">
                             <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                             <span>{loadError}</span>
                         </p>
@@ -470,7 +470,7 @@ export default function RegionTargetPicker({
                                      * already say what will be added.
                                      */
                                     className="inline-flex items-center gap-2 h-12 px-5 rounded-xl border
-                                               border-slate-300 bg-white text-[1.25rem] font-semibold
+                                               border-slate-300 bg-white text-ui-body font-semibold
                                                text-slate-700 transition-colors hover:bg-slate-50
                                                hover:border-slate-400 disabled:opacity-40
                                                dark:bg-transparent dark:text-neutral-200 dark:border-[#2a2a2a]"
@@ -479,7 +479,7 @@ export default function RegionTargetPicker({
                                 </button>
 
                                 {!draftState ? (
-                                    <span className="text-[1.25rem] text-slate-500 dark:text-[#A1A1AA]">
+                                    <span className="text-ui-body text-slate-500 dark:text-[#A1A1AA]">
                                         Start by choosing a state.
                                     </span>
                                 ) : null}
@@ -488,7 +488,7 @@ export default function RegionTargetPicker({
                             {/* ------------------------------------- chosen -- */}
                             {list.length > 0 ? (
                                 <div className="mt-5">
-                                    <p className="text-[1.0625rem] font-semibold uppercase
+                                    <p className="text-ui-caption font-semibold uppercase
                                                   tracking-wider text-slate-400 mb-2">
                                         Chosen regions
                                     </p>
@@ -498,7 +498,7 @@ export default function RegionTargetPicker({
                                                 key={`${target.state}|${target.district}|${target.block}`}
                                                 className="inline-flex max-w-full items-center gap-2 min-h-9 py-1 pl-3 pr-2 rounded-full
                                                            bg-blue-50 dark:bg-blue-500/10 text-blue-700
-                                                           dark:text-blue-300 text-[1.25rem] font-semibold"
+                                                           dark:text-blue-300 text-ui-body font-semibold"
                                             >
                                                 {/* Read left to right, widest first, so a
                                                     state-wide target cannot be mistaken for
@@ -588,12 +588,12 @@ function Step({
                 {/* The number is the instruction. Three fields in a row do not
                     read as a sequence without it. */}
                 <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center
-                                  text-[1.0625rem] font-bold shrink-0 ${locked
+                                  text-ui-caption font-bold shrink-0 ${locked
                         ? 'bg-slate-100 text-slate-400 dark:bg-[#1a1a1a]'
                         : 'bg-blue-600 text-white'}`}>
                     {n}
                 </span>
-                <span className={`text-[1.25rem] font-semibold ${locked
+                <span className={`text-ui-body font-semibold ${locked
                     ? 'text-slate-400 dark:text-[#6b6b6b]'
                     : 'text-slate-800 dark:text-neutral-200'}`}>
                     {label}
@@ -605,7 +605,7 @@ function Step({
                 disabled={locked || empty}
                 onChange={(e) => onChange(e.target.value)}
                 className="w-full h-12 rounded-xl border border-slate-200 dark:border-[#2a2a2a]
-                           bg-white dark:bg-black px-3.5 text-[1.25rem] text-slate-900 dark:text-neutral-100
+                           bg-white dark:bg-black px-3.5 text-ui-body text-slate-900 dark:text-neutral-100
                            outline-none transition-colors focus:border-blue-500
                            focus:ring-4 focus:ring-blue-500/10
                            disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed
@@ -621,7 +621,7 @@ function Step({
                 gone wrong — and nothing has: the step is simply next in the
                 order. It is the same weight as the other notes now, just the
                 one that happens to say what to do first. */}
-            <p className={`mt-2 text-[1.1875rem] ${locked
+            <p className={`mt-2 text-ui-small ${locked
                 ? 'text-slate-700 dark:text-neutral-300 font-semibold'
                 : 'text-slate-500 dark:text-[#A1A1AA]'}`}>
                 {locked ? lockedNote : empty ? placeholder : optionalNote || '\u00a0'}

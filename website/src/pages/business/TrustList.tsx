@@ -177,7 +177,7 @@ const TrustList = () => {
                             <h2 className="text-[1.5rem] sm:text-[1.75rem] font-bold text-slate-900">
                                 Your trust list opens with membership
                             </h2>
-                            <p className="mx-auto mt-2 max-w-xl text-[1.25rem] text-slate-600">
+                            <p className="mx-auto mt-2 max-w-xl text-ui-body text-slate-600">
                                 A trust list is the suppliers you have dealt with and would deal
                                 with again — kept in one place, and visible to the members who are
                                 deciding whether to deal with you.
@@ -207,7 +207,7 @@ const TrustList = () => {
                                                      rounded-xl bg-blue-50 text-blue-600 sm:mx-0">
                                         <Icon className="h-4 w-4" />
                                     </span>
-                                    <p className="text-[1.25rem] font-bold text-slate-900">{title}</p>
+                                    <p className="text-ui-body font-bold text-slate-900">{title}</p>
                                     <p className="text-[1.125rem] leading-relaxed text-slate-600">
                                         {detail}
                                     </p>
@@ -217,7 +217,7 @@ const TrustList = () => {
 
                         <div className="mt-5 sm:mt-8 text-center">
                             <Button
-                                className="h-12 w-full sm:w-auto bg-blue-600 px-8 text-[1.25rem] font-bold hover:bg-blue-700"
+                                className="h-12 w-full sm:w-auto bg-blue-600 px-8 text-ui-body font-bold hover:bg-blue-700"
                                 /* The unpaid dashboard, not the plans — the same
                                    destination Discover uses. The plans screen is a
                                    Pay button with no idea whether an admin has
@@ -243,7 +243,7 @@ const TrustList = () => {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Filter your trust list by name, type, place or product…"
-                            className="min-w-0 border-0 shadow-none focus-visible:ring-0 px-0 h-11 !text-[1.25rem]"
+                            className="min-w-0 border-0 shadow-none focus-visible:ring-0 px-0 h-11 !text-ui-body"
                         />
                         {query ? (
                             <button
@@ -291,17 +291,17 @@ const TrustList = () => {
                                                 )}
                                             </span>
                                             <span className="min-w-0 flex-1">
-                                                <span className="block font-bold text-[1.25rem] text-slate-900 truncate
+                                                <span className="block font-bold text-ui-body text-slate-900 truncate
                                                                  group-hover:text-blue-700 transition-colors">
                                                     {company.businessName || 'Company'}
                                                 </span>
-                                                <span className="block text-[1.25rem] text-slate-500 truncate">
+                                                <span className="block text-ui-body text-slate-500 truncate">
                                                     {company.businessType || '—'}
                                                 </span>
                                             </span>
                                         </button>
 
-                                        <dl className="mt-3 sm:mt-4 space-y-1.5 text-[1.25rem] min-w-0">
+                                        <dl className="mt-3 sm:mt-4 space-y-1.5 text-ui-body min-w-0">
                                             {location ? (
                                                 <div className="flex items-center gap-2 text-slate-600 min-w-0">
                                                     <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
@@ -349,7 +349,7 @@ const TrustList = () => {
 
                                         {company.note ? (
                                             <p className="mt-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2
-                                                          text-[1.1875rem] text-amber-900 break-words">
+                                                          text-ui-small text-amber-900 break-words">
                                                 {company.note}
                                             </p>
                                         ) : null}

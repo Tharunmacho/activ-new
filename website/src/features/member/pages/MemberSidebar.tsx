@@ -563,7 +563,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                             */}
                             <div className={`mb-2 flex items-center gap-2 ${collapsed ? 'px-0 justify-center' : 'px-3.5'}`}>
                                 {!collapsed && (
-                                    <p className="flex-1 min-w-0 text-[1.0625rem] font-bold uppercase
+                                    <p className="flex-1 min-w-0 text-ui-caption font-bold uppercase
                                                   tracking-[0.06em] text-slate-900 truncate">
                                         {group.label}
                                     </p>
@@ -639,7 +639,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                                             {!collapsed && item.badge !== undefined && item.badge !== null && (
                                                 <Badge
                                                     className={`h-5 min-w-5 flex items-center justify-center px-1.5
-                                                                text-[1.0625rem] font-bold shrink-0 ${
+                                                                text-ui-caption font-bold shrink-0 ${
                                                         active
                                                             ? 'bg-blue-600 text-white'
                                                             : 'bg-blue-50 text-blue-700'
@@ -709,7 +709,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                     <span aria-hidden="true" className="w-11 h-11 shrink-0" />
                     {!collapsed && (
                     <span className="min-w-0 flex-1">
-                        <span className="block text-[1.1875rem] font-semibold text-slate-900 truncate">
+                        <span className="block text-ui-small font-semibold text-slate-900 truncate">
                             {userName || 'Member'}
                         </span>
                         {/*
@@ -723,7 +723,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                           Falls back to the role when no address is stored, so the
                           second line is never empty.
                         */}
-                        <span className="block text-[1.0625rem] text-slate-500 truncate">
+                        <span className="block text-ui-caption text-slate-500 truncate">
                             {userEmail || (paymentStatus === 'completed' ? 'Member' : 'Applicant')}
                         </span>
                     </span>

@@ -19,7 +19,7 @@ const server = http.createServer((req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
   const assets = await readdir(path.join(root, 'dist/assets'));
-  css = await readFile(path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+  css = await readFile(process.env.TEST_CSS || path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
   const fixturePlugin = { name: 'fixture-api', setup(b) {
     const names = ['@/services/activApi', '@/services/memberHubApi', '@/lib/session', './BusinessPageShell'];
     b.onResolve({filter:/.*/}, args => names.includes(args.path) ? {path:args.path,namespace:'fixture'} : undefined);
@@ -39,7 +39,7 @@ try {
     createRoot(document.getElementById('root')).render(<MemoryRouter initialEntries={['/network/company/'+window.fixture._id]}><Routes><Route path="/network/company/:id" element={<Screen/>}/></Routes></MemoryRouter>);
   `}});
   bundle = built.outputFiles[0].text;
-  chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
+  chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--disable-gpu', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
   let port;
   for (let i=0;i<100;i++) { try { port=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0];if(port)break; } catch {} await pause(100); }
   assert(port, 'Chrome starts');
@@ -47,12 +47,15 @@ try {
   ws=new WebSocket(tabs.find(t=>t.type==='page').webSocketDebuggerUrl);await new Promise(resolve=>ws.addEventListener('open',resolve));
   let seq=0;const pending=new Map(), errors=[];
   ws.addEventListener('message',event=>{const m=JSON.parse(event.data);if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.text);pending.get(m.id)?.(m);pending.delete(m.id);});
-  const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>reject(Error(method)),15000);pending.set(id,r=>{clearTimeout(timer);resolve(r)});ws.send(JSON.stringify({id,method,params}));});
+  const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>reject(Error(method)),method === 'Page.captureScreenshot' ? 45000 : 15000);pending.set(id,r=>{clearTimeout(timer);resolve(r)});ws.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.result?.exceptionDetails)throw Error(r.result.exceptionDetails.exception?.description);return r.result?.result?.value;};
   const until=async expression=>{for(let i=0;i<100;i++){if(await evaluate(`Boolean(${expression})`))return;await pause(100);}throw Error(expression)};
   await send('Runtime.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}`});
   await until('document.body.innerText.includes("Engineering products and dependable")');
+  assert.equal(await evaluate('getComputedStyle([...document.querySelectorAll("h1")].at(-1)).fontSize'), '24px', 'public company uses shared mobile heading');
+  assert.equal(await evaluate('getComputedStyle(document.body).fontSize'), '16px', 'public and signed-in screens share base size');
+  assert(await evaluate('getComputedStyle(document.body).fontFamily.startsWith("Inter")'), 'public and signed-in screens share font family');
   assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
   assert(await evaluate('document.querySelector("img").getBoundingClientRect().width<=innerWidth'));
   assert(await evaluate('getComputedStyle(document.querySelector("img")).objectFit==="contain"'));
@@ -61,6 +64,7 @@ try {
   assert((await evaluate('window.shared.url')).endsWith('/network/company/111111111111111111111111'));
   if(process.env.TEST_ARTIFACTS){const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(path.join(process.env.TEST_ARTIFACTS,'website-business-public-mobile.png'),Buffer.from(shot.result.data,'base64'));}
   await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+  assert.equal(await evaluate('getComputedStyle([...document.querySelectorAll("h1")].at(-1)).fontSize'), '30px', 'public company uses shared desktop heading');
   assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
   if(process.env.TEST_ARTIFACTS){const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(path.join(process.env.TEST_ARTIFACTS,'website-business-public-desktop.png'),Buffer.from(shot.result.data,'base64'));}
   assert.deepEqual(errors,[]);

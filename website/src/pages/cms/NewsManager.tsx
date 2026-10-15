@@ -78,7 +78,7 @@ const dateValue = (value?: string | null) => {
 function StatusPill({ status }: { status?: string }) {
     const live = status === 'published';
     return (
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[1.0625rem] font-bold ${live
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-ui-caption font-bold ${live
             ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
             : 'bg-slate-100 text-slate-500 dark:bg-[#161616] dark:text-neutral-400'}`}
         >
@@ -105,18 +105,18 @@ function RowCard({ title, subtitle, status, onOpen, onRemove, badge }: {
             </span>
 
             <div className="!min-w-[9rem] flex-1">
-                <p className="truncate text-[1.25rem] font-bold text-slate-900 dark:text-white">
+                <p className="truncate text-ui-body font-bold text-slate-900 dark:text-white">
                     {title || 'Untitled'}
                 </p>
                 {subtitle && (
-                    <p className="truncate text-[1.0625rem] text-slate-500 dark:text-neutral-400">
+                    <p className="truncate text-ui-caption text-slate-500 dark:text-neutral-400">
                         {subtitle}
                     </p>
                 )}
             </div>
 
             {badge && (
-                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[1.0625rem]
+                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-ui-caption
                                  font-semibold text-slate-600 dark:bg-[#161616] dark:text-neutral-300">
                     {badge}
                 </span>
@@ -127,7 +127,7 @@ function RowCard({ title, subtitle, status, onOpen, onRemove, badge }: {
                 type="button"
                 onClick={onOpen}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5
-                           text-[1.0625rem] font-semibold text-blue-700 transition-colors
+                           text-ui-caption font-semibold text-blue-700 transition-colors
                            hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
             >
                 <Pencil className="h-3.5 w-3.5" /> Edit
@@ -249,7 +249,7 @@ export default function NewsManager() {
                         type="button"
                         onClick={() => setArticle(null)}
                         className="mb-6 inline-flex items-center gap-2 rounded-lg border
-                                   border-slate-300 px-3.5 py-2 text-[1.0625rem] font-semibold
+                                   border-slate-300 px-3.5 py-2 text-ui-caption font-semibold
                                    text-slate-600 transition-colors hover:border-[#2563EB]
                                    hover:text-[#2563EB] dark:border-[#2a2a2a] dark:text-neutral-300"
                     >
@@ -457,14 +457,14 @@ export default function NewsManager() {
                             key={key}
                             type="button"
                             onClick={() => setTab(key)}
-                            className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-[1.25rem] font-semibold
+                            className={`-mb-px border-b-2 px-3 sm:px-5 py-3 text-ui-body font-semibold
                                         transition-colors ${tab === key
                                 ? 'border-blue-600 text-blue-700 dark:text-blue-400'
                                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-neutral-200'}`}
                         >
                             {label}
                             {count !== null && (
-                                <span className="ml-2 text-[1.1875rem] text-slate-400">{count}</span>
+                                <span className="ml-2 text-ui-small text-slate-400">{count}</span>
                             )}
                         </button>
                     ))}
@@ -588,7 +588,7 @@ export default function NewsManager() {
                                 href="/news"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 text-[1.0625rem]
+                                className="inline-flex items-center gap-1.5 text-ui-caption
                                            font-semibold text-blue-700 dark:text-blue-400"
                             >
                                 View the newsroom <ExternalLink className="h-3.5 w-3.5" />

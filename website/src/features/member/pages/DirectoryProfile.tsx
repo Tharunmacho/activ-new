@@ -196,7 +196,7 @@ export default function DirectoryProfile() {
                         <button
                             type="button"
                             onClick={() => navigate('/member/directory')}
-                            className="text-[1.0625rem] font-semibold text-blue-600 hover:underline"
+                            className="text-ui-caption font-semibold text-blue-600 hover:underline"
                         >
                             Back to ACTIV Network
                         </button>
@@ -226,7 +226,7 @@ export default function DirectoryProfile() {
                 <button
                     type="button"
                     onClick={() => navigate('/member/directory')}
-                    className="text-[1.0625rem] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="text-ui-caption font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                 >
                     All members
                 </button>
@@ -270,21 +270,21 @@ export default function DirectoryProfile() {
                         <div className="mt-4 grid gap-x-6 sm:gap-x-8 gap-y-3 sm:gap-y-4 grid-cols-1 sm:grid-cols-2">
                             {where ? (
                                 <div className="min-w-0">
-                                    <p className="flex items-center gap-1.5 text-[1.0625rem] font-extrabold
+                                    <p className="flex items-center gap-1.5 text-ui-caption font-extrabold
                                                   uppercase tracking-widest text-slate-400">
                                         <MapPin className="w-3.5 h-3.5 shrink-0" /> Region
                                     </p>
-                                    <p className="mt-1 text-[1.1875rem] font-bold text-slate-900 break-words">{where}</p>
+                                    <p className="mt-1 text-ui-small font-bold text-slate-900 break-words">{where}</p>
                                 </div>
                             ) : null}
 
                             {entry.memberSince ? (
                                 <div className="min-w-0">
-                                    <p className="flex items-center gap-1.5 text-[1.0625rem] font-extrabold
+                                    <p className="flex items-center gap-1.5 text-ui-caption font-extrabold
                                                   uppercase tracking-widest text-slate-400">
                                         <CalendarDays className="w-3.5 h-3.5 shrink-0" /> Member since
                                     </p>
-                                    <p className="mt-1 text-[1.1875rem] font-bold text-slate-900 tabular-nums">
+                                    <p className="mt-1 text-ui-small font-bold text-slate-900 tabular-nums">
                                         {formatDate(entry.memberSince)}
                                     </p>
                                 </div>
@@ -297,7 +297,7 @@ export default function DirectoryProfile() {
                                     <span
                                         key={sector}
                                         className="inline-flex h-7 items-center rounded-full bg-blue-50 px-3
-                                                   text-[1.0625rem] font-bold uppercase tracking-[0.08em]
+                                                   text-ui-caption font-bold uppercase tracking-[0.08em]
                                                    text-blue-700"
                                     >
                                         {sector}
@@ -330,7 +330,7 @@ export default function DirectoryProfile() {
                           */}
                         <div className="mt-5">
                             {isSelf ? (
-                                <p className="text-[1.0625rem] font-semibold text-slate-500">
+                                <p className="text-ui-caption font-semibold text-slate-500">
                                     This is how other members see your profile.
                                 </p>
                             ) : (
@@ -341,7 +341,7 @@ export default function DirectoryProfile() {
                                     ? startConversation()
                                     : setAskedToConnect(true))}
                                 className="inline-flex w-full sm:w-auto items-center justify-center gap-2 h-11 px-5 rounded-xl
-                                           bg-blue-600 text-[1.1875rem] font-bold text-white shadow-sm
+                                           bg-blue-600 text-ui-small font-bold text-white shadow-sm
                                            transition-colors hover:bg-blue-700 disabled:opacity-60"
                             >
                                 {!access.membershipActive
@@ -354,21 +354,21 @@ export default function DirectoryProfile() {
                             )}
 
                             {openError ? (
-                                <p className="mt-2 text-[1.0625rem] font-medium text-amber-700">{openError}</p>
+                                <p className="mt-2 text-ui-caption font-medium text-amber-700">{openError}</p>
                             ) : null}
 
                             {askedToConnect && !access.membershipActive ? (
                                 <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                                    <p className="text-[1.0625rem] font-bold text-slate-900">
+                                    <p className="text-ui-caption font-bold text-slate-900">
                                         {MEMBERS_ONLY_COPY.title}
                                     </p>
-                                    <p className="text-[1.0625rem] text-slate-600 mt-1 leading-relaxed">
+                                    <p className="text-ui-caption text-slate-600 mt-1 leading-relaxed">
                                         {MEMBERS_ONLY_COPY.short} {cta.detail}
                                     </p>
                                     <button
                                         type="button"
                                         onClick={() => navigate(cta.to)}
-                                        className="inline-flex items-center gap-1 mt-3 text-[1.0625rem]
+                                        className="inline-flex items-center gap-1 mt-3 text-ui-caption
                                                    font-bold text-blue-700 hover:underline"
                                     >
                                         {cta.label} →
@@ -409,11 +409,11 @@ export default function DirectoryProfile() {
                                         )}
 
                                         <div className="min-w-0">
-                                            <p className="text-[1.1875rem] font-semibold text-slate-900 truncate">
+                                            <p className="text-ui-small font-semibold text-slate-900 truncate">
                                                 {company.businessName}
                                             </p>
                                             {company.businessType ? (
-                                                <p className="text-[1.0625rem] text-blue-700 font-medium">
+                                                <p className="text-ui-caption text-blue-700 font-medium">
                                                     {company.businessType}
                                                 </p>
                                             ) : null}
@@ -476,14 +476,14 @@ export default function DirectoryProfile() {
                                         </div>
 
                                         <div className="p-2.5">
-                                            <p className="text-[1.0625rem] font-semibold text-slate-900 truncate">
+                                            <p className="text-ui-caption font-semibold text-slate-900 truncate">
                                                 {product.name}
                                             </p>
-                                            <p className="text-[1.0625rem] text-slate-500 truncate">
+                                            <p className="text-ui-caption text-slate-500 truncate">
                                                 {product.category}
                                             </p>
                                             {product.price > 0 ? (
-                                                <p className="text-[1.0625rem] font-bold text-blue-700 mt-0.5 tabular-nums">
+                                                <p className="text-ui-caption font-bold text-blue-700 mt-0.5 tabular-nums">
                                                     ₹{product.price.toLocaleString('en-IN')}
                                                 </p>
                                             ) : null}

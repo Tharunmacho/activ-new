@@ -277,8 +277,8 @@ const MyCompanies = () => {
                     <h3 className={`${CARD_TITLE} text-slate-900 truncate`}>
                       {companyName(company)}
                     </h3>
-                    <p className="text-[1.25rem] text-slate-500 truncate">{company.businessType}</p>
-                    <p className="text-[1.25rem] text-slate-500 truncate">{company.mobileNumber}</p>
+                    <p className="text-ui-body text-slate-500 truncate">{company.businessType}</p>
+                    <p className="text-ui-body text-slate-500 truncate">{company.mobileNumber}</p>
                   </div>
                 </div>
 

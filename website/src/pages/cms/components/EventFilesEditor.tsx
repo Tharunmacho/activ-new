@@ -72,7 +72,7 @@ export default function EventFilesEditor({
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-[#1F1F1F] dark:bg-[#0A0A0A]">
-            <h3 className="flex items-center gap-2 text-[1.25rem] font-extrabold text-slate-900 dark:text-white">
+            <h3 className="flex items-center gap-2 text-ui-body font-extrabold text-slate-900 dark:text-white">
                 <Paperclip className="h-5 w-5 text-blue-600" /> WhatsApp group, documents &amp; video
             </h3>
             <p className="mt-1 text-[1.05rem] text-slate-500 dark:text-neutral-400">

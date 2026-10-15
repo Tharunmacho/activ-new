@@ -39,7 +39,7 @@ import {
 const BANNER_PROSE = 'text-[1em] leading-relaxed font-semibold text-gray-200';
 
 /** The highlight card's type, for the rows added to that card. */
-const CARD_PROSE = 'text-[1.0625rem] font-semibold leading-snug';
+const CARD_PROSE = 'text-ui-caption font-semibold leading-snug';
 
 /**
  * The landing banner.
@@ -720,7 +720,7 @@ export function CarouselSection() {
                                     <p className={`max-sm:text-[1.85rem] max-sm:leading-tight ${STAT_FIGURE} text-brand-800`}>
                                         <CountUp value={card!.value} />
                                         {card!.caption && (
-                                            <span className="block text-[0.95rem] sm:text-[1.25rem] font-medium text-gray-500 sm:mt-1">{card!.caption}</span>
+                                            <span className="block text-[0.95rem] sm:text-ui-body font-medium text-gray-500 sm:mt-1">{card!.caption}</span>
                                         )}
                                     </p>
                                 </div>

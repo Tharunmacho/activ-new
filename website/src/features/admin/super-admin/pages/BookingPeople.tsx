@@ -73,7 +73,7 @@ function Initials({ name, email }: { name: string; email: string }) {
         .toUpperCase() || '?';
 
     return (
-        <span className="w-11 h-11 rounded-xl bg-blue-600 text-white text-[1.1875rem] font-semibold
+        <span className="w-11 h-11 rounded-xl bg-blue-600 text-white text-ui-small font-semibold
                          flex items-center justify-center shrink-0">
             {letters}
         </span>
@@ -143,11 +143,11 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
                 <div className="flex items-center gap-2.5 min-w-0">
                     <Initials name={row.name} email={row.email} />
                     <div className="min-w-0">
-                        <div className="text-[1.25rem] font-semibold tracking-tight
+                        <div className="text-ui-body font-semibold tracking-tight
                                         text-slate-900 truncate">
                             {row.name || <span className="text-slate-400 italic">No name given</span>}
                         </div>
-                        <div className="text-[1.1875rem] text-slate-500 truncate mt-0.5">{row.email}</div>
+                        <div className="text-ui-small text-slate-500 truncate mt-0.5">{row.email}</div>
                     </div>
                 </div>
             ),
@@ -178,7 +178,7 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
                             Guest
                         </AdminChip>}
                     {row.hasMemberRate && (
-                        <span className="inline-flex items-center gap-1 text-[1.0625rem] font-semibold text-emerald-600">
+                        <span className="inline-flex items-center gap-1 text-ui-caption font-semibold text-emerald-600">
                             <BadgePercent className="w-3.5 h-3.5" /> Member rate
                         </span>
                     )}
@@ -193,10 +193,10 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
             sortValue: (row) => row.bookings,
             render: (row) => (
                 <div className="text-center">
-                    <span className="text-[1.25rem] font-semibold text-slate-900 tabular-nums">
+                    <span className="text-ui-body font-semibold text-slate-900 tabular-nums">
                         {row.bookings}
                     </span>
-                    <div className="text-[1.0625rem] text-slate-400 font-semibold mt-0.5">
+                    <div className="text-ui-caption text-slate-400 font-semibold mt-0.5">
                         {/* Bookings, events and seats are three different numbers
                             and a person reading one will assume the others. One
                             booking can cover four seats at one event. */}
@@ -213,11 +213,11 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
             sortValue: (row) => row.paid,
             render: (row) => (
                 <div className="text-right">
-                    <div className="text-[1.25rem] font-semibold text-slate-900 tabular-nums">
+                    <div className="text-ui-body font-semibold text-slate-900 tabular-nums">
                         {rupees(row.paid)}
                     </div>
                     {row.pending > 0 && (
-                        <div className="text-[1.1875rem] font-semibold text-amber-600 mt-1">
+                        <div className="text-ui-small font-semibold text-amber-600 mt-1">
                             {rupees(row.pending)} unpaid
                         </div>
                     )}
@@ -234,7 +234,7 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
             // compared as a string sorts by day-of-month.
             sortValue: (row) => new Date(row.lastBookedAt || 0).getTime(),
             render: (row) => (
-                <span className="text-slate-600 text-[1.25rem]">{formatDay(row.lastBookedAt) || '—'}</span>
+                <span className="text-slate-600 text-ui-body">{formatDay(row.lastBookedAt) || '—'}</span>
             ),
         },
         {
@@ -250,7 +250,7 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
                     type="button"
                     onClick={(e) => { e.stopPropagation(); openPerson(row); }}
                     className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-emerald-600
-                               text-[1.1875rem] font-semibold text-white shadow-sm hover:bg-emerald-700
+                               text-ui-small font-semibold text-white shadow-sm hover:bg-emerald-700
                                transition-colors whitespace-nowrap"
                 >
                     <Eye className="w-4 h-4" /> View
@@ -263,7 +263,7 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
         <>
             {error && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 sm:px-5 py-3 sm:py-4 break-words
-                                text-[1.25rem] font-semibold text-rose-700 mb-4">
+                                text-ui-body font-semibold text-rose-700 mb-4">
                     {error}
                 </div>
             )}
@@ -281,7 +281,7 @@ export default function BookingPeople({ filters = NO_FILTERS }: { filters?: Book
                 empty="Nobody has booked an event yet."
             />
 
-            <p className="text-[1.25rem] text-slate-500 leading-relaxed max-w-3xl mt-4">
+            <p className="text-ui-body text-slate-500 leading-relaxed max-w-3xl mt-4">
                 One row per person, matched on their email address — so somebody who booked once as a
                 guest and once signed in appears once, with their totals added together.{' '}
                 <strong className="font-semibold text-slate-700">Bookings, events and seats are three
@@ -340,7 +340,7 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                         <h2 className={`${CARD_TITLE} text-slate-900 truncate`}>
                             {person.name || 'No name given'}
                         </h2>
-                        <p className="text-[1.25rem] text-slate-500 truncate mt-0.5">{person.email}</p>
+                        <p className="text-ui-body text-slate-500 truncate mt-0.5">{person.email}</p>
                     </div>
                     <button
                         type="button"
@@ -357,7 +357,7 @@ function PersonDetail({ person, bookings, loading, onClose }: {
 
                     {/* ------------------------------------------- contact */}
                     <AdminCard icon={<UserRound className="w-5 h-5" />} title="Contact">
-                        <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[1.1875rem] min-w-0">
+                        <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-ui-small min-w-0">
                             <Row icon={<Mail className="w-4 h-4" />} label="Email" value={person.email} />
                             <Row icon={<Phone className="w-4 h-4" />} label="Mobile" value={person.phone} />
                             <Row
@@ -388,7 +388,7 @@ function PersonDetail({ person, bookings, loading, onClose }: {
 
                     {person.pending > 0 && (
                         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 sm:px-5 py-3 sm:py-4
-                                        text-[1.25rem] font-semibold text-amber-800">
+                                        text-ui-body font-semibold text-amber-800">
                             {rupees(person.pending)} is owed on a booking that was never completed.
                         </div>
                     )}
@@ -407,7 +407,7 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                         )}
 
                         {!loading && !bookings?.length && (
-                            <p className="px-4 sm:px-6 py-10 text-[1.25rem] font-semibold text-slate-500 text-center">
+                            <p className="px-4 sm:px-6 py-10 text-ui-body font-semibold text-slate-500 text-center">
                                 No bookings found for this address.
                             </p>
                         )}
@@ -418,11 +418,11 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                                     <li key={booking.bookingRef} className="px-4 sm:px-6 py-3.5 sm:py-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-[1.25rem] font-semibold tracking-tight
+                                                <p className="text-ui-body font-semibold tracking-tight
                                                               text-slate-900 truncate">
                                                     {booking.eventTitle || 'Untitled event'}
                                                 </p>
-                                                <p className="text-[1.1875rem] text-slate-500 mt-1 font-mono break-all">
+                                                <p className="text-ui-small text-slate-500 mt-1 font-mono break-all">
                                                     {booking.bookingRef}
                                                     {booking.eventStartAt
                                                         ? ` · ${formatDay(booking.eventStartAt)}`
@@ -430,11 +430,11 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                                                 </p>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <p className="text-[1.25rem] font-semibold text-slate-900
+                                                <p className="text-ui-body font-semibold text-slate-900
                                                               tabular-nums">
                                                     {booking.totalAmount > 0 ? rupees(booking.totalAmount) : 'Free'}
                                                 </p>
-                                                <p className="text-[1.1875rem] text-slate-500 mt-0.5">
+                                                <p className="text-ui-small text-slate-500 mt-0.5">
                                                     {booking.noOfPersons} seat{booking.noOfPersons === 1 ? '' : 's'}
                                                 </p>
                                             </div>
@@ -458,7 +458,7 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                                                 <AdminChip tone="amber">Waiting list</AdminChip>
                                             )}
                                             {booking.memberRateApplied && (
-                                                <span className="inline-flex items-center gap-1 text-[1.0625rem]
+                                                <span className="inline-flex items-center gap-1 text-ui-caption
                                                                  font-semibold text-emerald-600">
                                                     <BadgePercent className="w-3.5 h-3.5" />
                                                     Member rate
@@ -481,7 +481,7 @@ function PersonDetail({ person, bookings, loading, onClose }: {
                                                 .map((p) => (p.name || '').trim())
                                                 .filter(Boolean);
                                             return names.length ? (
-                                                <p className="text-[1.1875rem] text-slate-500 mt-2.5">
+                                                <p className="text-ui-small text-slate-500 mt-2.5">
                                                     {names.join(' · ')}
                                                 </p>
                                             ) : null;
@@ -520,10 +520,10 @@ function Row({ icon, label, value }: { icon: React.ReactNode; label: string; val
         <div className="flex items-start gap-2.5 min-w-0">
             <span className="text-slate-400 mt-0.5 shrink-0">{icon}</span>
             <div className="min-w-0">
-                <dt className="text-[1.0625rem] font-semibold uppercase tracking-wider text-slate-400">
+                <dt className="text-ui-caption font-semibold uppercase tracking-wider text-slate-400">
                     {label}
                 </dt>
-                <dd className="text-[1.25rem] font-semibold text-slate-800 break-words mt-0.5">{value}</dd>
+                <dd className="text-ui-body font-semibold text-slate-800 break-words mt-0.5">{value}</dd>
             </div>
         </div>
     );
@@ -534,7 +534,7 @@ function Tile({ icon, label, value }: { icon: React.ReactNode; label: string; va
         <div className={`${ADMIN_CARD} p-3.5`}>
             <div className="flex items-center gap-1.5 text-slate-400">
                 {icon}
-                <span className="text-[1.0625rem] font-semibold uppercase tracking-wider">{label}</span>
+                <span className="text-ui-caption font-semibold uppercase tracking-wider">{label}</span>
             </div>
             <p className="text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight text-slate-900
                           mt-1.5 tabular-nums [overflow-wrap:anywhere]">{value}</p>
