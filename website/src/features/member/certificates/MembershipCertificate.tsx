@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import {
     Building2, IdCard, UserRound, FileBadge, Receipt, Briefcase, MapPin, CalendarDays, CalendarCheck, FileText, Globe, BadgeCheck,
 } from 'lucide-react';
@@ -150,6 +151,18 @@ function Rules({ children, width = 'w-24', className = '' }: { children: React.R
 }
 
 export default function MembershipCertificate({ cert }: { cert: Certificate }) {
+    const contentRef = useRef<HTMLDivElement>(null);
+    const [contentScale, setContentScale] = useState(1);
+    useLayoutEffect(() => {
+        const content = contentRef.current;
+        if (!content) return;
+        // Keep every supplied fact above the fixed signatory row, including long names.
+        const fit = () => setContentScale(Math.min(1, 582 / Math.max(1, content.offsetHeight)));
+        fit();
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit);
+        observer?.observe(content);
+        return () => observer?.disconnect();
+    }, [cert]);
     const member = cert.member || ({} as Certificate['member']);
     const company = member.companyName || member.name || '—';
     const platinum = cert.membershipTier === 'platinum';
@@ -208,6 +221,8 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
             <div className="relative flex w-full flex-1 flex-col overflow-hidden" style={{ background: '#FBFCFF', color: INK }}>
                 <Frame />
 
+                <div ref={contentRef} data-testid="membership-content-block" className="absolute inset-x-0 top-0 origin-top"
+                     style={{ transform: `scale(${contentScale})` }}>
                 {/* ============================================ head: the mark, centred, and whose it is */}
                 <header className="relative z-10 flex flex-col items-center px-[150px] pt-[38px] text-center">
                     <img src="/logo_ACTIVian-removebg-preview.png" alt={ASSOCIATION_NAME} className="h-[66px] w-auto object-contain" />
@@ -260,13 +275,14 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
                         Together <span style={{ color: GOLD }}>•</span> Trade <span style={{ color: GOLD }}>•</span> Grow
                     </p>
                 </Rules>
+                </div>
 
                 {/* ============================================ signature · seal · date */}
-                <div className="absolute left-[190px] top-[615px] z-10 w-[280px] text-center">
-                    <SignatureInk className="h-[56px]" />
+                <div data-testid="membership-signature-block" className="absolute left-[190px] top-[594px] z-10 w-[280px] text-center">
+                    <p className="text-[15px] leading-[20px] font-semibold" style={{ color: NAVY }}>Founder and Chairperson</p>
+                    <SignatureInk className="h-[86px]" />
                     <span className="mt-0.5 block h-px w-full" style={{ background: NAVY_MID }} />
-                    <p className="mt-1 text-[14px] font-bold" style={{ color: NAVY }}>THAMIZHAZHAGAN NALLAIYAN</p>
-                    <p className="text-[15px] font-semibold" style={{ color: NAVY }}>Founder and Chairperson</p>
+                    <p className="mt-[3px] text-[13px] leading-[18px] font-bold" style={{ color: NAVY }}>THAMIZHAZHAGAN NALLAIYAN</p>
                 </div>
 
                 <div className="absolute left-1/2 top-[606px] z-20 flex -translate-x-1/2 flex-col items-center">
