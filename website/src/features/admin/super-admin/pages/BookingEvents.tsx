@@ -176,7 +176,7 @@ export default function SuperAdminBookingEvents() {
                             </span>
                         )}
                         {!!row.category && <AdminChip tone="violet">{row.category}</AdminChip>}
-                        {row.historyCategory === 'deleted' ? <AdminChip tone="slate">Deleted event · bookings retained</AdminChip>
+                        {row.historyCategory === 'deleted' ? <AdminChip tone="slate">Old event · bookings retained</AdminChip>
                             : row.historyCategory === 'past' ? <AdminChip tone="slate">Completed</AdminChip>
                             : row.status !== 'published' && <AdminChip tone="slate">Draft</AdminChip>}
                         {!row.registrationEnabled && (
@@ -410,12 +410,12 @@ export default function SuperAdminBookingEvents() {
                                 onClick={() => setSearchParams({ ...filters, history: value }, { replace: true })}
                                 className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-base font-semibold ${history === value
                                     ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
-                                {value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Deleted'}
+                                {value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Old'}
                                 <span className="tabular-nums">{historyTotals?.[value]?.events || 0}</span>
                             </button>
                         ))}
                     </div>
-                    <p className="text-base text-slate-500">Current shows upcoming and ongoing events. Completed events appear in Past. Manually removed events appear in Deleted. Booking and contact details are retained in every view.</p>
+                    <p className="text-base text-slate-500">Current shows upcoming and ongoing events. Completed events appear in Past. Manually removed events appear in Old. Booking and contact details are retained in every view.</p>
                     <BookingFilters value={filters} options={options} onChange={setFilters} />
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm text-slate-500">Event totals show all bookings for matching events. People and Excel use the selected registration filters.</p>

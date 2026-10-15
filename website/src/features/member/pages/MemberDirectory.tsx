@@ -1,3 +1,5 @@
+import StudentNetworkingGate from '@/features/member/components/StudentNetworkingGate';
+import { useNetworkingAccess } from '@/features/member/useNetworkingAccess';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -36,6 +38,7 @@ const emptyFilters: DirectoryFilters = {
 };
 
 export default function MemberDirectory() {
+    const networking = useNetworkingAccess();
     /* The directory is a membership benefit — see the guard in the render. */
     const { isPaid } = useMembershipGate();
 
@@ -245,6 +248,7 @@ export default function MemberDirectory() {
     const homeLabel = [homeRegion.block, homeRegion.district].filter(Boolean).join(', ')
         || homeRegion.state;
 
+    if (networking.student) return <MemberPageShell title="Grow your network"><StudentNetworkingGate /></MemberPageShell>;
     return (
         <MemberPageShell
             title="ACTIV Network"

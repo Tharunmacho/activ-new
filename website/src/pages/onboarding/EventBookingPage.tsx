@@ -1,4 +1,5 @@
 import api from '@/services/api';
+import { onlineRegistrationLink } from '@/lib/onlineEvent';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -970,8 +971,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
         },
         {
             icon: <MapPin size={16} />,
-            label: 'Location',
-            value: [event.venue, event.venueAddress].filter(Boolean).join(' · ') || 'To be announced',
+            label: event.mode === 'online' ? 'Online event' : 'Location',
+            value: event.mode === 'online'
+                ? [event.onlinePlatform || 'Online', 'Joining details are provided with your confirmed booking'].join(' · ')
+                : [event.venue, event.venueAddress].filter(Boolean).join(' · ') || 'Venue to be announced',
         },
     ];
 
@@ -2053,7 +2056,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 {settled && confirmed?.mode === 'online' && (
                     <div className="mt-7 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-4 sm:px-5 sm:py-5 text-left">
                         <p className="text-[1.0625rem] font-extrabold uppercase tracking-widest text-emerald-700">
-                            Register for this webinar
+                            Your online event
                         </p>
                         {confirmed.onlineUrl ? (
                             <>
@@ -2070,13 +2073,13 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                                bg-emerald-600 px-5 text-[1.25rem] font-bold text-white
                                                transition-colors hover:bg-emerald-700"
                                 >
-                                    <Video size={16} /> Complete your registration
+                                    <Video size={16} /> {onlineRegistrationLink(confirmed.onlineUrl) ? 'Complete platform registration' : 'Join online event'}
                                 </a>
                                 <p className="mt-3 break-all text-[1.25rem] font-semibold text-emerald-800/80">
                                     {confirmed.onlineUrl}
                                 </p>
                                 <p className="mt-2 text-[1.25rem] font-semibold text-emerald-700/80">
-                                    Once you register, your personal joining link is emailed to you.
+                                    {onlineRegistrationLink(confirmed.onlineUrl) ? 'Complete the platform form and follow its instructions to receive your personal joining link.' : 'Open this link at the event start time. Please keep it private.'}
                                 </p>
                             </>
                         ) : (
@@ -2084,7 +2087,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                 {confirmed.onlinePlatform
                                     ? `This event runs on ${confirmed.onlinePlatform}. `
                                     : 'This event is online. '}
-                                The registration link will be shared with you soon.
+                                The organiser has not added the joining details yet. Check this booking again or contact the event team.
                             </p>
                         )}
                     </div>

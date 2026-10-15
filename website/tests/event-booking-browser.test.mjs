@@ -37,7 +37,7 @@ try {
         import EventBookingPage from './src/pages/onboarding/EventBookingPage';
         window.eventFixture={id:'fixture',title:'Conference fixture',startAt:'2030-10-23T03:30:00Z',endAt:'2030-10-23T11:30:00Z',mode:'offline',venue:'Chennai',amount:0,price:0,capacity:100,seatsLeft:100,maxPerBooking:10,registrationFields:[{key:'meal',label:'Meal preference',type:'select',required:true,options:['Vegetarian','Other']},{key:'consent',label:'Confirm attendance',type:'checkbox',required:true}]};
         window.bookingFixture={bookingRef:'FIXTURE-REF',eventId:'fixture',eventTitle:'Conference fixture',eventStartAt:window.eventFixture.startAt,status:'active',payment:{status:'not_required'},bookedBy:{name:'Booker',email:'booker@example.test',phone:'9000000001'},participants:[{name:'Booker'}],noOfPersons:1,unitAmount:0,totalAmount:0,responses:[{key:'meal',label:'Meal preference',value:'Vegetarian'}],passes:[{index:0,name:'Booker',registrationNo:'FIXTURE-REF-P1',url:'https://example.test/checkin/'+('a'.repeat(40))}]};
-        createRoot(document.getElementById('root')).render(<MemoryRouter initialEntries={['/events/fixture/book']}><Routes><Route path='/events/:id/book' element={<EventBookingPage chrome='member'/>}/></Routes></MemoryRouter>);
+        const root=createRoot(document.getElementById('root'));let version=0;window.mountBooking=(ref='')=>root.render(<MemoryRouter key={++version} initialEntries={['/events/fixture/book'+(ref?'?ref='+ref:'')]}><Routes><Route path='/events/:id/book' element={<EventBookingPage chrome='member'/>}/></Routes></MemoryRouter>);window.mountBooking();
     ` } })).outputFiles[0].text;
     chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
     let port;
@@ -90,8 +90,19 @@ try {
     assert(await evaluate('window.savedBody.participants.every(p=>p.name&&p.email&&p.phone)'));
     assert(await evaluate('document.body.textContent.includes("FIXTURE-REF-P1")'));
     if (css) assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'mobile ticket fits viewport');
+    await evaluate("window.eventFixture={...window.eventFixture,mode:'online',onlinePlatform:'Google Meet',venue:''};window.mountBooking()");
+    await until('document.body.textContent.includes("Online event")');
+    assert(await evaluate('document.body.textContent.includes("Google Meet")'));
+    assert(!(await evaluate('document.body.textContent.includes("To be announced")')));
+    await evaluate("window.bookingFixture={...window.bookingFixture,mode:'online',onlinePlatform:'Google Meet',onlineUrl:'https://meet.google.com/aaa-bbbb-ccc'};window.mountBooking('FIXTURE-REF')");
+    await until('document.body.textContent.includes("Join online event")');
+    assert(!(await evaluate('document.body.textContent.includes("personal joining link is emailed")')));
+    await evaluate("window.bookingFixture={...window.bookingFixture,onlinePlatform:'Zoom',onlineUrl:'https://zoom.us/meeting/register/example'};window.mountBooking('FIXTURE-REF')");
+    await until('document.body.textContent.includes("Complete platform registration")');
+    await evaluate("window.bookingFixture={...window.bookingFixture,onlineUrl:''};window.mountBooking('FIXTURE-REF')");
+    await until('document.body.textContent.includes("organiser has not added the joining details")');
     assert.deepEqual(errors, []);
-    console.log('PASS: website event questions, required validation, review/edit persistence, server-only amount, confirmed signed-pass presentation on mobile viewport.');
+    console.log('PASS: website event questions, required validation, review/edit persistence, server-only amount, confirmed signed passes, online meeting/registration actions and missing-link guidance on mobile viewport.');
     await send('Browser.close');
 } finally {
     ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

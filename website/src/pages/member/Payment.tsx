@@ -48,7 +48,7 @@ const KIND_BENEFITS: Record<'student' | 'aspirant' | 'business', { Icon: typeof 
     student: [
         { Icon: Handshake, title: 'Mentorship', text: 'Guidance from established ACTIV entrepreneurs while you study.' },
         { Icon: CalendarDays, title: 'Events & workshops', text: 'Invitations to conclaves, seminars and skill workshops.' },
-        { Icon: Users, title: 'Member network', text: 'The ACTIV Network — reach business owners across the association.' },
+        { Icon: Users, title: 'Learn and participate', text: 'Attend events and learning programmes. Upgrade to connect and chat with business members.' },
         { Icon: Landmark, title: 'Schemes & funding', text: 'Updates on government schemes for first-generation entrepreneurs.' },
         { Icon: Award, title: 'Membership certificate', text: 'An official ACTIV certificate for your résumé and portfolio.' },
         { Icon: TrendingUp, title: 'Grow into business', text: 'Move to a Business membership the day you start trading.' },
@@ -192,7 +192,7 @@ export default function Payment() {
                                     : isCompany
                                     ? 'Your plan follows your years in business. One payment a year, every member benefit.'
                                     : isStudent
-                                        ? 'For students who are not in business yet — the full ACTIV Network while you study.'
+                                        ? 'Events and learning opportunities while you study. Business networking and private chat require an upgrade.'
                                         : 'For future entrepreneurs — the full ACTIV Network while you build.'}
                             </p>
                         </div>

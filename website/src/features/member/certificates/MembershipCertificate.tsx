@@ -262,10 +262,11 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
                 </Rules>
 
                 {/* ============================================ signature · seal · date */}
-                <div className="absolute left-[230px] top-[630px] z-10 w-[230px] text-center">
-                    <p className="text-[16px] font-bold" style={{ color: NAVY }}>Founder President</p>
-                    <SignatureInk className="h-[60px]" />
+                <div className="absolute left-[190px] top-[615px] z-10 w-[280px] text-center">
+                    <SignatureInk className="h-[56px]" />
                     <span className="mt-0.5 block h-px w-full" style={{ background: NAVY_MID }} />
+                    <p className="mt-1 text-[14px] font-bold" style={{ color: NAVY }}>THAMIZHAZHAGAN NALLAIYAN</p>
+                    <p className="text-[15px] font-semibold" style={{ color: NAVY }}>Founder and Chairperson</p>
                 </div>
 
                 <div className="absolute left-1/2 top-[606px] z-20 flex -translate-x-1/2 flex-col items-center">

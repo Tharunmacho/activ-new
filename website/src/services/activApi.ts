@@ -8,6 +8,7 @@
  *
  * Everything here maps 1:1 onto a route in `backend/src/routes.js`.
  */
+import { analyticsLogin } from '@/lib/analytics';
 import api, {
     unwrap,
     setAuthToken,
@@ -364,6 +365,7 @@ const persistSession = (data: any, fallbackMessage = ''): LoginResult => {
     }
     
     setAuthToken(token);
+    analyticsLogin(user);
 
     return {
         token,

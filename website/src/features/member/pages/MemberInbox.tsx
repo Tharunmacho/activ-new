@@ -32,21 +32,21 @@ const OPENERS: { label: string; hint: string; text: string }[] = [
     {
         label: 'Supply enquiry',
         hint: 'You are looking for a supplier and want to know what they make.',
-        text: 'Hello {name}, I am an ACTIV member and I am looking for a supplier '
-            + 'for our line. Could you tell me what you currently manufacture or trade in?',
+        text: 'Dear {name}, I am an ACTIV member and I am looking for a supplier '
+            + 'for our line. Could you tell me what you currently manufacture or trade in? Thank you for your time.',
     },
     {
         label: 'Ask for a quotation',
         hint: 'You know what you need and want a price for it.',
-        text: 'Hello {name}, I would like a quotation for one of your products. '
-            + 'May I send you the specification and the quantity we need?',
+        text: 'Dear {name}, I would like a quotation for one of your products. '
+            + 'May I send you the specification and the quantity we need? Thank you for your help.',
     },
     {
         label: 'Work together on an order',
         hint: 'An order larger than your own capacity, shared with a member.',
-        text: 'Hello {name}, we have an order that is larger than our own capacity '
+        text: 'Dear {name}, we have an order that is larger than our own capacity '
             + 'and I am looking for an ACTIV member to take part of it. Would that be '
-            + 'of interest?',
+            + 'of interest? Thank you for considering it.',
     },
 ];
 

@@ -41,7 +41,7 @@ export interface Announcement {
     block: string;
     /** "Tamil Nadu › Ariyalur", or empty when it went to every member. */
     targetLabel: string;
-    audience: Audience;
+    audience: import('@/lib/memberAudience').UpdateAudience;
     bannerUrl: string;
     bannerAlt: string;
     attachmentUrl: string;

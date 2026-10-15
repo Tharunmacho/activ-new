@@ -1,3 +1,5 @@
+import StudentNetworkingGate from '@/features/member/components/StudentNetworkingGate';
+import { useNetworkingAccess } from '@/features/member/useNetworkingAccess';
 import { useEffect, useMemo, useState } from 'react';
 import { useRenewal } from '@/features/member/useRenewal';
 import {
@@ -37,6 +39,7 @@ import {
  * useless — it would ask someone who has already paid to pay.
  */
 export default function MemberMessages() {
+    const networking = useNetworkingAccess();
     const { profileCompletion } = useProfile();
     const { isPaid, isResolved } = useMembershipGate();
     const [application, setApplication] = useState<any>(null);
@@ -64,7 +67,8 @@ export default function MemberMessages() {
      * rendering the upgrade card in that gap would tell a paid member they have
      * not paid. A short blank is the cheaper mistake — see `useMembershipGate`.
      */
-    if (!isResolved) {
+    if (networking.student) return <MemberPageShell title="Grow your network"><StudentNetworkingGate /></MemberPageShell>;
+    if (!isResolved || !networking.resolved) {
         return (
             <MemberPageShell title="Messages" subtitle="Member conversations" width="standard">
                 <div className="h-40 rounded-2xl bg-slate-100 animate-pulse" aria-hidden />

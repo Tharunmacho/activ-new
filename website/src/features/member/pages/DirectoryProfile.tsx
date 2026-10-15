@@ -1,3 +1,5 @@
+import StudentNetworkingGate from '@/features/member/components/StudentNetworkingGate';
+import { useNetworkingAccess } from '@/features/member/useNetworkingAccess';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRenewal } from '@/features/member/useRenewal';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -34,6 +36,7 @@ import { CARD_TITLE } from '@/components/layout/appTypography';
  * server, in the same request — see the note in `directory.controller.js`.
  */
 export default function DirectoryProfile() {
+    const networking = useNetworkingAccess();
     const { id = '' } = useParams();
     const navigate = useNavigate();
 
@@ -173,6 +176,7 @@ export default function DirectoryProfile() {
         return () => { cancelled = true; };
     }, [id]);
 
+    if (networking.student) return <MemberPageShell title="Grow your network"><StudentNetworkingGate /></MemberPageShell>;
     if (loading) {
         return (
             <MemberPageShell title="Member" subtitle="ACTIV Network" width="standard">

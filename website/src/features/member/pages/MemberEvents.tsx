@@ -1,3 +1,5 @@
+import EventFilters from '@/components/shared/EventFilters';
+import { EMPTY_EVENT_FILTERS, matchesEventFilters } from '@/lib/eventFilters';
 import { useEventClock } from '@/lib/useEventClock';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -31,6 +33,7 @@ export default function MemberEvents() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [tab, setTab] = useState<Tab>('upcoming');
+    const [filters, setFilters] = useState({ ...EMPTY_EVENT_FILTERS });
 
     useEffect(() => {
         let cancelled = false;
@@ -78,7 +81,7 @@ export default function MemberEvents() {
         { key: 'past', label: 'Past', count: past.length },
     ];
 
-    const rows = tab === 'upcoming' ? upcoming : tab === 'past' ? past : mine;
+    const rows = (tab === 'upcoming' ? upcoming : tab === 'past' ? past : mine).filter(e => matchesEventFilters(e, filters));
 
     const EMPTY: Record<Tab, { title: string; detail: string }> = {
         upcoming: {
@@ -130,6 +133,7 @@ export default function MemberEvents() {
                     })}
                 </div>
 
+                <EventFilters events={events} value={filters} onChange={setFilters} />
                 {loading ? (
                     <RowsSkeleton rows={3} />
                 ) : error ? (
@@ -141,8 +145,8 @@ export default function MemberEvents() {
                 ) : rows.length === 0 ? (
                     <EmptyState
                         icon={tab === 'mine' ? <Ticket className="w-6 h-6" /> : <CalendarDays className="w-6 h-6" />}
-                        title={EMPTY[tab].title}
-                        detail={EMPTY[tab].detail}
+                        title={Object.values(filters).some(Boolean) ? 'No matching events' : EMPTY[tab].title}
+                        detail={Object.values(filters).some(Boolean) ? 'Try a wider date range or clear your filters.' : EMPTY[tab].detail}
                         action={tab === 'mine' && upcoming.length > 0 ? (
                             <button
                                 type="button"

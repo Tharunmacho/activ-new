@@ -1,3 +1,4 @@
+import UsageAnalytics from '@/components/UsageAnalytics';
 import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { Toaster as Sonner } from "@/shared/components/ui/sonner";
@@ -304,6 +305,7 @@ const App = () => (
               silences the upgrade warnings and means the eventual move to v7
               changes nothing about how this app routes. */}
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <UsageAnalytics />
             <NativePublicAppGate>
             {/* A routed page opens at its top. Without this the window keeps
                 the offset it had, so pressing a link from the foot of one page

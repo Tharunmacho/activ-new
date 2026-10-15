@@ -6,6 +6,7 @@ import {
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '@/services/activApi';
 import { listAnnouncements, listMemberEvents } from '@/services/memberHubApi';
 import { memberEventPath } from '@/lib/eventPath';
+import { notificationPath } from '@/lib/notificationPath';
 
 /**
  * The member area's icon strip: messages and alerts.
@@ -209,8 +210,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                     detail: String(row?.message || ''),
                     at: row?.createdAt || '',
                     unread: row?.isRead !== true,
-                    // Nearly every stored notification is about the application.
-                    to: '/member/application-status',
+                    to: notificationPath(row),
                 });
             });
         }

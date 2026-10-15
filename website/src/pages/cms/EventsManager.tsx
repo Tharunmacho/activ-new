@@ -1599,8 +1599,8 @@ export default function EventsManager({
                                             />
                                         </CmsField>
                                         <CmsField
-                                            label="Registration link"
-                                            hint="The Zoom (or other) registration form. Not shown publicly — it is sent to the people who book, and the platform then emails each of them their joining link."
+                                            label="Registration or meeting link"
+                                            hint="Paste a Zoom registration link or a direct Zoom, Google Meet or Teams meeting link. Only confirmed bookings can open it."
                                         >
                                             <CmsInput
                                                 value={form.detail.onlineUrl}

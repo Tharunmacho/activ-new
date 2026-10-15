@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import PushDeliveryStatus from '../components/PushDeliveryStatus';
 import {
     Mail, MessageSquare, Bell, RefreshCw, Loader2, Send, AlertTriangle,
     CheckCircle2, XCircle, Search, RotateCcw, Webhook, Info,
@@ -232,6 +233,7 @@ export default function Notifications() {
                         </div>
                     )}
 
+                    <PushDeliveryStatus />
                     {/* ============================================ view switch */}
                     <div className="flex gap-1 p-1 rounded-xl bg-slate-100 w-full sm:w-auto sm:inline-flex">
                         {([

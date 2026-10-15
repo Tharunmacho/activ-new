@@ -1,3 +1,4 @@
+import { UPDATE_AUDIENCES, updateAudienceLabel, type UpdateAudience } from '@/lib/memberAudience';
 import { useCardTable } from '@/lib/useCardTable';
 import { useCallback, useEffect, useState } from 'react';
 import { Menu, Plus, Pencil, Trash2, X, Pin, Globe, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -51,7 +52,7 @@ interface FormState {
     state: string;
     district: string;
     block: string;
-    audience: 'all' | 'paid';
+    audience: UpdateAudience;
     bannerUrl: string;
     bannerAlt: string;
     attachmentUrl: string;
@@ -180,7 +181,7 @@ export default function SuperAdminUpdates() {
             state: row.state || '',
             district: row.district || '',
             block: row.block || '',
-            audience: row.audience === 'paid' ? 'paid' : 'all',
+            audience: row.audience || 'all',
             bannerUrl: row.bannerUrl || '',
             bannerAlt: row.bannerAlt || '',
             attachmentUrl: row.attachmentUrl || '',
@@ -328,7 +329,7 @@ export default function SuperAdminUpdates() {
 
                                 <div className="sm:col-span-2">
                                     <Field label="The update">
-                                        <textarea
+                                        <textarea placeholder="Dear members,&#10;&#10;Share your update here.&#10;&#10;Thank you for being part of ACTIV."
                                             rows={6}
                                             value={form.body}
                                             onChange={(e) => setForm({ ...form, body: e.target.value })}
@@ -460,20 +461,10 @@ export default function SuperAdminUpdates() {
                                 </div>
 
                                 <div className="grid gap-3 sm:grid-cols-2 mt-4">
-                                    <AudienceOption
-                                        selected={form.audience === 'all'}
-                                        onSelect={() => setForm({ ...form, audience: 'all' })}
-                                        icon={<Globe className="w-4 h-4" />}
-                                        title="All members"
-                                        detail="Everyone signed in, whether or not they have paid."
-                                    />
-                                    <AudienceOption
-                                        selected={form.audience === 'paid'}
-                                        onSelect={() => setForm({ ...form, audience: 'paid' })}
-                                        icon={<Lock className="w-4 h-4" />}
-                                        title="Paid members only"
-                                        detail="Only members with an active membership can open it."
-                                    />
+                                    {UPDATE_AUDIENCES.map(option => <AudienceOption key={option.value}
+                                        selected={form.audience === option.value}
+                                        onSelect={() => setForm({ ...form, audience: option.value })}
+                                        icon={<Globe className="w-4 h-4" />} title={option.title} detail={option.detail} />)}
                                 </div>
                             </div>
 
@@ -570,7 +561,7 @@ export default function SuperAdminUpdates() {
                                                 <td className="py-3 pr-4 text-slate-500">
                                                     {row.targetLabel || 'All regions'}
                                                     <span className="block text-[1.1875rem]">
-                                                        {row.audience === 'paid' ? 'Paid members only' : 'All members'}
+                                                        {updateAudienceLabel(row.audience)}
                                                     </span>
                                                 </td>
 

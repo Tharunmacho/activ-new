@@ -1,3 +1,4 @@
+import { eventInPeriod, eventDateError, eventLanguages, eventFilterOptions } from '@/lib/eventFilters';
 import { isPastEvent } from '@/lib/eventLifecycle';
 import { useEventClock } from '@/lib/useEventClock';
 import { PosterFrame } from '@/components/shared/PosterFrame';
@@ -228,7 +229,9 @@ export function EventsExplorer({ events, settings }: Props) {
     const [params, setParams] = useSearchParams();
     const initial = (key: string) => params.get(key) || '';
     const [query, setQuery] = useState(initial('q'));
-    const [filtersOpen, setFiltersOpen] = useState(() => ['category', 'state', 'district', 'city', 'language', 'mode'].some(key => params.has(key)));
+    const [from, setFrom] = useState(initial('from'));
+    const [to, setTo] = useState(initial('to'));
+    const [filtersOpen, setFiltersOpen] = useState(() => ['category', 'state', 'district', 'city', 'language', 'mode', 'from', 'to'].some(key => params.has(key)));
     const [category, setCategory] = useState<string>(initial('category') || ALL);
     const [location, setLocation] = useState<string>(ALL);
 
@@ -281,11 +284,13 @@ export function EventsExplorer({ events, settings }: Props) {
         put('district', district);
         put('city', block);
         put('language', language);
+        put('from', from);
+        put('to', to);
         put('mode', how);
         if (next.toString() !== params.toString()) setParams(next, { replace: true });
         // `params` is read to compare only; including it would loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, category, state, district, block, language, how]);
+    }, [query, category, state, district, block, language, how, from, to]);
 
     /* The Search-and-chips card can be removed — see `cmsSections`. It takes
        the chips with it; the search box is not authored and stays. */
@@ -384,14 +389,7 @@ export function EventsExplorer({ events, settings }: Props) {
     };
 
     /* Every language an upcoming event is held in, one spelling each ("tamil" = "Tamil"). */
-    const languageOptions = useMemo(() => {
-        const seen = new Map<string, string>();
-        (events || []).forEach((e) => {
-            const raw = String(e?.language || '').trim();
-            if (raw && !seen.has(norm(raw))) seen.set(norm(raw), raw.charAt(0).toUpperCase() + raw.slice(1));
-        });
-        return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
-    }, [events]);
+    const languageOptions = useMemo(() => eventFilterOptions(events || [], 'language'), [events]);
 
     /*
      * Choosing a wider region clears the narrower ones inside it.
@@ -465,7 +463,8 @@ export function EventsExplorer({ events, settings }: Props) {
                 }
             }
 
-            if (language !== ALL && norm(event?.language) !== norm(language)) return false;
+            if (language !== ALL && !eventLanguages(event).some(l => norm(l) === norm(language))) return false;
+            if (!eventInPeriod(event, from, to)) return false;
 
             /*
              * Upcoming only — see the note at the top of this file. An event
@@ -495,10 +494,10 @@ export function EventsExplorer({ events, settings }: Props) {
          * when something in this list changes, so a value used inside and
          * missing from it is a control wired to nothing.
          */
-    }, [events, query, category, location, how, state, district, block, language, tree, now]);
+    }, [events, query, category, location, how, state, district, block, language, tree, now, from, to]);
 
     const isFiltered = !!(query.trim()) || category !== ALL || location !== ALL
-        || how !== 'all' || state !== ALL || district !== ALL || block !== ALL || language !== ALL;
+        || how !== 'all' || state !== ALL || district !== ALL || block !== ALL || language !== ALL || !!from || !!to;
 
     const reset = () => {
         setQuery('');
@@ -509,6 +508,8 @@ export function EventsExplorer({ events, settings }: Props) {
         setDistrict(ALL);
         setBlock(ALL);
         setLanguage(ALL);
+        setFrom('');
+        setTo('');
     };
 
     /**
@@ -683,9 +684,9 @@ export function EventsExplorer({ events, settings }: Props) {
                                 </label>
                             )}
 
-                            {/* The date window used to sit here. See the note at
-                                the top of this file: this page is upcoming events,
-                                so there is no window left to choose. */}
+                            <label><span className={PUBLIC_FILTER_LABEL}>From date</span><input aria-label="From date" type="date" value={from} onChange={e => setFrom(e.target.value)} className={selectClass} /></label>
+                            <label><span className={PUBLIC_FILTER_LABEL}>To date</span><input aria-label="To date" type="date" value={to} onChange={e => setTo(e.target.value)} className={selectClass} /></label>
+                            {eventDateError(from, to) && <p role="alert" className="text-sm text-red-700">{eventDateError(from, to)}</p>}
                             {languageOptions.length > 0 && (
                                 <label>
                                 <span className={PUBLIC_FILTER_LABEL}>Language</span>

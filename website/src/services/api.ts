@@ -7,6 +7,7 @@
  * timeout, and a request with no timeout is how a tab ends up spinning forever
  * against a sleeping server.
  */
+import { analyticsLogout } from '@/lib/analytics';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { API_BASE_URL, API_TIMEOUT, STORAGE_KEYS } from '@/config/api.config';
 
@@ -119,6 +120,7 @@ export const loginPathFor = (role?: string | null): string => {
 };
 
 export const clearSession = (): void => {
+    analyticsLogout();
     try {
         Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
         // Written by older code paths; cleared too so a stale identity cannot

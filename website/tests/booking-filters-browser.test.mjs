@@ -83,7 +83,7 @@ try {
     assert.deepEqual((await evaluate('window.fixtureExport')).filters,applied,'Excel uses the applied criteria');
     await click('People');await until('window.fixtureRequests.some(r=>r.kind==="people")');
     assert.deepEqual(await evaluate('window.fixtureRequests.filter(r=>r.kind==="people").at(-1).filters'),applied,'People respects history and filters');
-    await click('Deleted');await until('window.fixtureRequests.filter(r=>r.kind==="people").at(-1)?.filters.history==="deleted"');
+    await click('Old');await until('window.fixtureRequests.filter(r=>r.kind==="people").at(-1)?.filters.history==="deleted"');
     if(process.env.TEST_ARTIFACTS){const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.join(process.env.TEST_ARTIFACTS,'booking-filters-'+width+'.png'),Buffer.from(shot.result.data,'base64'));}
     await click('Clear filters');await until('Object.keys(window.fixtureRequests.filter(r=>r.kind==="people").at(-1)?.filters||{}).length===1');
   }

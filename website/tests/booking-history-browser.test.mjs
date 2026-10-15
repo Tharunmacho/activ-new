@@ -77,9 +77,9 @@ try {
     await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("Past")).click()');
     await until('document.body.textContent.includes("Completed workshop")');
     assert.equal(await evaluate('document.body.textContent.includes("Current workshop")'), false);
-    await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("Deleted")).click()');
+    await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("Old")).click()');
     await until('document.body.textContent.includes("Deleted workshop")');
-    assert(await evaluate('document.body.textContent.includes("Deleted event · bookings retained")'));
+    assert(await evaluate('document.body.textContent.includes("Old event · bookings retained")'));
     await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Booking Details").click()');
     await until('document.body.textContent.includes("Retained Contact")');
     assert(await evaluate('document.body.textContent.includes("contact@example.test")'), 'booker contact is visible');
@@ -117,7 +117,7 @@ try {
     assert.equal(await evaluate('document.querySelector(".booking-records-number").textContent.trim()'), '11', 'numbering continues on page two');
     await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.includes("All events")).click()');
     await until('document.body.textContent.includes("Deleted workshop")');
-    assert(await evaluate('[...document.querySelectorAll("button[aria-pressed=true]")].some(b=>b.textContent.startsWith("Deleted"))'), 'back returns to Deleted history');
+    assert(await evaluate('[...document.querySelectorAll("button[aria-pressed=true]")].some(b=>b.textContent.startsWith("Old"))'), 'back returns to Old history');
     assert(requests.every(r => r.method === 'GET'), 'viewing history does not write any data');
     assert(!requests.some(r => r.path === '/api/v1/events'), 'history does not depend on the deleted event list');
     assert.deepEqual(errors, []);

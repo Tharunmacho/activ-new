@@ -89,19 +89,14 @@ export default function AuditLog() {
         return () => clearTimeout(t);
     }, [query]);
 
-    /**
-     * The four categories the server actually records.
-     *
-     * Checked against `/audit/counts`, which answers exactly these keys. A
-     * previous "Sign-ins" chip filtered on `auth` — a category no row carries —
-     * so it would have shown an empty list for ever and looked like a quiet
-     * platform rather than a wrong query.
-     */
+    // Keys match the categories recorded by the server, including successful sign-ins.
     const categories = [
         { key: 'all', label: 'All' },
         { key: 'application', label: 'Apps' },
         { key: 'admin', label: 'Admins' },
         { key: 'event', label: 'Events' },
+        { key: 'authentication', label: 'Sign-ins' },
+        { key: 'content', label: 'Updates' },
     ];
 
     return (
