@@ -13,7 +13,7 @@ export default {
       },
     },
     extend: {
-      // One UI family and a small shared scale across public, member, admin and CMS screens.
+      // Poppins and the established readable scale across public, member, admin and CMS screens.
       // Document sheets can set --font-ui locally to preserve their artwork.
       fontFamily: {
         sans: ['var(--font-ui)'],
@@ -23,9 +23,9 @@ export default {
         certificate: ['Playfair Display', 'Poppins', 'Georgia', 'serif'],
       },
       fontSize: {
-        'ui-body': ['1rem', { lineHeight: '1.5' }],
-        'ui-small': ['0.9375rem', { lineHeight: '1.5' }],
-        'ui-caption': ['0.875rem', { lineHeight: '1.5' }],
+        'ui-body': ['1.25rem', { lineHeight: '1.5' }],
+        'ui-small': ['1.1875rem', { lineHeight: '1.5' }],
+        'ui-caption': ['1.0625rem', { lineHeight: '1.5' }],
       },
       colors: {
         /**

@@ -91,12 +91,12 @@ function Tile({ icon: Icon, label, value, note, tone, active, onClick }: {
                 <span className={`hidden sm:grid w-9 h-9 shrink-0 rounded-xl place-items-center ${tones.chip}`}>
                     <Icon className="w-[1.125rem] h-[1.125rem]" />
                 </span>
-                <span className="text-[0.9375rem] sm:text-[1.125rem] font-semibold text-slate-700 leading-tight">{label}</span>
+                <span className="text-ui-caption sm:text-ui-body font-semibold text-slate-700 leading-tight">{label}</span>
             </span>
-            <span className={`block mt-1.5 sm:mt-3 text-[1.5rem] sm:text-[2.125rem] font-extrabold tabular-nums leading-none ${valueTone}`}>
+            <span className={`block mt-1.5 sm:mt-3 text-[1.875rem] sm:text-[2.5rem] font-extrabold tabular-nums leading-none ${valueTone}`}>
                 {fmt(value)}
             </span>
-            <span className="block mt-1.5 text-[0.8125rem] sm:text-[1rem] text-slate-500 leading-snug break-words">{note}</span>
+            <span className="block mt-1.5 text-ui-caption text-slate-500 leading-snug break-words">{note}</span>
         </button>
     );
 }
@@ -234,7 +234,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                             role="tab"
                             aria-selected={on}
                             onClick={() => switchGroup(key)}
-                            className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-ui-caption sm:text-[1.125rem] font-semibold transition-colors ${on
+                            className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-ui-caption sm:text-ui-small font-semibold transition-colors ${on
                                 ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
                                 : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'}`}
                         >
@@ -260,7 +260,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     </p>
                 </div>
             ) : health?.email?.ok ? (
-                <p className="flex items-center gap-2 text-[1rem] text-emerald-700">
+                <p className="flex items-center gap-2 text-ui-small text-emerald-700">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     Email server connected
                     {health.autoRetry?.enabled ? ` · failed messages are retried automatically every ${health.autoRetry.everyMinutes} min` : ''}
@@ -302,7 +302,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             {n(email.failed) + n(whatsapp.failed) > 0 || retryResult ? (
                 <div className={`${ADMIN_CARD} px-4 py-3 flex flex-wrap items-center gap-3`}>
                     {retryResult ? (
-                        <p className="flex-1 min-w-0 text-[1rem] text-slate-700">
+                        <p className="flex-1 min-w-0 text-ui-small text-slate-700">
                             Retried {fmt(retryResult.retried)}: <strong className="text-emerald-700">{fmt(retryResult.sent)} sent</strong>
                             {retryResult.stillFailed ? <>, <strong className="text-rose-700">{fmt(retryResult.stillFailed)} still failing</strong></> : null}
                             {retryResult.permanent ? `, ${fmt(retryResult.permanent)} cannot be fixed by retrying (wrong number or address)` : ''}
@@ -310,7 +310,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                             {retryResult.skipped ? `, ${fmt(retryResult.skipped)} skipped` : ''}.
                         </p>
                     ) : (
-                        <p className="flex-1 min-w-0 text-[1rem] text-slate-600">
+                        <p className="flex-1 min-w-0 text-ui-small text-slate-600">
                             Send every failed message from the last 7 days again — those a retry can fix.
                         </p>
                     )}
@@ -326,7 +326,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                         </span>
                     ) : (
                         <button type="button" onClick={() => setRetryAsk(true)}
-                            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100">
+                            className="inline-flex items-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-ui-caption text-blue-700 font-semibold hover:bg-blue-100">
                             Retry all failed
                         </button>
                     )}
