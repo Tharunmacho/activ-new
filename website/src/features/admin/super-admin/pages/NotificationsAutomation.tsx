@@ -375,11 +375,11 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                     role="radio"
                                     aria-checked={on}
                                     onClick={() => setChannel(value)}
-                                    className={`flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-ui-caption font-semibold whitespace-nowrap transition-colors ${on
+                                    className={`flex-auto lg:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-2 sm:px-3.5 rounded-lg text-ui-caption font-semibold whitespace-nowrap transition-colors ${on
                                         ? 'bg-white text-slate-900 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-800'}`}
                                 >
-                                    {Icon ? <Icon className="w-4 h-4" /> : null}
+                                    {Icon ? <Icon className="hidden sm:block w-4 h-4 shrink-0" /> : null}
                                     {label}
                                 </button>
                             );
