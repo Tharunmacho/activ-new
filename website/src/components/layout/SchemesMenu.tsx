@@ -156,7 +156,7 @@ export function SchemesMenu({ accent, label, active }: { accent: string; label: 
                     <div className="max-h-[26rem] w-64 overflow-y-auto py-2">
                         {current === 'states' && <Link to="/schemes/state" onClick={() => setOpen(false)}
                             className="block px-4 py-2.5 font-semibold text-brand-700 hover:bg-brand-50">All state schemes</Link>}
-                        <p className="px-4 pb-2 text-[1rem] font-bold uppercase tracking-wider text-gray-400">
+                        <p className="px-4 pb-2 text-base font-bold uppercase tracking-wider text-gray-400">
                             {current === 'central' ? 'Government of India' : 'States with schemes'}
                         </p>
 

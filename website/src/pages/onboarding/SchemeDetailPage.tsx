@@ -212,12 +212,12 @@ export default function SchemeDetailPage() {
                             <Reveal as="header" className="max-w-[62rem] lg:col-span-8">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-900 px-3 py-1
-                                                     text-[0.9375rem] font-bold uppercase tracking-[0.12em] text-white">
+                                                     text-sm font-bold uppercase tracking-[0.12em] text-white">
                                         <CmsIcon name={scheme.tier === 'national' ? 'landmark' : 'map-pin'} size={13} fallback="landmark" />
                                         {TIER_LABEL[scheme.tier] || 'Central'}
                                     </span>
                                     {scheme.category && (
-                                        <span className="rounded-full bg-brand-50 px-3 py-1 text-[0.9375rem] font-bold text-brand-700">
+                                        <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-bold text-brand-700">
                                             {scheme.category}
                                         </span>
                                     )}
@@ -232,7 +232,7 @@ export default function SchemeDetailPage() {
                                       * rather than as a second answer.
                                       */}
                                     {scheme.deadline && (
-                                        <span className="rounded-full bg-amber-50 px-3 py-1 text-[0.9375rem] font-bold text-amber-700">
+                                        <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">
                                             {scheme.deadline}
                                         </span>
                                     )}
@@ -267,7 +267,7 @@ export default function SchemeDetailPage() {
                                   */}
                                 <div className="ml-auto max-w-[27rem] rounded-2xl border border-gray-200 bg-white p-4 sm:p-6
                                                 shadow-[0_18px_40px_-28px_rgba(28,46,104,0.45)] lg:sticky lg:top-28">
-                                    <p className="mb-4 text-[0.9375rem] font-bold uppercase tracking-[0.14em] text-brand-500">
+                                    <p className="mb-4 text-sm font-bold uppercase tracking-[0.14em] text-brand-500">
                                         Scheme at a glance
                                     </p>
                                     <dl className="space-y-4">
@@ -376,7 +376,7 @@ export default function SchemeDetailPage() {
                                             {steps.map((step, i) => (
                                                 <li key={i} className="flex gap-3 sm:gap-4">
                                                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-800
-                                                                     text-[1rem] font-bold text-white">
+                                                                     text-base font-bold text-white">
                                                         {i + 1}
                                                     </span>
                                                     <span className={`${PARAGRAPH} pt-0.5`}>{step}</span>
@@ -481,7 +481,7 @@ function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; va
         <div className="flex gap-3">
             <span className="mt-0.5 shrink-0 text-brand-500">{icon}</span>
             <div className="min-w-0">
-                <dt className="text-[0.9375rem] font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
+                <dt className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
                 <dd className="mt-0.5 whitespace-pre-line break-words text-ui-caption font-semibold text-gray-800">{value}</dd>
             </div>
         </div>

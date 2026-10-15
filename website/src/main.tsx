@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { syncLegacyTokenKeys } from "@/services/api";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // A browser that was open before the migration still holds a token under the
 // old `adminToken` key. Reconciling the two keys before the first render keeps
@@ -9,4 +10,6 @@ import { syncLegacyTokenKeys } from "@/services/api";
 // read that key directly would send a stale value.
 syncLegacyTokenKeys();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary label="Application"><App /></ErrorBoundary>
+);

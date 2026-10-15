@@ -27,7 +27,7 @@ import {
 const GOLD = 'text-[#f5d27a]';
 
 export function PlatinumBadge({ size = 'md', label = 'Lifetime' }: { size?: 'sm' | 'md' | 'lg'; label?: string }) {
-    const pad = size === 'sm' ? 'px-2 py-0.5 text-[0.75rem]' : size === 'lg' ? 'px-3.5 py-1.5 text-base' : 'px-2.5 py-1 text-[0.8125rem]';
+    const pad = size === 'sm' ? 'px-2 py-0.5 text-xs' : size === 'lg' ? 'px-3.5 py-1.5 text-base' : 'px-2.5 py-1 text-sm';
     const icon = size === 'lg' ? 'h-4 w-4' : size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5';
     return (
         <span className={`inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#0b1f5c] via-[#1e3a8a] to-[#2563eb]
@@ -125,14 +125,14 @@ function ApplyForm({ onDone, onCancel }: { onDone: (r: PlatinumRequest) => void;
                 })}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="block text-[0.9375rem] font-semibold text-slate-700">Best time to reach you
+                <label className="block text-sm font-semibold text-slate-700">Best time to reach you
                     <input value={time} onChange={(e) => setTime(e.target.value)} placeholder="e.g. Weekdays after 6 pm" className={`${field} h-11`} />
                 </label>
-                <label className="block text-[0.9375rem] font-semibold text-slate-700">Anything to add? <span className="font-normal text-slate-400">(optional)</span>
+                <label className="block text-sm font-semibold text-slate-700">Anything to add? <span className="font-normal text-slate-400">(optional)</span>
                     <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="A question for the office" className={`${field} h-11`} />
                 </label>
             </div>
-            <p className="mt-3 text-[0.875rem] text-slate-500">
+            <p className="mt-3 text-sm text-slate-500">
                 Nothing is charged online. The office explains the next steps; Lifetime is paid at the office and
                 activated for you once your membership application is approved.
             </p>
@@ -186,22 +186,22 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
             {/* ---- headline + price ---- */}
             <div className={`relative flex flex-col lg:flex-row lg:items-start lg:justify-between ${compact ? 'gap-3' : 'gap-5'}`}>
                 <div className="min-w-0 max-w-2xl">
-                    <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[0.8125rem] font-semibold uppercase tracking-[0.16em] ring-1 ring-white/20">
+                    <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold uppercase tracking-[0.16em] ring-1 ring-white/20">
                         <Crown className={`h-4 w-4 ${GOLD}`} /> Lifetime Membership
                     </p>
                     <h3 className={`font-display font-bold leading-tight ${compact ? 'mt-2 text-ui-body sm:text-[1.5rem]' : 'mt-3 text-[1.75rem] sm:text-[2.25rem]'}`}>
                         Join once. Stay an ACTIV member for life.
                     </h3>
-                    <p className={`text-blue-100 ${compact ? 'mt-1 text-[0.9375rem]' : 'mt-2 text-[1rem] sm:text-ui-caption'}`}>
+                    <p className={`text-blue-100 ${compact ? 'mt-1 text-sm' : 'mt-2 text-base sm:text-ui-caption'}`}>
                         {context === 'application'
                             ? 'Building a business? Lifetime makes your membership permanent — one payment, no renewals, and the association’s highest recognition.'
                             : 'Upgrade to Lifetime: one payment makes your membership permanent, with the association’s highest recognition.'}
                     </p>
                 </div>
                 <div className={`shrink-0 rounded-2xl bg-white/10 ring-1 ring-white/20 backdrop-blur-sm ${compact ? 'p-3 sm:p-4 lg:min-w-[12rem]' : 'p-4 sm:p-5 lg:min-w-[15rem]'}`}>
-                    <p className="text-[0.8125rem] font-semibold uppercase tracking-wider text-blue-100">One payment</p>
+                    <p className="text-sm font-semibold uppercase tracking-wider text-blue-100">One payment</p>
                     <p className={`font-display font-bold leading-none ${compact ? 'text-[1.625rem] sm:text-[1.875rem]' : 'text-[2rem] sm:text-[2.5rem]'}`}>₹{price.toLocaleString('en-IN')}</p>
-                    <p className="mt-2 flex items-center gap-1.5 text-[0.9375rem] text-blue-100"><InfinityIcon className="h-4 w-4" /> Valid for life · never renew</p>
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-blue-100"><InfinityIcon className="h-4 w-4" /> Valid for life · never renew</p>
                 </div>
             </div>
 
@@ -209,7 +209,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
             {compact ? (
                 <ul className="relative mt-3 flex flex-wrap gap-2">
                     {BENEFITS.map(({ icon: Icon, title }) => (
-                        <li key={title} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[0.875rem] font-semibold ring-1 ring-white/15">
+                        <li key={title} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/15">
                             <Icon className="h-3.5 w-3.5" /> {title}
                         </li>
                     ))}
@@ -221,7 +221,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/15"><Icon className="h-5 w-5" /></span>
                         <span className="min-w-0">
                             <span className="block font-semibold">{title}</span>
-                            <span className="block text-[0.9375rem] text-blue-100">{text}</span>
+                            <span className="block text-sm text-blue-100">{text}</span>
                         </span>
                     </li>
                 ))}
@@ -243,13 +243,13 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
             {/* ---- the way in ---- */}
             <div className={`relative ${compact ? 'mt-4' : 'mt-6'}`}>
                 {!member ? (
-                    <p className="text-[0.9375rem] text-blue-100">Sign in as a member to apply for Lifetime.</p>
+                    <p className="text-sm text-blue-100">Sign in as a member to apply for Lifetime.</p>
                 ) : !state.loaded ? null : openRequest ? (
                     <div className="flex items-start gap-3 rounded-2xl bg-white p-4 text-slate-800">
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700"><Clock className="h-5 w-5" /></span>
                         <div className="min-w-0">
                             <p className="font-semibold text-slate-900">{STATUS_COPY[openRequest.status].title}</p>
-                            <p className="text-[0.9375rem] text-slate-600">{STATUS_COPY[openRequest.status].text}</p>
+                            <p className="text-sm text-slate-600">{STATUS_COPY[openRequest.status].text}</p>
                         </div>
                     </div>
                 ) : open ? (
@@ -261,7 +261,7 @@ export function PlatinumShowcase({ context = 'dashboard' }: { context?: 'applica
                                        shadow-lg transition-transform hover:-translate-y-0.5 sm:w-auto">
                             <Crown className="h-5 w-5 text-[#d4a72c]" /> Apply for Lifetime
                         </button>
-                        <p className="text-[0.9375rem] text-blue-100">No payment online — the ACTIV office calls you and explains everything.</p>
+                        <p className="text-sm text-blue-100">No payment online — the ACTIV office calls you and explains everything.</p>
                     </div>
                 )}
             </div>

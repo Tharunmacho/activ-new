@@ -11,7 +11,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       toastOptions={{
-        style: { fontFamily: 'var(--font-ui)', fontSize: '0.875rem' },
+        style: { fontFamily: 'var(--font-ui)', fontSize: 'var(--text-ui-sm)', lineHeight: 1.5 },
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",

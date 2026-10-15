@@ -138,7 +138,7 @@ export function StatTile({
             </div>
             <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 tabular-nums leading-tight truncate">{value}</div>
             {unit ? (
-                <p className="text-[1rem] sm:text-ui-small text-slate-500 font-bold mt-1.5 uppercase tracking-wider
+                <p className="text-base sm:text-ui-small text-slate-500 font-bold mt-1.5 uppercase tracking-wider
                               leading-snug break-words">{unit}</p>
             ) : null}
         </div>

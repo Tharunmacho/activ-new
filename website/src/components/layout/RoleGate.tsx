@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ShieldAlert, LayoutDashboard, LogOut } from 'lucide-react';
 import { clearSession, SESSION_EVENT } from '@/services/api';
-import { homeForSession, roleLabel, sessionKind, storedRole, type SessionKind } from '@/lib/session';
+import { homeForSession, roleLabel, sessionKind, storedRole } from '@/lib/session';
 
 /**
  * WHOSE AREA IS THIS — a guard for a whole group of routes.
@@ -26,10 +26,12 @@ import { homeForSession, roleLabel, sessionKind, storedRole, type SessionKind } 
  */
 type Area = 'member' | 'admin';
 
-const useSessionKind = (): SessionKind => {
-    const [kind, setKind] = useState<SessionKind>(sessionKind);
+const readSession = () => ({ kind: sessionKind(), role: storedRole() });
+
+const useSession = () => {
+    const [session, setSession] = useState(readSession);
     useEffect(() => {
-        const update = () => setKind(sessionKind());
+        const update = () => setSession(readSession());
         window.addEventListener(SESSION_EVENT, update);
         window.addEventListener('storage', update);
         return () => {
@@ -37,7 +39,7 @@ const useSessionKind = (): SessionKind => {
             window.removeEventListener('storage', update);
         };
     }, []);
-    return kind;
+    return session;
 };
 
 export default function RoleGate({ area, roles }: {
@@ -50,7 +52,7 @@ export default function RoleGate({ area, roles }: {
      */
     roles?: string[];
 }) {
-    const kind = useSessionKind();
+    const { kind, role } = useSession();
     const location = useLocation();
     const here = `${location.pathname}${location.search}`;
 
@@ -61,7 +63,6 @@ export default function RoleGate({ area, roles }: {
         return <Navigate to={homeForSession()} replace />;
     }
     if (area === 'admin' && roles && roles.length) {
-        const role = storedRole();
         if (role !== 'super_admin' && !roles.includes(role)) {
             return <Navigate to={homeForSession()} replace />;
         }

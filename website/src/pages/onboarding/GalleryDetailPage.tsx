@@ -42,7 +42,7 @@ import { Reveal } from '@/components/shared/Reveal';
 /** The side card's button, shared by its internal and external forms. */
 const CTA_CLASS =
     'mt-6 w-full inline-flex items-center justify-center gap-2 bg-brand-800 hover:bg-brand-700 ' +
-    'text-white px-6 py-3.5 rounded-full font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors';
+    'text-white px-6 py-3.5 rounded-full font-bold text-base uppercase tracking-[0.1em] transition-colors';
 
 export default function GalleryDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -151,7 +151,7 @@ export default function GalleryDetailPage() {
                             type="button"
                             onClick={() => setReloadKey((n) => n + 1)}
                             className="inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white
-                                       px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase
+                                       px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase
                                        tracking-[0.1em] transition-colors"
                         >
                             Try again
@@ -159,7 +159,7 @@ export default function GalleryDetailPage() {
                         <Link
                             to="/gallery"
                             className="inline-flex items-center gap-2 border border-brand-200 text-brand-700
-                                       px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase
+                                       px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase
                                        tracking-[0.1em] transition-colors hover:bg-brand-50"
                         >
                             <ArrowLeft size={15} /> {backLabel}
@@ -183,7 +183,7 @@ export default function GalleryDetailPage() {
                     <Link
                         to="/gallery"
                         className="inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white
-                                   px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase tracking-[0.1em]
+                                   px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase tracking-[0.1em]
                                    transition-colors"
                     >
                         <ArrowLeft size={15} /> {backLabel}
@@ -269,7 +269,7 @@ export default function GalleryDetailPage() {
                             <Link
                                 to="/gallery"
                                 className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-700
-                                           font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors"
+                                           font-bold text-base uppercase tracking-[0.1em] transition-colors"
                             >
                                 <ArrowLeft size={15} /> {backLabel}
                             </Link>
@@ -560,7 +560,7 @@ export default function GalleryDetailPage() {
                                                     description belongs on its own
                                                     page, which this opens. */}
                                                 {(photo.title || photo.caption) && (
-                                                    <p className="mt-2 px-1 text-[1rem] font-semibold leading-snug
+                                                    <p className="mt-2 px-1 text-base font-semibold leading-snug
                                                                   text-gray-700 line-clamp-2">
                                                         {photo.title || photo.caption}
                                                     </p>
@@ -600,7 +600,7 @@ export default function GalleryDetailPage() {
                                                 />
                                             </div>
                                             <div className="p-3 sm:p-4">
-                                                <p className="text-[1rem] font-extrabold text-brand-800 line-clamp-2
+                                                <p className="text-base font-extrabold text-brand-800 line-clamp-2
                                                               group-hover:text-brand-600 transition-colors">
                                                     {other.title || 'Untitled'}
                                                 </p>

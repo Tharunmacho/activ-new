@@ -179,7 +179,7 @@ function GrantForm({ member, price, onDone, onCancel }: {
                 </label>
             </div>
             {Number(amount) !== Number(price) && amount !== '' ? (
-                <p className="mt-2 text-[1rem] text-amber-700">
+                <p className="mt-2 text-base text-amber-700">
                     This differs from the Lifetime price of {rupees(price)}. That is allowed — the amount received is what is recorded.
                 </p>
             ) : null}
@@ -299,44 +299,44 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                     <div className="min-w-0 flex-1">
                                         <p className="flex flex-wrap items-center gap-2">
                                             <span className="truncate text-ui-small font-semibold text-slate-900">{r.name || 'Member'}</span>
-                                            <span className={`rounded-full px-2.5 py-0.5 text-[0.9375rem] font-semibold ${STATUS_CHIP[r.status] || STATUS_CHIP.new}`}>
+                                            <span className={`rounded-full px-2.5 py-0.5 text-sm font-semibold ${STATUS_CHIP[r.status] || STATUS_CHIP.new}`}>
                                                 {STATUS_WORD[r.status] || r.status}
                                             </span>
-                                            <span className="text-[0.9375rem] text-slate-400">{day(r.createdAt)}</span>
+                                            <span className="text-sm text-slate-400">{day(r.createdAt)}</span>
                                         </p>
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             {r.phone ? (
-                                                <a href={`tel:${digits(r.phone)}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 text-[1rem] font-semibold text-blue-700 hover:bg-blue-100">
+                                                <a href={`tel:${digits(r.phone)}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 text-base font-semibold text-blue-700 hover:bg-blue-100">
                                                     <Phone className="h-4 w-4" /> {r.phone}
                                                 </a>
                                             ) : null}
                                             {r.phone ? (
                                                 <a href={`https://wa.me/${waNumber(r.phone)}`} target="_blank" rel="noopener noreferrer"
-                                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 text-[1rem] font-semibold text-emerald-700 hover:bg-emerald-100">
+                                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 text-base font-semibold text-emerald-700 hover:bg-emerald-100">
                                                     <MessageCircle className="h-4 w-4" /> WhatsApp
                                                 </a>
                                             ) : null}
                                             {r.email ? (
                                                 <a href={`mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Lifetime Membership request')}`}
-                                                    className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 text-[1rem] font-semibold text-slate-700 hover:bg-slate-100">
+                                                    className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 text-base font-semibold text-slate-700 hover:bg-slate-100">
                                                     <Mail className="h-4 w-4 shrink-0" /> <span className="truncate">{r.email}</span>
                                                 </a>
                                             ) : null}
                                             <button type="button" aria-expanded={detailsFor === r.id}
                                                 onClick={() => setDetailsFor(detailsFor === r.id ? '' : r.id)}
-                                                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 text-[1rem] font-semibold text-blue-700 hover:bg-blue-50">
+                                                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 text-base font-semibold text-blue-700 hover:bg-blue-50">
                                                 <FileText className="h-4 w-4" /> {detailsFor === r.id ? 'Hide details' : 'View full details'}
                                             </button>
                                         </div>
-                                        <dl className="mt-2 grid gap-x-4 gap-y-1 text-[1rem] text-slate-600 sm:grid-cols-2">
+                                        <dl className="mt-2 grid gap-x-4 gap-y-1 text-base text-slate-600 sm:grid-cols-2">
                                             <div className="flex min-w-0 items-center gap-1.5"><PhoneCall className="h-4 w-4 shrink-0 text-slate-400" />
                                                 <span className="truncate">Prefers {CONTACT_LABEL[r.preferredContact] || 'a call'}{r.preferredTime ? ` · ${r.preferredTime}` : ''}</span></div>
                                             {regionText ? <div className="flex min-w-0 items-center gap-1.5"><MapPin className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{regionText}</span></div> : null}
                                             {r.companyName ? <div className="flex min-w-0 items-center gap-1.5"><Building2 className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{r.companyName}</span></div> : null}
                                             {r.handledBy ? <div className="flex min-w-0 items-center gap-1.5"><Clock className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{r.handledBy} · {day(r.handledAt)}</span></div> : null}
                                         </dl>
-                                        {r.message ? <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-[1rem] text-slate-700 [overflow-wrap:anywhere]">“{r.message}”</p> : null}
-                                        {r.notes ? <p className="mt-1 text-[0.9375rem] text-slate-500 [overflow-wrap:anywhere]">Note: {r.notes}</p> : null}
+                                        {r.message ? <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-base text-slate-700 [overflow-wrap:anywhere]">“{r.message}”</p> : null}
+                                        {r.notes ? <p className="mt-1 text-sm text-slate-500 [overflow-wrap:anywhere]">Note: {r.notes}</p> : null}
                                     </div>
 
                                     {openRow && granting !== r.id && declining !== r.id ? (
@@ -354,7 +354,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                             </button>
                                             <button type="button" onClick={() => { setDeclining(r.id); setNote(''); }}
                                                 className="min-h-10 rounded-xl px-3 font-semibold text-slate-500 hover:bg-slate-50">Decline</button>
-                                            {r.blockedReason ? <p className="text-[0.9375rem] text-amber-700">{r.blockedReason}</p> : null}
+                                            {r.blockedReason ? <p className="text-sm text-amber-700">{r.blockedReason}</p> : null}
                                         </div>
                                     ) : null}
                                 </div>
@@ -460,7 +460,7 @@ export default function PlatinumMembers() {
             <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b1f5c] via-[#1e3a8a] to-[#2563eb] p-4 sm:p-5 text-white">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                        <p className="flex items-center gap-2 text-[1rem] font-semibold uppercase tracking-[0.18em] text-[#f8e7b0]">
+                        <p className="flex items-center gap-2 text-base font-semibold uppercase tracking-[0.18em] text-[#f8e7b0]">
                             <Crown className="h-4 w-4" /> Lifetime Membership
                         </p>
                         <p className="mt-1 font-display text-[2rem] sm:text-[2.5rem] font-bold">{rupees(price)}</p>
@@ -477,7 +477,7 @@ export default function PlatinumMembers() {
                         </div>
                     </div>
                 </div>
-                <p className="mt-3 text-[1rem] text-white/60">
+                <p className="mt-3 text-base text-white/60">
                     The price is the Lifetime plan in the list above — edit it there. Members see it advertised on their dashboard.
                 </p>
             </div>
@@ -511,7 +511,7 @@ export default function PlatinumMembers() {
                                         {m.membershipTier === 'platinum' ? <PlatinumBadge size="sm" /> : null}
                                     </p>
                                     <p className="truncate text-ui-caption text-slate-500">{[m.email, m.phoneNumber].filter(Boolean).join(' · ')}</p>
-                                    <p className="truncate text-[1rem] text-slate-400">{[m.membershipNumber, region(m)].filter(Boolean).join(' · ')}</p>
+                                    <p className="truncate text-base text-slate-400">{[m.membershipNumber, region(m)].filter(Boolean).join(' · ')}</p>
                                 </div>
                                 {m.membershipTier === 'platinum' ? (
                                     <span className="inline-flex items-center gap-1 text-ui-caption font-semibold text-emerald-700"><Check className="h-4 w-4" /> Lifetime</span>
@@ -553,7 +553,7 @@ export default function PlatinumMembers() {
                                         </p>
                                         <p className="truncate text-ui-caption text-slate-500">{[m.membershipNumber, m.email].filter(Boolean).join(' · ')}</p>
                                         {m.platinumGrant ? (
-                                            <p className="text-[1rem] text-slate-500">
+                                            <p className="text-base text-slate-500">
                                                 {rupees(m.platinumGrant.amount)} · {PAYMENT_MODE_LABEL[m.platinumGrant.paymentMode as PlatinumPaymentMode] || 'Paid'}
                                                 {m.platinumGrant.receiptNumber ? ` · ${m.platinumGrant.receiptNumber}` : ''}
                                                 {' · '}granted {day(m.platinumGrant.grantedAt)}
@@ -562,7 +562,7 @@ export default function PlatinumMembers() {
                                     </div>
                                     {undoing === m.id ? (
                                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                            <span className="text-[1rem] text-slate-600 sm:max-w-[15rem]">Restore their earlier membership and cancel this receipt?</span>
+                                            <span className="text-base text-slate-600 sm:max-w-[15rem]">Restore their earlier membership and cancel this receipt?</span>
                                             <div className="flex gap-2">
                                                 <button type="button" onClick={() => setUndoing('')} disabled={undoBusy}
                                                     className="min-h-10 flex-1 rounded-xl border border-slate-200 px-3 font-semibold text-slate-700">Keep</button>
@@ -583,7 +583,7 @@ export default function PlatinumMembers() {
                         ))}
                     </ul>
                 )}
-                <p className="mt-3 flex items-start gap-2 text-[1rem] text-slate-500">
+                <p className="mt-3 flex items-start gap-2 text-base text-slate-500">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                     Each grant is recorded as a paid membership receipt, so it appears on the member’s 80G certificate and in payment reports.
                 </p>

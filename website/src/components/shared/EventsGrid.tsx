@@ -271,7 +271,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                                                 <Icon size={18} className="text-brand-600" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[1rem] font-bold text-brand-800 truncate pr-2">{where.label}</p>
+                                                <p className="text-base font-bold text-brand-800 truncate pr-2">{where.label}</p>
                                                 <p className={`${MICRO_LABEL} text-gray-500 truncate pr-2`} title={where.value}>
                                                     {where.value}
                                                 </p>
@@ -303,7 +303,7 @@ export function EventsGrid({ limit, showViewAll = false }: Props) {
                         <Link
                             to={settings.viewAllHref || '/events'}
                             className="border-2 border-gray-200 hover:border-brand-800 text-gray-600 hover:text-brand-800
-                                       px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors"
+                                       px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase tracking-[0.1em] transition-colors"
                         >
                             {settings.viewAllLabel}
                         </Link>

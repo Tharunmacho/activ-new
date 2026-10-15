@@ -95,7 +95,7 @@ export function PhotoLightbox({ photos, index, onIndex, onClose, title }: {
             <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
                 <div className="min-w-0 flex-1">
                     {title && <p className="truncate text-[1.125rem] font-bold">{title}</p>}
-                    <p className="text-[1rem] text-white/60">{index + 1} of {count}</p>
+                    <p className="text-base text-white/60">{index + 1} of {count}</p>
                 </div>
                 <button
                     ref={closeRef}
@@ -141,7 +141,7 @@ export function PhotoLightbox({ photos, index, onIndex, onClose, title }: {
             {/* ---- its description ---- */}
             <div className="mx-auto w-full max-w-3xl px-4 pt-3 text-center max-h-[26vh] overflow-y-auto sm:px-5 sm:pt-4 sm:max-h-none">
                 {photo.caption ? (
-                    <p className="whitespace-pre-line break-words text-[1rem] leading-relaxed text-white/90 sm:text-[1.125rem]">{photo.caption}</p>
+                    <p className="whitespace-pre-line break-words text-base leading-relaxed text-white/90 sm:text-[1.125rem]">{photo.caption}</p>
                 ) : null}
             </div>
 
@@ -161,7 +161,7 @@ export function PhotoLightbox({ photos, index, onIndex, onClose, title }: {
                                 : 'ring-transparent opacity-50 hover:opacity-90'}`}
                         >
                             {p.type === 'video'
-                                ? <span className="flex h-full w-full items-center justify-center bg-white/10 text-[0.875rem]">Video</span>
+                                ? <span className="flex h-full w-full items-center justify-center bg-white/10 text-sm">Video</span>
                                 : <img src={sizedMediaUrl(p.url, 200)} alt="" className="h-full w-full object-cover" />}
                         </button>
                     ))}

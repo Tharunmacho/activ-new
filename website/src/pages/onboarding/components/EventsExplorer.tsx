@@ -890,7 +890,7 @@ export function EventsExplorer({ events, settings }: Props) {
 
                                                     {event?.category && (
                                                         <span className="absolute left-3 top-3 rounded-md bg-brand-900/85
-                                                                         px-3 py-1.5 text-[1rem] font-extrabold
+                                                                         px-3 py-1.5 text-base font-extrabold
                                                                          uppercase tracking-[0.08em] text-white
                                                                          ">
                                                             {event.category}
@@ -922,12 +922,12 @@ export function EventsExplorer({ events, settings }: Props) {
                                                                          text-brand-800">
                                                             {date.day}
                                                         </span>
-                                                        <span className="mt-0.5 text-[1rem]
+                                                        <span className="mt-0.5 text-base
                                                                          font-extrabold uppercase tracking-[0.08em]
                                                                          text-brand-600">
                                                             {date.month}
                                                         </span>
-                                                        <span className="text-[1rem]
+                                                        <span className="text-base
                                                                          font-bold text-gray-400">
                                                             {date.year}
                                                         </span>
@@ -1123,7 +1123,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                       real state a visitor will meet.
                                                     */}
                                                     {!date && (
-                                                        <p className="flex items-center gap-2 text-[1rem]
+                                                        <p className="flex items-center gap-2 text-base
                                                                       font-semibold text-gray-400">
                                                             <Clock size={16} className="shrink-0 text-brand-300" />
                                                             <span>Date to be confirmed</span>

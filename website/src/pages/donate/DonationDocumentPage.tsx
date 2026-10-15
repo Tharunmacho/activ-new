@@ -199,12 +199,12 @@ export function DonationStatementPage() {
                 <>
                     <Toolbar>
                         {years.length > 1 ? (
-                            <label className="inline-flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-700">
+                            <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
                                 Year
                                 <select
                                     value={data.financialYear || ''}
                                     onChange={(e) => setParams({ fy: e.target.value })}
-                                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-[1rem] font-semibold text-slate-800"
+                                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-base font-semibold text-slate-800"
                                 >
                                     {years.map((y) => <option key={y} value={y}>{fyLabel(y)}</option>)}
                                 </select>
@@ -215,7 +215,7 @@ export function DonationStatementPage() {
                         </button>
                     </Toolbar>
                     {data.isFinal === false ? (
-                        <p className="mx-auto mb-4 max-w-[210mm] rounded-xl bg-amber-50 px-4 py-3 text-[0.9375rem] font-medium text-amber-800 ring-1 ring-amber-200 print:hidden">
+                        <p className="mx-auto mb-4 max-w-[210mm] rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 ring-1 ring-amber-200 print:hidden">
                             Provisional — the financial year is still running. Any gift you make before 31 March is added here,
                             and the final certificate is issued after the year closes.
                         </p>

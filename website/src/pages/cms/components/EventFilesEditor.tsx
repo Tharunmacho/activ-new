@@ -75,7 +75,7 @@ export default function EventFilesEditor({
             <h3 className="flex items-center gap-2 text-ui-body font-extrabold text-slate-900 dark:text-white">
                 <Paperclip className="h-5 w-5 text-blue-600" /> WhatsApp group, documents &amp; video
             </h3>
-            <p className="mt-1 text-[1.05rem] text-slate-500 dark:text-neutral-400">
+            <p className="mt-1 text-base text-slate-500 dark:text-neutral-400">
                 Upload the agenda or any file (PDF, Word, Excel, slides, image, ZIP — up to 20 MB) and add a YouTube link.
                 They go to the people who register: linked (and small files attached) in the booking email, and
                 optional supporting PDFs/documents sent after the main WhatsApp confirmation. The event banner stays on the main message.
@@ -83,7 +83,7 @@ export default function EventFilesEditor({
             </p>
 
             <label className="mt-4 block">
-                <span className="mb-1.5 block text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">WhatsApp group or channel link</span>
+                <span className="mb-1.5 block text-base font-bold text-slate-700 dark:text-neutral-200">WhatsApp group or channel link</span>
                 <input
                     type="text"
                     inputMode="url"
@@ -118,7 +118,7 @@ export default function EventFilesEditor({
 
             {/* Video */}
             <label className="mt-4 block">
-                <span className="mb-1.5 flex items-center gap-2 text-[1.05rem] font-bold text-slate-700 dark:text-neutral-200">
+                <span className="mb-1.5 flex items-center gap-2 text-base font-bold text-slate-700 dark:text-neutral-200">
                     <Youtube className="h-4 w-4 text-red-600" /> YouTube or video link
                 </span>
                 <input
@@ -147,13 +147,13 @@ export default function EventFilesEditor({
                     disabled={busy || list.length >= 10}
                     onClick={() => input.current?.click()}
                     className="inline-flex h-11 items-center gap-2 rounded-xl border border-dashed border-blue-300 bg-blue-50/60
-                               px-5 text-[1.05rem] font-bold text-blue-700 transition hover:bg-blue-50 disabled:opacity-50
+                               px-5 text-base font-bold text-blue-700 transition hover:bg-blue-50 disabled:opacity-50
                                dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300"
                 >
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     {busy ? 'Uploading…' : 'Upload files'}
                 </button>
-                {error && <p className="mt-2 text-[1rem] font-semibold text-red-600">{error}</p>}
+                {error && <p className="mt-2 text-base font-semibold text-red-600">{error}</p>}
 
                 {list.length > 0 && (
                     <ul className="mt-4 space-y-2">
@@ -167,12 +167,12 @@ export default function EventFilesEditor({
                                     onChange={(e) => rename(i, e.target.value)}
                                     aria-label="Document name"
                                     className="!min-w-[10rem] flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1
-                                               text-[1.05rem] font-semibold text-slate-800 hover:border-slate-200 focus:border-blue-400 focus:bg-white outline-none
+                                               text-base font-semibold text-slate-800 hover:border-slate-200 focus:border-blue-400 focus:bg-white outline-none
                                                dark:text-neutral-100 dark:hover:border-[#2a2a2a] dark:focus:bg-black"
                                 />
-                                <span className="text-[0.95rem] text-slate-500">{sizeLabel(a.size)}</span>
+                                <span className="text-sm text-slate-500">{sizeLabel(a.size)}</span>
                                 <a href={resolveMediaUrl(a.url)} target="_blank" rel="noopener noreferrer"
-                                   className="px-1 py-2 text-[0.95rem] font-bold text-blue-700 hover:underline dark:text-blue-400">Open</a>
+                                   className="px-1 py-2 text-sm font-bold text-blue-700 hover:underline dark:text-blue-400">Open</a>
                                 <button type="button" onClick={() => remove(i)} aria-label={`Remove ${a.name}`}
                                         className="rounded-lg p-2.5 sm:p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40">
                                     <Trash2 className="h-4 w-4" />

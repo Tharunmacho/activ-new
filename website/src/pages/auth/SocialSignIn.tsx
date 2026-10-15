@@ -110,7 +110,7 @@ export default function SocialSignIn() {
                                    font-semibold text-white transition-colors hover:bg-blue-700">
                         Create an account
                     </Link>
-                    <Link to="/login" className="mt-5 inline-block text-[1rem] font-semibold text-slate-500 hover:text-slate-900">
+                    <Link to="/login" className="mt-5 inline-block text-base font-semibold text-slate-500 hover:text-slate-900">
                         Back to sign in
                     </Link>
                 </div>

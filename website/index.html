@@ -127,6 +127,7 @@
     </style>
   </head>
   <body>
+    <noscript><p style="padding:24px;background:white;color:#1c2e68;font:18px system-ui">Please enable JavaScript to open ACTIV, then reload this page.</p></noscript>
     <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=536417434121119&ev=PageView&noscript=1"
     /></noscript>
@@ -137,12 +138,34 @@
       render.
     -->
     <div id="root">
-      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#ffffff;font-family:Poppins,Inter,system-ui,sans-serif">
+      <div id="activ-startup" style="min-height:100vh;box-sizing:border-box;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#ffffff;color:#1c2e68;text-align:center;font:20px Poppins,Inter,system-ui,sans-serif">
         <img src="/logo_ACTIVian-removebg-preview.png" alt="ACTIV" width="180" style="width:180px;height:auto" />
-        <div style="width:34px;height:34px;border:3px solid #dbe4fb;border-top-color:#1c2e68;border-radius:50%;animation:activspin .8s linear infinite"></div>
+        <div aria-hidden="true" style="width:34px;height:34px;border:3px solid #dbe4fb;border-top-color:#1c2e68;border-radius:50%;animation:activspin .8s linear infinite"></div>
+        <p role="status" style="margin:0">Loading ACTIV…</p>
+        <div id="activ-startup-recovery" hidden style="max-width:480px">
+          <p role="alert">ACTIV is taking longer than usual to open. Check your connection, then reload this page.</p>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px">
+            <button type="button" id="activ-startup-reload" style="min-height:44px;border:0;border-radius:24px;padding:12px 20px;background:#1c2e68;color:white;font:inherit;cursor:pointer">Reload page</button>
+            <a href="/" style="min-height:44px;box-sizing:border-box;border:1px solid #dbe4fb;border-radius:24px;padding:12px 20px;color:#1c2e68;text-decoration:none">Go home</a>
+          </div>
+        </div>
         <style>@keyframes activspin{to{transform:rotate(360deg)}}</style>
       </div>
     </div>
+    <script>
+      // This watchdog only owns the initial HTML. It never replaces a mounted app
+      // and does not reload automatically or change the signed-in session.
+      (function () {
+        var startup = document.getElementById('activ-startup');
+        var recovery = document.getElementById('activ-startup-recovery');
+        document.getElementById('activ-startup-reload').addEventListener('click', function () { location.reload(); });
+        var timer = setTimeout(function () { if (startup.isConnected) recovery.hidden = false; }, 12000);
+        var observer = new MutationObserver(function () {
+          if (!startup.isConnected) { clearTimeout(timer); observer.disconnect(); }
+        });
+        observer.observe(document.getElementById('root'), { childList: true });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

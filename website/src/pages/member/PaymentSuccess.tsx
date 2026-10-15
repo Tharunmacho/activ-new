@@ -260,12 +260,12 @@ export default function PaymentSuccess() {
                                     <ReceiptText className="h-6 w-6" />
                                 </span>
                                 <div className="min-w-0">
-                                    <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.16em] text-blue-100">Payment receipt</p>
+                                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-100">Payment receipt</p>
                                     <p className="font-display text-[1.375rem] sm:text-[1.625rem] font-bold leading-tight">{planName}</p>
                                 </div>
                             </div>
                             <div className="sm:text-right">
-                                <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.16em] text-blue-100">Amount paid</p>
+                                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-100">Amount paid</p>
                                 <p className="font-display text-[2rem] sm:text-[2.25rem] font-bold leading-none tabular-nums">{money(amount)}</p>
                             </div>
                         </div>
@@ -289,22 +289,22 @@ export default function PaymentSuccess() {
                             </span>
                         </div>
 
-                        <span className="relative mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-[0.8125rem] font-semibold uppercase tracking-[0.16em] ring-1 ring-white/25">
+                        <span className="relative mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold uppercase tracking-[0.16em] ring-1 ring-white/25">
                             <Sparkles className="h-3.5 w-3.5 text-amber-200" /> Payment confirmed
                         </span>
                         <h2 className="relative mt-3 font-display text-[1.75rem] sm:text-[2.5rem] font-bold leading-tight">
                             {renewed ? `Thank you for renewing, ${firstName}!` : `Welcome to ACTIV, ${firstName}!`}
                         </h2>
-                        <p className="relative mx-auto mt-2 max-w-xl text-[1rem] sm:text-[1.125rem] text-blue-100">
+                        <p className="relative mx-auto mt-2 max-w-xl text-base sm:text-[1.125rem] text-blue-100">
                             {renewed
                                 ? `Your ${planName.toLowerCase()} is renewed${profile?.membershipExpiresAt ? ` until ${new Date(profile.membershipExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}. Every member benefit carries on.`
                                 : `Your ${planName.toLowerCase()} is now active. Everything a member gets is open to you.`}
                         </p>
 
                         <div className="relative mx-auto mt-6 inline-flex flex-col items-center rounded-2xl bg-white/10 px-7 py-4 ring-1 ring-white/20 backdrop-blur-sm">
-                            <span className="text-[0.8125rem] font-semibold uppercase tracking-[0.16em] text-blue-100">Total paid</span>
+                            <span className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-100">Total paid</span>
                             <span className="font-display text-[2.25rem] sm:text-[2.75rem] font-bold leading-none tabular-nums">{money(amount)}</span>
-                            <span className="mt-1.5 text-[0.9375rem] text-blue-100">{planName}{period && !lifetime ? ` · ${period}` : ''}</span>
+                            <span className="mt-1.5 text-sm text-blue-100">{planName}{period && !lifetime ? ` · ${period}` : ''}</span>
                         </div>
                     </section>
                 )}
@@ -319,10 +319,10 @@ export default function PaymentSuccess() {
                                 </span>
                                 <div className="min-w-0">
                                     <p className="font-display text-ui-body font-bold text-slate-900">Membership receipt</p>
-                                    <p className="text-[0.9375rem] text-slate-500">Adidravidar Confederation of Trade &amp; Industrial Vision</p>
+                                    <p className="text-sm text-slate-500">Adidravidar Confederation of Trade &amp; Industrial Vision</p>
                                 </div>
                             </div>
-                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-[0.875rem] font-bold text-emerald-700 ring-1 ring-emerald-100">
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">
                                 <BadgeCheck className="h-4 w-4" /> Paid
                             </span>
                         </div>
@@ -341,7 +341,7 @@ export default function PaymentSuccess() {
                                         <Icon className="h-4 w-4" />
                                     </span>
                                     <div className="min-w-0">
-                                        <dt className="text-[0.8125rem] font-semibold uppercase tracking-wider text-slate-500">{label}</dt>
+                                        <dt className="text-sm font-semibold uppercase tracking-wider text-slate-500">{label}</dt>
                                         <dd className="mt-0.5 break-words text-ui-caption font-semibold text-slate-900">{value}</dd>
                                     </div>
                                 </div>
@@ -349,18 +349,18 @@ export default function PaymentSuccess() {
                         </dl>
 
                         <div className="mx-5 mt-5 flex items-center justify-between gap-3 rounded-2xl bg-blue-50/70 px-4 py-4 ring-1 ring-blue-100 sm:mx-7">
-                            <span className="text-[1rem] font-semibold text-slate-700">Amount paid</span>
+                            <span className="text-base font-semibold text-slate-700">Amount paid</span>
                             <span className="font-display text-[1.75rem] font-bold leading-none tabular-nums text-blue-800">{money(amount)}</span>
                         </div>
 
                         {txnRef ? (
                             <div className="mx-5 mt-3 flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200 sm:mx-7">
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-[0.8125rem] font-semibold uppercase tracking-wider text-slate-500">Transaction reference</p>
-                                    <p className="mt-0.5 break-all font-mono text-[0.9375rem] font-semibold text-slate-900">{txnRef}</p>
+                                    <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">Transaction reference</p>
+                                    <p className="mt-0.5 break-all font-mono text-sm font-semibold text-slate-900">{txnRef}</p>
                                 </div>
                                 <button type="button" onClick={copyRef}
-                                    className="ps-no-print inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.9375rem] font-semibold text-blue-700 ring-1 ring-slate-200 hover:bg-blue-50">
+                                    className="ps-no-print inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-semibold text-blue-700 ring-1 ring-slate-200 hover:bg-blue-50">
                                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied ? 'Copied' : 'Copy'}
                                 </button>
                             </div>
@@ -382,7 +382,7 @@ export default function PaymentSuccess() {
                     <aside className="ps-no-print min-w-0 space-y-4 lg:sticky lg:top-28">
                         <div className="rounded-3xl bg-white p-5 shadow-[0_1px_3px_rgba(16,24,40,0.08),0_18px_40px_-20px_rgba(16,24,40,0.28)] ring-1 ring-slate-200">
                             <p className="font-display text-[1.125rem] font-bold text-slate-900">Your documents</p>
-                            <p className="text-[0.9375rem] text-slate-500">Ready now — open, print or save.</p>
+                            <p className="text-sm text-slate-500">Ready now — open, print or save.</p>
                             <div className="mt-4 grid gap-2.5">
                                 {[
                                     { Icon: Award, title: 'Membership certificate', note: 'With your Member ID', to: '/member/certificate/membership' },
@@ -395,7 +395,7 @@ export default function PaymentSuccess() {
                                         </span>
                                         <span className="min-w-0 flex-1">
                                             <span className="block truncate font-semibold text-slate-900">{title}</span>
-                                            <span className="block truncate text-[0.875rem] text-slate-500">{note}</span>
+                                            <span className="block truncate text-sm text-slate-500">{note}</span>
                                         </span>
                                         <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
                                     </button>
@@ -410,7 +410,7 @@ export default function PaymentSuccess() {
                                 </span>
                                 <div className="min-w-0">
                                     <p className="font-semibold text-sky-900">Confirmation sent</p>
-                                    <p className="text-[0.9375rem] text-sky-800">Your receipt is on its way to your email and WhatsApp.</p>
+                                    <p className="text-sm text-sky-800">Your receipt is on its way to your email and WhatsApp.</p>
                                 </div>
                             </div>
                         ) : null}
@@ -419,7 +419,7 @@ export default function PaymentSuccess() {
                             className={`inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl ${GRADIENT} px-5 text-ui-caption font-bold text-white shadow-[0_12px_28px_-12px_rgba(30,58,138,0.7)] transition-transform hover:-translate-y-0.5`}>
                             <LayoutDashboard className="h-5 w-5" /> Go to my dashboard <ArrowRight className="h-4 w-4" />
                         </button>
-                        <p className="flex items-center justify-center gap-1.5 text-[0.875rem] text-slate-500">
+                        <p className="flex items-center justify-center gap-1.5 text-sm text-slate-500">
                             <ShieldCheck className="h-4 w-4" /> Recorded securely by ACTIV
                         </p>
                     </aside>

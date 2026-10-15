@@ -437,7 +437,7 @@ export function GallerySection() {
                                           */}
                                         {(card.photos || []).filter((ph) => ph && ph.url).length > 0 && (
                                             <span className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full
-                                                             bg-black/65 px-2 py-0.5 sm:px-3 sm:py-1 text-[0.875rem] sm:text-[0.9375rem] font-bold text-white
+                                                             bg-black/65 px-2 py-0.5 sm:px-3 sm:py-1 text-sm sm:text-sm font-bold text-white
                                                              shadow-sm backdrop-blur-sm">
                                                 <Images size={14} /> {(card.photos || []).filter((ph) => ph && ph.url).length + 1} photos
                                             </span>
@@ -497,7 +497,7 @@ export function GallerySection() {
                                       * up whatever the editor filled in.
                                       */}
                                     <div className="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-1.5 border-t border-gray-100 pt-3 sm:pt-4">
-                                        <div className="min-w-0 flex flex-col gap-1.5 text-gray-500 text-[0.9375rem] sm:text-ui-caption font-medium">
+                                        <div className="min-w-0 flex flex-col gap-1.5 text-gray-500 text-sm sm:text-ui-caption font-medium">
                                             {card.eventDate && (
                                                 <span className="flex items-center gap-1.5">
                                                     <Calendar size={15} className="shrink-0 text-gray-400" />
@@ -513,7 +513,7 @@ export function GallerySection() {
                                         </div>
 
                                         <span className="shrink-0 inline-flex items-center gap-1.5 text-brand-600
-                                                         text-[1rem] font-extrabold uppercase tracking-widest
+                                                         text-base font-extrabold uppercase tracking-widest
                                                          opacity-70 transition-all duration-300
                                                          group-hover:opacity-100 group-hover:gap-2.5
                                                          group-focus-visible:opacity-100">

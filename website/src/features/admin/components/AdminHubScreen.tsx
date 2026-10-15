@@ -418,7 +418,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                                             <p className={`text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight tabular-nums ${f.tone}`}>
                                                                 {Number(f.value || 0)}
                                                             </p>
-                                                            <p className="text-[1rem] sm:text-ui-small font-semibold text-slate-500 mt-0.5 truncate">{f.label}</p>
+                                                            <p className="text-base sm:text-ui-small font-semibold text-slate-500 mt-0.5 truncate">{f.label}</p>
                                                         </div>
                                                     ))}
                                                 </div>

@@ -276,25 +276,30 @@ export default function MembershipCertificate({ cert }: { cert: Certificate }) {
                 </div>
 
                 {/* ============================================ signature · seal · date */}
-                <div data-testid="membership-signatories" className="absolute inset-x-[210px] top-[594px] z-10 grid grid-cols-3 items-start text-center">
-                <div data-testid="membership-signature-block" className="mx-auto w-[260px] max-w-full">
-                    <p className="text-[15px] leading-[20px] font-semibold" style={{ color: NAVY }}>Founder and Chairperson</p>
-                    <SignatureInk className="h-[86px]" />
-                    <span className="mt-0.5 block h-px w-full" style={{ background: NAVY_MID }} />
-                    <p className="mt-[3px] text-[13px] leading-[18px] font-bold" style={{ color: NAVY }}>THAMIZHAZHAGAN NALLAIYAN</p>
+                <div data-testid="membership-signatories" className="absolute inset-x-[210px] top-[598px] z-10 grid grid-cols-3 items-start text-center">
+                <div data-testid="membership-signature-block" className="mx-auto w-[220px] max-w-full">
+                    <p className="text-[14px] leading-[20px] font-semibold" style={{ color: NAVY }}>Founder and Chairperson</p>
+                    <div data-testid="membership-signature-slot" className="flex h-[86px] items-center justify-center">
+                        {/* Preserve every stroke of the original PNG; correct its rising baseline and ink centre. */}
+                        <div data-testid="membership-signature-ink" style={{ transform: 'translate(-3.5px, 4.5px) rotate(8deg)', transformOrigin: 'center' }}>
+                            <SignatureInk className="block h-[86px] max-w-none" />
+                        </div>
+                    </div>
+                    <span data-testid="membership-signature-rule" className="block h-px w-full" style={{ background: NAVY_MID }} />
+                    <p className="mt-[3px] text-[12px] leading-[18px] font-bold" style={{ color: NAVY }}>THAMIZHAZHAGAN NALLAIYAN</p>
                 </div>
 
-                <div data-testid="membership-seal-block" className="z-20 flex flex-col items-center pt-3">
-                    <CertificateMedallion line="Membership" className="h-[128px] w-[128px]" />
-                    <p className="mt-0.5 text-[14px] font-semibold" style={{ color: NAVY }}>Official Seal</p>
+                <div data-testid="membership-seal-block" className="z-20 flex flex-col items-center">
+                    <CertificateMedallion line="Membership" className="h-[112px] w-[112px]" />
+                    <p className="text-[12px] leading-[16px] font-semibold" style={{ color: NAVY }}>Official Seal</p>
                 </div>
 
-                <div data-testid="membership-issue-block" className="mx-auto w-[230px] max-w-full pt-9">
-                    <p className="text-[16px] font-bold" style={{ color: NAVY }}>Date of Issue</p>
-                    <p className="flex h-[56px] items-end justify-center pb-1 font-certificate text-[26px] font-bold" style={{ color: NAVY_MID }}>
+                <div data-testid="membership-issue-block" className="mx-auto w-[220px] max-w-full">
+                    <p className="text-[14px] leading-[20px] font-bold" style={{ color: NAVY }}>Date of Issue</p>
+                    <p className="flex h-[86px] items-center justify-center font-certificate text-[24px] font-bold" style={{ color: NAVY_MID }}>
                         {issued || '—'}
                     </p>
-                    <span className="mt-0.5 block h-px w-full" style={{ background: NAVY_MID }} />
+                    <span data-testid="membership-issue-rule" className="block h-px w-full" style={{ background: NAVY_MID }} />
                 </div>
                 </div>
 

@@ -218,7 +218,7 @@ export function MemberPhotoViewer({ name, onClose }: { name: string; onClose: ()
                             <span className="grid h-28 w-28 place-items-center rounded-3xl bg-gradient-to-br from-[#1e3a8a] to-[#2563eb] font-display text-[2.5rem] font-bold text-white">
                                 {initialsOf(name)}
                             </span>
-                            <p className="text-[1rem] text-slate-500">No photo yet — add one so members recognise you.</p>
+                            <p className="text-base text-slate-500">No photo yet — add one so members recognise you.</p>
                         </div>
                     )}
                 </div>

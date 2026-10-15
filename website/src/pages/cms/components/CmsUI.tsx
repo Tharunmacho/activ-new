@@ -638,7 +638,7 @@ export function RepeatableList<T>({
                     >
                         <DialogHeader className="shrink-0 border-b border-slate-200 px-4 py-5 pr-12 text-left sm:px-6 dark:border-[#2a2a2a]">
                             <DialogTitle className="capitalize">{noun} {openIndex === null ? '' : openIndex + 1}</DialogTitle>
-                            <DialogDescription className="text-[1rem] leading-relaxed">
+                            <DialogDescription className="text-base leading-relaxed">
                                 {editorDescription || 'Edit the details, then choose Done to return to the list.'}
                             </DialogDescription>
                         </DialogHeader>
@@ -646,7 +646,7 @@ export function RepeatableList<T>({
                             {openIndex !== null && items[openIndex] && row(items[openIndex], patch => update(openIndex, patch), openIndex)}
                         </div>
                         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-4 py-4 sm:px-6 dark:border-[#2a2a2a]">
-                            {editorBusy && <span role="status" className="text-[1rem] text-slate-500">Finishing upload…</span>}
+                            {editorBusy && <span role="status" className="text-base text-slate-500">Finishing upload…</span>}
                             <button type="button" disabled={editorBusy} onClick={() => setOpenIndex(null)}
                                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2 text-ui-caption font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
                                 <Check className="h-4 w-4" /> Done

@@ -76,12 +76,16 @@ const server = http.createServer(async (req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
   if (output) await mkdir(output, { recursive: true });
-  // Generate current CSS directly; no stale built CSS or typography assumptions.
+  // Prefer the explicitly selected production stylesheet for release verification.
+  if (process.env.TEST_CSS) css = await readFile(path.resolve(process.env.TEST_CSS), 'utf8');
+  else {
+  // Generate current CSS directly when no production build is provided.
   let inputCss = await readFile(path.join(root, 'src/index.css'), 'utf8');
   for (const match of [...inputCss.matchAll(/@import ['"](.+?)['"];?/g)]) inputCss = inputCss.replace(match[0], await readFile(path.resolve(root, 'src', match[1]), 'utf8'));
   const config = loadConfig(path.join(root, 'tailwind.config.ts'));
   config.content = [path.join(root, 'src/**/*.{ts,tsx}')];
   css = (await postcss([tailwind(config)]).process(inputCss, { from: path.join(root, 'src/index.css') })).css;
+  }
   localPoppins = await Promise.all(Array.from({ length: 6 }, (_, i) => readFile(path.join(fontsDirectory, `font-restore-poppins-${i}.ttf`)))).then(() => true, () => false);
   if (process.env.TEST_FONTS_DIR) assert(localPoppins, 'Explicit font fixture directory must contain all six local Poppins files');
   if (localPoppins) for (let i = 0; i < 6; i++) css += `\n@font-face{font-family:Poppins;font-style:normal;font-weight:${400 + i * 100};src:url('/font-restore-poppins-${i}.ttf') format('truetype');font-display:block}`;
@@ -131,7 +135,7 @@ try {
   const deleteCount = () => requests.filter(row => row.method === 'DELETE').length;
   const visit = async (screen, width) => {
     archivedPaymentPresent = true; archivedEventPresent = true; failDelete = false;
-    await send('Emulation.setDeviceMetricsOverride', { width, height: 940, deviceScaleFactor: 1, mobile: true });
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 940, deviceScaleFactor: 1, mobile: width < 600 });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}${screen}` });
     await until(screen.includes('membership') ? 'document.body.textContent.includes("Live Member")' : 'document.body.textContent.includes("Current workshop")');
     await evaluate('document.fonts.ready');
@@ -143,7 +147,7 @@ try {
       const button=${visibleButton('Delete permanently')}, r=button.getBoundingClientRect();
       const text=[...button.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);const range=document.createRange();if(text)range.selectNodeContents(text);
       const textRect=text?range.getBoundingClientRect():r;
-      return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,button:{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,clientWidth:button.clientWidth,scrollWidth:button.scrollWidth,clientHeight:button.clientHeight,scrollHeight:button.scrollHeight},text:{left:textRect.left,right:textRect.right,top:textRect.top,bottom:textRect.bottom},font:getComputedStyle(button).fontFamily,poppinsLoaded:document.fonts.check('600 20px Poppins')};
+      return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,button:{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,clientWidth:button.clientWidth,scrollWidth:button.scrollWidth,clientHeight:button.clientHeight,scrollHeight:button.scrollHeight},text:{left:textRect.left,right:textRect.right,top:textRect.top,bottom:textRect.bottom},font:getComputedStyle(button).fontFamily,fontSize:parseFloat(getComputedStyle(button).fontSize),bodySize:parseFloat(getComputedStyle(document.body).fontSize),poppinsLoaded:document.fonts.check('600 20px Poppins')};
     })()`);
     layouts.push({ screen, ...result });
     if (output) { const shot = await send('Page.captureScreenshot', { format: 'png' }); await writeFile(path.join(output, `${screen}-${width}.png`), Buffer.from(shot.result.data, 'base64')); }
@@ -151,6 +155,8 @@ try {
       || result.button.scrollWidth > result.button.clientWidth + 1 || result.button.scrollHeight > result.button.clientHeight + 1
       || result.text.left < result.button.left - 1 || result.text.right > result.button.right + 1
       || result.text.top < result.button.top - 1 || result.text.bottom > result.button.bottom + 1) failures.push(`${screen} ${width}px: clipped delete control ${JSON.stringify(result)}`);
+    assert.equal(result.bodySize,20,'Readable 20px body');
+    assert(result.font.includes('Poppins') && result.fontSize >=18,'Readable Poppins delete action');
     if (localPoppins) assert(result.poppinsLoaded, 'Local Poppins loaded');
   };
   const exerciseDelete = async (kind, width) => {
@@ -178,7 +184,7 @@ try {
   };
   await send('Runtime.enable'); await send('Network.enable');
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
-  for (const width of [390, 320]) {
+  for (const width of [390, 320, 1440]) {
     await visit('/super-admin/membership', width);
     assert.equal(await evaluate(`Boolean(${visibleButton('Delete permanently')})`), false, 'members list has no archived-payment delete');
     await click('Payments'); await until('document.body.textContent.includes("RECEIPT-LIVE")');
@@ -202,9 +208,9 @@ try {
     checks.push(`events_admin ${width}px: archived history visible; permanent delete absent`);
   }
   assert.deepEqual(unexpectedRequests, []); assert.deepEqual(remoteRequests, []); assert.deepEqual(errors, []);
-  if (output) await writeFile(path.join(output, 'verification.json'), JSON.stringify({ checkedAt: new Date().toISOString(), checks, layouts, failures, requests, remoteRequests, errors, css: 'generated from current source', fonts: localPoppins ? 'local Poppins 400–900' : 'system fallback (local Poppins unavailable)' }, null, 2));
+  if (output) await writeFile(path.join(output, 'verification.json'), JSON.stringify({ checkedAt: new Date().toISOString(), checks, layouts, failures, requests, remoteRequests, errors, css: process.env.TEST_CSS || 'generated from current source', fonts: localPoppins ? 'local Poppins 400–900' : 'system fallback (local Poppins unavailable)' }, null, 2));
   assert.deepEqual(failures, [], 'No clipped controls or fixture failures');
-  console.log(`PASS archived delete browser: local HTTP API paths/bodies, cancel/failure/success, live/current/past and role guards, ${localPoppins ? 'Poppins' : 'system fallback font'} layout at 390/320px.`);
+  console.log(`PASS archived delete browser: local HTTP API paths/bodies, cancel/failure/success, live/current/past and role guards, ${localPoppins ? 'Poppins' : 'system fallback font'} layout at 390/320/1440px.`);
   await send('Browser.close');
 } finally {
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

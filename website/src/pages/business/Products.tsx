@@ -259,7 +259,7 @@ const Products = () => {
                                             <Package className="h-10 w-10 sm:h-14 sm:w-14 text-slate-300" strokeWidth={1.5} />
                                         </div>
                                     )}
-                                    <span className="absolute top-2 right-2 sm:top-3 sm:right-3 max-w-[calc(100%-1rem)] truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 shadow-sm text-[1rem] sm:text-ui-small font-semibold text-blue-600">
+                                    <span className="absolute top-2 right-2 sm:top-3 sm:right-3 max-w-[calc(100%-1rem)] truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 shadow-sm text-base sm:text-ui-small font-semibold text-blue-600">
                                         ₹{Number(product.price || 0).toLocaleString('en-IN')}
                                     </span>
                                 </div>

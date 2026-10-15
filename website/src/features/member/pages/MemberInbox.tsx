@@ -462,7 +462,7 @@ export default function MemberInbox() {
                         </span>
                         <span className="min-w-0 flex-1">
                             <span className="block text-ui-small font-extrabold text-slate-900">Conversations</span>
-                            <span className="block text-[0.9375rem] font-medium text-slate-500">
+                            <span className="block text-sm font-medium text-slate-500">
                                 {conversations.length === 0
                                     ? 'None yet'
                                     : `${conversations.length} ${conversations.length === 1 ? 'thread' : 'threads'}`}
@@ -472,7 +472,7 @@ export default function MemberInbox() {
                             to="/member/directory"
                             title="Find a member to message"
                             className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white
-                                       px-3 text-[0.9375rem] font-bold text-blue-700 transition hover:border-blue-400 hover:bg-blue-50"
+                                       px-3 text-sm font-bold text-blue-700 transition hover:border-blue-400 hover:bg-blue-50"
                         >
                             <Search className="h-4 w-4" /> Find
                         </Link>
@@ -543,7 +543,7 @@ export default function MemberInbox() {
                                 </span>
                                 <span className="min-w-0">
                                     <span className="block text-ui-small font-extrabold text-slate-900">Private messages</span>
-                                    <span className="block truncate text-[0.9375rem] font-medium text-slate-500">
+                                    <span className="block truncate text-sm font-medium text-slate-500">
                                         Between you and one fellow member — nobody else reads them
                                     </span>
                                 </span>
@@ -565,7 +565,7 @@ export default function MemberInbox() {
                                                 <span className="mt-2.5 block min-h-[2.75em] text-ui-caption font-bold leading-snug text-slate-900">
                                                     {opener.label}
                                                 </span>
-                                                <span className="mt-1 block text-[0.9375rem] leading-snug text-slate-500">
+                                                <span className="mt-1 block text-sm leading-snug text-slate-500">
                                                     {opener.hint}
                                                 </span>
                                             </li>

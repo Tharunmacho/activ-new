@@ -83,7 +83,7 @@ function AttendanceEvents() {
             sortValue: (r) => r.title || '',
             render: (r) => (
                 <div className="min-w-0">
-                    <div className="text-ui-body font-semibold tracking-tight text-slate-900 truncate">
+                    <div className="text-ui-body font-semibold tracking-tight text-slate-900 break-words">
                         {r.title || 'Untitled event'}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-ui-small text-slate-500">
@@ -92,7 +92,7 @@ function AttendanceEvents() {
                         </span>
                         {!!r.venue && (
                             <span className="inline-flex items-center gap-1 min-w-0 max-w-[16rem]">
-                                <MapPin className="w-4 h-4 shrink-0" /><span className="truncate">{r.venue}</span>
+                                <MapPin className="w-4 h-4 shrink-0" /><span className="break-words">{r.venue}</span>
                             </span>
                         )}
                         {r.isToday && <AdminChip tone="emerald">Today</AdminChip>}
@@ -139,10 +139,10 @@ function AttendanceEvents() {
                 <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); open(r); }}
-                    className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-blue-600 text-ui-small
-                               font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors whitespace-nowrap"
+                    className="inline-flex max-w-full items-center justify-center gap-1.5 min-h-11 px-4 py-2 rounded-xl bg-blue-600 text-ui-small
+                               font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors whitespace-normal"
                 >
-                    <UserCheck className="w-4 h-4" /> Attendance
+                    <UserCheck className="w-4 h-4 shrink-0" /> Attendance
                 </button>
             ),
         },
@@ -150,7 +150,7 @@ function AttendanceEvents() {
 
     return (
         <>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" data-attendance-stats>
                 <AdminStat icon={<Users className="w-5 h-5" />} label="Registered" value={String(totals.registered)}
                     hint={`seats on ${rows.length} ${scope === 'past' ? 'past' : 'current'} events`} tone="blue" primary />
                 <AdminStat icon={<UserCheck className="w-5 h-5" />} label="Checked in" value={String(totals.checkedIn)}
@@ -163,14 +163,14 @@ function AttendanceEvents() {
                 </div>
             )}
 
-            <div className="flex gap-1 p-1 rounded-xl bg-slate-100 w-full sm:w-auto sm:inline-flex">
+            <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-1 p-1 rounded-xl bg-slate-100 w-full sm:w-auto sm:inline-flex" aria-label="Event period">
                 {([['upcoming', 'Today & upcoming'], ['past', 'Past']] as const).map(([value, label]) => (
                     <button
                         key={value}
                         type="button"
                         onClick={() => setScope(value)}
                         aria-pressed={scope === value}
-                        className={`flex-1 sm:flex-none h-11 sm:h-12 px-3 sm:px-6 rounded-xl text-ui-caption sm:text-ui-body font-semibold whitespace-nowrap transition-colors
+                        className={`min-w-0 min-h-11 sm:min-h-12 px-3 sm:px-6 py-2 rounded-xl text-ui-caption sm:text-ui-body font-semibold whitespace-normal transition-colors
                                     ${scope === value ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                     >
                         {label}
@@ -185,8 +185,9 @@ function AttendanceEvents() {
                 loading={loading}
                 onRowClick={open}
                 searchable
-                searchPlaceholder="Search an event by name or venue"
+                searchPlaceholder="Search events"
                 minWidth="52rem"
+                cardBreakpoint={832}
                 empty={scope === 'past' ? 'No past events.' : 'No published events from the last two days onward.'}
             />
 
@@ -249,7 +250,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             sortValue: (r) => r.name || '',
             render: (r) => (
                 <div className="min-w-0">
-                    <div className="text-ui-body font-semibold text-slate-900 truncate">{r.name || 'Attendee'}</div>
+                    <div className="text-ui-body font-semibold text-slate-900 break-words">{r.name || 'Attendee'}</div>
                     <div className="mt-1 text-ui-small text-slate-500 font-mono break-all">{r.registrationNo}</div>
                     {withContact && (r.email || r.phone) ? (
                         <div className="mt-1 text-ui-small text-slate-500 break-words">
@@ -267,7 +268,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
             sortValue: (r) => r.bookedBy || '',
             render: (r) => (
                 <div className="min-w-0">
-                    <div className="text-ui-small text-slate-700 truncate">{r.bookedBy || '—'}</div>
+                    <div className="text-ui-small text-slate-700 break-words">{r.bookedBy || '—'}</div>
                     <div className="mt-1 text-ui-caption text-slate-400">Seat {r.participantNumber}{r.payment ? ` · ${r.payment}` : ''}</div>
                 </div>
             ),
@@ -293,7 +294,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
                     <div className="text-ui-small font-semibold text-slate-800 tabular-nums">{r.admittedAtLabel}</div>
                     <div className="mt-1 inline-flex items-center gap-1 text-ui-caption text-slate-500 min-w-0">
                         {r.method === 'manual' ? <Keyboard className="w-3.5 h-3.5 shrink-0" /> : <QrCode className="w-3.5 h-3.5 shrink-0" />}
-                        <span className="truncate">by {r.admittedBy || 'events staff'}</span>
+                        <span className="break-words">by {r.admittedBy || 'events staff'}</span>
                     </div>
                 </div>
             ) : <span className="text-slate-300 font-semibold">—</span>),
@@ -317,7 +318,7 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4" data-attendance-stats>
                 <AdminStat icon={<UserCheck className="w-5 h-5" />} label="Checked in" value={String(t.checkedIn)}
                     hint={`of ${t.registered} registered`} tone="blue" primary />
                 <AdminStat icon={<Users className="w-5 h-5" />} label="Registered" value={String(t.registered)}
@@ -338,19 +339,20 @@ function AttendanceDetail({ eventId }: { eventId: string }) {
                 rowKey={(r, i) => `${r?.registrationNo || ''}-${i}`}
                 loading={loading}
                 searchable
-                searchPlaceholder="Search by name, registration no, booking ID or staff"
+                searchPlaceholder="Search attendees"
                 minWidth="60rem"
+                cardBreakpoint={960}
                 empty="Nobody is registered for this event yet."
                 emptyFiltered="No attendee matches."
                 toolbar={
-                    <div className="flex gap-1 p-1 rounded-xl bg-slate-100">
+                    <div className="flex w-full max-w-full flex-wrap gap-1 p-1 rounded-xl bg-slate-100" aria-label="Attendance status">
                         {([['all', 'All'], ['in', 'Checked in'], ['out', 'Not yet']] as const).map(([value, label]) => (
                             <button
                                 key={value}
                                 type="button"
                                 onClick={() => setStatus(value)}
                                 aria-pressed={status === value}
-                                className={`h-10 px-4 rounded-lg text-ui-small font-semibold whitespace-nowrap transition-colors
+                                className={`flex-auto min-w-0 min-h-11 px-3 py-2 rounded-lg text-ui-small font-semibold whitespace-normal transition-colors
                                             ${status === value ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                             >
                                 {label}
@@ -389,7 +391,7 @@ export default function AttendancePage() {
     return (
         <div className={`flex h-screen ${ADMIN_BG}`}>
             <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto sm:overflow-hidden" data-attendance-pane>
                 <AdminPageHeader
                     title="Attendance"
                     subtitle={eventId
@@ -410,7 +412,7 @@ export default function AttendancePage() {
                         </>
                     }
                 />
-                <div key={`${eventId}-${nonce}`} className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
+                <div key={`${eventId}-${nonce}`} className={`shrink-0 sm:flex-1 sm:overflow-y-auto max-sm:[&_dl]:grid-cols-1 max-sm:[&_dt]:pt-2 ${ADMIN_PAGE}`} data-attendance-content>
                     {eventId ? <AttendanceDetail eventId={eventId} /> : <AttendanceEvents />}
                 </div>
             </div>

@@ -210,7 +210,7 @@ export function HeaderSection() {
                           resolves against.
                         */}
                         {brand?.logo?.url && (
-                            <span className="block h-11 lg:h-12 w-auto max-w-[9rem] sm:max-w-[11.5rem] shrink-0">
+                            <span className="block h-11 lg:h-12 w-[7rem] min-[360px]:w-auto max-w-[7rem] min-[360px]:max-w-[9rem] sm:max-w-[11.5rem] shrink-0">
                                 <CmsMediaFrame
                                     media={brand.logo}
                                     /*
@@ -237,7 +237,7 @@ export function HeaderSection() {
                                 /* The same widths as the name it divides —
                                    see the threshold note below. A rule with
                                    nothing on its right is a stray line. */
-                                className="hidden md:block xl:hidden min-[1700px]:block h-8 lg:h-9 w-px shrink-0"
+                                className="hidden lg:block xl:hidden min-[1700px]:block h-8 lg:h-9 w-px shrink-0"
                                 style={{ backgroundColor: `${accent}33` }}
                             />
                         )}
@@ -245,7 +245,7 @@ export function HeaderSection() {
                         {/*
                           * THE FULL NAME YIELDS TO THE MENU.
                           *
-                          * Shown on a tablet, where the menu is behind the
+                          * Shown from 1024px, where the menu is behind the
                           * hamburger, and on a wide desktop; hidden between
                           * 1024px and 1536px, where eight links and Regions
                           * need the room. With both drawn there, the name ran
@@ -320,8 +320,8 @@ export function HeaderSection() {
                                  * rename and sit in the middle of the wrong
                                  * word; a measure just wraps the new words.
                                  */
-                                className="hidden md:block xl:hidden min-[1700px]:block shrink-0
-                                           text-[1rem] lg:text-ui-caption font-bold uppercase
+                                className="hidden lg:block xl:hidden min-[1700px]:block shrink-0
+                                           text-base lg:text-ui-caption font-bold uppercase
                                            leading-[1.35] tracking-[0.06em] max-w-[21.6em]"
                                 style={{ color: accent }}
                             >
@@ -398,7 +398,7 @@ export function HeaderSection() {
                                     to={ctaHref}
                                     className="btn-shine group relative inline-flex items-center justify-center gap-2
                                                h-10 min-h-[44px] sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
-                                               text-white text-[0.95rem] sm:text-ui-caption font-semibold whitespace-nowrap
+                                               text-white text-sm sm:text-ui-caption font-semibold whitespace-nowrap
                                                shadow-[0_8px_20px_-8px_rgb(28_46_104/0.7)]
                                                transition-transform duration-200 active:scale-95 hover:-translate-y-0.5"
                                     style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
@@ -450,9 +450,9 @@ export function HeaderSection() {
                                             </span>
                                         </span>
                                     ) : (
-                                        <p className="text-[0.75rem] font-bold uppercase tracking-[0.2em] text-white/70">Menu</p>
+                                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Menu</p>
                                     )}
-                                    <p className="mt-3 text-[1rem] font-bold leading-snug">
+                                    <p className="mt-3 text-base font-bold leading-snug">
                                         {brand?.fullName || 'ACTIV'}
                                     </p>
                                 </div>
@@ -518,7 +518,7 @@ export function HeaderSection() {
                         <div className="border-t border-slate-100 px-5 pb-6 pt-4">
                             {socialLinks.length > 0 && (
                                 <div className="mb-3">
-                                    <p className="mb-2 text-[0.8125rem] font-bold uppercase tracking-[0.14em] text-slate-400">Follow us</p>
+                                    <p className="mb-2 text-sm font-bold uppercase tracking-[0.14em] text-slate-400">Follow us</p>
                                     <SocialButtons links={socialLinks} size="sm" />
                                 </div>
                             )}
@@ -527,7 +527,7 @@ export function HeaderSection() {
                                     {phone && (
                                         <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}
                                            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200
-                                                      py-3 text-[0.95rem] font-semibold transition active:scale-95 hover:bg-slate-50"
+                                                      py-3 text-sm font-semibold transition active:scale-95 hover:bg-slate-50"
                                            style={{ color: accent }}>
                                             <Phone size={16} /> Call
                                         </a>
@@ -535,7 +535,7 @@ export function HeaderSection() {
                                     {email && (
                                         <a href={`mailto:${email}`}
                                            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200
-                                                      py-3 text-[0.95rem] font-semibold transition active:scale-95 hover:bg-slate-50"
+                                                      py-3 text-sm font-semibold transition active:scale-95 hover:bg-slate-50"
                                            style={{ color: accent }}>
                                             <Mail size={16} /> Email
                                         </a>

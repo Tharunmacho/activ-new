@@ -58,7 +58,7 @@ export function ChatLauncher() {
                 <MessageCircle className="h-6 w-6 sm:h-5 sm:w-5" />
                 <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#1c2e68]" />
             </span>
-            <span className="hidden sm:inline text-[0.95rem] font-semibold">Chat with us</span>
+            <span className="hidden sm:inline text-sm font-semibold">Chat with us</span>
         </button>
         <button
             onClick={(e) => {

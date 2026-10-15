@@ -52,7 +52,7 @@ const typesFor = (group: Group) => MESSAGE_TYPES.filter(([value]) => {
 
 const SELECT = 'h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-[1.125rem] text-slate-700 '
     + 'outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
-const FIELD_LABEL = 'block text-[0.9375rem] font-semibold text-slate-500 mb-1.5';
+const FIELD_LABEL = 'block text-sm font-semibold text-slate-500 mb-1.5';
 
 const n = (value: unknown) => Number(value || 0);
 const fmt = (value: number) => value.toLocaleString('en-IN');
@@ -252,7 +252,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     <p className="flex items-center gap-2 text-[1.125rem] font-bold">
                         <AlertTriangle className="w-5 h-5 shrink-0" /> Email is not being sent right now
                     </p>
-                    <p className="mt-1 text-[1rem] break-words">
+                    <p className="mt-1 text-base break-words">
                         {health.email.configured === false
                             ? 'No email server is set up on the server.'
                             : `The mail server refused the connection or login${health.email.error ? ` (${health.email.error})` : ''}.`}
@@ -316,7 +316,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     )}
                     {retryAsk ? (
                         <span className="flex items-center gap-2">
-                            <span className="text-[1rem] font-semibold text-slate-700">Message these people again?</span>
+                            <span className="text-base font-semibold text-slate-700">Message these people again?</span>
                             <button type="button" onClick={runRetryAll} disabled={retrying}
                                 className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-60">
                                 {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Yes, send
@@ -412,20 +412,20 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                         type="button"
                         onClick={() => setMore((m) => !m)}
                         aria-expanded={more}
-                        className="text-[1rem] font-semibold text-blue-700 hover:text-blue-800"
+                        className="text-base font-semibold text-blue-700 hover:text-blue-800"
                     >
                         {more ? 'Fewer filters' : 'More filters (message type, dates)'}
                     </button>
                     {filtered ? (
                         <span className="flex items-center gap-3">
-                            <span className="text-[1rem] text-slate-500">
+                            <span className="text-base text-slate-500">
                                 {loading ? 'Filtering…' : `${fmt(pagination.total || 0)} ${pagination.total === 1 ? 'message' : 'messages'}`}
                             </span>
                             <button
                                 type="button"
                                 onClick={clearFilters}
                                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-200 bg-white
-                                           text-[1rem] font-semibold text-slate-600 hover:bg-slate-50"
+                                           text-base font-semibold text-slate-600 hover:bg-slate-50"
                             >
                                 <X className="w-4 h-4" /> Clear
                             </button>
@@ -453,7 +453,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                         <thead>
                             <tr className="bg-slate-50">
                                 {['To', 'Message', 'Result', ''].map((head, i) => (
-                                    <th key={head || i} className="px-4 py-3 text-[1rem] font-semibold uppercase tracking-wider
+                                    <th key={head || i} className="px-4 py-3 text-base font-semibold uppercase tracking-wider
                                                                    text-slate-500 border-b border-slate-200 whitespace-nowrap">
                                         {head || <span className="sr-only">Action</span>}
                                     </th>
@@ -485,7 +485,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                             <p className="text-[1.125rem] font-semibold text-slate-900 truncate" title={row.recipientName || ''}>
                                                 {row.recipientName || 'No name'}
                                             </p>
-                                            <p className="text-[1rem] text-slate-500 truncate" title={row.recipient}>{row.recipient}</p>
+                                            <p className="text-base text-slate-500 truncate" title={row.recipient}>{row.recipient}</p>
                                         </td>
                                         <td className="px-4 py-3.5 min-w-0">
                                             <p className="flex items-center gap-1.5 text-[1.125rem] font-semibold text-slate-800">
@@ -493,15 +493,15 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                                 {messageLabel(row.event)}
                                             </p>
                                             {row.eventTitle ? (
-                                                <p className="text-[1rem] text-slate-500 line-clamp-1" title={row.eventTitle}>{row.eventTitle}</p>
+                                                <p className="text-base text-slate-500 line-clamp-1" title={row.eventTitle}>{row.eventTitle}</p>
                                             ) : null}
-                                            <p className="text-[0.9375rem] text-slate-400 tabular-nums">{whenLabel(row.createdAt)}</p>
+                                            <p className="text-sm text-slate-400 tabular-nums">{whenLabel(row.createdAt)}</p>
                                         </td>
                                         <td className="px-4 py-3.5 min-w-0">
                                             <DeliveryBadge state={stateOf(row)} />
                                             {reason.text ? (
                                                 <p
-                                                    className={`mt-1.5 text-[1rem] line-clamp-2 ${reason.failed ? 'text-rose-700' : 'text-slate-500'}`}
+                                                    className={`mt-1.5 text-base line-clamp-2 ${reason.failed ? 'text-rose-700' : 'text-slate-500'}`}
                                                     title={reasonOf(row)}
                                                 >
                                                     {reason.text}

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { apiFetch, logout } from '@/services/activApi';
 import { resolveMediaUrl } from '@/config/api.config';
 import { TIERS, tierForRole, type AdminTier } from './tierConfig';
+import { storedRole } from '@/lib/session';
 
 type Props = {
     className?: string;
@@ -58,13 +59,14 @@ export default function AdminSidebar({
      */
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-    const role = (typeof window !== 'undefined' ? localStorage.getItem('role') : '') || '';
+    const role = storedRole();
     const config = TIERS[tier || tierForRole(role)];
 
     const userName = useMemo(
-        () => adminInfo?.fullName
-            || (typeof window !== 'undefined' ? localStorage.getItem('userName') : '')
-            || 'Admin',
+        () => {
+            if (adminInfo?.fullName) return adminInfo.fullName;
+            try { return localStorage.getItem('userName') || 'Admin'; } catch { return 'Admin'; }
+        },
         [adminInfo],
     );
 

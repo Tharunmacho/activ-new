@@ -120,7 +120,7 @@ const ProductTile = ({ product, onView }: {
                     {money(product.price)}
                 </span>
                 {product.stock ? (
-                    <span className="text-[1rem] text-slate-500 border border-slate-200 rounded-md px-1.5 py-0.5">
+                    <span className="text-base text-slate-500 border border-slate-200 rounded-md px-1.5 py-0.5">
                         Stock {product.stock}
                     </span>
                 ) : null}
@@ -550,7 +550,7 @@ export default function CompanyPublicView() {
                                                     <span className="block text-ui-body text-slate-800 break-words">
                                                         {category?.description || '—'}
                                                     </span>
-                                                    <span className="block text-[1rem] text-slate-500 mt-0.5">
+                                                    <span className="block text-base text-slate-500 mt-0.5">
                                                         {category?.code
                                                             ? `NIC ${category.code}${category?.industryType ? ` · ${category.industryType}` : ''}`
                                                             : 'Custom category'}

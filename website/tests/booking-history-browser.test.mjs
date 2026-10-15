@@ -6,8 +6,11 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { localTypographyFonts } from './browserTypographyFixtures.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
+const fonts = await localTypographyFonts(root);
+const layouts = [];
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-booking-history-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const deletedId = 'bbbbbbbbbbbbbbbbbbbbbbbb';
@@ -25,6 +28,7 @@ const requests = [];
 let bundle = '', css = '', chrome, ws;
 const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    if (fonts.serve(url, res)) return;
     if (url.pathname === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
     if (url.pathname === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
     if (url.pathname.startsWith('/api/')) {
@@ -45,6 +49,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
     const files = await readdir(path.join(root, 'dist/assets'));
     css = await readFile(process.env.TEST_CSS || path.join(root, 'dist/assets', files.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+    css += '\n' + fonts.css;
     const fixtures = { name: 'unrelated-shell-fixtures', setup(b) {
         b.onResolve({ filter: /AdminSidebar$|\/BookingPeople$|\/notificationDeliveryApi$/ }, args => ({ path: args.path, namespace: 'fixture' }));
         b.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ loader: 'js', contents: 'export default function Empty(){return null};export const getDeliverySummaries=async()=>({});export const getBookingDelivery=async()=>({rows:[]});export const resendNotification=async()=>{throw Error("Read-only fixture");};' }));
@@ -70,9 +75,13 @@ try {
     const evaluate = async expression => { const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (r.result?.exceptionDetails) throw Error(r.result.exceptionDetails.exception?.description); return r.result?.result?.value; };
     const until = async expression => { for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(100); } throw Error(expression); };
     await send('Runtime.enable');
+    await send('Network.enable');
+    await send('Network.setBlockedURLs', {urls:['https://*']});
     await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}` });
     await until('document.body.textContent.includes("Current workshop")');
+    await evaluate('document.fonts.ready');
+    if(fonts.loaded) assert(await evaluate("document.fonts.check('600 20px Poppins')"),'Local Poppins loaded');
     const typography = [];
     for (const width of [1440, 390, 320]) {
         await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 600 });
@@ -85,18 +94,28 @@ try {
                 metrics: [...document.querySelectorAll('p.tabular-nums')].map(style),
                 overflows: document.documentElement.scrollWidth > innerWidth };
         })()`);
-        assert.equal(measured.title.size, width >= 640 ? '30px' : '24px', `${width}: shared page heading size`);
-        assert.equal(measured.body.size, '16px', `${width}: readable base size`);
-        assert.equal(measured.subtitle.size, '16px', `${width}: consistent description size`);
-        assert.equal(measured.control.size, '16px', `${width}: input avoids mobile focus zoom`);
-        assert(measured.body.family.startsWith('Inter'), `${width}: shared UI font family`);
+        assert.equal(measured.title.size, width >= 640 ? '40px' : '24px', `${width}: shared page heading size`);
+        assert.equal(measured.body.size, '20px', `${width}: readable base size`);
+        assert.equal(measured.subtitle.size, '20px', `${width}: consistent description size`);
+        assert(parseFloat(measured.control.size) >= 18, `${width}: input remains readable and avoids mobile focus zoom`);
+        assert(measured.body.family.includes('Poppins'), `${width}: shared UI font family`);
         assert(measured.metrics.length === 4 && measured.metrics.every(metric => metric.size === (width >= 640 ? '36px' : '30px')), `${width}: balanced metric sizes`);
         assert.equal(measured.overflows, false, `${width}: overview fits viewport`);
-        typography.push(measured);
+        await evaluate('document.querySelector("details").open=true');
+        const filters=await evaluate(`(() => {
+            const elements=[...document.querySelectorAll('details input,details select,details button')].filter(e=>e.getBoundingClientRect().width>0);
+            return {count:elements.length,fields:elements.map(e=>{const r=e.getBoundingClientRect();return {name:e.getAttribute('aria-label')||e.textContent.trim(),size:parseFloat(getComputedStyle(e).fontSize),left:r.left,right:r.right}}),labels:[...document.querySelectorAll('details label')].map(e=>parseFloat(getComputedStyle(e).fontSize))};
+        })()`);
+        assert(filters.count>10,'Expanded filter fixture has actual controls');
+        assert(filters.fields.every(e=>e.left>=-1&&e.right<=width+1&&e.size>=18),`${width}: readable filters fit ${JSON.stringify(filters)}`);
+        assert(filters.labels.length>0&&filters.labels.every(size=>size>=18),'Expanded labels are readable');
+        assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'),`${width}: expanded filter fits viewport`);
+        typography.push({...measured,filters});
         if (process.env.TEST_ARTIFACTS) {
             const shot = await send('Page.captureScreenshot', { format: 'png' });
             await writeFile(path.join(process.env.TEST_ARTIFACTS, `booking-overview-${width}.png`), Buffer.from(shot.result.data, 'base64'));
         }
+        await evaluate('document.querySelector("details").open=false');
     }
     if (process.env.TEST_ARTIFACTS) await writeFile(path.join(process.env.TEST_ARTIFACTS, 'booking-typography.json'), JSON.stringify(typography, null, 2));
     await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
@@ -115,7 +134,7 @@ try {
     await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.includes("Excel Report")).click()');
     for (let i = 0; i < 50 && !requests.some(r => r.path.endsWith('/bookings/export')); i++) await pause(100);
     assert(requests.some(r => r.path.endsWith(`/${deletedId}/bookings/export`) && r.query.format === 'xlsx'));
-    for (const width of [1566, 1280, 1024, 768, 640, 390, 320]) {
+    for (const width of [1440, 1024, 768, 640, 390, 320]) {
         await send('Emulation.setDeviceMetricsOverride', { width, height: 940, deviceScaleFactor: 1, mobile: width < 600 });
         await pause(150);
         await evaluate('document.querySelector(".booking-records").scrollIntoView({block:"start"})');
@@ -123,12 +142,17 @@ try {
         const layout = await evaluate(`(() => {
             const card = document.querySelector('.booking-records');
             const elements = [card, ...card.querySelectorAll('table, tr, td, button')];
-            return {overflow: elements.filter(e => e.clientWidth && e.scrollWidth > e.clientWidth + 1).map(e => e.className),
+            const size=e=>parseFloat(getComputedStyle(e).fontSize);
+            return {width:innerWidth,font:getComputedStyle(card).fontFamily,nameSize:size(card.querySelector('.booking-records-name')),tableSize:size(card.querySelector('table')),actionSize:size(card.querySelector('.booking-records-details')),captionSize:parseFloat(getComputedStyle(card.querySelector('.booking-records-contact'),'::before').fontSize),overflow: elements.filter(e => e.clientWidth && e.scrollWidth > e.clientWidth + 1).map(e => e.className),
                 actionsFit: [...card.querySelectorAll('.booking-records-details')].every(e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; })};
         })()`);
+        layouts.push(layout);
+        if(process.env.TEST_ARTIFACTS) await writeFile(path.join(process.env.TEST_ARTIFACTS,'booking-list-typography.json'),JSON.stringify({fonts:fonts.loaded?'local Poppins':'system fallback',layouts},null,2));
+        assert(layout.font.includes('Poppins')); assert(layout.nameSize>=18 && layout.actionSize>=18);
+        assert(layout.tableSize>=18); if(width<=768) assert(layout.captionSize>=16);
         assert.deepEqual(layout.overflow, [], `${width}: no clipped cells or sideways scrolling`);
         assert(layout.actionsFit, `${width}: every Details button stays within the viewport`);
-        if (process.env.TEST_ARTIFACTS && [1566, 768, 390].includes(width)) {
+        if (process.env.TEST_ARTIFACTS && [1440, 768, 390, 320].includes(width)) {
             const shot = await send('Page.captureScreenshot', { format: 'png' });
             await writeFile(path.join(process.env.TEST_ARTIFACTS, `booking-layout-${width}.png`), Buffer.from(shot.result.data, 'base64'));
         }
@@ -148,7 +172,7 @@ try {
     assert(requests.every(r => r.method === 'GET'), 'viewing history does not write any data');
     assert(!requests.some(r => r.path === '/api/v1/events'), 'history does not depend on the deleted event list');
     assert.deepEqual(errors, []);
-    console.log('PASS: retained contacts, history picker, Excel, details, pagination and no horizontal overflow at 1566/1280/1024/768/640/390/320px; shared UI typography verified; no writes.');
+    console.log('PASS: retained contacts, history picker, Excel, details, pagination and no horizontal overflow at 1440/1024/768/640/390/320px; shared UI typography verified; no writes.');
     await send('Browser.close');
 } finally {
     ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

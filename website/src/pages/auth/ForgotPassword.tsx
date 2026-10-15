@@ -100,7 +100,7 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
                         belongs to {forAdmins ? 'an administrator account' : 'a member account'}, a reset link is on its
                         way. It expires in one hour and can be used once.
                     </p>
-                    <p className="mt-3 text-[0.9375rem] text-slate-500">
+                    <p className="mt-3 text-sm text-slate-500">
                         Nothing arrived? Check your spam folder, or{' '}
                         <button type="button" onClick={() => setSent(false)} className="font-semibold text-blue-700 hover:underline">
                             try another address
@@ -111,7 +111,7 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
             ) : (
                 <>
                     <form onSubmit={handleSubmit} noValidate>
-                        <label htmlFor="fp-email" className="mb-2 block text-[1rem] font-semibold text-slate-800">
+                        <label htmlFor="fp-email" className="mb-2 block text-base font-semibold text-slate-800">
                             Email address
                         </label>
                         <div className="relative">
@@ -131,7 +131,7 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
                                 className={`${FIELD} ${error ? 'border-red-400' : 'border-slate-200'}`}
                             />
                         </div>
-                        {error && <p role="alert" className="mt-2 text-[0.9375rem] font-medium text-red-600">{error}</p>}
+                        {error && <p role="alert" className="mt-2 text-sm font-medium text-red-600">{error}</p>}
 
                         <button type="submit" disabled={loading} className={`${PRIMARY} mt-6`}>
                             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -141,13 +141,13 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
 
                     <Link
                         to={signIn}
-                        className="mt-6 flex items-center justify-center gap-2 text-[1rem] font-semibold text-slate-500 transition-colors hover:text-slate-900"
+                        className="mt-6 flex items-center justify-center gap-2 text-base font-semibold text-slate-500 transition-colors hover:text-slate-900"
                     >
                         <ArrowLeft className="h-4 w-4" /> Back to sign in
                     </Link>
 
                     {forAdmins && (
-                        <p className="mt-5 flex items-start justify-center gap-2 text-center text-[0.875rem] text-slate-400">
+                        <p className="mt-5 flex items-start justify-center gap-2 text-center text-sm text-slate-400">
                             <ShieldCheck size={15} className="mt-0.5 shrink-0" />
                             Member accounts cannot be reset here.
                         </p>

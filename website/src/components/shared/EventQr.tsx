@@ -188,7 +188,7 @@ const sharePoster = async (event: QrEvent, url: string) => {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
 };
 
-const BTN = 'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-[0.95rem] font-bold transition-colors';
+const BTN = 'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition-colors';
 
 /* ------------------------------------------------------------------------ */
 /*  The card on the public event page                                        */
@@ -202,8 +202,8 @@ export function EventQrCard({ event }: { event: QrEvent }) {
             <img src={src} alt={`QR code for ${event.title || 'this event'}`} width={132} height={132}
                  className="h-[104px] w-[104px] shrink-0 rounded-lg border border-slate-200 p-1.5 sm:h-[132px] sm:w-[132px]" />
             <div className="min-w-0">
-                <p className="text-[0.8rem] font-extrabold uppercase tracking-widest text-brand-700">Scan to open</p>
-                <p className="mt-1 text-[0.9375rem] font-semibold leading-snug text-slate-800 sm:text-[1rem]">
+                <p className="text-sm font-extrabold uppercase tracking-widest text-brand-700">Scan to open</p>
+                <p className="mt-1 text-sm font-semibold leading-snug text-slate-800 sm:text-base">
                     Point your phone camera here to open this event and book on the go.
                 </p>
                 <button type="button" onClick={() => downloadPoster(event, url)}
@@ -253,10 +253,10 @@ export function EventQrDialog({
                  onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
                     <div className="min-w-0">
-                        <p className="flex items-center gap-2 text-[0.8rem] font-extrabold uppercase tracking-widest text-brand-700">
+                        <p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-widest text-brand-700">
                             <QrCode size={15} /> {justCreated ? 'Event created — QR ready' : 'Event QR code'}
                         </p>
-                        <p className="mt-1 truncate text-[1.05rem] font-bold text-slate-900">{event.title || 'Untitled event'}</p>
+                        <p className="mt-1 truncate text-base font-bold text-slate-900">{event.title || 'Untitled event'}</p>
                     </div>
                     <button type="button" onClick={onClose} aria-label="Close"
                             className="shrink-0 rounded-lg p-2.5 text-slate-500 hover:bg-slate-100 sm:p-1.5"><X size={20} /></button>
@@ -268,10 +268,10 @@ export function EventQrDialog({
                             ? <img src={src} alt="Event QR code" width={240} height={240} className="h-52 w-52 sm:h-60 sm:w-60" />
                             : <div className="h-52 w-52 animate-pulse rounded bg-slate-100 sm:h-60 sm:w-60" />}
                     </div>
-                    <p className="mt-3 text-center text-[0.9rem] text-slate-600">
+                    <p className="mt-3 text-center text-sm text-slate-600">
                         Scanning opens this event&apos;s page on the phone.
                     </p>
-                    <p className="mt-1 break-all text-center text-[0.8rem] font-semibold text-slate-500">{url}</p>
+                    <p className="mt-1 break-all text-center text-sm font-semibold text-slate-500">{url}</p>
 
                     <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
                         <button type="button" onClick={() => downloadPoster(event, url)}
@@ -296,8 +296,8 @@ export function EventQrDialog({
                                        try { await onToggleShowOnPage(e.target.checked); } finally { setBusy(false); }
                                    }} />
                             <span>
-                                <span className="block text-[0.95rem] font-bold text-slate-900">Show this QR on the event page</span>
-                                <span className="block text-[0.85rem] text-slate-600">
+                                <span className="block text-sm font-bold text-slate-900">Show this QR on the event page</span>
+                                <span className="block text-sm text-slate-600">
                                     Visitors can scan it from a screen or projector, or download it.
                                 </span>
                             </span>
@@ -339,13 +339,13 @@ export function EventQrFeature({ event }: { event: QrEvent }) {
                 </div>
 
                 <div className="min-w-0 text-center sm:text-left">
-                    <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[0.8rem] font-extrabold uppercase tracking-widest">
+                    <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-extrabold uppercase tracking-widest">
                         <QrCode size={14} /> Scan &amp; book
                     </p>
                     <h3 className="mt-3 text-[1.4rem] font-black leading-tight sm:text-[1.9rem]">
                         Open this event on your phone
                     </h3>
-                    <p className="mt-2 text-[1.05rem] leading-relaxed text-blue-100">
+                    <p className="mt-2 text-base leading-relaxed text-blue-100">
                         Point your camera at the code to see the details and book your seat in seconds.
                         Download it to share on WhatsApp or print it on your flyer.
                     </p>

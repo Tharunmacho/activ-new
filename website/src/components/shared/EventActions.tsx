@@ -44,7 +44,7 @@ export interface EventActionsProps {
 /** One control. Same paint for all of them, so the row reads as a set. */
 const BTN =
     'inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2.5 ' +
-    'text-[1rem] font-bold text-brand-800 transition-colors hover:border-brand-200 ' +
+    'text-base font-bold text-brand-800 transition-colors hover:border-brand-200 ' +
     'hover:bg-brand-50/60 hover:text-brand-700';
 
 /** A line inside one of the popovers. */

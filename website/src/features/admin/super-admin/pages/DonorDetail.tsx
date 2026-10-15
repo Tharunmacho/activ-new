@@ -22,7 +22,7 @@ import { StatusBadge } from './Donations';
  * (CLAUDE.md RULE 2).
  */
 
-const LINK_BTN = 'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-[1rem] font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-50';
+const LINK_BTN = 'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-base font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-50';
 
 function Detail({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
     if (!value) return null;
@@ -30,7 +30,7 @@ function Detail({ icon: Icon, label, value }: { icon: typeof Mail; label: string
         <div className="flex min-w-0 items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600"><Icon className="h-5 w-5" /></span>
             <span className="min-w-0">
-                <span className="block text-[0.9375rem] text-slate-500">{label}</span>
+                <span className="block text-sm text-slate-500">{label}</span>
                 <span className="block break-words text-ui-caption font-semibold text-slate-900">{value}</span>
             </span>
         </div>
@@ -85,7 +85,7 @@ export default function DonorDetail() {
                 />
 
                 <main className={ADMIN_PAGE}>
-                    {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-[1rem] text-red-700">{error}</p> : null}
+                    {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-base text-red-700">{error}</p> : null}
                     {!data && !error ? (
                         <div className="flex items-center justify-center gap-2 py-16 text-slate-500"><Loader2 className="h-5 w-5 animate-spin" /> Loading…</div>
                     ) : null}
@@ -115,9 +115,9 @@ export default function DonorDetail() {
                                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                         {byYear.map((y) => (
                                             <div key={y.financialYear} className="flex min-w-0 flex-col gap-2 rounded-xl border border-slate-200 p-4">
-                                                <p className="text-[1rem] font-semibold text-slate-500">FY {fyLabel(y.financialYear)}</p>
+                                                <p className="text-base font-semibold text-slate-500">FY {fyLabel(y.financialYear)}</p>
                                                 <p className="text-[1.75rem] font-extrabold tabular-nums text-slate-900">{inr(y.total || 0)}</p>
-                                                <p className="text-[0.9375rem] text-slate-500">{y.count || 0} gift{(y.count || 0) === 1 ? '' : 's'}</p>
+                                                <p className="text-sm text-slate-500">{y.count || 0} gift{(y.count || 0) === 1 ? '' : 's'}</p>
                                                 {donor.statementToken ? (
                                                     <a href={statementPath(donor.statementToken, y.financialYear)} target="_blank" rel="noopener noreferrer" className={LINK_BTN}>
                                                         <CalendarRange className="h-4 w-4" /> Year certificate
@@ -152,12 +152,12 @@ export default function DonorDetail() {
                                                     const paid = String(r.status || '').toLowerCase() === 'paid';
                                                     return (
                                                         <tr key={r.id} className="align-top">
-                                                            <td className="px-3 py-3 text-[0.9375rem] text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
-                                                            <td className="break-all px-3 py-3 text-[0.9375rem]">{r.receiptNumber || '—'}</td>
-                                                            <td className="px-3 py-3 text-[0.9375rem]">{fyLabel(r.financialYear) || '—'}</td>
+                                                            <td className="px-3 py-3 text-sm text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
+                                                            <td className="break-all px-3 py-3 text-sm">{r.receiptNumber || '—'}</td>
+                                                            <td className="px-3 py-3 text-sm">{fyLabel(r.financialYear) || '—'}</td>
                                                             <td className="px-3 py-3 text-right font-bold tabular-nums">{inr(r.amount || 0)}</td>
                                                             <td className="px-3 py-3"><StatusBadge status={r.status} /></td>
-                                                            <td className="whitespace-pre-line break-words px-3 py-3 text-[0.9375rem] text-slate-700">{r.message || '—'}</td>
+                                                            <td className="whitespace-pre-line break-words px-3 py-3 text-sm text-slate-700">{r.message || '—'}</td>
                                                             <td className="px-3 py-3">
                                                                 {paid ? (
                                                                     <div className="flex flex-col items-start gap-1">

@@ -227,7 +227,7 @@ export default function ProductCategoryInput({
                                 <span className="block text-[1.125rem] font-bold text-slate-800 break-words">
                                     {category.description}
                                 </span>
-                                <span className="block text-[1rem] text-slate-500 mt-0.5">
+                                <span className="block text-base text-slate-500 mt-0.5">
                                     {category.code
                                         ? `NIC ${category.code}${category.industryType ? ` · ${category.industryType}` : ''}`
                                         : 'Custom category'}
@@ -389,19 +389,19 @@ export default function ProductCategoryInput({
 
                                             <span className="flex shrink-0 items-center gap-1.5">
                                                 <span className="inline-flex items-center rounded-md border border-slate-200
-                                                                 bg-slate-50 px-1.5 py-0.5 text-[0.8125rem] font-semibold
+                                                                 bg-slate-50 px-1.5 py-0.5 text-sm font-semibold
                                                                  text-slate-600 tabular-nums">
                                                     NIC {row.code}
                                                 </span>
                                                 <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5
-                                                                  text-[0.8125rem] font-semibold ${TYPE_TONE[row.industryType] || 'bg-slate-50 text-slate-600 border-slate-200'
+                                                                  text-sm font-semibold ${TYPE_TONE[row.industryType] || 'bg-slate-50 text-slate-600 border-slate-200'
                                                     }`}>
                                                     {row.industryType}
                                                 </span>
                                                 {/* Hidden on a narrow box: it is the least
                                                     useful of the three and the first that
                                                     should give way to the description. */}
-                                                <span className="hidden text-[0.8125rem] text-slate-400 sm:inline">
+                                                <span className="hidden text-sm text-slate-400 sm:inline">
                                                     {row.level}
                                                 </span>
                                             </span>

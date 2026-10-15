@@ -1360,7 +1360,7 @@ export default function GalleryManager() {
                                                     .filter(Boolean).join(' · ')}
                                             </p>
                                             {/* Where it shows, in words — changed inside the album. */}
-                                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[1rem]">
+                                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-base">
                                                 {item.visible === false
                                                     ? <span className="text-amber-600">Hidden from the site</span>
                                                     : <span className="text-emerald-600">On the gallery page</span>}

@@ -627,7 +627,7 @@ export default function CmsLayout() {
                                 <Bell className="w-4 h-4" />
                                 {unread + leaderUnread > 0 && (
                                     <span className="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 grid place-items-center
-                                                     text-[0.7rem] font-bold bg-[#DC2626] text-white rounded-full px-1
+                                                     text-xs font-bold bg-[#DC2626] text-white rounded-full px-1
                                                      ring-2 ring-white dark:ring-[#0a0a0a]">
                                         {unread + leaderUnread > 99 ? '99+' : unread + leaderUnread}
                                     </span>
@@ -640,14 +640,14 @@ export default function CmsLayout() {
                                     <div className={`absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(22rem,calc(100vw-2rem))]
                                                      rounded-2xl border shadow-2xl overflow-hidden ${t.card}`}>
                                         <div className={`flex items-center justify-between px-4 py-3 border-b ${t.divide}`}>
-                                            <span className={`text-[1rem] font-bold ${t.title}`}>Notifications</span>
-                                            <span className={`text-[0.85rem] ${t.muted}`}>
+                                            <span className={`text-base font-bold ${t.title}`}>Notifications</span>
+                                            <span className={`text-sm ${t.muted}`}>
                                                 {unread + leaderUnread ? `${unread + leaderUnread} new` : 'All caught up'}
                                             </span>
                                         </div>
                                         <div className="max-h-[60vh] overflow-y-auto">
                                             {notes.length === 0 ? (
-                                                <p className={`px-4 py-8 text-center text-[0.95rem] ${t.muted}`}>
+                                                <p className={`px-4 py-8 text-center text-sm ${t.muted}`}>
                                                     No new messages.
                                                 </p>
                                             ) : [...notes]
@@ -665,9 +665,9 @@ export default function CmsLayout() {
                                                             {n.kind === 'contact' ? <Inbox className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
                                                         </span>
                                                         <span className="min-w-0 flex-1">
-                                                            <span className={`block text-[0.95rem] font-semibold truncate ${t.title}`}>{n.title}</span>
-                                                            <span className={`block text-[0.85rem] truncate ${t.muted}`}>{n.text}</span>
-                                                            <span className={`block text-[0.75rem] mt-0.5 ${t.faint}`}>
+                                                            <span className={`block text-sm font-semibold truncate ${t.title}`}>{n.title}</span>
+                                                            <span className={`block text-sm truncate ${t.muted}`}>{n.text}</span>
+                                                            <span className={`block text-xs mt-0.5 ${t.faint}`}>
                                                                 {n.kind === 'contact' ? 'Contact form' : 'Leader message'} · {ago(n.at)}
                                                             </span>
                                                         </span>
@@ -675,10 +675,10 @@ export default function CmsLayout() {
                                                 ))}
                                         </div>
                                         <div className={`grid grid-cols-2 border-t ${t.divide}`}>
-                                            <NavLink to="/cms/messages" className={`px-4 py-2.5 text-center text-[0.85rem] font-semibold text-[#2563EB] ${t.item}`}>
+                                            <NavLink to="/cms/messages" className={`px-4 py-2.5 text-center text-sm font-semibold text-[#2563EB] ${t.item}`}>
                                                 Inbox{unread ? ` (${unread})` : ''}
                                             </NavLink>
-                                            <NavLink to="/cms/leader-messages" className={`px-4 py-2.5 text-center text-[0.85rem] font-semibold text-[#2563EB] border-l ${t.divide} ${t.item}`}>
+                                            <NavLink to="/cms/leader-messages" className={`px-4 py-2.5 text-center text-sm font-semibold text-[#2563EB] border-l ${t.divide} ${t.item}`}>
                                                 Leader messages{leaderUnread ? ` (${leaderUnread})` : ''}
                                             </NavLink>
                                         </div>

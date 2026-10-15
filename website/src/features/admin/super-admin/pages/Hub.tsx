@@ -445,7 +445,7 @@ export default function Hub() {
                                                         <p className={`text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight tabular-nums ${f.tone}`}>
                                                             {Number(f.value || 0)}
                                                         </p>
-                                                        <p className="text-[0.9375rem] md:text-ui-small leading-tight font-semibold text-slate-500 mt-1">
+                                                        <p className="text-sm md:text-ui-small leading-tight font-semibold text-slate-500 mt-1">
                                                             {f.label}
                                                         </p>
                                                     </div>

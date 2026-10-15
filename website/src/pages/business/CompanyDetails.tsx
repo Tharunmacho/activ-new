@@ -299,7 +299,7 @@ const CompanyDetails = () => {
                       <span className="block text-ui-body text-slate-700 break-words">
                         {category?.description || '—'}
                       </span>
-                      <span className="block text-[1rem] text-slate-500 mt-0.5">
+                      <span className="block text-base text-slate-500 mt-0.5">
                         {category?.code
                           ? `NIC ${category.code}${category?.industryType ? ` · ${category.industryType}` : ''}`
                           : 'Custom category'}

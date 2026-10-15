@@ -139,7 +139,7 @@ export default function NewsPage() {
                                     fallback="newspaper"
                                     className="text-white"
                                 />
-                                <span className="text-[1rem] font-bold uppercase tracking-[0.16em]
+                                <span className="text-base font-bold uppercase tracking-[0.16em]
                                                  text-white">
                                     {settings?.badgeText || 'Newsroom'}
                                 </span>
@@ -163,7 +163,7 @@ export default function NewsPage() {
 
                             {where && (
                                 <p className="mt-4 inline-flex max-w-full flex-wrap items-center gap-2 rounded-lg
-                                              bg-white/15 px-3 py-1.5 text-[1rem] font-bold text-white
+                                              bg-white/15 px-3 py-1.5 text-base font-bold text-white
                                               ring-1 ring-white/20">
                                     Filtered to {where}
                                     <button

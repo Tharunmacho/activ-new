@@ -138,16 +138,16 @@ export const ADMIN_INPUT =
     + 'focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 '
     + 'disabled:bg-slate-50 disabled:text-slate-400';
 
-/* `h-12` / `text-ui-body` / `font-bold`, in step with the input above. */
+/* Controls keep a 48px target and grow when larger text needs another line. */
 export const ADMIN_PRIMARY_BTN =
-    'inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl bg-blue-600 '
+    'inline-flex max-w-full items-center justify-center gap-2 min-h-12 px-5 py-2 rounded-xl bg-blue-600 '
     + 'text-ui-body font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 '
-    + 'disabled:opacity-60 whitespace-nowrap';
+    + 'disabled:opacity-60 whitespace-normal text-center [&>svg]:shrink-0';
 
 export const ADMIN_SECONDARY_BTN =
-    'inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl border border-slate-200 '
+    'inline-flex max-w-full items-center justify-center gap-2 min-h-12 px-5 py-2 rounded-xl border border-slate-200 '
     + 'bg-white text-ui-body font-semibold text-slate-700 shadow-sm transition-colors '
-    + 'hover:border-slate-300 hover:bg-slate-50 whitespace-nowrap';
+    + 'hover:border-slate-300 hover:bg-slate-50 whitespace-normal text-center [&>svg]:shrink-0';
 
 /**
  * Money, as the admin area prints it: `₹10,000`.
@@ -436,9 +436,9 @@ export function AdminStat({
 
     const body = (
         <>
-            {/* On a phone the icon sits BESIDE the label (a stacked icon made
-                every tile twice the height it needed); desktop is unchanged. */}
-            <div className="flex items-start gap-2.5 sm:gap-3">
+            {/* Let the icon move above the copy when the card is too narrow
+                for a readable label beside it. */}
+            <div className="flex flex-wrap items-start gap-2.5 sm:gap-3">
                 {icon && (
                     <span className={`w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-5 sm:[&>svg]:h-5 ${
                         primary ? 'bg-white/20 text-white' : (TILE[tone] || TILE.blue)
@@ -446,14 +446,14 @@ export function AdminStat({
                         {icon}
                     </span>
                 )}
-                <div className="min-w-0">
-                    <p className={`text-ui-body font-semibold tracking-tight leading-snug ${
+                <div className="min-w-0 flex-1 basis-32">
+                    <p data-admin-stat-label className={`text-ui-body font-semibold tracking-tight leading-snug ${
                         primary ? 'text-white' : 'text-slate-900'
                     }`}>
                         {label}
                     </p>
                     {hint && (
-                        <p className={`text-ui-caption mt-1 leading-snug line-clamp-2 sm:line-clamp-none ${
+                        <p data-admin-stat-hint className={`text-ui-caption mt-1 leading-snug ${
                             primary ? 'text-blue-100' : 'text-slate-500'
                         }`}>
                             {hint}
@@ -512,8 +512,8 @@ export function AdminStat({
     } ${interactive ? 'cursor-pointer' : ''}`;
 
     return interactive
-        ? <button type="button" onClick={onClick} className={shell}>{body}</button>
-        : <div className={shell}>{body}</div>;
+        ? <button type="button" onClick={onClick} className={shell} data-admin-stat>{body}</button>
+        : <div className={shell} data-admin-stat>{body}</div>;
 }
 
 /**

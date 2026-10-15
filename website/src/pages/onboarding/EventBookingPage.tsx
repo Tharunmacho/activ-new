@@ -1040,7 +1040,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         <Info size={15} />
                     </span>
                     <div className="min-w-0">
-                        <p className="text-[0.8125rem] font-extrabold uppercase tracking-[0.08em]
+                        <p className="text-sm font-extrabold uppercase tracking-[0.08em]
                                       text-brand-700">
                             Please note
                         </p>

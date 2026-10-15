@@ -226,7 +226,7 @@ export default function AdminMembersScreen({ tier }: { tier: AdminTier }) {
                     {/* ---- the figures ---- */}
                     {loadError ? (
                         <div className="flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-[1rem] text-rose-800">
+                            <p className="text-base text-rose-800">
                                 <strong>Members could not be loaded.</strong> {loadError}
                             </p>
                             <button type="button" onClick={load}
@@ -243,7 +243,7 @@ export default function AdminMembersScreen({ tier }: { tier: AdminTier }) {
                         <AdminStat tone="slate" icon={<Hourglass className="h-5 w-5" />} label="Awaiting payment" hint="Approved, not paid" value={summary?.awaitingPayment ?? 0} onClick={() => setTab('awaiting')} />
                     </div>
 
-                    <p className="flex items-start gap-2 rounded-xl bg-blue-50/60 px-3 py-2.5 text-[0.9375rem] text-slate-600 ring-1 ring-blue-100">
+                    <p className="flex items-start gap-2 rounded-xl bg-blue-50/60 px-3 py-2.5 text-sm text-slate-600 ring-1 ring-blue-100">
                         <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
                         <span>
                             <strong className="text-slate-800">Active</strong> = paid and in date. When the paid period ends the member moves to
@@ -260,10 +260,10 @@ export default function AdminMembersScreen({ tier }: { tier: AdminTier }) {
                             const on = tab === t.key;
                             return (
                                 <button key={t.key} role="tab" aria-selected={on} type="button" onClick={() => setTab(t.key)}
-                                    className={`flex min-h-10 flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-[1rem] font-semibold transition-colors ${
+                                    className={`flex min-h-10 flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-base font-semibold transition-colors ${
                                         on ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
                                     {t.label}
-                                    <span className={`rounded-full px-1.5 text-[0.8125rem] ${on ? 'bg-white/20' : 'bg-white text-slate-500'}`}>{counts[t.key] ?? 0}</span>
+                                    <span className={`rounded-full px-1.5 text-sm ${on ? 'bg-white/20' : 'bg-white text-slate-500'}`}>{counts[t.key] ?? 0}</span>
                                 </button>
                             );
                         })}
@@ -302,7 +302,7 @@ export default function AdminMembersScreen({ tier }: { tier: AdminTier }) {
                     />
 
                     {!loading && rows.length === 0 && !data?.scopeUnresolved ? (
-                        <p className="flex items-center gap-2 text-[0.9375rem] text-slate-500"><Users className="h-4 w-4" /> No paid or approved members in this region yet.</p>
+                        <p className="flex items-center gap-2 text-sm text-slate-500"><Users className="h-4 w-4" /> No paid or approved members in this region yet.</p>
                     ) : null}
                 </div>
             </div>

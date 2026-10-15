@@ -99,7 +99,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
 
     return (
         <Reveal as="div" className="min-w-0">
-            <p className="mb-3 break-words text-[1rem] sm:text-ui-body font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500">
+            <p className="mb-3 break-words text-base sm:text-ui-body font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500">
                 {caption}
             </p>
 
@@ -181,7 +181,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                     })}
                 </svg>
 
-                <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-[0.9375rem] sm:text-ui-caption
+                <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-sm sm:text-ui-caption
                                font-semibold text-gray-600">
                     {map.states.map((row, i) => (
                         <li key={row.slug} className="flex min-w-0 items-center gap-2">
@@ -215,7 +215,7 @@ export function RegionStateMap({ regionKey, regionLabel, statePanels }: {
                             <X size={14} />
                         </button>
 
-                        <p className="px-8 break-words text-[1rem] sm:text-ui-body font-bold uppercase tracking-[0.16em]
+                        <p className="px-8 break-words text-base sm:text-ui-body font-bold uppercase tracking-[0.16em]
                                       text-brand-500">
                             {regionLabel}
                         </p>

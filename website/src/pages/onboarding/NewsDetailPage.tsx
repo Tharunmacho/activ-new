@@ -164,7 +164,7 @@ export default function NewsDetailPage() {
                                 <Reveal as="header">
                                     {article.category && (
                                         <span className="inline-flex rounded-full bg-brand-50 px-3 py-1
-                                                         text-[0.9375rem] font-bold uppercase
+                                                         text-sm font-bold uppercase
                                                          tracking-[0.14em] text-brand-600">
                                             {article.category}
                                         </span>
@@ -269,7 +269,7 @@ export default function NewsDetailPage() {
                                 <div className="space-y-5 lg:sticky lg:top-28">
                                     {article.externalUrl && (
                                         <div className="rounded-2xl bg-brand-900 p-4 sm:p-6 text-white">
-                                            <p className="text-[0.9375rem] font-bold uppercase tracking-[0.14em] text-brand-300">
+                                            <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand-300">
                                                 Original source
                                             </p>
                                             <p className="mt-2 text-[1.375rem] font-extrabold leading-snug">
@@ -285,7 +285,7 @@ export default function NewsDetailPage() {
                                             >
                                                 Read the full story <ArrowUpRight size={17} />
                                             </a>
-                                            <p className="mt-2 text-center text-[0.9375rem] text-white/60">
+                                            <p className="mt-2 text-center text-sm text-white/60">
                                                 Opens {sourceHost || 'the original site'} in a new tab
                                             </p>
                                         </div>
@@ -334,7 +334,7 @@ export default function NewsDetailPage() {
 function Fact({ label, value }: { label: string; value: string }) {
     return (
         <div>
-            <dt className="text-[0.9375rem] font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
+            <dt className="text-sm font-bold uppercase tracking-[0.1em] text-gray-400">{label}</dt>
             <dd className="mt-0.5 text-ui-caption font-semibold text-gray-800 break-words">{value}</dd>
         </div>
     );

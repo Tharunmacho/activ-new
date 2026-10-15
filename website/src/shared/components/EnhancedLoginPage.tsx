@@ -426,7 +426,7 @@ export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 
           <Link
             to="/admin/login"
             className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3.5 py-1.5
-                       text-[1rem] font-semibold text-slate-500 transition-colors
+                       text-base font-semibold text-slate-500 transition-colors
                        hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
           >
             <ShieldCheck size={15} aria-hidden="true" /> Admin login

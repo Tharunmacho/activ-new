@@ -184,8 +184,12 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
 
   const loadHelpMessages = () => {
     // Count unread help messages (mock - can be replaced with API call)
-    const unread = parseInt(localStorage.getItem('unreadHelpMessages') || '0');
-    setUnreadHelpMessages(unread);
+    try {
+      const unread = Number(localStorage.getItem('unreadHelpMessages') || '0');
+      setUnreadHelpMessages(Number.isFinite(unread) && unread >= 0 ? Math.floor(unread) : 0);
+    } catch {
+      setUnreadHelpMessages(0);
+    }
   };
 
   /** Back to nothing, so one member's figures never show under another name. */

@@ -35,7 +35,7 @@ const INPUT =
     'h-[3.25rem] w-full min-w-0 rounded-xl border bg-white px-4 text-ui-caption text-slate-900 ' +
     'placeholder:text-slate-400 transition-colors focus:outline-none focus:border-blue-600 ' +
     'focus:ring-4 focus:ring-blue-600/15 disabled:bg-slate-50';
-const LABEL = 'mb-1.5 block text-[1rem] font-semibold text-slate-800';
+const LABEL = 'mb-1.5 block text-base font-semibold text-slate-800';
 
 const inr = (n: number) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
@@ -106,8 +106,8 @@ function TextField({ id, label, value, onChange, error, hint, optional, ...rest 
                 className={`${INPUT} ${error ? 'border-red-400' : 'border-slate-200'}`}
                 {...rest}
             />
-            {error ? <p className="mt-1.5 text-[0.9375rem] font-medium text-red-600">{error}</p>
-                : hint ? <p className="mt-1.5 text-[0.9375rem] text-slate-500">{hint}</p> : null}
+            {error ? <p className="mt-1.5 text-sm font-medium text-red-600">{error}</p>
+                : hint ? <p className="mt-1.5 text-sm text-slate-500">{hint}</p> : null}
         </div>
     );
 }
@@ -149,7 +149,7 @@ function AmountPicker({ preset, custom, onPreset, onCustom, error }: {
                     className={`${INPUT} pl-9 ${error ? 'border-red-400' : 'border-slate-200'}`}
                 />
             </div>
-            {error ? <p className="mt-1.5 text-[0.9375rem] font-medium text-red-600">{error}</p> : null}
+            {error ? <p className="mt-1.5 text-sm font-medium text-red-600">{error}</p> : null}
         </fieldset>
     );
 }
@@ -197,7 +197,7 @@ function Promise_({ icon: Icon, title, body }: { icon: typeof ShieldCheck; title
             </span>
             <span className="min-w-0">
                 <span className="block text-ui-caption font-bold text-white">{title}</span>
-                <span className="block text-[0.9375rem] leading-snug text-blue-100">{body}</span>
+                <span className="block text-sm leading-snug text-blue-100">{body}</span>
             </span>
         </li>
     );
@@ -300,7 +300,7 @@ export default function DonatePage() {
                 <section className="relative overflow-hidden bg-gradient-to-br from-[#0e1f4d] via-[#1c2e68] to-[#2563eb] text-white">
                     <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-amber-400/20 blur-3xl" />
                     <div className="relative mx-auto w-full max-w-[120rem] px-4 pb-24 pt-10 sm:px-6 sm:pb-28 sm:pt-14 lg:px-12">
-                        <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[0.875rem] font-semibold uppercase tracking-[0.12em] text-amber-200 ring-1 ring-white/15">
+                        <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold uppercase tracking-[0.12em] text-amber-200 ring-1 ring-white/15">
                             <HeartHandshake className="h-4 w-4" /> Support ACTIV
                         </p>
                         <h1 className="mt-4 max-w-4xl text-[2rem] font-extrabold leading-[1.1] tracking-tight sm:text-[3rem] xl:text-[3.5rem]">
@@ -330,7 +330,7 @@ export default function DonatePage() {
                             />
 
                             {restored ? (
-                                <p className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-blue-50 px-4 py-3 text-[0.9375rem] text-blue-900 ring-1 ring-blue-100">
+                                <p className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-900 ring-1 ring-blue-100">
                                     <span className="min-w-0">
                                         Welcome back{form.fullName ? <>, <strong className="break-words">{form.fullName}</strong></> : null} — your details are filled in from last time.
                                     </span>
@@ -398,7 +398,7 @@ export default function DonatePage() {
                                 {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <HeartHandshake className="h-5 w-5" />}
                                 {busy ? 'Starting secure payment…' : `Donate ${amount >= MIN ? inr(amount) : ''}`.trim()}
                             </button>
-                            <p className="flex items-center justify-center gap-2 text-center text-[0.9375rem] text-slate-500">
+                            <p className="flex items-center justify-center gap-2 text-center text-sm text-slate-500">
                                 <ShieldCheck className="h-4 w-4 shrink-0" /> Paid securely through our payment gateway.
                             </p>
                         </div>
@@ -416,7 +416,7 @@ export default function DonatePage() {
                                     body="ACTIV's PAN and 80G registration are printed on every document." />
                             </ul>
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-5 text-[0.9375rem] leading-relaxed text-slate-600">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-600">
                             <p className="flex items-start gap-2">
                                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                                 Give again any time with the same email — every gift is added to your year's certificate.

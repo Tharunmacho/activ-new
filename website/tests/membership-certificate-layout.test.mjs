@@ -19,6 +19,38 @@ const output = path.resolve(process.env.TEST_ARTIFACTS || path.join(artifacts, '
 const nativePreview = process.env.TEST_NATIVE_PREVIEW ? path.resolve(process.env.TEST_NATIVE_PREVIEW) : null;
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-certificate-layout-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+// Inspect the unchanged PNG's opaque strokes after the real renderer transform.
+// Transparent image corners may extend outside the slot; no ink may do so.
+function signatureInkMetrics() {
+  const slot = document.querySelector('[data-testid="membership-signature-slot"]');
+  const image = slot.querySelector('img');
+  const transformed = document.querySelector('[data-testid="membership-signature-ink"]') || image;
+  const matrix = new DOMMatrix(getComputedStyle(transformed).transform);
+  const frame = slot.getBoundingClientRect();
+  const scale = frame.width / slot.offsetWidth;
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+  const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  const imageStyle = getComputedStyle(image), width = parseFloat(imageStyle.width), height = parseFloat(imageStyle.height);
+  const bounds = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity };
+  for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
+    if (pixels[(y * canvas.width + x) * 4 + 3] === 0) continue;
+    const point = matrix.transformPoint(new DOMPoint(x / canvas.width * width - width / 2, y / canvas.height * height - height / 2));
+    const px = frame.x + frame.width / 2 + point.x * scale, py = frame.y + frame.height / 2 + point.y * scale;
+    bounds.left = Math.min(bounds.left, px); bounds.right = Math.max(bounds.right, px);
+    bounds.top = Math.min(bounds.top, py); bounds.bottom = Math.max(bounds.bottom, py);
+  }
+  return { bounds, slot: { left: frame.left, right: frame.right, top: frame.top, bottom: frame.bottom },
+    centerErrorX: (bounds.left + bounds.right - frame.left - frame.right) / 2,
+    centerErrorY: (bounds.top + bounds.bottom - frame.top - frame.bottom) / 2,
+    rotationDegrees: Math.atan2(matrix.b, matrix.a) * 180 / Math.PI };
+}
+function assertSignatureInk(ink) {
+  assert(Math.abs(ink.centerErrorX) < 1 && Math.abs(ink.centerErrorY) < 1, 'Visible signature ink is centred');
+  assert(ink.rotationDegrees > 0 && ink.rotationDegrees < 15, 'Rising signature baseline corrected clockwise');
+  assert(ink.bounds.left >= ink.slot.left && ink.bounds.right <= ink.slot.right && ink.bounds.top >= ink.slot.top && ink.bounds.bottom <= ink.slot.bottom, 'Every original signature stroke fits the slot');
+}
 const base = { kind: 'membership', member: { name: 'Example Member', companyName: 'Example Industries Private Limited',
   membershipNumber: 'ACTIV-BEG-20261015-001', block: 'Example Block', district: 'Chennai', state: 'Tamil Nadu',
   businessSector: 'Manufacturing', udyamNumber: 'UDYAM-TN-02-1234567', gstNumber: '33ABCDE1234F1Z9' },
@@ -91,7 +123,7 @@ try {
     const sheet=document.querySelector('.activ-sheet'),sign=select('membership-signature-block'),seal=select('membership-seal-block'),issue=select('membership-issue-block'),ref=select('membership-reference');
     const facts=[...document.querySelectorAll('[data-certificate-fact]')].map(e=>({label:e.dataset.certificateFact,rect:rect(e),value:rect(e.lastElementChild),clipped:e.lastElementChild.scrollWidth>e.lastElementChild.clientWidth+1}));
     const pairs=[...document.querySelectorAll('[data-testid="membership-fact-row"]')].map(e=>{const cells=[...e.querySelectorAll('[data-certificate-fact]')];return {row:rect(e),cells:cells.map(rect)}});
-    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,paper:rect(sheet),flow:rect(select('membership-content-block')),signature:rect(sign),seal:rect(seal),issue:rect(issue),reference:rect(ref),referenceText:rect(ref.querySelector('p')),facts,pairs,text:sheet.innerText,poppinsLoaded:document.fonts.check('600 15px Poppins')};
+    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,paper:rect(sheet),flow:rect(select('membership-content-block')),signature:rect(sign),seal:rect(seal),issue:rect(issue),signatureRule:rect(select('membership-signature-rule')),issueRule:rect(select('membership-issue-rule')),reference:rect(ref),referenceText:rect(ref.querySelector('p')),facts,pairs,text:sheet.innerText,poppinsLoaded:document.fonts.check('600 15px Poppins')};
   })()`);
   await send('Runtime.enable'); await send('Network.enable'); await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setDeviceMetricsOverride', { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false });
@@ -103,7 +135,9 @@ try {
     await evaluate(`window.renderFixture(${JSON.stringify(fixture)})`); await pause(200);
     for (const width of [1200, 390, 320]) {
       await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 }); await pause(150);
-      const m = await metrics(); reports.push({ fixture: name, ...m });
+      const m = await metrics(); const ink = await evaluate(`(${signatureInkMetrics.toString()})()`); reports.push({ fixture: name, ...m, ink });
+      assertSignatureInk(ink);
+      assert(Math.abs(m.signature.y - m.issue.y) < 1 && Math.abs(m.signatureRule.y - m.issueRule.y) < 1, 'Signature and date headings and rules share baselines');
       assert(m.poppinsLoaded, 'Local Poppins rendered');
       assert(m.scrollWidth <= width + 1 && m.paper.x >= -1 && m.paper.right <= width + 1, `${name}/${width}: full paper fits viewport`);
       assert(Math.abs(m.paper.width / m.paper.height - 297 / 210) < 0.005, `${name}/${width}: A4 landscape retained`);
@@ -138,11 +172,14 @@ try {
     for (const kind of ['normal', 'long']) for (const [viewportWidth, paperWidth] of [[1200, 1123], [390, 366], [320, 296]]) {
       await send('Emulation.setDeviceMetricsOverride', { width: viewportWidth, height: 1000, deviceScaleFactor: 1, mobile: viewportWidth < 600 });
       const render = await evaluate(`window.renderNativeCertificate(${JSON.stringify(kind)},${paperWidth})`); await pause(100);
+      await until('[...document.images].every(image => image.complete && image.naturalWidth > 0)');
       const m = await evaluate(`(() => {
         const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};
-        const stage=document.getElementById('stage');return {stage:rect(stage),flow:rect(stage.querySelector('[data-testid="membership-content-block"]')),signatories:rect(stage.querySelector('[data-testid="membership-signatories"]')),width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+        const stage=document.getElementById('stage'),sign=stage.querySelector('[data-testid="membership-signature-block"]'),issue=stage.querySelector('[data-testid="membership-issue-block"]');return {stage:rect(stage),flow:rect(stage.querySelector('[data-testid="membership-content-block"]')),signatories:rect(stage.querySelector('[data-testid="membership-signatories"]')),signature:rect(sign),issue:rect(issue),signatureRule:rect(sign.children[2]),issueRule:rect(issue.children[2]),width:innerWidth,scrollWidth:document.documentElement.scrollWidth};
       })()`);
-      nativeReports.push({ kind, paperWidth, approximation: true, ...render, ...m });
+      const ink = await evaluate(`(${signatureInkMetrics.toString()})()`); assertSignatureInk(ink);
+      assert(Math.abs(m.signature.y - m.issue.y) < 1 && Math.abs(m.signatureRule.y - m.issueRule.y) < 1, 'Native approximation signatory headings and rules share baselines');
+      nativeReports.push({ kind, paperWidth, approximation: true, ...render, ...m, ink });
       assert(m.flow.bottom <= m.signatories.y + 1, `Native approximation ${kind}/${paperWidth}: facts clear signatories`);
       assert(m.stage.right <= viewportWidth + 1, 'Native approximation fits viewport');
       const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: m.stage.x, y: m.stage.y, width: m.stage.width, height: m.stage.height, scale: 1 } });

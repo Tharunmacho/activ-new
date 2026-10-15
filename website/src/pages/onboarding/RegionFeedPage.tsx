@@ -88,7 +88,7 @@ export default function RegionFeedPage({ scope }: { scope: 'region' | 'state' })
                     <Link
                         to={backTo}
                         className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-700
-                                   font-bold text-[1rem] uppercase tracking-[0.1em]
+                                   font-bold text-base uppercase tracking-[0.1em]
                                    transition-colors mb-5 sm:mb-8 min-h-[40px]"
                     >
                         <ArrowLeft size={15} /> Back
@@ -139,7 +139,7 @@ export default function RegionFeedPage({ scope }: { scope: 'region' | 'state' })
                                             disabled={offset <= 0}
                                             onClick={() => goTo(Math.max(0, offset - PAGE_SIZE))}
                                             className="inline-flex items-center gap-2 rounded-full border
-                                                       border-brand-200 px-4 sm:px-5 py-2.5 text-[1rem] font-bold
+                                                       border-brand-200 px-4 sm:px-5 py-2.5 text-base font-bold
                                                        uppercase tracking-[0.1em] text-brand-700 transition-colors
                                                        hover:bg-brand-50 disabled:opacity-40
                                                        disabled:cursor-not-allowed disabled:hover:bg-transparent"
@@ -151,7 +151,7 @@ export default function RegionFeedPage({ scope }: { scope: 'region' | 'state' })
                                             disabled={to >= total}
                                             onClick={() => goTo(offset + PAGE_SIZE)}
                                             className="inline-flex items-center gap-2 rounded-full bg-brand-800
-                                                       px-4 sm:px-5 py-2.5 text-[1rem] font-bold uppercase
+                                                       px-4 sm:px-5 py-2.5 text-base font-bold uppercase
                                                        tracking-[0.1em] text-white transition-colors
                                                        hover:bg-brand-700 disabled:opacity-40
                                                        disabled:cursor-not-allowed disabled:hover:bg-brand-800"

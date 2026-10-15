@@ -193,14 +193,14 @@ export function LeaderMessageForm({ person, context, onDone }: {
               * these and decides what is passed on — and a visitor who learns
               * that after writing has been misled by the button.
               */}
-            <p className="mt-1.5 text-[1rem] font-medium leading-relaxed text-gray-500">
+            <p className="mt-1.5 text-base font-medium leading-relaxed text-gray-500">
                 This goes to the ACTIV office, not to {person.name || 'this office-bearer'}'s
                 own inbox. They will pass it on and somebody will ring you.
             </p>
 
             {/* ---- what they want ---- */}
             <fieldset className="mt-4">
-                <legend className="mb-2 text-[1rem] font-bold uppercase tracking-wider text-gray-500">
+                <legend className="mb-2 text-base font-bold uppercase tracking-wider text-gray-500">
                     What is it about?
                 </legend>
 
@@ -226,7 +226,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                                     {p.label}
                                 </span>
                                 {p.hint && (
-                                    <span className="block text-[1rem] font-medium text-gray-500">
+                                    <span className="block text-base font-medium text-gray-500">
                                         {p.hint}
                                     </span>
                                 )}
@@ -245,7 +245,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
             {/* ---- who they are ---- */}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <label className="block">
-                    <span className="mb-1 block text-[1rem] font-bold text-gray-600">Your name</span>
+                    <span className="mb-1 block text-base font-bold text-gray-600">Your name</span>
                     <input
                         className={field}
                         value={name}
@@ -256,7 +256,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                 </label>
 
                 <label className="block">
-                    <span className="mb-1 flex items-center gap-1.5 text-[1rem] font-bold text-gray-600">
+                    <span className="mb-1 flex items-center gap-1.5 text-base font-bold text-gray-600">
                         <Phone size={13} className="text-brand-500" /> Telephone
                     </span>
                     <input
@@ -270,7 +270,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                 </label>
 
                 <label className="block">
-                    <span className="mb-1 block text-[1rem] font-bold text-gray-600">
+                    <span className="mb-1 block text-base font-bold text-gray-600">
                         Email <span className="font-medium text-gray-400">(optional)</span>
                     </span>
                     <input
@@ -284,7 +284,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                 </label>
 
                 <label className="block">
-                    <span className="mb-1 block text-[1rem] font-bold text-gray-600">
+                    <span className="mb-1 block text-base font-bold text-gray-600">
                         Your firm <span className="font-medium text-gray-400">(optional)</span>
                     </span>
                     <input
@@ -303,7 +303,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
               different job should not be captioned the same way.
             */}
             <label className="mt-3 block">
-                <span className="mb-1 block text-[1rem] font-bold text-gray-600">
+                <span className="mb-1 block text-base font-bold text-gray-600">
                     {writesOwn ? 'What is it about?' : 'Anything else we should know'}{' '}
                     {writesOwn
                         ? <span className="font-medium text-brand-600">(required)</span>
@@ -320,7 +320,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                         : 'One or two lines'}
                 />
                 {writesOwn && (
-                    <span className="mt-1 block text-[1rem] text-gray-500">
+                    <span className="mt-1 block text-base text-gray-500">
                         This is passed on in your own words, with your number.
                         {' '}{300 - note.length} characters left.
                     </span>
@@ -343,7 +343,7 @@ export function LeaderMessageForm({ person, context, onDone }: {
                 {sending ? 'Sending…' : 'Send this request'}
             </button>
 
-            <p className="mt-3 flex items-start gap-1.5 text-[1rem] font-medium leading-relaxed text-gray-400">
+            <p className="mt-3 flex items-start gap-1.5 text-base font-medium leading-relaxed text-gray-400">
                 <ShieldCheck size={13} className="mt-0.5 shrink-0" />
                 Your number is shown only to the ACTIV office and to the office-bearer
                 it is about.

@@ -102,7 +102,7 @@ function CardHead({ icon, title, viewAllHref, onViewAll, viewAllLabel = 'View Al
             {viewAllHref ? (
                 <Link
                     to={viewAllHref}
-                    className="inline-flex shrink-0 items-center gap-1.5 text-[1rem] sm:text-ui-body font-bold
+                    className="inline-flex shrink-0 items-center gap-1.5 text-base sm:text-ui-body font-bold
                                text-brand-600 hover:text-brand-800 transition-colors"
                 >
                     {viewAllLabel} <ArrowRight size={14} />
@@ -194,7 +194,7 @@ export function AllLeaders({ leaders }: { leaders: RegionLeader[] }) {
                         <p className="text-ui-caption font-extrabold text-brand-900">{person.name}</p>
                         {person.role && (
                             <span className="mt-1 inline-block rounded-full bg-brand-700 px-2.5 py-0.5
-                                             text-[1rem] font-bold uppercase tracking-wide text-white">
+                                             text-base font-bold uppercase tracking-wide text-white">
                                 {person.role}
                             </span>
                         )}
@@ -398,11 +398,11 @@ export function StateHeroBand({
                                         className="shrink-0 text-white/70"
                                     />
                                     {fact.label && (
-                                        <span className="shrink-0 whitespace-nowrap text-[1rem] font-semibold text-white/60">
+                                        <span className="shrink-0 whitespace-nowrap text-base font-semibold text-white/60">
                                             {fact.label}
                                         </span>
                                     )}
-                                    <span className="min-w-0 break-words text-[1rem] font-bold text-white">
+                                    <span className="min-w-0 break-words text-base font-bold text-white">
                                         {fact.value}
                                     </span>
                                 </li>
@@ -580,7 +580,7 @@ export function AboutCard({ title, text, features, viewAllHref, places, placesLa
             {rows.length > 0 && (
                 <div className="px-5 pb-5">
                     {placesLabel && (
-                        <p className="text-[1rem] font-bold uppercase tracking-[0.12em]
+                        <p className="text-base font-bold uppercase tracking-[0.12em]
                                       text-gray-400 mb-2.5">
                             {placesLabel}
                         </p>
@@ -710,7 +710,7 @@ export function LeadersCard({ leaders, title, viewAllHref, onViewAll, onOpen }: 
                                     </span>
                                     {person.role && (
                                         <span className="shrink-0 rounded-full bg-brand-700 px-2 py-0.5
-                                                         text-[0.9375rem] font-bold uppercase tracking-wide
+                                                         text-sm font-bold uppercase tracking-wide
                                                          text-white">
                                             {person.role}
                                         </span>
@@ -869,7 +869,7 @@ export function LeadershipBoard({
     return (
         <section className={DASH_CARD}>
             {eyebrow && (
-                <p className="px-5 pt-4 text-[1rem] font-bold uppercase tracking-[0.14em]
+                <p className="px-5 pt-4 text-base font-bold uppercase tracking-[0.14em]
                               text-brand-400">
                     {eyebrow}
                 </p>
@@ -920,7 +920,7 @@ export function LeadershipBoard({
                                     {person.role && (
                                         <span className="absolute bottom-0 left-0 max-w-full truncate
                                                          rounded-tr-lg bg-brand-800/95 px-2.5 py-1
-                                                         text-[0.9375rem] font-bold uppercase
+                                                         text-sm font-bold uppercase
                                                          tracking-wide text-white">
                                             {person.role}
                                         </span>
@@ -1008,7 +1008,7 @@ export function FeedDetails({ items }: { items: RegionFeedItem[] }) {
 
                         <div className="min-w-0 flex-1">
                             {(row.date || row.location) && (
-                                <p className="text-[1rem] font-bold uppercase tracking-wider
+                                <p className="text-base font-bold uppercase tracking-wider
                                               text-brand-500 mb-1">
                                     {[row.date, row.location].filter(Boolean).join(' \u00b7 ')}
                                 </p>
@@ -1143,7 +1143,7 @@ export function GalleryCard({ state, region, href, photos }: {
                             {photo.title}
                         </p>
                         {(photo.location || photo.eventDate) && (
-                            <p className="mt-1 flex items-center gap-1 text-[1rem] font-semibold
+                            <p className="mt-1 flex items-center gap-1 text-base font-semibold
                                           text-gray-400">
                                 <MapPin size={10} className="shrink-0" />
                                 <span className="truncate">
@@ -1231,7 +1231,7 @@ export function PhotoLightbox({ photos, index, onIndex, onClose }: {
                     <div className="min-w-0 break-words">
                         <p className="text-[1.125rem] sm:text-[1.375rem] font-extrabold text-white">{photo.title}</p>
                         {(photo.category || photo.state) && (
-                            <p className="mt-0.5 text-[1rem] sm:text-ui-body font-semibold text-white/60">
+                            <p className="mt-0.5 text-base sm:text-ui-body font-semibold text-white/60">
                                 {[photo.category, photo.state].filter(Boolean).join(' · ')}
                             </p>
                         )}
@@ -1367,7 +1367,7 @@ export function EventsCard({ items, viewAllHref, onViewAll, title = 'Events',
                             {chip ? (
                                 <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center
                                                  rounded-lg bg-brand-50 leading-none">
-                                    <span className="text-[1rem] font-bold uppercase text-brand-500">
+                                    <span className="text-base font-bold uppercase text-brand-500">
                                         {chip.top}
                                     </span>
                                     <span className="text-ui-caption font-black text-brand-800">
@@ -2242,7 +2242,7 @@ function ReachList({ rows }: { rows: ReachRow[] }) {
 
 /** One label, so all three columns start on the same line. */
 const COL_LABEL =
-    'text-[1rem] font-bold uppercase tracking-[0.12em] text-gray-400 mb-3';
+    'text-base font-bold uppercase tracking-[0.12em] text-gray-400 mb-3';
 
 const REACH_LINK =
     'flex items-center gap-2 transition-colors hover:text-brand-700';

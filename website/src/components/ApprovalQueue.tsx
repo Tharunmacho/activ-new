@@ -280,7 +280,7 @@ export default function ApprovalQueue({
                                     aria-label="View application"
                                     title="View application"
                                     className="inline-flex h-8 items-center gap-1.5 rounded-lg border
-                                               border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-[1rem]
+                                               border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-base
                                                font-bold text-slate-700 transition-colors
                                                hover:bg-slate-100 hover:border-slate-300"
                                 >

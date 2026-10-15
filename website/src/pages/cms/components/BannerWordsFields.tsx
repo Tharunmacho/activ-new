@@ -96,11 +96,11 @@ export default function BannerWordsFields({ value, onChange, preview, whenBlank,
                         ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-black/80 via-black/40 to-transparent`} />
                     <div className={`absolute inset-y-0 w-3/5 flex flex-col justify-center px-3
                                      ${align === 'right' ? 'right-0 items-end text-right' : 'left-0 items-start text-left'}`}>
-                        <span className="text-white font-black text-[0.9375rem] leading-tight line-clamp-2">
+                        <span className="text-white font-black text-sm leading-tight line-clamp-2">
                             {value.headline || (value.highlight || value.subheadline ? '' : (fallback?.headline || 'Shared heading'))}
                             {value.highlight ? <span className="text-sky-300"> {value.highlight}</span> : null}
                         </span>
-                        <span className="text-white/80 text-[0.75rem] mt-1 line-clamp-2">
+                        <span className="text-white/80 text-xs mt-1 line-clamp-2">
                             {value.subheadline || (value.headline || value.highlight ? '' : (fallback?.subheadline || 'Shared subheading'))}
                         </span>
                     </div>

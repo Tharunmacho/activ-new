@@ -570,7 +570,7 @@ export function ContactFormSection() {
                                             {!mapReady && (
                                                 <div aria-hidden="true" className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-brand-50 animate-pulse">
                                                     <MapPin size={28} className="text-brand-400" />
-                                                    <span className="text-[0.9375rem] font-semibold text-brand-700/70">Loading map…</span>
+                                                    <span className="text-sm font-semibold text-brand-700/70">Loading map…</span>
                                                 </div>
                                             )}
                                             {/* Eager, not lazy: the map is what this page is for,
@@ -598,7 +598,7 @@ export function ContactFormSection() {
                                                 aria-label={`Directions to ${officeName(office)} from your location`}
                                                 className="group absolute inset-0 z-10 flex items-end justify-center p-3"
                                             >
-                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-[0.9375rem]
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-sm
                                                                  font-semibold text-brand-800 shadow-md ring-1 ring-brand-100 transition group-hover:bg-brand-900 group-hover:text-white">
                                                     <Navigation size={15} /> Tap for directions from your location
                                                 </span>

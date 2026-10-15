@@ -333,14 +333,14 @@ const TrustList = () => {
                                                         key={`${category?.code || 'custom'}-${index}`}
                                                         className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-md border
                                                                    border-slate-200 bg-slate-50 px-2 py-1
-                                                                   text-[1rem] text-slate-600"
+                                                                   text-base text-slate-600"
                                                     >
                                                         <Package className="h-3 w-3 shrink-0" />
                                                         <span className="truncate">{category?.description}</span>
                                                     </li>
                                                 ))}
                                                 {categories.length > 3 ? (
-                                                    <li className="text-[1rem] text-slate-400 self-center">
+                                                    <li className="text-base text-slate-400 self-center">
                                                         +{categories.length - 3} more
                                                     </li>
                                                 ) : null}

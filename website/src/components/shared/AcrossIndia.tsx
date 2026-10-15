@@ -209,7 +209,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                     <span className="block text-ui-small font-extrabold leading-tight">
                                         {national.label}
                                     </span>
-                                    <span className="block text-[1rem] text-white/60">
+                                    <span className="block text-base text-white/60">
                                         {contact ? 'National office' : 'The whole country'}
                                     </span>
                                 </span>
@@ -251,7 +251,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                                     {zoneName(region.label)}
                                                 </span>
                                             </span>
-                                            <span className="mt-0.5 block pl-[1.4rem] text-[1rem] text-gray-500">
+                                            <span className="mt-0.5 block pl-[1.4rem] text-base text-gray-500">
                                                 {states.length} {states.length === 1 ? 'state' : 'states'}
                                             </span>
                                         </Link>
@@ -264,7 +264,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                                     {zoneName(region.label)}
                                                 </span>
                                             </span>
-                                            <span className="mt-0.5 block pl-[1.4rem] text-[1rem] text-gray-400">
+                                            <span className="mt-0.5 block pl-[1.4rem] text-base text-gray-400">
                                                 {states.length} {states.length === 1 ? 'state' : 'states'}
                                             </span>
                                         </span>
@@ -301,7 +301,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                   */}
                 {open && openStates.length > 0 && (
                     <div className="mt-4 rounded-2xl border border-brand-100 bg-white p-4 sm:p-5">
-                        <p className="mb-3 text-[1rem] font-bold uppercase tracking-[0.14em] text-brand-500">
+                        <p className="mb-3 text-base font-bold uppercase tracking-[0.14em] text-brand-500">
                             {zoneName(open.label)} · states
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -309,7 +309,7 @@ export function AcrossIndia({ variant = 'pages' }: { variant?: 'pages' | 'contac
                                 <Link
                                     key={state.slug}
                                     to={`/states/${state.slug}${hash}`}
-                                    className="rounded-full border border-gray-200 px-3.5 py-2 sm:px-4 text-[1rem] sm:text-ui-caption
+                                    className="rounded-full border border-gray-200 px-3.5 py-2 sm:px-4 text-base sm:text-ui-caption
                                                font-semibold text-brand-700 transition-colors
                                                hover:border-brand-300 hover:bg-brand-50"
                                 >

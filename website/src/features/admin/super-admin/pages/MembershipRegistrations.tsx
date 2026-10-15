@@ -13,7 +13,7 @@ import { errorMessage } from '@/services/activApi';
 const date = (v: string | null) => v ? new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const label = (v: string) => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 const Status = ({ value }: { value: string }) => <span className={`inline-flex rounded-full px-3 py-1 text-ui-caption font-semibold ${['active', 'paid', 'Approved'].includes(value) ? 'bg-emerald-50 text-emerald-700' : ['failed', 'rejected', 'Rejected', 'blocked', 'cancelled'].includes(value) ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-800'}`}>{label(value)}</span>;
-const Field = ({ title, value }: { title: string; value: string }) => <div className="min-w-0 border-b border-slate-100 pb-3"><dt className="text-[0.9375rem] font-semibold uppercase tracking-wide text-slate-500">{title}</dt><dd className="mt-1 text-ui-small font-semibold text-slate-800 break-words">{value || '—'}</dd></div>;
+const Field = ({ title, value }: { title: string; value: string }) => <div className="min-w-0 border-b border-slate-100 pb-3"><dt className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</dt><dd className="mt-1 text-ui-small font-semibold text-slate-800 break-words">{value || '—'}</dd></div>;
 
 /** Registered accounts, reviewed applications and membership receipts in one office view. */
 export default function MembershipRegistrations() {

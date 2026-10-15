@@ -1,5 +1,6 @@
 import UsageAnalytics from '@/components/UsageAnalytics';
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, useEffect } from "react";
+import RouteRecovery from "@/components/RouteRecovery";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { Toaster as Sonner } from "@/shared/components/ui/sonner";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
@@ -272,22 +273,6 @@ const LegalManager = lazy(() => import("./pages/cms/LegalManager"));
    it. */
 const RegionsManager = lazy(() => import("./pages/cms/RegionsManager"));
 
-/**
- * Shown while a lazy route's chunk is in flight.
- *
- * Deliberately quiet — a full-page spinner on a chunk that usually arrives in
- * under 100ms reads as a slower app, not a faster one.
- */
-const RouteFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-white">
-    <div
-      className="w-8 h-8 border-2 border-gray-200 border-t-[#1c2e68] rounded-full animate-spin"
-      role="status"
-      aria-label="Loading"
-    />
-  </div>
-);
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -314,7 +299,7 @@ const App = () => (
             <PublicSharePreview>
             <PreloadPublicPages />
             <FloatingLaunchers />
-            <Suspense fallback={<RouteFallback />}>
+            <RouteRecovery>
               <Routes>
               <Route path="/" element={<Hero />} />
               <Route path="/onboarding" element={<Hero />} />
@@ -692,7 +677,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
               </Routes>
-            </Suspense>
+            </RouteRecovery>
             </PublicSharePreview>
             </NativePublicAppGate>
           </BrowserRouter>

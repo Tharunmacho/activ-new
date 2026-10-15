@@ -77,7 +77,7 @@ export function DeliveryBadge({ state, compact = false }: { state: string; compa
         <span
             title={meta.hint}
             className={`inline-flex items-center rounded-full border font-semibold whitespace-nowrap
-                        ${compact ? 'px-2 py-0.5 text-[1rem]' : 'px-2.5 py-1 text-ui-caption'} ${meta.className}`}
+                        ${compact ? 'px-2 py-0.5 text-base' : 'px-2.5 py-1 text-ui-caption'} ${meta.className}`}
         >
             {meta.label}
         </span>
@@ -319,7 +319,7 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => {
     if (children === null || children === undefined || children === '') return null;
     return (
         <div className="py-2.5 border-b border-slate-100 last:border-0">
-            <dt className="text-[1rem] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">{label}</dt>
+            <dt className="text-base font-semibold uppercase tracking-wider text-slate-400 mb-0.5">{label}</dt>
             <dd className="text-ui-small text-slate-800 [overflow-wrap:anywhere] min-w-0">{children}</dd>
         </div>
     );
@@ -425,7 +425,7 @@ function Chip({ channel, summary }: { channel: 'email' | 'whatsapp'; summary?: C
             title={summary
                 ? `${channel === 'email' ? 'Email' : 'WhatsApp'}: ${meta?.label || state}${summary.reason ? ` — ${summary.reason}` : ''}`
                 : `No ${channel === 'email' ? 'email' : 'WhatsApp message'} sent`}
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[1rem] font-semibold whitespace-nowrap
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-base font-semibold whitespace-nowrap
                         ${meta ? meta.className : 'bg-white text-slate-400 border-slate-200'}`}
         >
             <ChannelIcon channel={channel} className="w-3.5 h-3.5" />
@@ -519,7 +519,7 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                                         {s ? <DeliveryBadge state={String(s.status)} /> : <span className="text-slate-400">Nothing sent</span>}
                                     </div>
                                     {s?.reason ? (
-                                        <p className="mt-1.5 text-[1rem] text-rose-700 [overflow-wrap:anywhere]">{s.reason}</p>
+                                        <p className="mt-1.5 text-base text-rose-700 [overflow-wrap:anywhere]">{s.reason}</p>
                                     ) : null}
                                 </div>
                             );

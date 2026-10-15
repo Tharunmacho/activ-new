@@ -296,14 +296,14 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
                 {/* Both pills the same height and the same case, so the pair
                     reads as one row rather than as two controls. */}
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-[0.9375rem]
+                  <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-sm
                                     font-bold text-white
                                     ${isAspirant ? "bg-emerald-600" : "bg-blue-600"}`}>
                     {roleLabel}
                   </span>
                   {!!p.statusLabel && (
                     <span className={`inline-flex h-6 items-center rounded-full border px-2.5
-                                      text-[0.9375rem] font-bold ${STATUS_PILL[stage] || STATUS_PILL.pending}`}>
+                                      text-sm font-bold ${STATUS_PILL[stage] || STATUS_PILL.pending}`}>
                       {p.statusLabel}
                     </span>
                   )}
@@ -322,7 +322,7 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
               <div className="space-y-4">
                 {!!p.rejectionReason && (
                   <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
-                    <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest text-red-700">
+                    <p className="text-sm font-extrabold uppercase tracking-widest text-red-700">
                       Rejection reason
                     </p>
                     <p className="mt-1.5 text-ui-body font-semibold text-red-900 break-words">{p.rejectionReason}</p>

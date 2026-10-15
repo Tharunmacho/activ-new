@@ -79,7 +79,7 @@ export function StateHero({ hero, fallbackTitle }: {
                 <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-center">
                     <div className="max-w-2xl">
                         {hero.eyebrow && (
-                            <p className="text-[1rem] sm:text-ui-caption font-bold uppercase
+                            <p className="text-base sm:text-ui-caption font-bold uppercase
                                           tracking-[0.2em] text-white/70 mb-4">
                                 {hero.eyebrow}
                             </p>
@@ -285,7 +285,7 @@ export function CardRow({ title, items, viewAllHref, viewAllLabel, ratio = 'land
                             )}
                             {row.category && (
                                 <span className="mt-2 inline-block rounded-full bg-brand-50 px-2.5 py-1
-                                                 text-[1rem] font-bold text-brand-700">
+                                                 text-base font-bold text-brand-700">
                                     {row.category}
                                 </span>
                             )}

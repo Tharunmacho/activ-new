@@ -38,13 +38,27 @@ interface CartProviderProps {
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Initialize from localStorage if available
   const [items, setItems] = useState<CartItem[]>(() => {
-    const stored = localStorage.getItem('cartItems');
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem('cartItems');
+      const parsed: unknown = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((item): item is CartItem => item !== null && typeof item === 'object'
+        && typeof item.id === 'number' && Number.isFinite(item.id)
+        && typeof item.name === 'string' && typeof item.price === 'number' && Number.isFinite(item.price)
+        && typeof item.quantity === 'number' && Number.isFinite(item.quantity) && item.quantity > 0
+        && typeof item.image === 'string' && typeof item.seller === 'string'
+        && typeof item.inStock === 'boolean' && typeof item.originalPrice === 'number' && Number.isFinite(item.originalPrice));
+    } catch {
+      // An old/malformed cart or unavailable storage must not prevent any page opening.
+      return [];
+    }
   });
 
   // Sync to localStorage whenever cart items change
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(items));
+    try { localStorage.setItem('cartItems', JSON.stringify(items)); } catch {
+      // Keep the in-memory cart usable when browser storage is unavailable/full.
+    }
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: items.length } }));
   }, [items]);

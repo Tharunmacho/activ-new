@@ -7,9 +7,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { localTypographyFonts } from './browserTypographyFixtures.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const artifacts = path.resolve(root, '..', 'artifacts');
+const artifacts = process.env.TEST_ARTIFACTS ? path.resolve(process.env.TEST_ARTIFACTS) : path.resolve(root, '..', 'artifacts');
+const fonts = await localTypographyFonts(root);
+const layouts = [];
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-update-composer-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const plans = [
@@ -34,6 +37,7 @@ const saves = [], exceptions = [];
 const reply = (res, data) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ success: true, data })); };
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  if (fonts.serve(url, res)) return;
   if (url.pathname === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
   if (url.pathname === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
   if (url.pathname.startsWith('/uploads/')) {
@@ -61,7 +65,8 @@ const base = `http://127.0.0.1:${server.address().port}`;
 
 try {
   const assets = await readdir(path.join(root, 'dist/assets'));
-  css = await readFile(path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+  css = await readFile(process.env.TEST_CSS || path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+  css += '\n' + fonts.css;
   const result = await build({ absWorkingDir: root, bundle: true, write: false, format: 'iife', platform: 'browser', jsx: 'automatic',
     define: { 'import.meta.env': JSON.stringify({ DEV: true, VITE_API_URL: `${base}/api/v1` }), 'process.env.NODE_ENV': '"test"' },
     stdin: { resolveDir: root, loader: 'tsx', contents: `
@@ -92,7 +97,7 @@ try {
     ws.send(JSON.stringify({ id, method, params }));
   });
   const evaluate = async expression => {
-    const response = await send('Runtime.evaluate', { expression, returnByValue: true });
+    const response = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
     if (response.result?.exceptionDetails) throw Error(response.result.exceptionDetails.exception?.description);
     return response.result?.result?.value;
   };
@@ -125,6 +130,7 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: base });
   await until(`document.querySelector('form[aria-label="Update composer"]')`);
+  await evaluate('document.fonts.ready');
   assert.equal(await evaluate(`document.querySelectorAll('input[type="url"], input[name="bannerUrl"], input[name="attachmentUrl"]').length`), 0, 'No raw URL inputs');
 
   await fill('title', 'Draft membership notice'); await click('Publish update');
@@ -189,12 +195,27 @@ try {
     await evaluate('window.scrollTo(0,0)'); await pause(100);
     assert(await evaluate(`document.documentElement.scrollWidth<=innerWidth`), `No horizontal overflow at ${width}px`);
     const textFields = await evaluate(`[...document.querySelectorAll('input:not([type="file"]):not([type="checkbox"]),textarea,select')].map(input=>({name:input.name,size:getComputedStyle(input).fontSize}))`);
-    assert(textFields.every(field => field.size === '16px'), `Inputs stay 16px at ${width}px: ${JSON.stringify(textFields)}`);
+    const measured = await evaluate(`(() => {
+      const visible=e=>e.getBoundingClientRect().width>0;
+      const style=e=>({size:parseFloat(getComputedStyle(e).fontSize),family:getComputedStyle(e).fontFamily});
+      return {width:innerWidth,body:style(document.body),poppinsLoaded:document.fonts.check('600 20px Poppins'),
+        labels:[...document.querySelectorAll('label > span:first-child')].filter(visible).map(style),
+        preview:style(document.querySelector('[aria-label="Member preview"] p.text-base')),
+        caption:style(document.querySelector('[aria-label="Member preview"] .text-xs')),
+        overflow:[...document.querySelectorAll('input:not([type=file]),select,textarea,button')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1||e.scrollWidth>e.clientWidth+1&&e.tagName==='BUTTON'}).map(e=>({tag:e.tagName,label:e.getAttribute('aria-label')||e.name||e.textContent.trim()}))};
+    })()`);
+    layouts.push({...measured,textFields});
+    await writeFile(path.join(artifacts,'update-composer-typography.json'),JSON.stringify({fonts:fonts.loaded?'local Poppins':'system fallback',layouts},null,2));
+    assert(textFields.every(field => field.size === '20px'), `Inputs stay 20px at ${width}px: ${JSON.stringify(textFields)}`);
+    assert.equal(measured.body.size,20); assert.equal(measured.preview.size,20); assert.equal(measured.caption.size,16);
+    assert(measured.labels.length>0&&measured.labels.every(label=>label.size>=18&&label.family.includes('Poppins')),'Readable Poppins labels');
+    if(fonts.loaded) assert(measured.poppinsLoaded,'Local Poppins loaded');
+    assert.deepEqual(measured.overflow,[],`${width}: controls stay inside the viewport`);
     const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
     await writeFile(path.join(artifacts, `update-composer-${width}.png`), Buffer.from(shot.result.data, 'base64'));
   }
   assert.deepEqual(exceptions, []);
-  console.log('PASS: responsive 320/390/1440 layouts, 16px form fields and no browser exceptions. Screenshots saved in artifacts/update-composer-*.png.');
+  console.log('PASS: responsive 320/390/1440 layouts, Poppins 20px form fields, 18px labels and 16px captions and no browser exceptions. Screenshots saved in artifacts/update-composer-*.png.');
   await send('Browser.close');
 } finally {
   pendingPoster?.destroy(); pendingDocument?.destroy(); ws?.close(); chrome?.kill();

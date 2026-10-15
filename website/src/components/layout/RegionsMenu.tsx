@@ -210,7 +210,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
 
                     {/* ---- what is inside it ---- */}
                     <div className="w-56 py-2">
-                        <p className="px-4 pb-2 text-[1rem] font-bold uppercase tracking-wider text-gray-400">
+                        <p className="px-4 pb-2 text-base font-bold uppercase tracking-wider text-gray-400">
                             {current?.national ? 'The five zones' : `${zoneName(current?.label)} states`}
                         </p>
 
@@ -277,7 +277,7 @@ export function RegionsAccordion({ accent, onNavigate }: {
         /* Rows share the drawer links' px-4 box (HeaderSection), so the
            zone names start on the same left edge as About / Gallery. */
         <div className="mt-2 border-t border-slate-100 pt-3">
-            <p className="px-4 mb-1 text-[0.8rem] font-bold uppercase tracking-[0.16em] text-gray-400">
+            <p className="px-4 mb-1 text-sm font-bold uppercase tracking-[0.16em] text-gray-400">
                 {/* See the note on the desktop trigger. */}
                 Zones
             </p>

@@ -165,7 +165,7 @@ export default function LegalPage() {
                     type="button"
                     onClick={() => setAttempt((n) => n + 1)}
                     className="inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white
-                               px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase
+                               px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase
                                tracking-[0.1em] transition-colors"
                 >
                     <Loader2 size={15} /> Try again
@@ -182,7 +182,7 @@ export default function LegalPage() {
                 <Link
                     to="/"
                     className="inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white
-                               px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase
+                               px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase
                                tracking-[0.1em] transition-colors"
                 >
                     <ArrowLeft size={15} /> Back to home

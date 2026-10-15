@@ -451,7 +451,7 @@ export default function EventRegistration() {
                                                 }`}
                                             >
                                                 <Icon className="w-5 h-5" />
-                                                <span className="px-1 text-center text-[1rem] sm:text-ui-caption font-bold leading-tight">{label}</span>
+                                                <span className="px-1 text-center text-base sm:text-ui-caption font-bold leading-tight">{label}</span>
                                             </button>
                                         ))}
                                     </div>

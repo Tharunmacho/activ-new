@@ -24,6 +24,8 @@ interface Props {
     fallback?: React.ReactNode;
     /** Named in the console line, so a crash points at the subtree that threw. */
     label?: string;
+    /** Reset a failed page after navigation without remounting healthy content. */
+    resetKey?: string;
 }
 
 interface State {
@@ -42,6 +44,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
         console.error(`[ErrorBoundary${this.props.label ? `: ${this.props.label}` : ''}]`, error, info.componentStack);
     }
 
+    componentDidUpdate(previous: Props) {
+        if (this.state.error && previous.resetKey !== this.props.resetKey) this.reset();
+    }
+
     private reset = () => this.setState({ error: null });
 
     private reload = () => window.location.reload();
@@ -52,14 +58,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
         if (this.props.fallback) return <>{this.props.fallback}</>;
 
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white px-6">
-                <div className="max-w-lg w-full text-center">
+            <div className="min-h-screen flex items-center justify-center bg-white px-4 py-10">
+                <div role="alert" className="max-w-lg w-full text-center">
                     <h1 className="text-[1.5625rem] font-bold text-[#1c2e68] mb-3">
                         Something went wrong on this page
                     </h1>
                     <p className="text-gray-500 mb-8 leading-relaxed">
-                        The rest of the site is fine. Reload to try again, or go back to the
-                        home page.
+                        Please try again. If this page still cannot open, reload it or return home.
+                        These recovery buttons do not sign you out.
                     </p>
 
                     {/*
@@ -75,19 +81,26 @@ export class ErrorBoundary extends React.Component<Props, State> {
                         </pre>
                     )}
 
-                    <div className="flex items-center justify-center gap-3">
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                        <button
+                            type="button"
+                            onClick={this.reset}
+                            className="min-h-11 px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold hover:opacity-90"
+                        >
+                            Try again
+                        </button>
                         <button
                             type="button"
                             onClick={this.reload}
-                            className="px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold
+                            className="min-h-11 px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold
                                        hover:opacity-90 transition-opacity"
                         >
-                            Reload
+                            Reload page
                         </button>
                         <a
                             href="/"
                             onClick={this.reset}
-                            className="px-6 py-2.5 rounded-full border border-gray-200 text-[#1c2e68]
+                            className="min-h-11 px-6 py-2.5 rounded-full border border-gray-200 text-[#1c2e68]
                                        font-semibold hover:bg-gray-50 transition-colors"
                         >
                             Go home

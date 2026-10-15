@@ -324,7 +324,7 @@ export default function MembershipPlans() {
       actions={
         <div className="flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5">
           <Lock className="h-3.5 w-3.5 text-emerald-600" />
-          <span className="hidden text-[0.9rem] font-semibold text-emerald-700 sm:inline">Secure checkout</span>
+          <span className="hidden text-sm font-semibold text-emerald-700 sm:inline">Secure checkout</span>
         </div>
       }
     >
@@ -340,13 +340,13 @@ export default function MembershipPlans() {
 
           <div className="relative grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div className="min-w-0">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[0.8rem] font-bold uppercase tracking-[0.14em] ring-1 ring-white/25">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-bold uppercase tracking-[0.14em] ring-1 ring-white/25">
                 <Sparkles className="h-3.5 w-3.5" /> {upgrading ? 'Membership upgrade' : 'Application approved'}
               </span>
               <h1 className="mt-4 text-[1.75rem] font-black leading-tight tracking-tight sm:text-[2.5rem]">
                 {upgrading ? 'Your next membership' : planLocked ? 'Your membership is one step away' : 'Choose your membership'}
               </h1>
-              <p className="mt-2 max-w-xl text-[1rem] text-blue-100 sm:text-ui-caption">
+              <p className="mt-2 max-w-xl text-base text-blue-100 sm:text-ui-caption">
                 {upgrading ? 'Select your new membership. Business plans follow the commencement year you enter above.' : planLocked
                   ? userData?.memberType === 'Student'
                     ? 'The plan for students who are not yet in business.'
@@ -364,9 +364,9 @@ export default function MembershipPlans() {
                 const now = i === (upgrading ? 1 : 2);
                 return (
                   <li key={step} className="flex items-center gap-1.5 sm:gap-2">
-                    <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.75rem] font-bold sm:px-3 sm:text-[0.8rem]
+                    <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold sm:px-3 sm:text-sm
                                       ${now ? 'bg-white text-[#1c2e68] shadow-lg' : done ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'}`}>
-                      {done ? <CheckCircle className="h-3.5 w-3.5" /> : <span className="grid h-3.5 w-3.5 place-items-center text-[0.65rem]">{i + 1}</span>}
+                      {done ? <CheckCircle className="h-3.5 w-3.5" /> : <span className="grid h-3.5 w-3.5 place-items-center text-xs">{i + 1}</span>}
                       <span className={now ? '' : 'hidden sm:inline'}>{step}</span>
                     </span>
                     {i < JOURNEY.length - 1 && <span className="h-px w-3 bg-white/30 sm:w-5" />}
@@ -406,7 +406,7 @@ export default function MembershipPlans() {
                           <div className="min-w-0">
                             <h3 className="text-[1.1rem] font-extrabold text-slate-900">{plan.name}</h3>
                             {plan.experience && (
-                              <span className="mt-0.5 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[0.75rem] font-semibold text-slate-600">
+                              <span className="mt-0.5 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
                                 {plan.experience}
                               </span>
                             )}
@@ -419,7 +419,7 @@ export default function MembershipPlans() {
                       </div>
 
                       {recommended && (
-                        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[0.75rem] font-bold text-amber-700 ring-1 ring-amber-200">
+                        <span className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
                           <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                           {planLocked ? 'Recommended for you' : 'Most popular'}
                         </span>
@@ -427,15 +427,15 @@ export default function MembershipPlans() {
 
                       <div className="mt-5 flex items-end gap-1.5">
                         <span className="text-[2.4rem] font-black leading-none tracking-tight text-slate-900 sm:text-[2.75rem]">{fmt(plan.price)}</span>
-                        <span className="pb-1 text-[0.9rem] font-medium text-slate-500">/ year</span>
+                        <span className="pb-1 text-sm font-medium text-slate-500">/ year</span>
                       </div>
-                      {plan.description && <p className="mt-2 text-[0.95rem] leading-relaxed text-slate-500">{plan.description}</p>}
+                      {plan.description && <p className="mt-2 text-sm leading-relaxed text-slate-500">{plan.description}</p>}
 
                       <div className="my-5 h-px bg-slate-100" />
 
                       <ul className="flex-1 space-y-2.5">
                         {(plan.features || []).map((feature, index) => (
-                          <li key={index} className="flex items-start gap-2.5 text-[0.95rem] leading-snug text-slate-700">
+                          <li key={index} className="flex items-start gap-2.5 text-sm leading-snug text-slate-700">
                             <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-blue-50 text-[#2563eb]">
                               <CheckCircle className="h-3.5 w-3.5" />
                             </span>
@@ -444,7 +444,7 @@ export default function MembershipPlans() {
                         ))}
                       </ul>
 
-                      <span className={`mt-6 flex h-11 items-center justify-center gap-2 rounded-xl text-[0.95rem] font-bold transition
+                      <span className={`mt-6 flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold transition
                                         ${isSelected ? 'bg-[#1c2e68] text-white' : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200'}`}>
                         {isSelected ? <><CheckCircle className="h-4 w-4" /> Selected</> : planLocked ? 'Your plan' : 'Choose this plan'}
                       </span>
@@ -465,8 +465,8 @@ export default function MembershipPlans() {
                 <div key={title} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-[#2563eb]"><I className="h-5 w-5" /></span>
                   <div className="min-w-0">
-                    <p className="text-[0.95rem] font-bold text-slate-900">{title}</p>
-                    <p className="text-[0.85rem] leading-snug text-slate-500">{text}</p>
+                    <p className="text-sm font-bold text-slate-900">{title}</p>
+                    <p className="text-sm leading-snug text-slate-500">{text}</p>
                   </div>
                 </div>
               ))}
@@ -477,18 +477,18 @@ export default function MembershipPlans() {
           <aside className="hidden lg:block">
             <div className="sticky top-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_60px_-30px_rgb(15_23_42/0.35)]">
               <div className="px-6 pb-5 pt-6">
-                <p className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-slate-400">Order summary</p>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Order summary</p>
                 <div className="mt-4 flex items-center gap-3">
                   <span className="grid h-11 w-11 place-items-center rounded-2xl text-white" style={{ background: selectedPlan.bgGradient }}>
                     <CreditCard className="h-5 w-5" />
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-[1.05rem] font-extrabold text-slate-900">{selectedPlan.name}</p>
-                    <p className="text-[0.85rem] text-slate-500">{userData?.memberType === 'Company' || !userData?.memberType ? 'Business' : userData.memberType} membership · 1 year</p>
+                    <p className="truncate text-base font-extrabold text-slate-900">{selectedPlan.name}</p>
+                    <p className="text-sm text-slate-500">{userData?.memberType === 'Company' || !userData?.memberType ? 'Business' : userData.memberType} membership · 1 year</p>
                   </div>
                 </div>
 
-                <dl className="mt-5 space-y-2.5 text-[0.95rem]">
+                <dl className="mt-5 space-y-2.5 text-sm">
                   <div className="flex justify-between gap-3"><dt className="text-slate-500">Membership fee</dt><dd className="font-semibold text-slate-900">{fmt(selectedPlan.price)}</dd></div>
                   {selectedPlan.experience && (
                     <div className="flex justify-between gap-3"><dt className="text-slate-500">Band</dt><dd className="text-right font-semibold text-slate-900">{selectedPlan.experience}</dd></div>
@@ -498,14 +498,14 @@ export default function MembershipPlans() {
               </div>
               <div className="border-t border-dashed border-slate-200 bg-slate-50/70 px-6 py-5">
                 <div className="flex items-end justify-between">
-                  <span className="text-[0.95rem] font-bold text-slate-700">Total</span>
+                  <span className="text-sm font-bold text-slate-700">Total</span>
                   <span className="text-[1.9rem] font-black leading-none text-[#1c2e68]">{fmt(selectedPlan.price)}</span>
                 </div>
                 <button
                   type="button"
                   onClick={handlePayment}
                   disabled={processing || (upgrading && !canPurchaseUpgrade)}
-                  className="btn-shine relative mt-5 flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl text-[1.05rem] font-bold text-white
+                  className="btn-shine relative mt-5 flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl text-base font-bold text-white
                              shadow-[0_14px_30px_-12px_rgb(37_99_235/0.7)] transition active:scale-[0.98] disabled:opacity-60"
                   style={{ backgroundImage: 'linear-gradient(135deg, #1c2e68 0%, #2563eb 100%)' }}
                 >
@@ -513,10 +513,10 @@ export default function MembershipPlans() {
                 </button>
                 <div className="mt-4 flex flex-wrap justify-center gap-1.5">
                   {['UPI', 'Cards', 'Net banking', 'Wallets'].map((m) => (
-                    <span key={m} className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[0.75rem] font-semibold text-slate-600">{m}</span>
+                    <span key={m} className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600">{m}</span>
                   ))}
                 </div>
-                <p className="mt-3 flex items-center justify-center gap-1.5 text-[0.8rem] text-slate-500">
+                <p className="mt-3 flex items-center justify-center gap-1.5 text-sm text-slate-500">
                   <Shield className="h-3.5 w-3.5 text-emerald-600" /> 256-bit SSL · processed by Instamojo
                 </p>
               </div>
@@ -530,14 +530,14 @@ export default function MembershipPlans() {
            style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
         <div className="mx-auto flex max-w-xl items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[0.8rem] font-semibold text-slate-500">{selectedPlan.name}</p>
+            <p className="truncate text-sm font-semibold text-slate-500">{selectedPlan.name}</p>
             <p className="text-[1.35rem] font-black leading-tight text-[#1c2e68]">{fmt(selectedPlan.price)}</p>
           </div>
           <button
             type="button"
             onClick={handlePayment}
             disabled={processing || (upgrading && !canPurchaseUpgrade)}
-            className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-[1rem] font-bold text-white
+            className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-base font-bold text-white
                        shadow-[0_10px_24px_-10px_rgb(37_99_235/0.8)] active:scale-95 disabled:opacity-60"
             style={{ backgroundImage: 'linear-gradient(135deg, #1c2e68 0%, #2563eb 100%)' }}
           >

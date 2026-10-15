@@ -120,7 +120,7 @@ export function EventPriceTiers({
                 ? 'mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5'
                 : ''}>
                 {variant === 'panel' && (
-                    <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest text-slate-500">
+                    <p className="text-sm font-extrabold uppercase tracking-widest text-slate-500">
                         You pay
                     </p>
                 )}
@@ -164,7 +164,7 @@ export function EventPriceTiers({
               */}
             <div className="grid grid-cols-2 items-stretch">
                 <div className="flex flex-col border-r border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
-                    <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest
+                    <p className="text-sm font-extrabold uppercase tracking-widest
                                   text-slate-500">
                         Standard
                     </p>
@@ -178,7 +178,7 @@ export function EventPriceTiers({
                 </div>
 
                 <div className="flex flex-col bg-emerald-50 px-4 py-4 sm:px-5">
-                    <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest
+                    <p className="text-sm font-extrabold uppercase tracking-widest
                                   text-emerald-700">
                         Members price
                     </p>
@@ -190,7 +190,7 @@ export function EventPriceTiers({
                         per seat
                     </p>
                     <span className="mt-3 inline-flex h-[1.375rem] w-fit items-center gap-1
-                                     rounded-full bg-emerald-600 px-2 sm:px-2.5 text-[0.75rem] sm:text-[0.8125rem]
+                                     rounded-full bg-emerald-600 px-2 sm:px-2.5 text-xs sm:text-sm
                                      font-extrabold uppercase tracking-normal sm:tracking-wide text-white whitespace-nowrap max-w-full">
                         Save {rupees(saving)} · {percent}%
                     </span>
@@ -253,7 +253,7 @@ export function EventPriceTiers({
                         <span className="block text-[1.125rem] font-black leading-tight">
                             Become an ACTIV member
                         </span>
-                        <span className="block text-[1rem] font-semibold text-brand-100">
+                        <span className="block text-base font-semibold text-brand-100">
                             Save {rupees(bookingSaving)}
                             {seats > 1 ? ` on these ${seats} seats` : ' on this booking'}
                         </span>

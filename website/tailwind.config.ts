@@ -23,6 +23,12 @@ export default {
         certificate: ['Playfair Display', 'Poppins', 'Georgia', 'serif'],
       },
       fontSize: {
+        xs: ['var(--text-ui-xs)', { lineHeight: '1.5' }],
+        sm: ['var(--text-ui-sm)', { lineHeight: '1.5' }],
+        base: ['var(--text-ui-base)', { lineHeight: '1.5' }],
+        lg: ['var(--text-ui-lg)', { lineHeight: '1.5' }],
+        xl: ['var(--text-ui-xl)', { lineHeight: '1.4' }],
+        '2xl': ['var(--text-ui-2xl)', { lineHeight: '1.35' }],
         'ui-body': ['1.25rem', { lineHeight: '1.5' }],
         'ui-small': ['1.1875rem', { lineHeight: '1.5' }],
         'ui-caption': ['1.0625rem', { lineHeight: '1.5' }],

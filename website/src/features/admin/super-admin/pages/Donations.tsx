@@ -31,13 +31,13 @@ const STATUS_TONE: Record<string, string> = {
 export function StatusBadge({ status }: { status?: string }) {
     const s = String(status || 'pending').toLowerCase();
     return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.875rem] font-semibold capitalize ring-1 ${STATUS_TONE[s] || STATUS_TONE.pending}`}>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold capitalize ring-1 ${STATUS_TONE[s] || STATUS_TONE.pending}`}>
             {s}
         </span>
     );
 }
 
-const LINK_BTN = 'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-[1rem] font-semibold text-blue-700 hover:bg-blue-50';
+const LINK_BTN = 'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-base font-semibold text-blue-700 hover:bg-blue-50';
 
 export default function SuperDonations() {
     const donorsRef = useCardTable();
@@ -142,7 +142,7 @@ export default function SuperDonations() {
                             </div>
                         </div>
 
-                        {error ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[1rem] text-red-700">{error}</p> : null}
+                        {error ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-base text-red-700">{error}</p> : null}
 
                         {loading ? (
                             <div className="flex items-center justify-center gap-2 py-12 text-slate-500">
@@ -174,17 +174,17 @@ export default function SuperDonations() {
                                                         <Link to={`/super-admin/donations/${encodeURIComponent(d.id)}`} className="block truncate font-bold text-slate-900 hover:text-blue-700">
                                                             {d.fullName || '—'}
                                                         </Link>
-                                                        <span className="block break-all text-[0.9375rem] text-slate-500">{d.email || ''}</span>
-                                                        {d.phone ? <span className="block text-[0.9375rem] text-slate-500">{d.phone}</span> : null}
-                                                        {d.pan ? <span className="block font-mono text-[0.875rem] text-slate-500">PAN {d.pan}</span> : null}
+                                                        <span className="block break-all text-sm text-slate-500">{d.email || ''}</span>
+                                                        {d.phone ? <span className="block text-sm text-slate-500">{d.phone}</span> : null}
+                                                        {d.pan ? <span className="block font-mono text-sm text-slate-500">PAN {d.pan}</span> : null}
                                                     </td>
-                                                    <td className="px-3 py-3 text-[0.9375rem] text-slate-600">
+                                                    <td className="px-3 py-3 text-sm text-slate-600">
                                                         {[d.city, d.district, d.state].filter(Boolean).join(', ') || '—'}
                                                     </td>
                                                     <td className="px-3 py-3 text-right tabular-nums">{d.donationCount || 0}</td>
                                                     <td className="px-3 py-3 text-right font-bold tabular-nums">{inr(d.totalAmount || 0)}</td>
                                                     <td className="px-3 py-3 text-right tabular-nums text-slate-600">{inr(d.allTimeAmount || 0)}</td>
-                                                    <td className="px-3 py-3 text-[0.9375rem] text-slate-600">{shortDate(d.lastDonationAt) || '—'}</td>
+                                                    <td className="px-3 py-3 text-sm text-slate-600">{shortDate(d.lastDonationAt) || '—'}</td>
                                                     <td className="px-3 py-3">
                                                         <div className="flex flex-col items-start gap-1">
                                                             <Link to={`/super-admin/donations/${encodeURIComponent(d.id)}`} className={LINK_BTN}>
@@ -222,19 +222,19 @@ export default function SuperDonations() {
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredDonations.map((r) => (
                                             <tr key={r.id} className="align-top">
-                                                <td className="px-3 py-3 text-[0.9375rem] text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
+                                                <td className="px-3 py-3 text-sm text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
                                                 <td className="min-w-0 px-3 py-3">
                                                     {r.donorId ? (
                                                         <Link to={`/super-admin/donations/${encodeURIComponent(r.donorId)}`} className="block truncate font-bold text-slate-900 hover:text-blue-700">
                                                             {r.donorName || '—'}
                                                         </Link>
                                                     ) : <span className="block font-bold">{r.donorName || '—'}</span>}
-                                                    <span className="block break-all text-[0.9375rem] text-slate-500">{r.donorEmail || ''}</span>
+                                                    <span className="block break-all text-sm text-slate-500">{r.donorEmail || ''}</span>
                                                 </td>
-                                                <td className="break-all px-3 py-3 text-[0.9375rem]">{r.receiptNumber || '—'}</td>
+                                                <td className="break-all px-3 py-3 text-sm">{r.receiptNumber || '—'}</td>
                                                 <td className="px-3 py-3 text-right font-bold tabular-nums">{inr(r.amount || 0)}</td>
                                                 <td className="px-3 py-3"><StatusBadge status={r.status} /></td>
-                                                <td className="whitespace-pre-line break-words px-3 py-3 text-[0.9375rem] text-slate-600">{r.message || '—'}</td>
+                                                <td className="whitespace-pre-line break-words px-3 py-3 text-sm text-slate-600">{r.message || '—'}</td>
                                                 <td className="px-3 py-3">
                                                     {r.receiptToken && String(r.status).toLowerCase() === 'paid' ? (
                                                         <a href={receiptPath(r.receiptToken)} target="_blank" rel="noopener noreferrer" className={LINK_BTN}>

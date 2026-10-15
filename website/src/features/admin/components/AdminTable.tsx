@@ -57,7 +57,7 @@ export interface AdminColumn<T> {
      * under it.
      *
      * For the Action column, and effectively only for that. These tables are
-     * deliberately wider than the pane — eight columns of 16px text do not fit
+     * deliberately wider than the pane — eight columns of readable text do not fit
      * in 1100px and squeezing them to fit is what turns an email address into
      * four stacked lines — so the row scrolls sideways. Without pinning, the
      * button that opens the row is the FIRST thing off the right edge, and the
@@ -135,10 +135,7 @@ const STICKY_RIGHT = 'sticky right-0 z-10 shadow-[-8px_0_12px_-8px_rgba(16,24,40
 /**
  * The header cell.
  *
- * `text-[0.8125rem] font-semibold uppercase tracking-wider` — the reference tables'
- * heading exactly, and the one place in the admin area that shouts. A heading
- * row in sentence case at the same weight as the data reads as a first row of
- * results rather than as the names of the columns.
+ * The 18px labels wrap in narrow columns and remain distinct from 20px values.
  */
 function HeadCell({ children, sortable, direction, onSort, width, align = 'left', hideOnMobile, sticky }: {
     children: ReactNode;
@@ -150,17 +147,8 @@ function HeadCell({ children, sortable, direction, onSort, width, align = 'left'
     hideOnMobile?: boolean;
     sticky?: 'right';
 }) {
-    /*
-     * 13px, not 11px.
-     *
-     * The first version set these at `text-[0.8125rem]` — small capitals are
-     * already hard to read, and at 11px against 16px body text the heading row
-     * read as a caption rather than as the names of the columns. 13px bold
-     * capitals is the smallest size that still reads as a heading beside the
-     * business area's 16px labels, which is the scale this table now sits in.
-     */
-    const base = `px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider
-                  text-slate-500 whitespace-nowrap ${ALIGN[align]} ${width || ''}
+    const base = `px-5 py-4 text-sm font-semibold uppercase tracking-wide
+                  text-slate-500 whitespace-normal break-words ${ALIGN[align]} ${width || ''}
                   ${hideOnMobile ? 'hidden sm:table-cell' : ''}
                   ${sticky === 'right' ? STICKY_RIGHT + ' bg-slate-50' : ''}`;
 
@@ -180,7 +168,7 @@ function HeadCell({ children, sortable, direction, onSort, width, align = 'left'
             <button
                 type="button"
                 onClick={onSort}
-                className={`inline-flex items-center gap-1.5 hover:text-slate-900 transition-colors
+                className={`inline-flex max-w-full items-center gap-1.5 text-left [&>svg]:shrink-0 hover:text-slate-900 transition-colors
                             ${align === 'right' ? 'flex-row-reverse' : ''}`}
             >
                 {children}
@@ -329,14 +317,14 @@ export function AdminTable<T>({
 
             {/* ------------------------------------------------------ toolbar */}
             {(searchable || toolbar || (client && pageSizeOptions.length > 1)) && (
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 sm:p-5
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 p-4 sm:p-5
                                 border-b border-slate-100">
                     {client && perPage > 0 && (
-                        <label className="flex items-center gap-2 text-ui-body text-slate-500 shrink-0">
+                        <label className="flex flex-wrap items-center gap-2 text-sm sm:text-base text-slate-500">
                             <select
                                 value={perPage}
                                 onChange={(e) => setPerPage(Number(e.target.value))}
-                                className="h-12 rounded-xl border border-slate-200 bg-white px-3 text-ui-body
+                                className="min-h-12 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm sm:text-base
                                            font-semibold text-slate-800 outline-none
                                            focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                             >
@@ -361,7 +349,7 @@ export function AdminTable<T>({
                         </div>
                     )}
 
-                    {toolbar && <div className="flex flex-wrap gap-2 shrink-0 min-w-0">{toolbar}</div>}
+                    {toolbar && <div className="flex max-w-full flex-wrap gap-2 min-w-0">{toolbar}</div>}
                 </div>
             )}
 
@@ -378,13 +366,13 @@ export function AdminTable<T>({
                 {loading && (
                     <div className="px-4 py-10 text-center">
                         <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-                        <p className="mt-4 text-[1.05rem] font-semibold text-slate-500">Loading…</p>
+                        <p className="mt-4 text-sm font-semibold text-slate-500">Loading…</p>
                     </div>
                 )}
                 {!loading && !visible.length && (
                     <div className="px-4 py-10 text-center">
                         <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
-                        <div className="mt-3 text-[1.05rem] font-semibold text-slate-500 leading-relaxed">
+                        <div className="mt-3 text-sm font-semibold text-slate-500 leading-relaxed">
                             {filtering ? (emptyFiltered || `Nothing matches “${query.trim()}”.`) : empty}
                         </div>
                     </div>
@@ -406,24 +394,24 @@ export function AdminTable<T>({
                                         {shown.map((column) => (
                                             column.header ? (
                                                 <div key={column.key} className="contents">
-                                                    <dt className="pt-0.5 text-[0.8rem] font-bold uppercase tracking-wide text-slate-400">
+                                                    <dt className="min-w-0 pt-0.5 text-xs font-bold uppercase tracking-wide text-slate-500 [overflow-wrap:anywhere]">
                                                         {column.header}
                                                     </dt>
-                                                    <dd className="min-w-0 text-[1rem] text-slate-800 [overflow-wrap:anywhere] [&>div.text-right]:text-left [&>div.items-center]:items-start">
+                                                    <dd className="min-w-0 text-sm text-slate-800 [overflow-wrap:anywhere] [&>div.text-right]:text-left [&>div.items-center]:items-start">
                                                         {column.render(row, n)}
                                                     </dd>
                                                 </div>
                                             ) : (
-                                                <dd key={column.key} className="col-span-2 min-w-0 text-[1rem] text-slate-800">
+                                                <dd key={column.key} className="col-span-2 min-w-0 text-sm text-slate-800 [overflow-wrap:anywhere]">
                                                     {column.render(row, n)}
                                                 </dd>
                                             )
                                         ))}
                                     </dl>
                                     {actions.length > 0 && (
-                                        <div className="mt-3 flex flex-wrap gap-2 [&>*]:flex-1" onClick={(e) => e.stopPropagation()}>
+                                        <div className="mt-3 flex flex-wrap gap-2 text-sm [&>*]:flex-1" onClick={(e) => e.stopPropagation()}>
                                             {actions.map((column) => (
-                                                <div key={column.key} className="flex [&>*]:w-full">{column.render(row, n)}</div>
+                                                <div key={column.key} className="flex min-w-0 basis-full sm:basis-auto [&>*]:w-full [&>*]:max-w-full [&>*]:whitespace-normal [&>*]:break-words">{column.render(row, n)}</div>
                                             ))}
                                         </div>
                                     )}
@@ -509,12 +497,8 @@ export function AdminTable<T>({
                                 {columns.map((column) => (
                                     <td
                                         key={column.key}
-                                        /* 16px and a taller row: the business
-                                           forms set every label at 16px, and a
-                                           14px table beside them is what made
-                                           the admin area read as the thinner
-                                           half of the same product. */
-                                        className={`px-5 py-4 text-ui-body text-slate-700 align-middle
+                                        className={`px-5 py-4 text-slate-700 align-middle [overflow-wrap:anywhere]
+                                                    ${column.sticky === 'right' || column.key === 'action' ? 'text-sm' : 'text-base'}
                                                     ${ALIGN[column.align || 'left']}
                                                     ${column.hideOnMobile ? 'hidden sm:table-cell' : ''}
                                                     ${column.sticky === 'right'
@@ -540,7 +524,7 @@ export function AdminTable<T>({
             {showPager && !loading && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3
                                 px-4 sm:px-5 py-3 sm:py-4 border-t border-slate-100 bg-slate-50/60">
-                    <p className="text-ui-caption sm:text-ui-body text-slate-500">
+                    <p className="text-xs sm:text-sm text-slate-500">
                         Showing <span className="font-semibold text-slate-800">{from}</span> to{' '}
                         <span className="font-semibold text-slate-800">{to}</span> of{' '}
                         <span className="font-semibold text-slate-800">{total}</span>{' '}
@@ -555,14 +539,14 @@ export function AdminTable<T>({
 
                             {pageNumbers(current, pages).map((n, i) =>
                                 n === '…' ? (
-                                    <span key={`gap-${i}`} className="px-2 text-ui-small text-slate-400">…</span>
+                                    <span key={`gap-${i}`} className="px-2 text-sm text-slate-400">…</span>
                                 ) : (
                                     <button
                                         key={n}
                                         type="button"
                                         onClick={() => goTo(n as number)}
                                         aria-current={n === current ? 'page' : undefined}
-                                        className={`h-10 min-w-10 px-2.5 sm:h-11 sm:min-w-11 sm:px-3.5 rounded-xl text-ui-small sm:text-ui-body font-semibold
+                                        className={`min-h-11 min-w-11 px-2.5 py-1.5 sm:px-3.5 rounded-xl text-sm font-semibold
                                                     transition-colors ${n === current
                                                 ? 'bg-blue-600 text-white shadow-sm'
                                                 : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
@@ -590,7 +574,7 @@ function PagerButton({ children, onClick, disabled }: {
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className="h-10 sm:h-11 px-3 sm:px-4 rounded-xl border border-slate-200 bg-white text-ui-small sm:text-ui-body font-semibold
+            className="min-h-11 px-3 py-1.5 sm:px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold
                        text-slate-600 transition-colors hover:bg-slate-50
                        disabled:opacity-40 disabled:hover:bg-white"
         >
@@ -642,10 +626,9 @@ export function AdminChip({ tone = 'slate', children, title }: {
     return (
         <span
             title={title}
-            /* `rounded-full`, 14px — the business area's `Chip`. A pill reads
-               as a status; a small rounded rectangle reads as a button. */
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-ui-small font-semibold
-                        ring-1 ring-inset whitespace-nowrap ${TONES[tone] || TONES.slate}`}
+            /* Status text wraps inside the available cell width. */
+            className={`inline-flex max-w-full items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
+                        ring-1 ring-inset whitespace-normal [overflow-wrap:anywhere] [&>svg]:shrink-0 ${TONES[tone] || TONES.slate}`}
         >
             {children}
         </span>
@@ -672,7 +655,7 @@ export function AdminCount({ tone = 'slate', children }: {
 
     return (
         <span className={`inline-flex items-center justify-center min-w-[3.25rem] px-3 py-1.5 rounded-xl
-                          text-ui-body font-bold tabular-nums ${TONES[tone] || TONES.slate}`}>
+                          text-sm sm:text-base font-bold tabular-nums ${TONES[tone] || TONES.slate}`}>
             {children}
         </span>
     );

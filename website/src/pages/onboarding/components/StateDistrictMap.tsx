@@ -392,7 +392,7 @@ export function StateDistrictMap({
           * heading opposite.
           */
         <Reveal as="div" className="min-w-0">
-            <p className="mb-3 break-words text-[1rem] sm:text-ui-body font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500">
+            <p className="mb-3 break-words text-base sm:text-ui-body font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em] text-brand-500">
                 Chapters across {stateName}
             </p>
 
@@ -545,7 +545,7 @@ export function StateDistrictMap({
                   * With nothing assigned it is the four zones, exactly as before.
                   */}
                 {legend.length > 0 && (
-                    <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-[0.9375rem] sm:text-ui-caption
+                    <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-sm sm:text-ui-caption
                                    font-semibold text-gray-600">
                         {legend.map((row) => (
                             <li key={row.key} className="flex min-w-0 items-center gap-2">
@@ -560,7 +560,7 @@ export function StateDistrictMap({
                     so it follows whether a key was drawn — not whether the
                     state happens to be zoned, which stopped being the same
                     question once regions could colour the map too. */}
-                <p className={`flex items-center gap-2 text-[0.9375rem] sm:text-ui-caption font-semibold text-gray-500
+                <p className={`flex items-center gap-2 text-sm sm:text-ui-caption font-semibold text-gray-500
                                ${legend.length > 0
                         ? 'mt-3 border-t border-gray-200/80 pt-3'
                         : 'mt-4'}`}
@@ -590,7 +590,7 @@ export function StateDistrictMap({
                             <X size={14} />
                         </button>
 
-                        <p className="px-8 break-words text-[1rem] sm:text-ui-body font-bold uppercase tracking-[0.16em]
+                        <p className="px-8 break-words text-base sm:text-ui-body font-bold uppercase tracking-[0.16em]
                                       text-brand-500">
                             {zone ? `${zone.label} · ${stateName}` : stateName}
                         </p>
@@ -656,7 +656,7 @@ export function StateDistrictMap({
                                             <p className="font-bold text-brand-900">
                                                 {c.name || c.designation || c.organisation}
                                                 {c.name && c.designation ? (
-                                                    <span className="block text-[1rem] font-medium text-gray-500">
+                                                    <span className="block text-base font-medium text-gray-500">
                                                         {c.designation}
                                                     </span>
                                                 ) : null}

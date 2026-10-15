@@ -536,7 +536,7 @@ export function CarouselSection() {
                                             <span className="absolute right-3 sm:right-6 bottom-28 sm:bottom-6 z-20 pointer-events-none
                                                              inline-flex items-center gap-1.5 rounded-full bg-black/60
                                                              border border-white/30 px-3.5 py-1.5 text-white
-                                                             text-[0.75rem] sm:text-[0.8125rem] font-extrabold uppercase tracking-widest">
+                                                             text-xs sm:text-sm font-extrabold uppercase tracking-widest">
                                                 View details <ArrowRight size={13} />
                                             </span>
                                         )}
@@ -713,14 +713,14 @@ export function CarouselSection() {
                                 </div>
                                 <div className="min-w-0">
                                     {card!.eyebrow && (
-                                        <p className={`max-sm:text-[0.8rem] max-sm:tracking-[0.12em] max-sm:mb-0.5 ${EYEBROW} text-brand-500 sm:mb-1.5`}>
+                                        <p className={`max-sm:text-sm max-sm:tracking-[0.12em] max-sm:mb-0.5 ${EYEBROW} text-brand-500 sm:mb-1.5`}>
                                             {card!.eyebrow}
                                         </p>
                                     )}
                                     <p className={`max-sm:text-[1.85rem] max-sm:leading-tight ${STAT_FIGURE} text-brand-800`}>
                                         <CountUp value={card!.value} />
                                         {card!.caption && (
-                                            <span className="block text-[0.95rem] sm:text-ui-body font-medium text-gray-500 sm:mt-1">{card!.caption}</span>
+                                            <span className="block text-sm sm:text-ui-body font-medium text-gray-500 sm:mt-1">{card!.caption}</span>
                                         )}
                                     </p>
                                 </div>
@@ -764,7 +764,7 @@ export function CarouselSection() {
                                         <p className={`max-sm:text-[1.5rem] max-sm:leading-tight ${STAT_FIGURE} text-brand-800`}>
                                             <CountUp value={stat.value} />
                                         </p>
-                                        <p className={`max-sm:text-[0.75rem] max-sm:tracking-[0.06em] ${STAT_LABEL} text-gray-500 mt-0.5 sm:mt-1.5 truncate max-w-full`}>
+                                        <p className={`max-sm:text-xs max-sm:tracking-[0.06em] ${STAT_LABEL} text-gray-500 mt-0.5 sm:mt-1.5 truncate max-w-full`}>
                                             {stat.label}
                                         </p>
                                     </div>
