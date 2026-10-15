@@ -107,7 +107,10 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children }) =>
 
       const completed: string[] = [];
 
-      if (profile?.fullName) completed.push('Personal Details');
+      const personalComplete = profile?.personalDetailsComplete === true
+        || (profile?.personalDetailsComplete === undefined && ['fullName', 'email', 'phoneNumber', 'religion', 'socialCategory', 'gender']
+          .every(key => String(profile?.[key] || '').trim()));
+      if (personalComplete) completed.push('Personal Details');
 
       // A boolean, not the string 'yes'. It no longer changes the denominator —
       // it only decides whether this member is shown as a business or as an

@@ -351,12 +351,12 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
                     { label: "Phone Number", value: p.phoneNumber || p.phone },
                     { label: "Email Address", value: p.email },
                     { label: "Date of Birth", value: formatDate(p.dateOfBirth || p.dob) },
-                    { label: "Gender", value: p.gender },
+                    { label: "Gender", value: p.gender || "Not provided" },
                     { label: "Aadhaar / ID No", value: p.aadhaarNumber || p.aadhaar || p.idNumber },
                     { label: "Street Address", value: p.streetName || p.street || p.address },
                     { label: "Education", value: p.educationalQualification || p.education },
-                    { label: "Religion", value: p.religion },
-                    { label: "Social Category", value: p.socialCategory },
+                    { label: "Religion", value: p.religion || "Not provided" },
+                    { label: "Social Category", value: p.socialCategory || "Not provided" },
                   ]}
                 />
 

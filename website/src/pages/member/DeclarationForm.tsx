@@ -165,8 +165,9 @@ const DeclarationForm = () => {
       // The region gate refuses an application whose block has no active admin,
       // so an incomplete personal form has to be caught here with a message that
       // says what to do about it.
-      if (!profile.state || !profile.district || !profile.block) {
-        toast.error("Please complete your personal details first — we need your region to route the application.");
+      if (profile.personalDetailsComplete === false || !profile.religion || !profile.socialCategory || !profile.gender
+        || (profile.isInternational ? !profile.place : !profile.state || !profile.district)) {
+        toast.error("Complete all required personal details, including religion, social category and gender, before submitting.");
         return;
       }
 
@@ -199,6 +200,7 @@ const DeclarationForm = () => {
             district: profile.district,
             block: profile.block,
             city: profile.city || "",
+            place: profile.place || "",
             socialCategory: profile.socialCategory || "",
             religion: profile.religion || "",
             gender: profile.gender || "",

@@ -169,7 +169,9 @@ const PersonalInformationForm = () => {
           gender: profile.gender || "",
         });
 
-        setIsLocked(profile.isLocked === true);
+        setIsLocked(profile.isLocked === true && profile.personalDetailsComplete !== false
+          && !!normalizeReligion(profile.religion) && SOCIAL_CATEGORIES.includes(profile.socialCategory)
+          && GENDERS.includes(profile.gender));
         setIsAbroad(profile.isInternational === true);
         setAbroadCountry(profile.country || "");
       }
@@ -240,15 +242,20 @@ const PersonalInformationForm = () => {
       : !formData.state || !formData.district || (blocks.length > 0 && !formData.block) || !formData.city;
 
     if (
-      !formData.fullName ||
-      !formData.phoneNumber ||
-      !formData.email ||
+      !formData.fullName.trim() ||
+      !formData.phoneNumber.trim() ||
+      !formData.email.trim() ||
       locationMissing ||
       !formData.socialCategory ||
       !formData.religion ||
       !formData.gender
     ) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!religionsFor(formData.socialCategory).includes(formData.religion)) {
+      toast.error(`Please choose a religion recognised for ${formData.socialCategory}`);
       return;
     }
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
     Camera, Loader2, Mail, Phone, MessageCircle, MapPin, KeyRound, Eye, EyeOff, LogOut,
-    UserRound, Briefcase, LifeBuoy, ChevronRight, BellRing, ShieldCheck, Pencil,
+    UserRound, Briefcase, LifeBuoy, ChevronRight, ShieldCheck, Pencil,
 } from 'lucide-react';
 import MemberPageShell from '@/pages/member/MemberPageShell';
 import { useMembershipGate } from '@/features/member/useMembershipGate';
@@ -11,6 +11,7 @@ import {
     getMyProfile, getMyApplication, changePassword, logout, errorMessage,
 } from '@/services/activApi';
 import { MemberAvatar, uploadMemberPhoto } from '@/features/member/memberPhoto';
+import AssociationUpdatePreferences from '../components/AssociationUpdatePreferences';
 
 /**
  * SETTINGS — THE ACCOUNT, NOT THE APPLICATION.
@@ -289,17 +290,7 @@ export default function AccountSettings() {
                         </form>
                     </Section>
 
-                    {/* ---- where messages go ---- */}
-                    <Section icon={<BellRing className="h-4 w-4" />} title="How we reach you"
-                        hint="By email, on WhatsApp and in the bell on your dashboard">
-                        <ul className="space-y-1.5 text-[1.125rem] text-slate-600">
-                            {['Application received and each admin’s review', 'Approval, with your membership fee',
-                                'Payment confirmation and your certificates', 'Events and association updates for your region']
-                                .map((line) => (
-                                    <li key={line} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600" />{line}</li>
-                                ))}
-                        </ul>
-                    </Section>
+                    <AssociationUpdatePreferences />
 
                     {/* ---- shortcuts + sign out ---- */}
                     <section className="lg:col-span-2 xl:col-span-3 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">

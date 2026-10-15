@@ -87,6 +87,7 @@ export function DeliveryBadge({ state, compact = false }: { state: string; compa
 /* --------------------------------------------------------- message names */
 
 const MESSAGE_LABELS: Record<string, string> = {
+    ASSOCIATION_UPDATE: 'Association update',
     EVENT_BOOKING_CONFIRMED: 'Booking confirmation',
     EVENT_BOOKING_REMINDER: 'Booking reminder',
     EVENT_BOOKING_CANCELLED: 'Booking cancellation',
