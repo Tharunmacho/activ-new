@@ -1,4 +1,5 @@
 import { PosterFrame } from '@/components/shared/PosterFrame';
+import { onlinePlatformName } from '@/lib/onlineEvent';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -63,7 +64,7 @@ import { resolveMediaUrl } from '@/config/api.config';
  */
 const CTA_CLASS =
     'mt-5 w-full inline-flex items-center justify-center gap-2 bg-brand-800 hover:bg-brand-700 ' +
-    'text-white px-6 py-3.5 rounded-full font-bold text-base uppercase tracking-[0.1em] transition-colors';
+    'text-white px-6 py-3.5 rounded-full font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors';
 
 /** "Tue, 20 Jan 2024" — the date as it reads on the page. */
 const formatDay = (iso?: string | null): string => {
@@ -259,7 +260,7 @@ export default function EventDetailPage() {
                     <Link
                         to="/events"
                         className="inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white
-                                   px-6 sm:px-8 py-3.5 rounded-full font-bold text-base uppercase tracking-[0.1em]
+                                   px-6 sm:px-8 py-3.5 rounded-full font-bold text-[1rem] uppercase tracking-[0.1em]
                                    transition-colors"
                     >
                         <ArrowLeft size={15} /> Back to Events
@@ -431,10 +432,8 @@ export default function EventDetailPage() {
          */
         isOnline ? {
             icon: <Video size={16} />,
-            label: 'Online event',
-            value: event.onlinePlatform
-                ? `Joining link on ${event.onlinePlatform}`
-                : 'Attend from anywhere — a joining link is sent to everyone who books',
+            label: 'Platform',
+            value: onlinePlatformName(event.onlinePlatform),
         } : (event.venue || event.location) ? {
             icon: <MapPin size={16} />,
             label: 'Venue',
@@ -1103,7 +1102,7 @@ export default function EventDetailPage() {
                                   */}
                                 {event.registrationNote && (
                                     <div className="mt-5 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3.5">
-                                        <p className="text-sm font-extrabold uppercase tracking-widest
+                                        <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest
                                                       text-amber-700">
                                             Please note
                                         </p>
@@ -1180,7 +1179,7 @@ export default function EventDetailPage() {
                                         {soldOut || bookingClosed || hasPassed ? (
                                             <div className="mt-5">
                                                 <div className="w-full inline-flex items-center justify-center gap-2
-                                                                rounded-full bg-slate-100 px-6 py-3.5 text-base
+                                                                rounded-full bg-slate-100 px-6 py-3.5 text-[1rem]
                                                                 font-bold uppercase tracking-[0.1em] text-slate-400">
                                                     <Lock size={15} />
                                                     {hasPassed ? 'Event has ended'

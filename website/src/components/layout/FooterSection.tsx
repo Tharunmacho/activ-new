@@ -478,7 +478,7 @@ export function FooterSection() {
                     */
                     <div className="mt-6 border-t border-white/10 pt-5 flex flex-col items-center gap-3
                                     lg:flex-row lg:justify-between lg:gap-8
-                                    text-sm sm:text-base leading-6 text-white/55">
+                                    text-[0.9375rem] sm:text-[1rem] leading-6 text-white/55">
                         {(copyright || note) && (
                             <p className="min-w-0 text-center lg:text-left">
                                 {copyright}
@@ -517,7 +517,7 @@ export function FooterSection() {
  */
 function ColumnHeading({ children }: { children: React.ReactNode }) {
     return (
-        <h4 className="text-ui-caption sm:text-sm font-extrabold uppercase tracking-[0.16em]
+        <h4 className="text-ui-caption sm:text-[0.8125rem] font-extrabold uppercase tracking-[0.16em]
                        text-white mb-5">
             {children}
             <span className="mt-2.5 block h-0.5 w-9 rounded-full bg-white/40" />

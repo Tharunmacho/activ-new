@@ -25,9 +25,12 @@ const render = profile => renderToStaticMarkup(React.createElement(Modal, { open
 const legacy = render({ fullName: 'Local Applicant', memberType: 'aspirant', doingBusiness: false });
 for (const field of ['Religion', 'Social Category', 'Gender']) assert(legacy.includes(`<dt class="text-ui-small font-semibold text-slate-500">${field}</dt>`));
 assert.equal((legacy.match(/Not provided/g) || []).length, 3);
+assert(legacy.includes('Personal details need completing'));
+assert(legacy.includes('Not recorded: Gender, Religion, Social category.'));
 for (const memberType of ['aspirant', 'student', 'business']) {
     const html = render({ fullName: 'Local Applicant', memberType, registrationType: memberType, doingBusiness: memberType === 'business', religion: 'Hindu', socialCategory: 'SC', gender: 'Male' });
     for (const value of ['Hindu', 'SC', 'Male']) assert(html.includes(`>${value}</dd>`), `${memberType}: ${value}`);
     assert(!html.includes('Not provided'));
+    assert(!html.includes('Personal details need completing'));
 }
 console.log('PASS: website application details retain religion/social category/gender for all member types and explicitly show missing legacy answers.');

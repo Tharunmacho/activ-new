@@ -188,7 +188,7 @@ export default function MessagesInbox() {
                                                 {m.name}
                                             </p>
                                             <span className="text-ui-caption text-neutral-500 truncate max-w-full">{m.email}</span>
-                                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-sm font-semibold ${m.source === 'member_dashboard'
+                                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[0.875rem] font-semibold ${m.source === 'member_dashboard'
                                                 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
                                                 : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-neutral-300'}`}>
                                                 {messageSourceLabel(m)}

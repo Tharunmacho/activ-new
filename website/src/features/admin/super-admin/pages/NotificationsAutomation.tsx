@@ -52,7 +52,7 @@ const typesFor = (group: Group) => MESSAGE_TYPES.filter(([value]) => {
 
 const SELECT = 'h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-[1.125rem] text-slate-700 '
     + 'outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10';
-const FIELD_LABEL = 'block text-sm font-semibold text-slate-500 mb-1.5';
+const FIELD_LABEL = 'block text-[0.9375rem] font-semibold text-slate-500 mb-1.5';
 
 const n = (value: unknown) => Number(value || 0);
 const fmt = (value: number) => value.toLocaleString('en-IN');
@@ -85,18 +85,17 @@ function Tile({ icon: Icon, label, value, note, tone, active, onClick }: {
             aria-pressed={active}
             className={`${ADMIN_CARD} p-3 sm:p-5 min-w-0 text-left transition-colors hover:border-blue-300 ${active ? tones.ring : ''}`}
         >
-            {/* Phone: three tiles share 390 px, so no icon chip and nothing
-                truncated — the label and the note wrap instead. */}
+            {/* Keep each label and delivery count readable at narrow widths. */}
             <span className="flex items-center gap-2.5 min-w-0">
                 <span className={`hidden sm:grid w-9 h-9 shrink-0 rounded-xl place-items-center ${tones.chip}`}>
                     <Icon className="w-[1.125rem] h-[1.125rem]" />
                 </span>
-                <span className="text-ui-caption sm:text-ui-body font-semibold text-slate-700 leading-tight">{label}</span>
+                <span className="text-[0.9375rem] sm:text-[1.125rem] font-semibold text-slate-700 leading-tight">{label}</span>
             </span>
-            <span className={`block mt-1.5 sm:mt-3 text-[1.875rem] sm:text-[2.5rem] font-extrabold tabular-nums leading-none ${valueTone}`}>
+            <span className={`block mt-1.5 sm:mt-3 text-[1.5rem] sm:text-[2.125rem] font-extrabold tabular-nums leading-none ${valueTone}`}>
                 {fmt(value)}
             </span>
-            <span className="block mt-1.5 text-ui-caption text-slate-500 leading-snug break-words">{note}</span>
+            <span className="block mt-1.5 text-[0.8125rem] sm:text-[1rem] text-slate-500 leading-snug break-words">{note}</span>
         </button>
     );
 }
@@ -234,7 +233,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                             role="tab"
                             aria-selected={on}
                             onClick={() => switchGroup(key)}
-                            className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-ui-caption sm:text-ui-small font-semibold transition-colors ${on
+                            className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-ui-caption sm:text-[1.125rem] font-semibold transition-colors ${on
                                 ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
                                 : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/40'}`}
                         >
@@ -252,7 +251,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     <p className="flex items-center gap-2 text-[1.125rem] font-bold">
                         <AlertTriangle className="w-5 h-5 shrink-0" /> Email is not being sent right now
                     </p>
-                    <p className="mt-1 text-base break-words">
+                    <p className="mt-1 text-[1rem] break-words">
                         {health.email.configured === false
                             ? 'No email server is set up on the server.'
                             : `The mail server refused the connection or login${health.email.error ? ` (${health.email.error})` : ''}.`}
@@ -260,7 +259,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     </p>
                 </div>
             ) : health?.email?.ok ? (
-                <p className="flex items-center gap-2 text-ui-small text-emerald-700">
+                <p className="flex items-center gap-2 text-[1rem] text-emerald-700">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     Email server connected
                     {health.autoRetry?.enabled ? ` · failed messages are retried automatically every ${health.autoRetry.everyMinutes} min` : ''}
@@ -268,7 +267,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             ) : null}
 
             {/* ---------------------------------------------------- the answer */}
-            <div className="grid gap-2.5 sm:gap-4 grid-cols-3">
+            <div className="grid gap-2.5 sm:gap-4 grid-cols-1 sm:grid-cols-3">
                 <Tile
                     icon={CheckCircle2}
                     label="Sent"
@@ -302,7 +301,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             {n(email.failed) + n(whatsapp.failed) > 0 || retryResult ? (
                 <div className={`${ADMIN_CARD} px-4 py-3 flex flex-wrap items-center gap-3`}>
                     {retryResult ? (
-                        <p className="flex-1 min-w-0 text-ui-small text-slate-700">
+                        <p className="flex-1 min-w-0 text-[1rem] text-slate-700">
                             Retried {fmt(retryResult.retried)}: <strong className="text-emerald-700">{fmt(retryResult.sent)} sent</strong>
                             {retryResult.stillFailed ? <>, <strong className="text-rose-700">{fmt(retryResult.stillFailed)} still failing</strong></> : null}
                             {retryResult.permanent ? `, ${fmt(retryResult.permanent)} cannot be fixed by retrying (wrong number or address)` : ''}
@@ -310,19 +309,19 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                             {retryResult.skipped ? `, ${fmt(retryResult.skipped)} skipped` : ''}.
                         </p>
                     ) : (
-                        <p className="flex-1 min-w-0 text-ui-small text-slate-600">
+                        <p className="flex-1 min-w-0 text-[1rem] text-slate-600">
                             Send every failed message from the last 7 days again — those a retry can fix.
                         </p>
                     )}
                     {retryAsk ? (
-                        <span className="flex items-center gap-2">
-                            <span className="text-base font-semibold text-slate-700">Message these people again?</span>
+                        <span className="flex max-w-full flex-wrap items-center gap-2">
+                            <span className="text-[1rem] font-semibold text-slate-700">Message these people again?</span>
                             <button type="button" onClick={runRetryAll} disabled={retrying}
-                                className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-60">
+                                className="inline-flex max-w-full items-center gap-1.5 min-h-11 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-60">
                                 {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Yes, send
                             </button>
                             <button type="button" onClick={() => setRetryAsk(false)} disabled={retrying}
-                                className="h-10 px-3 rounded-lg border border-slate-200 bg-white font-semibold text-slate-600">Cancel</button>
+                                className="min-h-11 px-3 py-2 rounded-lg border border-slate-200 bg-white font-semibold text-slate-600">Cancel</button>
                         </span>
                     ) : (
                         <button type="button" onClick={() => setRetryAsk(true)}
@@ -335,8 +334,8 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
 
             {/* -------------------------------------------------------- filters */}
             <div className={`${ADMIN_CARD} p-4 sm:p-5 space-y-3`}>
-                <div className="flex flex-col lg:flex-row gap-3">
-                    <div className="relative flex-1 min-w-0">
+                <div className="flex flex-col lg:flex-row lg:flex-wrap gap-3">
+                    <div className="relative flex-1 min-w-0 lg:min-w-[18rem]">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             value={search}
@@ -375,7 +374,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                     role="radio"
                                     aria-checked={on}
                                     onClick={() => setChannel(value)}
-                                    className={`flex-auto lg:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-2 sm:px-3.5 rounded-lg text-ui-caption font-semibold whitespace-nowrap transition-colors ${on
+                                    className={`flex-auto lg:flex-none inline-flex items-center justify-center gap-1.5 min-h-11 px-2 sm:px-3.5 py-2 rounded-lg text-ui-caption font-semibold whitespace-nowrap transition-colors ${on
                                         ? 'bg-white text-slate-900 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-800'}`}
                                 >
@@ -412,20 +411,20 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                         type="button"
                         onClick={() => setMore((m) => !m)}
                         aria-expanded={more}
-                        className="text-base font-semibold text-blue-700 hover:text-blue-800"
+                        className="text-[1rem] font-semibold text-blue-700 hover:text-blue-800"
                     >
                         {more ? 'Fewer filters' : 'More filters (message type, dates)'}
                     </button>
                     {filtered ? (
                         <span className="flex items-center gap-3">
-                            <span className="text-base text-slate-500">
+                            <span className="text-[1rem] text-slate-500">
                                 {loading ? 'Filtering…' : `${fmt(pagination.total || 0)} ${pagination.total === 1 ? 'message' : 'messages'}`}
                             </span>
                             <button
                                 type="button"
                                 onClick={clearFilters}
                                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-200 bg-white
-                                           text-base font-semibold text-slate-600 hover:bg-slate-50"
+                                           text-[1rem] font-semibold text-slate-600 hover:bg-slate-50"
                             >
                                 <X className="w-4 h-4" /> Clear
                             </button>
@@ -453,7 +452,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                         <thead>
                             <tr className="bg-slate-50">
                                 {['To', 'Message', 'Result', ''].map((head, i) => (
-                                    <th key={head || i} className="px-4 py-3 text-base font-semibold uppercase tracking-wider
+                                    <th key={head || i} className="px-4 py-3 text-[1rem] font-semibold uppercase tracking-wider
                                                                    text-slate-500 border-b border-slate-200 whitespace-nowrap">
                                         {head || <span className="sr-only">Action</span>}
                                     </th>
@@ -485,7 +484,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                             <p className="text-[1.125rem] font-semibold text-slate-900 truncate" title={row.recipientName || ''}>
                                                 {row.recipientName || 'No name'}
                                             </p>
-                                            <p className="text-base text-slate-500 truncate" title={row.recipient}>{row.recipient}</p>
+                                            <p className="text-[1rem] text-slate-500 truncate" title={row.recipient}>{row.recipient}</p>
                                         </td>
                                         <td className="px-4 py-3.5 min-w-0">
                                             <p className="flex items-center gap-1.5 text-[1.125rem] font-semibold text-slate-800">
@@ -493,15 +492,15 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                                                 {messageLabel(row.event)}
                                             </p>
                                             {row.eventTitle ? (
-                                                <p className="text-base text-slate-500 line-clamp-1" title={row.eventTitle}>{row.eventTitle}</p>
+                                                <p className="text-[1rem] text-slate-500 line-clamp-1" title={row.eventTitle}>{row.eventTitle}</p>
                                             ) : null}
-                                            <p className="text-sm text-slate-400 tabular-nums">{whenLabel(row.createdAt)}</p>
+                                            <p className="text-[0.9375rem] text-slate-400 tabular-nums">{whenLabel(row.createdAt)}</p>
                                         </td>
                                         <td className="px-4 py-3.5 min-w-0">
                                             <DeliveryBadge state={stateOf(row)} />
                                             {reason.text ? (
                                                 <p
-                                                    className={`mt-1.5 text-base line-clamp-2 ${reason.failed ? 'text-rose-700' : 'text-slate-500'}`}
+                                                    className={`mt-1.5 text-[1rem] line-clamp-2 ${reason.failed ? 'text-rose-700' : 'text-slate-500'}`}
                                                     title={reasonOf(row)}
                                                 >
                                                     {reason.text}

@@ -869,7 +869,7 @@ const Discover = () => {
                                                 ₹{Number(prod?.price || 0).toLocaleString('en-IN')}
                                             </p>
                                             {prod?.stock ? (
-                                                <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-base text-slate-600">
+                                                <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[1rem] text-slate-600">
                                                     Stock {prod.stock}
                                                 </span>
                                             ) : null}

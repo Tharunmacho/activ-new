@@ -172,7 +172,7 @@ export default function FloatingLaunchers() {
                             aria-label="Get the ACTIV app on Google Play" draggable={false}
                             className="activ-app-launcher relative inline-flex h-12 select-none items-center justify-center gap-2 rounded-full bg-gradient-to-br from-[#14265b] to-[#2563eb] px-4 text-white shadow-lg ring-1 ring-white/30 transition-transform hover:scale-105 active:scale-95 sm:px-5">
                             <Smartphone className="h-5 w-5" aria-hidden="true" />
-                            <span className="text-sm font-bold sm:text-sm">Get the app</span>
+                            <span className="text-sm font-bold sm:text-[0.95rem]">Get the app</span>
                         </a>
                         <CloseDot label="Close app download button" onClose={() => { setAppClosed(true); writeClosed('activ-download-closed'); }} />
                     </div>}
@@ -209,7 +209,7 @@ export default function FloatingLaunchers() {
                                 draggable={false}
                             >
                                 <FaWhatsapp className="h-7 w-7 sm:h-6 sm:w-6" aria-hidden="true" />
-                                <span className="hidden text-sm font-semibold sm:inline">WhatsApp</span>
+                                <span className="hidden text-[0.95rem] font-semibold sm:inline">WhatsApp</span>
                             </a>
                             <CloseDot label="Close WhatsApp button" onClose={() => { setWaClosed(true); writeClosed('activ-whatsapp-closed'); }} />
                         </div>
@@ -228,7 +228,7 @@ export default function FloatingLaunchers() {
                                     <MessageCircle className="h-6 w-6 sm:h-5 sm:w-5" />
                                     <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#1c2e68]" />
                                 </span>
-                                <span className="hidden text-sm font-semibold sm:inline">Chat with us</span>
+                                <span className="hidden text-[0.95rem] font-semibold sm:inline">Chat with us</span>
                             </button>
                             <CloseDot label="Close chat button" onClose={() => { setChatClosed(true); writeClosed('activ-chat-closed'); }} />
                         </div>

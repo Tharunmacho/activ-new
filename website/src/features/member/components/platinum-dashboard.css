@@ -16,13 +16,13 @@
 .platinum-welcome h3 { font-family: inherit; }
 .member-shell--gold > div > header h1 {
   color: var(--lifetime-ink);
-  font-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  font-size: clamp(1.125rem, 1.8vw, 1.625rem);
   font-weight: 600;
   letter-spacing: -.035em;
   line-height: 1.3;
   white-space: normal;
 }
-.member-shell--gold > div > header p { color: var(--lifetime-muted); font-size: var(--text-ui-sm); font-weight: 400; }
+.member-shell--gold > div > header p { color: var(--lifetime-muted); font-size: .875rem; font-weight: 400; }
 .member-shell--gold > div > main { background: #f7f5ef; }
 .platinum-welcome {
   container: lifetime-welcome / inline-size;
@@ -48,7 +48,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  font-size: var(--text-ui-sm);
+  font-size: .8125rem;
   font-weight: 600;
   letter-spacing: .02em;
   color: #795617;
@@ -63,7 +63,7 @@
   background: linear-gradient(145deg, #fff7df, #f0d495);
   box-shadow: inset 0 1px 0 #fff;
 }
-.platinum-greeting { margin: 28px 0 8px; font-size: var(--text-ui-base); color: #71634e; }
+.platinum-greeting { margin: 28px 0 8px; font-size: 1rem; color: #71634e; }
 .platinum-name {
   margin: 0;
   max-width: 18ch;
@@ -74,8 +74,8 @@
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
-.platinum-welcome__copy { margin: 18px 0 0; font-size: var(--text-ui-base); line-height: 1.65; color: #71634e; font-weight: 400; }
-.platinum-welcome__meta { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 22px; color: #71634e; font-size: var(--text-ui-xs); line-height: 1.6; }
+.platinum-welcome__copy { margin: 18px 0 0; font-size: 1.0625rem; line-height: 1.65; color: #71634e; font-weight: 400; }
+.platinum-welcome__meta { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 22px; color: #71634e; font-size: .8125rem; line-height: 1.6; }
 .platinum-welcome__meta > span { display: flex; gap: 7px; align-items: flex-start; min-width: 0; }
 .platinum-welcome__meta svg { flex-shrink: 0; margin-top: 2px; color: #876018; }
 .platinum-welcome__meta span span { overflow-wrap: anywhere; }
@@ -93,7 +93,7 @@
   border-radius: 12px;
   background: #49391c;
   color: #fff9eb;
-  font-size: var(--text-ui-sm);
+  font-size: .875rem;
   font-weight: 500;
   line-height: 1.5;
   box-shadow: 0 4px 10px -5px #49391c70;
@@ -151,21 +151,21 @@
 .platinum-wordmark > span { display: block; margin-top: 7px; font-size: .5625rem; font-style: normal; letter-spacing: .12em; line-height: 1.4; font-weight: 600; }
 .platinum-card__seal { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #ac812f99; box-shadow: 0 0 0 4px #fff2c747, inset 0 1px 2px #fff4cc; background: linear-gradient(145deg, #fbe9af, #d0aa56); }
 .platinum-card__tier { display: block; margin-top: 24px; font-size: 2.0625rem; line-height: 1.05; letter-spacing: -.035em; font-weight: 600; text-shadow: 0 1px 1px #fff4ce66; }
-.platinum-card__tier > span { display: block; margin-top: 6px; font-size: var(--text-ui-sm); line-height: 1.3; letter-spacing: .01em; font-weight: 400; }
+.platinum-card__tier > span { display: block; margin-top: 6px; font-size: 1.0625rem; line-height: 1.3; letter-spacing: .01em; font-weight: 400; }
 .platinum-card__identity { display: block; margin-top: 23px; }
-.platinum-card__label { display: block; font-size: var(--text-ui-xs); letter-spacing: .12em; font-weight: 600; color: #4d3715; }
-.platinum-card__id { display: block; margin-top: 5px; font-size: var(--text-ui-base); font-weight: 600; letter-spacing: .06em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.platinum-card__label { display: block; font-size: .625rem; letter-spacing: .12em; font-weight: 600; color: #4d3715; }
+.platinum-card__id { display: block; margin-top: 5px; font-size: .9375rem; font-weight: 600; letter-spacing: .06em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .platinum-card__bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 14px; border-top: 1px solid #946a283b; }
-.platinum-card__holder { font-size: var(--text-ui-base); font-weight: 600; min-width: 0; overflow-wrap: anywhere; line-height: 1.45; }
-.platinum-card__holder > span { display: block; font-size: var(--text-ui-sm); font-weight: 400; margin-top: 4px; color: #4d3715; }
-.platinum-card__status { display: flex; align-items: center; gap: 5px; border-radius: 20px; padding: 5px 8px; font-size: var(--text-ui-xs); font-weight: 500; white-space: nowrap; color: #704911; background: #fff5dce6; }
+.platinum-card__holder { font-size: .8125rem; font-weight: 600; min-width: 0; overflow-wrap: anywhere; line-height: 1.45; }
+.platinum-card__holder > span { display: block; font-size: .6875rem; font-weight: 400; margin-top: 4px; color: #4d3715; }
+.platinum-card__status { display: flex; align-items: center; gap: 5px; border-radius: 20px; padding: 5px 8px; font-size: .6875rem; font-weight: 500; white-space: nowrap; color: #704911; background: #fff5dce6; }
 .platinum-card__status.is-active { color: #255a39; background: #f4faebeb; }
-.platinum-card-caption { position: relative; display: flex; justify-content: center; align-items: center; gap: 7px; min-width: 0; max-width: 100%; margin: 20px 0 0; font-size: var(--text-ui-xs); line-height: 1.5; text-align: center; color: #7b673f; }
+.platinum-card-caption { position: relative; display: flex; justify-content: center; align-items: center; gap: 7px; min-width: 0; max-width: 100%; margin: 20px 0 0; font-size: .75rem; line-height: 1.5; text-align: center; color: #7b673f; }
 .platinum-card-caption svg { flex-shrink: 0; }
 .platinum-workspace { padding: 24px 30px 30px; border-top: 1px solid #ecdfc3; background: #faf5e9; }
 .platinum-workspace__heading { display: flex; align-items: center; justify-content: space-between; gap: 8px 20px; flex-wrap: wrap; margin-bottom: 17px; }
-.platinum-workspace__heading h3 { margin: 0; font-size: var(--text-ui-base); font-weight: 600; letter-spacing: -.015em; }
-.platinum-workspace__heading > span { font-size: var(--text-ui-sm); color: #71634e; }
+.platinum-workspace__heading h3 { margin: 0; font-size: .9375rem; font-weight: 600; letter-spacing: -.015em; }
+.platinum-workspace__heading > span { font-size: .8125rem; color: #71634e; }
 .platinum-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .platinum-action {
   display: flex;
@@ -184,21 +184,21 @@
 .platinum-action:hover { transform: translateY(-3px); border-color: #c9a558; box-shadow: 0 8px 16px -10px #7b5c3250; }
 .platinum-action__icon { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border: 1px solid #ecdab2; border-radius: 12px; color: #88611c; background: #f8edcf; }
 .platinum-action__content { min-width: 0; padding-top: 1px; overflow-wrap: anywhere; }
-.platinum-action__label { display: block; font-size: var(--text-ui-base); line-height: 1.4; font-weight: 600; letter-spacing: -.015em; }
-.platinum-action__detail { display: block; font-size: var(--text-ui-sm); color: #71634e; margin-top: 5px; line-height: 1.5; }
+.platinum-action__label { display: block; font-size: .9375rem; line-height: 1.4; font-weight: 600; letter-spacing: -.015em; }
+.platinum-action__detail { display: block; font-size: .8125rem; color: #71634e; margin-top: 5px; line-height: 1.5; }
 .platinum-action__arrow { flex-shrink: 0; margin: 4px 0 0 auto; color: #957137; transition: transform .2s; }
 .platinum-action:hover .platinum-action__arrow { transform: translate(2px, -2px); }
 .platinum-dashboard .platinum-panel { box-shadow: 0 6px 24px -18px #75542633; border-color: #e9dcc3; border-radius: 22px; }
 .platinum-dashboard .platinum-panel > header > span { background: #faf0d8; color: #876018; }
-.platinum-dashboard .platinum-panel > header h2 { color: #302718; font-size: 1.5rem; letter-spacing: -.025em; font-weight: 600; }
-.platinum-dashboard .platinum-panel > header p { color: #71634e; font-size: var(--text-ui-sm); font-weight: 400; }
-.platinum-dashboard .platinum-panel > header > a { font-size: var(--text-ui-sm); color: #876018; font-weight: 500; }
+.platinum-dashboard .platinum-panel > header h2 { color: #302718; font-size: 1.25rem; letter-spacing: -.025em; font-weight: 600; }
+.platinum-dashboard .platinum-panel > header p { color: #71634e; font-size: .875rem; font-weight: 400; }
+.platinum-dashboard .platinum-panel > header > a { font-size: .8125rem; color: #876018; font-weight: 500; }
 .platinum-dashboard .lifetime-tiles button { border-color: #eadfc9; background: #fffdf8; gap: 12px; }
 .platinum-dashboard .lifetime-tiles button:hover { border-color: #c6a155; background: #fffaf0; }
 .platinum-dashboard .lifetime-tiles button > span:first-child { background: #f8edcf; color: #876018; box-shadow: none; }
-.platinum-dashboard .lifetime-tiles button > span:nth-child(2) { color: #302718; font-size: var(--text-ui-base); font-weight: 600; line-height: 1.4; }
+.platinum-dashboard .lifetime-tiles button > span:nth-child(2) { color: #302718; font-size: .9375rem; font-weight: 600; line-height: 1.4; }
 .platinum-dashboard .lifetime-tiles button > span:nth-child(3),
-.platinum-dashboard .lifetime-tiles button > span:nth-child(3) > span { font-size: var(--text-ui-sm); font-weight: 400; line-height: 1.5; }
+.platinum-dashboard .lifetime-tiles button > span:nth-child(3) > span { font-size: .8125rem; font-weight: 400; line-height: 1.5; }
 .platinum-dashboard .lifetime-tiles button > span:last-child > span:last-child > span:last-child { background: #f8edcf; color: #876018; box-shadow: none; }
 @keyframes platinum-reflection { to { transform: translateX(70%); } }
 /* Respond to the available card width, including when the navigation rail is open. */
@@ -221,7 +221,7 @@
 @container lifetime-welcome (max-width: 540px) {
   .platinum-welcome__main { padding: 26px 20px; gap: 26px; }
   .platinum-name { font-size: 1.875rem; }
-  .platinum-welcome__copy { font-size: var(--text-ui-base); }
+  .platinum-welcome__copy { font-size: 1rem; }
   .platinum-welcome__meta { flex-direction: column; }
   .platinum-metal-card { padding: 22px; border-radius: 18px; }
   .platinum-card__tier { font-size: 1.875rem; }
@@ -239,11 +239,11 @@
 @media (max-width: 540px) {
   .platinum-welcome { border-radius: 22px; }
   .platinum-dashboard .platinum-panel > header { flex-wrap: wrap; }
-  .platinum-dashboard .platinum-panel > header h2 { font-size: 1.5rem; }
-  .platinum-dashboard .platinum-panel > header p { font-size: var(--text-ui-sm); }
+  .platinum-dashboard .platinum-panel > header h2 { font-size: 1.125rem; }
+  .platinum-dashboard .platinum-panel > header p { font-size: .8125rem; }
   .platinum-dashboard .lifetime-tiles { gap: 10px; }
   .platinum-dashboard .lifetime-tiles button { padding: 12px; }
-  .platinum-dashboard .lifetime-tiles button > span:nth-child(2) { font-size: var(--text-ui-base); overflow-wrap: anywhere; }
+  .platinum-dashboard .lifetime-tiles button > span:nth-child(2) { font-size: .875rem; overflow-wrap: anywhere; }
 }
 @media (prefers-reduced-motion: reduce) {
   .platinum-metal-card, .platinum-action, .platinum-action__arrow, .platinum-text-link,

@@ -62,7 +62,7 @@ export const BIZ_SUB_TITLE = 'text-[1.375rem] font-extrabold tracking-tight text
  */
 export const BIZ_BADGE =
     'inline-flex h-7 w-fit items-center gap-1.5 rounded-full px-3 ' +
-    'text-sm font-bold uppercase tracking-[0.08em]';
+    'text-[0.9375rem] font-bold uppercase tracking-[0.08em]';
 
 /**
  * `BusinessUI.Field`'s label: 16px bold in slate-800, sentence case.
@@ -71,7 +71,7 @@ export const BIZ_BADGE =
  * at that size a form of eight of them reads as fine print around the inputs
  * instead of as a form.
  */
-export const BIZ_FIELD_LABEL = 'block text-ui-body font-bold text-slate-800 mb-2';
+export const BIZ_FIELD_LABEL = 'block text-[1.25rem] font-bold text-slate-800 mb-2';
 
 /**
  * The caption above a VALUE rather than above a control.
@@ -82,10 +82,10 @@ export const BIZ_FIELD_LABEL = 'block text-ui-body font-bold text-slate-800 mb-2
  * should not compete with it.
  */
 export const BIZ_DETAIL_LABEL =
-    'text-sm font-extrabold uppercase tracking-widest text-slate-400';
+    'text-[0.9375rem] font-extrabold uppercase tracking-widest text-slate-400';
 
 /** The value under it. */
-export const BIZ_DETAIL_VALUE = 'text-ui-body font-bold text-slate-900';
+export const BIZ_DETAIL_VALUE = 'text-[1.25rem] font-bold text-slate-900';
 
 /**
  * A tinted well INSIDE a white card — a price panel, a meter, a note.

@@ -62,7 +62,7 @@ export function ReadMore({ short, full }: { short: string; full: string }) {
 
     return (
         <div className="max-w-4xl">
-            <p className="text-base sm:text-ui-caption leading-relaxed font-semibold text-gray-600
+            <p className="text-[1rem] sm:text-ui-caption leading-relaxed font-semibold text-gray-600
                           whitespace-pre-line break-words">
                 {open && hasMore ? full : short || full}
             </p>
@@ -301,7 +301,7 @@ export function LeadershipPanel({ title, leaders }: { title: string; leaders: Re
                           */}
                         {person.role && (
                             <span className="mt-1.5 inline-block rounded-full bg-brand-700 px-2.5 py-1
-                                             text-base font-bold uppercase tracking-wide text-white">
+                                             text-[1rem] font-bold uppercase tracking-wide text-white">
                                 {person.role}
                             </span>
                         )}
@@ -460,7 +460,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                     {person.role && (
                         <p className="mt-2">
                             <span className="inline-block rounded-full bg-brand-800 px-3 py-1
-                                             text-base font-bold uppercase tracking-wide
+                                             text-[1rem] font-bold uppercase tracking-wide
                                              text-white">
                                 {person.role}
                             </span>
@@ -509,7 +509,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                                 </p>
                             )}
                             {person.address && (
-                                <p className="text-base sm:text-ui-body font-medium leading-relaxed text-gray-500
+                                <p className="text-[1rem] sm:text-ui-body font-medium leading-relaxed text-gray-500
                                               whitespace-pre-line">
                                     {person.address}
                                 </p>
@@ -542,7 +542,7 @@ export function LeaderProfileDialog({ person, context, onClose }: {
                             type="button"
                             onClick={() => setMessaging(true)}
                             className="mt-5 sm:mt-6 inline-flex w-full items-center justify-center gap-2
-                                       rounded-full bg-brand-600 px-4 sm:px-6 py-3 text-base sm:text-[1.125rem]
+                                       rounded-full bg-brand-600 px-4 sm:px-6 py-3 text-[1rem] sm:text-[1.125rem]
                                        font-bold text-white transition-colors hover:bg-brand-700"
                         >
                             <MessageSquare size={16} />
@@ -604,7 +604,7 @@ export function AchievementBand({ items, title = 'Achievements' }: {
                             {row.title}
                         </p>
                         {row.summary && (
-                            <p className="mt-2 sm:mt-2.5 break-words text-sm sm:text-ui-caption font-semibold leading-relaxed text-gray-600">
+                            <p className="mt-2 sm:mt-2.5 break-words text-[0.9375rem] sm:text-ui-caption font-semibold leading-relaxed text-gray-600">
                                 {row.summary}
                             </p>
                         )}
@@ -676,7 +676,7 @@ export function GalleryStrip({ state, region, title = 'Photo Gallery', href }: {
                             />
                         </div>
                         {photo.title && (
-                            <p className="px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-ui-body font-bold text-brand-800 line-clamp-2 break-words">
+                            <p className="px-3 py-2.5 sm:px-4 sm:py-3 text-[0.9375rem] sm:text-ui-body font-bold text-brand-800 line-clamp-2 break-words">
                                 {photo.title}
                             </p>
                         )}
@@ -754,7 +754,7 @@ export function FeedList({
                                     )}
                                 </p>
                                 {row.summary && (
-                                    <p className="mt-1.5 break-words text-base sm:text-ui-caption leading-relaxed font-semibold
+                                    <p className="mt-1.5 break-words text-[1rem] sm:text-ui-caption leading-relaxed font-semibold
                                                   text-gray-600 line-clamp-3">
                                         {row.summary}
                                     </p>

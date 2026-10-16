@@ -248,7 +248,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                                 <button
                                     disabled={busy}
                                     onClick={() => onDecide(id, true)}
-                                    className="inline-flex items-center gap-1.5 h-10 sm:h-auto px-3.5 py-1.5 rounded-lg bg-green-600
+                                    className="inline-flex items-center gap-1.5 min-h-11 px-3.5 py-2 rounded-lg bg-green-600
                                                text-white text-ui-small font-semibold hover:bg-green-700
                                                disabled:opacity-50 transition-colors"
                                 >
@@ -257,7 +257,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                                 <button
                                     disabled={busy}
                                     onClick={() => { setRejecting(v => !v); setReason(''); }}
-                                    className="inline-flex items-center gap-1.5 h-10 sm:h-auto px-3.5 py-1.5 rounded-lg border
+                                    className="inline-flex items-center gap-1.5 min-h-11 px-3.5 py-2 rounded-lg border
                                                border-red-200 text-red-600 text-ui-small font-semibold hover:bg-red-50
                                                disabled:opacity-50 transition-colors"
                                 >
@@ -288,7 +288,7 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                 )}
 
                 {rejecting && (
-                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                    <div className="mt-3 flex flex-col sm:flex-row sm:flex-wrap gap-2">
                         <input
                             autoFocus
                             value={reason}
@@ -300,14 +300,14 @@ export default function ApplicantDecisionRow({ applicant, busy, onDecide, onView
                         <button
                             disabled={busy}
                             onClick={async () => { await onDecide(id, false, reason); setRejecting(false); setReason(''); }}
-                            className="h-10 sm:h-auto px-4 py-2 rounded-lg bg-red-600 text-white text-ui-body font-medium
+                            className="min-h-12 px-4 py-2 rounded-lg bg-red-600 text-white text-ui-body font-medium
                                        hover:bg-red-700 disabled:opacity-50"
                         >
                             Confirm rejection
                         </button>
                         <button
                             onClick={() => { setRejecting(false); setReason(''); }}
-                            className="h-10 sm:h-auto px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-ui-body hover:bg-slate-50"
+                            className="min-h-12 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-ui-body hover:bg-slate-50"
                         >
                             Cancel
                         </button>

@@ -319,7 +319,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                     {/* ------------------------------------------------ levels */}
                     {level === 'levels' && (
                         <>
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-4">
                                 {/* `AdminStat` — see the note on the super
                                     admin's Hub, which carried the twin of the
                                     private helper this replaces. */}
@@ -418,7 +418,7 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                                             <p className={`text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight tabular-nums ${f.tone}`}>
                                                                 {Number(f.value || 0)}
                                                             </p>
-                                                            <p className="text-base sm:text-ui-small font-semibold text-slate-500 mt-0.5 truncate">{f.label}</p>
+                                                            <p className="text-[1rem] sm:text-ui-small font-semibold text-slate-500 mt-0.5 truncate">{f.label}</p>
                                                         </div>
                                                     ))}
                                                 </div>

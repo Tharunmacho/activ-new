@@ -8,6 +8,7 @@ import { getRegionTree } from '@/services/activApi';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { eventWhere } from '@/lib/eventWhere';
+import { onlinePlatformName } from '@/lib/onlineEvent';
 import type { CmsEvent, EventsSettings } from '@/services/cmsApi';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { Reveal } from '@/components/shared/Reveal';
@@ -890,7 +891,7 @@ export function EventsExplorer({ events, settings }: Props) {
 
                                                     {event?.category && (
                                                         <span className="absolute left-3 top-3 rounded-md bg-brand-900/85
-                                                                         px-3 py-1.5 text-base font-extrabold
+                                                                         px-3 py-1.5 text-[1rem] font-extrabold
                                                                          uppercase tracking-[0.08em] text-white
                                                                          ">
                                                             {event.category}
@@ -922,12 +923,12 @@ export function EventsExplorer({ events, settings }: Props) {
                                                                          text-brand-800">
                                                             {date.day}
                                                         </span>
-                                                        <span className="mt-0.5 text-base
+                                                        <span className="mt-0.5 text-[1rem]
                                                                          font-extrabold uppercase tracking-[0.08em]
                                                                          text-brand-600">
                                                             {date.month}
                                                         </span>
-                                                        <span className="text-base
+                                                        <span className="text-[1rem]
                                                                          font-bold text-gray-400">
                                                             {date.year}
                                                         </span>
@@ -1078,7 +1079,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                                       font-semibold text-gray-500">
                                                             <Video size={16} className="mt-0.5 shrink-0 text-brand-400" />
                                                             <span className="line-clamp-1">
-                                                                Online{event?.onlinePlatform ? ` · ${event.onlinePlatform}` : ' event'}
+                                                                {onlinePlatformName(event.onlinePlatform)}
                                                             </span>
                                                         </p>
                                                     ) : (
@@ -1123,7 +1124,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                       real state a visitor will meet.
                                                     */}
                                                     {!date && (
-                                                        <p className="flex items-center gap-2 text-base
+                                                        <p className="flex items-center gap-2 text-[1rem]
                                                                       font-semibold text-gray-400">
                                                             <Clock size={16} className="shrink-0 text-brand-300" />
                                                             <span>Date to be confirmed</span>

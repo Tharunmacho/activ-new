@@ -35,11 +35,11 @@ export interface ShareMenuProps {
 
 const BTN_LIGHT =
     'inline-flex min-h-11 items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2.5 ' +
-    'text-base font-bold text-brand-800 transition-colors hover:border-brand-200 ' +
+    'text-[1rem] font-bold text-brand-800 transition-colors hover:border-brand-200 ' +
     'hover:bg-brand-50/60 hover:text-brand-700';
 
 const BTN_DARK =
-    'inline-flex min-h-11 items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-base font-bold ' +
+    'inline-flex min-h-11 items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-[1rem] font-bold ' +
     'text-white ring-1 ring-white/25 transition-colors hover:bg-white/30';
 
 const MENU_ITEM =

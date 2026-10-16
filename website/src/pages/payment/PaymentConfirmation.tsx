@@ -182,11 +182,11 @@ export default function PaymentConfirmation() {
               </span>
             </span>
             <h1 className="mt-6 text-[1.9rem] font-black tracking-tight sm:text-[2.75rem]">Payment successful</h1>
-            <p className="mx-auto mt-2 max-w-lg text-base text-blue-100 sm:text-[1.125rem]">
+            <p className="mx-auto mt-2 max-w-lg text-[1rem] text-blue-100 sm:text-[1.125rem]">
               Welcome to ACTIV{receipt.memberName ? `, ${receipt.memberName.split(' ')[0]}` : ''} — your membership is now active.
             </p>
             <div className="mt-6 inline-flex items-baseline gap-2 rounded-2xl bg-white/10 px-5 py-3 ring-1 ring-white/20">
-              <span className="text-sm font-semibold uppercase tracking-widest text-blue-100">Amount paid</span>
+              <span className="text-[0.85rem] font-semibold uppercase tracking-widest text-blue-100">Amount paid</span>
               <span className="text-[1.75rem] font-black">{money(receipt.totalAmount)}</span>
             </div>
           </div>
@@ -197,12 +197,12 @@ export default function PaymentConfirmation() {
           <div className="relative rounded-3xl bg-white shadow-[0_24px_60px_-30px_rgb(15_23_42/0.35)] ring-1 ring-slate-200">
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-6 sm:px-8">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Your member ID</p>
+                <p className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-slate-400">Your member ID</p>
                 <p className="mt-1 font-mono text-[1.6rem] font-bold tracking-[0.12em] text-[#1c2e68] break-all">
                   {receipt.membershipId || '—'}
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-700 ring-1 ring-emerald-200">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[0.85rem] font-bold text-emerald-700 ring-1 ring-emerald-200">
                 <ShieldCheck className="h-4 w-4" /> Active member
               </span>
             </div>
@@ -217,28 +217,28 @@ export default function PaymentConfirmation() {
             <dl className="grid gap-x-8 gap-y-5 px-5 sm:grid-cols-2 sm:px-8">
               {facts.map(([k, v]) => (
                 <div key={k} className="min-w-0">
-                  <dt className="text-sm font-semibold uppercase tracking-wider text-slate-400">{k}</dt>
-                  <dd className="mt-1 text-base font-semibold text-slate-900 break-words">{v}</dd>
+                  <dt className="text-[0.8rem] font-semibold uppercase tracking-wider text-slate-400">{k}</dt>
+                  <dd className="mt-1 text-[1.05rem] font-semibold text-slate-900 break-words">{v}</dd>
                 </div>
               ))}
               <div className="min-w-0 sm:col-span-2">
-                <dt className="text-sm font-semibold uppercase tracking-wider text-slate-400">Payment reference</dt>
-                <dd className="mt-1 font-mono text-sm font-semibold text-slate-700 break-all">{receipt.transactionId || '—'}</dd>
+                <dt className="text-[0.8rem] font-semibold uppercase tracking-wider text-slate-400">Payment reference</dt>
+                <dd className="mt-1 font-mono text-[0.95rem] font-semibold text-slate-700 break-all">{receipt.transactionId || '—'}</dd>
               </div>
             </dl>
 
             <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 px-5 py-5 sm:flex-row sm:px-8">
               <button type="button" onClick={printReceipt}
-                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-700 transition hover:border-[#2563eb] hover:text-[#2563eb]">
+                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 text-[0.95rem] font-bold text-slate-700 transition hover:border-[#2563eb] hover:text-[#2563eb]">
                 <Printer className="h-5 w-5" /> Print / save receipt
               </button>
               <button type="button" onClick={() => navigate('/member/certificate/membership')}
-                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-700 transition hover:border-[#2563eb] hover:text-[#2563eb]">
+                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 text-[0.95rem] font-bold text-slate-700 transition hover:border-[#2563eb] hover:text-[#2563eb]">
                 <Award className="h-5 w-5" /> Membership certificate
               </button>
             </div>
 
-            <p className="flex items-start gap-2 rounded-b-3xl bg-blue-50/70 px-5 py-4 text-sm text-blue-900 sm:px-8">
+            <p className="flex items-start gap-2 rounded-b-3xl bg-blue-50/70 px-5 py-4 text-[0.9rem] text-blue-900 sm:px-8">
               <Mail className="mt-0.5 h-4 w-4 shrink-0" />
               A confirmation with these details has been sent to your registered email and WhatsApp.
             </p>
@@ -258,14 +258,14 @@ export default function PaymentConfirmation() {
                   <button type="button" onClick={() => navigate(to)}
                           className="group flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition hover:bg-slate-50">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-[#2563eb]"><I className="h-5 w-5" /></span>
-                    <span className="min-w-0 flex-1 text-sm font-semibold text-slate-800">{text}</span>
+                    <span className="min-w-0 flex-1 text-[0.95rem] font-semibold text-slate-800">{text}</span>
                     <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#2563eb]" />
                   </button>
                 </li>
               ))}
             </ul>
             <button type="button" onClick={() => navigate('/payment/member-dashboard')}
-                    className="btn-shine relative mt-5 flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-base font-bold text-white shadow-[0_12px_28px_-12px_rgb(37_99_235/0.7)]"
+                    className="btn-shine relative mt-5 flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-[1rem] font-bold text-white shadow-[0_12px_28px_-12px_rgb(37_99_235/0.7)]"
                     style={{ backgroundImage: 'linear-gradient(135deg, #1c2e68 0%, #2563eb 100%)' }}>
               <LayoutDashboard className="h-5 w-5" /> Go to dashboard
             </button>

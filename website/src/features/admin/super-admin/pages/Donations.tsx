@@ -5,6 +5,7 @@ import AdminSidebar from './AdminSidebar';
 import { useCardTable } from '@/lib/useCardTable';
 import { ADMIN_PAGE, ADMIN_CARD, AdminPageHeader, AdminStat, AdminSegmented } from '@/features/admin/components/AdminUI';
 import { errorMessage } from '@/services/api';
+import './donation-records.css';
 import {
     getDonationSummary, listDonors, listDonations, inr, shortDate, fyLabel, receiptPath, statementPath,
     type DonationSummary, type DonorRow, type DonationRow,
@@ -31,13 +32,13 @@ const STATUS_TONE: Record<string, string> = {
 export function StatusBadge({ status }: { status?: string }) {
     const s = String(status || 'pending').toLowerCase();
     return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold capitalize ring-1 ${STATUS_TONE[s] || STATUS_TONE.pending}`}>
+        <span className={`inline-flex w-fit whitespace-nowrap items-center rounded-full px-2.5 py-0.5 text-[0.875rem] font-semibold capitalize ring-1 ${STATUS_TONE[s] || STATUS_TONE.pending}`}>
             {s}
         </span>
     );
 }
 
-const LINK_BTN = 'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-base font-semibold text-blue-700 hover:bg-blue-50';
+const LINK_BTN = 'inline-flex min-h-11 max-w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[1rem] font-semibold text-blue-700 whitespace-normal break-normal [overflow-wrap:normal] [&>svg]:shrink-0 hover:bg-blue-50';
 
 export default function SuperDonations() {
     const donorsRef = useCardTable();
@@ -111,7 +112,7 @@ export default function SuperDonations() {
                 />
 
                 <main className={ADMIN_PAGE}>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-4">
                         <AdminStat primary icon={<IndianRupee className="h-5 w-5" />} label="Total donated"
                             hint={fy ? `FY ${fyLabel(fy)}` : 'All years'} value={inr(summary.totalAmount || 0)} />
                         <AdminStat icon={<HeartHandshake className="h-5 w-5" />} tone="amber" label="Donations"
@@ -123,7 +124,7 @@ export default function SuperDonations() {
                     </div>
 
                     <section className={`${ADMIN_CARD} p-4 sm:p-6`}>
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                             <AdminSegmented<Tab>
                                 label="View"
                                 value={tab}
@@ -142,7 +143,7 @@ export default function SuperDonations() {
                             </div>
                         </div>
 
-                        {error ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-base text-red-700">{error}</p> : null}
+                        {error ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[1rem] text-red-700">{error}</p> : null}
 
                         {loading ? (
                             <div className="flex items-center justify-center gap-2 py-12 text-slate-500">
@@ -154,8 +155,8 @@ export default function SuperDonations() {
                                     No donors {fy ? `in FY ${fyLabel(fy)}` : 'yet'}{search ? ' match that search' : ''}.
                                 </p>
                             ) : (
-                                <div ref={donorsRef} className="card-table mt-4">
-                                    <table className="w-full text-left text-ui-caption sm:table-fixed [&_td]:break-words">
+                                <div ref={donorsRef} className="donation-records card-table mt-4 overflow-x-auto">
+                                    <table className="w-full text-left text-ui-caption sm:min-w-[80rem] sm:table-fixed">
                                         <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                                             <tr>
                                                 <th className="w-[28%] px-3 py-3 font-semibold">Donor</th>
@@ -171,20 +172,20 @@ export default function SuperDonations() {
                                             {donors.map((d) => (
                                                 <tr key={d.id} className="align-top hover:bg-slate-50/60">
                                                     <td className="min-w-0 px-3 py-3">
-                                                        <Link to={`/super-admin/donations/${encodeURIComponent(d.id)}`} className="block truncate font-bold text-slate-900 hover:text-blue-700">
+                                                        <Link to={`/super-admin/donations/${encodeURIComponent(d.id)}`} className="block font-bold text-slate-900 hover:text-blue-700">
                                                             {d.fullName || '—'}
                                                         </Link>
-                                                        <span className="block break-all text-sm text-slate-500">{d.email || ''}</span>
-                                                        {d.phone ? <span className="block text-sm text-slate-500">{d.phone}</span> : null}
-                                                        {d.pan ? <span className="block font-mono text-sm text-slate-500">PAN {d.pan}</span> : null}
+                                                        <span className="block text-[0.9375rem] text-slate-500 [overflow-wrap:anywhere]">{d.email || ''}</span>
+                                                        {d.phone ? <span className="block text-[0.9375rem] text-slate-500">{d.phone}</span> : null}
+                                                        {d.pan ? <span className="block font-mono text-[0.875rem] text-slate-500">PAN {d.pan}</span> : null}
                                                     </td>
-                                                    <td className="px-3 py-3 text-sm text-slate-600">
+                                                    <td className="px-3 py-3 text-[0.9375rem] text-slate-600">
                                                         {[d.city, d.district, d.state].filter(Boolean).join(', ') || '—'}
                                                     </td>
                                                     <td className="px-3 py-3 text-right tabular-nums">{d.donationCount || 0}</td>
-                                                    <td className="px-3 py-3 text-right font-bold tabular-nums">{inr(d.totalAmount || 0)}</td>
-                                                    <td className="px-3 py-3 text-right tabular-nums text-slate-600">{inr(d.allTimeAmount || 0)}</td>
-                                                    <td className="px-3 py-3 text-sm text-slate-600">{shortDate(d.lastDonationAt) || '—'}</td>
+                                                    <td className="px-3 py-3 text-right font-bold tabular-nums whitespace-nowrap">{inr(d.totalAmount || 0)}</td>
+                                                    <td className="px-3 py-3 text-right tabular-nums text-slate-600 whitespace-nowrap">{inr(d.allTimeAmount || 0)}</td>
+                                                    <td className="px-3 py-3 text-[0.9375rem] text-slate-600">{shortDate(d.lastDonationAt) || '—'}</td>
                                                     <td className="px-3 py-3">
                                                         <div className="flex flex-col items-start gap-1">
                                                             <Link to={`/super-admin/donations/${encodeURIComponent(d.id)}`} className={LINK_BTN}>
@@ -206,8 +207,8 @@ export default function SuperDonations() {
                         ) : filteredDonations.length === 0 ? (
                             <p className="py-12 text-center text-ui-caption text-slate-500">No donations {fy ? `in FY ${fyLabel(fy)}` : 'yet'}.</p>
                         ) : (
-                            <div ref={donationsRef} className="card-table mt-4">
-                                <table className="w-full text-left text-ui-caption sm:table-fixed [&_td]:break-words">
+                            <div ref={donationsRef} className="donation-records card-table mt-4 overflow-x-auto">
+                                <table className="w-full text-left text-ui-caption sm:min-w-[80rem] sm:table-fixed">
                                     <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                                         <tr>
                                             <th className="w-[11%] px-3 py-3 font-semibold">Date</th>
@@ -222,19 +223,19 @@ export default function SuperDonations() {
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredDonations.map((r) => (
                                             <tr key={r.id} className="align-top">
-                                                <td className="px-3 py-3 text-sm text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
+                                                <td className="px-3 py-3 text-[0.9375rem] text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
                                                 <td className="min-w-0 px-3 py-3">
                                                     {r.donorId ? (
-                                                        <Link to={`/super-admin/donations/${encodeURIComponent(r.donorId)}`} className="block truncate font-bold text-slate-900 hover:text-blue-700">
+                                                        <Link to={`/super-admin/donations/${encodeURIComponent(r.donorId)}`} className="block font-bold text-slate-900 hover:text-blue-700">
                                                             {r.donorName || '—'}
                                                         </Link>
                                                     ) : <span className="block font-bold">{r.donorName || '—'}</span>}
-                                                    <span className="block break-all text-sm text-slate-500">{r.donorEmail || ''}</span>
+                                                    <span className="block text-[0.9375rem] text-slate-500 [overflow-wrap:anywhere]">{r.donorEmail || ''}</span>
                                                 </td>
-                                                <td className="break-all px-3 py-3 text-sm">{r.receiptNumber || '—'}</td>
-                                                <td className="px-3 py-3 text-right font-bold tabular-nums">{inr(r.amount || 0)}</td>
+                                                <td className="px-3 py-3 text-[0.9375rem] [overflow-wrap:anywhere]">{r.receiptNumber || '—'}</td>
+                                                <td className="px-3 py-3 text-right font-bold tabular-nums whitespace-nowrap">{inr(r.amount || 0)}</td>
                                                 <td className="px-3 py-3"><StatusBadge status={r.status} /></td>
-                                                <td className="whitespace-pre-line break-words px-3 py-3 text-sm text-slate-600">{r.message || '—'}</td>
+                                                <td className="whitespace-pre-line break-words px-3 py-3 text-[0.9375rem] text-slate-600">{r.message || '—'}</td>
                                                 <td className="px-3 py-3">
                                                     {r.receiptToken && String(r.status).toLowerCase() === 'paid' ? (
                                                         <a href={receiptPath(r.receiptToken)} target="_blank" rel="noopener noreferrer" className={LINK_BTN}>

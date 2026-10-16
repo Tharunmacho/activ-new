@@ -459,7 +459,7 @@ export default function SuperAdminEventCategories() {
         <div className={`flex h-screen ${ADMIN_BG}`}>
             <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto sm:overflow-hidden">
                 <AdminPageHeader
                     title="Event Categories"
                     subtitle={<>
@@ -489,10 +489,10 @@ export default function SuperAdminEventCategories() {
                     }
                 />
 
-                <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
+                <div className={`shrink-0 sm:flex-1 sm:overflow-y-auto ${ADMIN_PAGE}`}>
 
                     {/* ---------------------------------------------- totals */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-4">
                         <AdminStat
                             icon={<Tags className="w-5 h-5" />}
                             label="Categories"

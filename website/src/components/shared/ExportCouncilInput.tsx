@@ -186,7 +186,7 @@ export default function ExportCouncilInput({
                              * the record later should know it was not chosen
                              * from the official list.
                              */
-                            <span className="block text-sm text-amber-600">
+                            <span className="block text-[0.9375rem] text-amber-600">
                                 Not on the DGFT list — saved as typed
                             </span>
                         )}
@@ -243,7 +243,7 @@ export default function ExportCouncilInput({
 
                     {grouped.map(({ group, rows }) => (
                         <div key={group}>
-                            <p className="sticky top-0 bg-slate-50 px-4 py-1.5 text-sm font-bold
+                            <p className="sticky top-0 bg-slate-50 px-4 py-1.5 text-[0.8125rem] font-bold
                                           uppercase tracking-wider text-slate-400">
                                 {group}
                             </p>

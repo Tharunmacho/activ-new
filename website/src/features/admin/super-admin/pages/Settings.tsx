@@ -254,7 +254,7 @@ const Settings = () => {
                             {/* Statistics Grid */}
                             <div>
                                 <h2 className={`${CARD_TITLE} text-slate-900 mb-4`}>Platform</h2>
-                                <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
+                                <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2 2xl:grid-cols-3 [&_svg]:shrink-0">
                                     <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 shadow-[0_10px_28px_-6px_rgba(37,99,235,0.55)]">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Users className="w-5 h-5 text-blue-100" />

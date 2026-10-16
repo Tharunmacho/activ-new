@@ -41,7 +41,7 @@ export default function EventRow({ event }: { event: MemberEvent }) {
                          ${past ? 'opacity-90' : ''}`}>
             <span className="flex w-14 sm:w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-blue-50 px-2 py-2.5 text-center">
                 <span className="text-[1.5rem] sm:text-[1.75rem] font-extrabold leading-none text-blue-700">{tile.day}</span>
-                <span className="mt-1 text-sm font-extrabold uppercase tracking-wider text-blue-500">{tile.month}</span>
+                <span className="mt-1 text-[0.9375rem] font-extrabold uppercase tracking-wider text-blue-500">{tile.month}</span>
             </span>
 
             {banner ? (
@@ -53,15 +53,15 @@ export default function EventRow({ event }: { event: MemberEvent }) {
             <span className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-0.5">
                 <span className="flex flex-wrap items-center gap-1.5">
                     {event.category ? (
-                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-sm font-bold text-slate-600">{event.category}</span>
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.8125rem] font-bold text-slate-600">{event.category}</span>
                     ) : null}
                     {event.audience === 'paid' ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-sm font-bold text-amber-700">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[0.8125rem] font-bold text-amber-700">
                             <Lock className="h-3 w-3" /> Members only
                         </span>
                     ) : null}
                     {reg ? (
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-bold text-white
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.8125rem] font-bold text-white
                                           ${awaitingPayment ? 'bg-amber-500' : waitlisted ? 'bg-slate-500' : 'bg-emerald-600'}`}>
                             {awaitingPayment ? <Clock className="h-3 w-3" /> : <BadgeCheck className="h-3 w-3" />} {seatLabel}
                         </span>
@@ -70,7 +70,7 @@ export default function EventRow({ event }: { event: MemberEvent }) {
                 <span className="line-clamp-2 break-words text-ui-small sm:text-[1.375rem] font-extrabold leading-snug tracking-tight text-slate-900">
                     {event.title || 'Untitled event'}
                 </span>
-                <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm sm:text-base font-semibold text-slate-500">
+                <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.9375rem] sm:text-base font-semibold text-slate-500">
                     {event.startAt ? (
                         time ? <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 shrink-0" /> {time}</span> : null
                     ) : (

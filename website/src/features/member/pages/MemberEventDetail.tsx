@@ -598,7 +598,7 @@ export default function MemberEventDetail() {
                                 <div className="space-y-3">
                                     {event.registrationNote ? (
                                         <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                                            <p className="text-sm font-extrabold uppercase tracking-widest text-amber-700">Please note</p>
+                                            <p className="text-[0.875rem] font-extrabold uppercase tracking-widest text-amber-700">Please note</p>
                                             <p className="mt-1 text-ui-caption font-semibold text-amber-900 whitespace-pre-line">
                                                 {event.registrationNote}
                                             </p>
@@ -760,8 +760,8 @@ export default function MemberEventDetail() {
 /** White card on the member area's tint — the public page's BIZ_CARD, in the member palette. */
 const CARD = 'rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.08),0_8px_24px_-12px_rgba(16,24,40,0.18)]';
 const CARD_TITLE = 'font-display text-[1.375rem] sm:text-[1.625rem] font-bold tracking-tight text-slate-900';
-const CHIP = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-base font-bold';
-const LABEL = 'text-sm font-extrabold uppercase tracking-wider text-slate-400';
+const CHIP = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[1rem] font-bold';
+const LABEL = 'text-[0.9375rem] font-extrabold uppercase tracking-wider text-slate-400';
 
 /** One fact in the side card: an icon tile, a label, the value — one rhythm for every row. */
 function Fact({ icon, label, value, href, extra }: {

@@ -1,5 +1,5 @@
 import api from '@/services/api';
-import { onlineRegistrationLink } from '@/lib/onlineEvent';
+import { onlineRegistrationLink, onlinePlatformName } from '@/lib/onlineEvent';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -971,9 +971,9 @@ export default function EventBookingPage({ chrome = 'public' }: {
         },
         {
             icon: <MapPin size={16} />,
-            label: event.mode === 'online' ? 'Online event' : 'Location',
+            label: event.mode === 'online' ? 'Platform' : 'Location',
             value: event.mode === 'online'
-                ? [event.onlinePlatform || 'Online', 'Joining details are provided with your confirmed booking'].join(' · ')
+                ? onlinePlatformName(event.onlinePlatform)
                 : [event.venue, event.venueAddress].filter(Boolean).join(' · ') || 'Venue to be announced',
         },
     ];
@@ -1040,7 +1040,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         <Info size={15} />
                     </span>
                     <div className="min-w-0">
-                        <p className="text-sm font-extrabold uppercase tracking-[0.08em]
+                        <p className="text-[0.8125rem] font-extrabold uppercase tracking-[0.08em]
                                       text-brand-700">
                             Please note
                         </p>

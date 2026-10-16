@@ -504,7 +504,7 @@ export default function ManageAdmins() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-3 sm:flex sm:flex-wrap w-full sm:w-auto gap-2">
+                        <div className="flex flex-wrap w-full sm:w-auto gap-2">
                             {[
                                 { key: 'all', label: `All (${counts.all + staffCount})` },
                                 { key: 'state_admin', label: `State (${counts.state_admin})` },
@@ -516,7 +516,7 @@ export default function ManageAdmins() {
                                     key={t.key}
                                     onClick={() => { setPage(1); setRole(t.key); }}
                                     aria-pressed={role === t.key}
-                                    className={`flex-1 sm:flex-none min-w-0 min-h-10 px-1 sm:px-3 py-1.5 sm:py-2 rounded-lg text-ui-caption sm:text-ui-body leading-tight font-bold transition-colors ${
+                                    className={`flex-auto sm:flex-none whitespace-nowrap min-h-11 px-3 py-2 rounded-lg text-ui-caption sm:text-ui-body leading-tight font-bold transition-colors ${
                                         role === t.key
                                             ? 'bg-blue-700 text-white shadow-md ring-2 ring-blue-200'
                                             : 'bg-white border-2 border-blue-200 text-blue-950 hover:bg-blue-50'
@@ -550,23 +550,23 @@ export default function ManageAdmins() {
                                 </p>
                             </div>
                         ) : (
-                            <div ref={cardTableRef} className="overflow-x-auto card-table">
-                                <table className="w-full text-ui-body">
+                            <div ref={cardTableRef} className="overflow-x-auto card-table max-[419px]:[&_td]:!grid-cols-1 max-[419px]:[&_td>*]:!col-start-1">
+                                <table className="w-full text-ui-body sm:min-w-[64rem] [&_td]:align-top">
                                     <thead className="bg-slate-50 text-left border-b border-slate-200">
                                         <tr>
-                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Name</th>
-                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Role</th>
-                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Region</th>
-                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Queue</th>
-                                            <th className="px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-right">Actions</th>
+                                            <th className="min-w-[18rem] px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Name</th>
+                                            <th className="min-w-[12rem] px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Role</th>
+                                            <th className="min-w-[14rem] px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Region</th>
+                                            <th className="min-w-[11rem] px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Queue</th>
+                                            <th className="min-w-[9rem] px-5 py-4 text-ui-caption font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
                                         {visibleAdmins.map(a => (
                                             <tr key={a.id} className={a.active ? '' : 'opacity-60'}>
-                                                <td className="px-5 py-3">
+                                                <td className="max-w-[24rem] px-5 py-3">
                                                     <p className="font-medium text-slate-900 break-words">{a.fullName || '—'}</p>
-                                                    <p className="text-ui-small text-slate-500 break-all">{a.email}</p>
+                                                    <p className="text-ui-small text-slate-500 [overflow-wrap:anywhere]">{a.email}</p>
                                                 </td>
                                                 <td className="px-5 py-3 text-slate-700">
                                                     {ROLES.find(r => r.value === a.role)?.label || a.role}
@@ -577,7 +577,7 @@ export default function ManageAdmins() {
                                                         geofenced by region string — so admins on one
                                                         region share one queue by construction. */}
                                                     {a.coAdmins > 0 ? (
-                                                        <span className="text-ui-small bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                                                        <span className="inline-flex whitespace-nowrap text-ui-small bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
                                                             shared with {a.coAdmins}
                                                         </span>
                                                     ) : (
@@ -585,20 +585,22 @@ export default function ManageAdmins() {
                                                     )}
                                                 </td>
                                                 <td className="px-5 py-3 text-right whitespace-nowrap">
+                                                    <div className="flex items-center gap-2 sm:justify-end">
                                                     <button
                                                         onClick={() => openEdit(a)}
                                                         aria-label={`Edit ${a.fullName}`}
-                                                        className="p-2.5 sm:p-2 rounded text-slate-500 hover:bg-slate-100"
+                                                        className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
                                                     >
                                                         <Pencil className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => askRemove(a)}
                                                         aria-label={`Delete ${a.fullName}`}
-                                                        className="p-2.5 sm:p-2 rounded text-red-500 hover:bg-red-50"
+                                                        className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-red-500 hover:bg-red-50"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

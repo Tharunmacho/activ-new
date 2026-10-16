@@ -70,7 +70,7 @@ function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; val
         <div className="flex min-w-0 items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
             <span className="shrink-0 text-slate-400">{icon}</span>
             <div className="min-w-0">
-                <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+                <p className="text-[0.9375rem] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
                 <p className="truncate text-[1.125rem] font-medium text-slate-800" title={value || undefined}>
                     {value || <span className="font-normal text-slate-400">Not given</span>}
                 </p>

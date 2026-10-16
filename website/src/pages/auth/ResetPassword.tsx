@@ -40,7 +40,7 @@ function PasswordField({ id, label, value, onChange, show, onToggle, disabled, a
 }) {
     return (
         <div>
-            <label htmlFor={id} className="mb-2 block text-base font-semibold text-slate-800">{label}</label>
+            <label htmlFor={id} className="mb-2 block text-[1rem] font-semibold text-slate-800">{label}</label>
             <div className="relative">
                 <Lock size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                 <input
@@ -74,7 +74,7 @@ function PasswordField({ id, label, value, onChange, show, onToggle, disabled, a
 
 function Rule({ ok, text }: { ok: boolean; text: string }) {
     return (
-        <li className={`flex items-center gap-2 text-sm ${ok ? 'text-green-700' : 'text-slate-500'}`}>
+        <li className={`flex items-center gap-2 text-[0.9375rem] ${ok ? 'text-green-700' : 'text-slate-500'}`}>
             <span className={`flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full
                               ${ok ? 'bg-green-100' : 'bg-slate-100'}`}>
                 <Check size={12} className={ok ? 'opacity-100' : 'opacity-30'} />
@@ -202,7 +202,7 @@ export default function ResetPassword({ audience = 'member' }: { audience?: Audi
                         straight away.
                     </p>
                     <Link to={forgot} className={`${PRIMARY} mt-7`}>Request a new link</Link>
-                    <Link to={signIn} className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-slate-500 hover:text-slate-900">
+                    <Link to={signIn} className="mt-5 inline-flex items-center gap-2 text-[1rem] font-semibold text-slate-500 hover:text-slate-900">
                         <ArrowLeft className="h-4 w-4" /> Back to sign in
                     </Link>
                 </Centered>
@@ -237,7 +237,7 @@ export default function ResetPassword({ audience = 'member' }: { audience?: Audi
                                             <span key={i} className={`h-1.5 rounded-full ${i <= score ? barColour : 'bg-slate-200'}`} />
                                         ))}
                                     </div>
-                                    <span className="w-14 text-right text-sm font-semibold text-slate-600">{strength}</span>
+                                    <span className="w-14 text-right text-[0.875rem] font-semibold text-slate-600">{strength}</span>
                                 </div>
                                 <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
                                     <Rule ok={rules.length} text="At least 8 characters" />
@@ -258,12 +258,12 @@ export default function ResetPassword({ audience = 'member' }: { audience?: Audi
                             disabled={saving}
                         />
                         {confirm && (
-                            <p className={`-mt-2 text-sm font-medium ${matches ? 'text-green-700' : 'text-amber-600'}`}>
+                            <p className={`-mt-2 text-[0.9375rem] font-medium ${matches ? 'text-green-700' : 'text-amber-600'}`}>
                                 {matches ? 'Passwords match.' : 'Passwords do not match yet.'}
                             </p>
                         )}
 
-                        {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
+                        {error && <p role="alert" className="text-[0.9375rem] font-medium text-red-600">{error}</p>}
 
                         <button type="submit" disabled={saving} className={PRIMARY}>
                             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -273,7 +273,7 @@ export default function ResetPassword({ audience = 'member' }: { audience?: Audi
 
                     <Link
                         to={signIn}
-                        className="mt-6 flex items-center justify-center gap-2 text-base font-semibold text-slate-500 transition-colors hover:text-slate-900"
+                        className="mt-6 flex items-center justify-center gap-2 text-[1rem] font-semibold text-slate-500 transition-colors hover:text-slate-900"
                     >
                         <ArrowLeft className="h-4 w-4" /> Back to sign in
                     </Link>

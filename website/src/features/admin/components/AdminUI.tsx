@@ -125,7 +125,7 @@ export const ADMIN_COLUMN = 'max-w-[90rem] mx-auto w-full';
 
 /** The registration forms' input, to the pixel. */
 /*
- * `h-12` and `text-ui-body`, not `h-11` and `text-ui-small`.
+ * `h-12` and `text-[1.25rem]`, not `h-11` and `text-[1.1875rem]`.
  *
  * The business forms set every label at 16px and every control to match; the
  * admin area was a step down throughout, which is what made these screens read
@@ -133,21 +133,21 @@ export const ADMIN_COLUMN = 'max-w-[90rem] mx-auto w-full';
  * below which mobile Safari zooms the viewport on focus.
  */
 export const ADMIN_INPUT =
-    'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-ui-body text-slate-900 '
+    'h-12 min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-4 text-[1.25rem] text-slate-900 '
     + 'outline-none transition-colors placeholder:text-slate-400 '
     + 'focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 '
     + 'disabled:bg-slate-50 disabled:text-slate-400';
 
-/* Controls keep a 48px target and grow when larger text needs another line. */
+/* Controls retain their minimum height and grow when text needs another line. */
 export const ADMIN_PRIMARY_BTN =
-    'inline-flex max-w-full items-center justify-center gap-2 min-h-12 px-5 py-2 rounded-xl bg-blue-600 '
-    + 'text-ui-body font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 '
-    + 'disabled:opacity-60 whitespace-normal text-center [&>svg]:shrink-0';
+    'inline-flex max-w-full items-center justify-center gap-2 min-h-[44px] sm:min-h-12 px-5 py-2 rounded-xl bg-blue-600 '
+    + 'text-[1.25rem] font-bold text-white shadow-sm transition-colors hover:bg-blue-700 '
+    + 'disabled:opacity-60 whitespace-normal break-normal [overflow-wrap:normal] text-center [&>svg]:shrink-0';
 
 export const ADMIN_SECONDARY_BTN =
-    'inline-flex max-w-full items-center justify-center gap-2 min-h-12 px-5 py-2 rounded-xl border border-slate-200 '
-    + 'bg-white text-ui-body font-semibold text-slate-700 shadow-sm transition-colors '
-    + 'hover:border-slate-300 hover:bg-slate-50 whitespace-normal text-center [&>svg]:shrink-0';
+    'inline-flex max-w-full items-center justify-center gap-2 min-h-[44px] sm:min-h-12 px-5 py-2 rounded-xl border border-slate-200 '
+    + 'bg-white text-[1.25rem] font-bold text-slate-700 shadow-sm transition-colors '
+    + 'hover:border-slate-300 hover:bg-slate-50 whitespace-normal break-normal [overflow-wrap:normal] text-center [&>svg]:shrink-0';
 
 /**
  * Money, as the admin area prints it: `₹10,000`.
@@ -293,7 +293,7 @@ export function AdminBackButton({ to }: { to?: string }) {
             onClick={back}
             aria-label="Back"
             title="Back"
-            className="shrink-0 w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center shadow-sm active:scale-90
+            className="shrink-0 w-10 h-10 min-w-[44px] min-h-[44px] rounded-xl border border-slate-200 flex items-center justify-center shadow-sm active:scale-90
                        text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         >
             <ArrowLeft className="w-5 h-5" />
@@ -327,7 +327,7 @@ export function AdminPageHeader({
 }) {
     return (
         /*
-         * STACKED ON A PHONE, ONE ROW FROM `sm`.
+         * STACKED UNTIL THE DESKTOP PANE HAS ROOM FOR BOTH GROUPS.
          *
          * `flex-wrap` alone will not do it. The title block is `flex-1`, so it
          * shrinks to make room for the action rather than pushing it onto a
@@ -342,11 +342,11 @@ export function AdminPageHeader({
             * below it — see `ADMIN_COLUMN`. The bar itself stays full-bleed so
             * its bottom rule still runs the width of the pane.
             */}
-          <div className={`${ADMIN_COLUMN} flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4`}>
+          <div className={`${ADMIN_COLUMN} flex flex-col xl:flex-row xl:flex-wrap xl:items-center gap-3 sm:gap-4`}>
             {/* On a phone the menu and back tiles are their own row and the
                 title takes the full width under them; beside the title they
                 squeezed it and its explanation into a narrow column. */}
-            <div className="flex flex-col gap-3 min-w-0 sm:flex-row sm:items-start sm:gap-2.5 sm:flex-1">
+            <div className="flex flex-col gap-3 min-w-0 sm:flex-row sm:items-start sm:gap-2.5 xl:flex-1 xl:basis-[28rem]">
               {(onMenu || back) && (
               <div className="flex shrink-0 items-center gap-2">
                 {onMenu && (
@@ -355,7 +355,7 @@ export function AdminPageHeader({
                        bare 20px icon floating in the corner. */
                     <button
                         type="button"
-                        className="lg:hidden shrink-0 grid h-10 w-10 place-items-center rounded-xl border
+                        className="lg:hidden shrink-0 grid h-10 w-10 min-w-[44px] min-h-[44px] place-items-center rounded-xl border
                                    border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition
                                    hover:bg-slate-100 active:scale-90"
                         onClick={onMenu}
@@ -393,7 +393,7 @@ export function AdminPageHeader({
                    action takes the full width, two or three share it and wrap
                    only when their labels do not fit, rather than stacking as
                    three full-width 48px bars. They size to their labels from `sm`. */
-                <div className="flex flex-wrap gap-2 shrink-0 [&>*]:flex-auto sm:[&>*]:flex-none">{actions}</div>
+                <div className="flex max-w-full flex-wrap gap-2 [&>*]:flex-auto sm:[&>*]:flex-none">{actions}</div>
             )}
           </div>
         </header>
@@ -447,13 +447,13 @@ export function AdminStat({
                     </span>
                 )}
                 <div className="min-w-0 flex-1 basis-32">
-                    <p data-admin-stat-label className={`text-ui-body font-semibold tracking-tight leading-snug ${
+                    <p data-admin-stat-label className={`text-[1rem] sm:text-[1.25rem] font-extrabold tracking-tight leading-snug ${
                         primary ? 'text-white' : 'text-slate-900'
                     }`}>
                         {label}
                     </p>
                     {hint && (
-                        <p data-admin-stat-hint className={`text-ui-caption mt-1 leading-snug ${
+                        <p data-admin-stat-hint className={`text-[0.875rem] sm:text-[1.1875rem] mt-1 leading-snug ${
                             primary ? 'text-blue-100' : 'text-slate-500'
                         }`}>
                             {hint}
@@ -486,14 +486,14 @@ export function AdminStat({
               * grid settled on, so the row aligns whether or not each card was
               * given a second line.
               */}
-            <p className={`mt-auto pt-3 sm:pt-5 text-3xl sm:text-4xl leading-tight font-semibold tracking-tight tabular-nums [overflow-wrap:anywhere] ${
+            <p className={`mt-auto pt-3 sm:pt-5 text-[1.625rem] sm:text-[3.375rem] leading-tight sm:leading-[inherit] font-extrabold tracking-tight tabular-nums [overflow-wrap:anywhere] ${
                 primary ? 'text-white' : 'text-slate-900'
             }`}>
                 {value}
             </p>
 
             {footer && (
-                <span className={`mt-3 pt-3 sm:mt-5 sm:pt-4 flex items-center justify-between gap-2 text-ui-caption font-semibold border-t ${
+                <span className={`mt-3 pt-3 sm:mt-5 sm:pt-4 flex items-center justify-between gap-2 text-[1.0625rem] sm:text-[1.25rem] font-bold border-t ${
                     primary
                         ? 'border-white/25 text-white'
                         : 'border-slate-100 text-slate-700 group-hover:text-blue-600'
@@ -549,7 +549,7 @@ export function AdminSegmented<T extends string>({
                         role="radio"
                         aria-checked={active}
                         onClick={() => onChange(option.value)}
-                        className={`shrink-0 whitespace-nowrap rounded-full px-3 sm:px-4 h-9 text-ui-small font-semibold transition-colors ${
+                        className={`shrink-0 whitespace-nowrap rounded-full px-3 sm:px-4 min-h-[44px] py-1.5 text-[1.1875rem] font-semibold transition-colors ${
                             active
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900'
@@ -579,12 +579,12 @@ export function AdminField({
 }) {
     return (
         <div className={`min-w-0 ${full ? 'sm:col-span-2' : ''}`}>
-            <label className="block text-ui-small font-semibold text-slate-700 mb-2">
+            <label className="block text-[1.1875rem] font-semibold text-slate-700 mb-2">
                 {label}
                 {required && <span className="text-red-500 ml-0.5">*</span>}
             </label>
             {children}
-            {hint && <p className="text-ui-caption text-slate-500 mt-1.5">{hint}</p>}
+            {hint && <p className="text-[1.0625rem] text-slate-500 mt-1.5">{hint}</p>}
         </div>
     );
 }

@@ -463,7 +463,7 @@ function SchemeRow({ row, onEdit, onRemove }: { row: SchemeRecord; onEdit: () =>
                 </p>
             </div>
             {!row.applyUrl && (
-                <span className="hidden shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-base font-semibold
+                <span className="hidden shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-[1rem] font-semibold
                                  text-amber-700 sm:inline dark:bg-amber-950/30 dark:text-amber-300">
                     No apply link
                 </span>

@@ -222,7 +222,7 @@ const CheckCard = ({
       <span className="block text-ui-small text-slate-500 mt-1 break-words">{description}</span>
       {lockedNote ? (
         <span className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-blue-100/70 px-2 py-1
-                         text-base font-semibold text-blue-800">
+                         text-[1rem] font-semibold text-blue-800">
           <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {lockedNote}
         </span>

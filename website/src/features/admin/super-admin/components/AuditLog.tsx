@@ -150,18 +150,18 @@ export default function AuditLog() {
                 ) : (
                     entries.map(e => (
                         <div key={e.id} className="px-4 sm:px-6 py-3.5 sm:py-4">
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4">
+                            <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-2 xl:gap-4">
                                 <div className="min-w-0">
                                     <p className="text-ui-body text-slate-900 break-words">{e.summary || e.action}</p>
-                                    <p className="text-ui-small text-slate-500 mt-1">
+                                    <p className="text-ui-small text-slate-500 mt-1 [overflow-wrap:anywhere]">
                                         {e.actorName || e.actorEmail}
                                         {e.actorRoleLabel && ` · ${e.actorRoleLabel}`}
                                         {e.location && ` · ${e.location}`}
                                     </p>
                                 </div>
 
-                                <div className="sm:text-right shrink-0 flex sm:block items-center gap-2">
-                                    <p className="text-ui-small text-slate-400 whitespace-nowrap">{when(e.createdAt)}</p>
+                                <div className="xl:text-right shrink-0 flex flex-wrap xl:block items-center gap-2">
+                                    <p className="text-ui-small text-slate-400">{when(e.createdAt)}</p>
                                     {/* A super admin acting on a tier's behalf is worth
                                         marking: the decision was not the region's own. */}
                                     {e.proxy && (

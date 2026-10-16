@@ -178,7 +178,7 @@ export default function Payment() {
 
                     <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div className="min-w-0">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold uppercase tracking-[0.16em] ring-1 ring-white/25">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[0.8125rem] font-semibold uppercase tracking-[0.16em] ring-1 ring-white/25">
                                 <KindIcon className="h-3.5 w-3.5" /> {renewing ? 'Membership renewal' : 'Membership plan'}
                             </span>
                             <h2 className="mt-3 font-display text-[1.75rem] sm:text-[2.375rem] font-bold leading-tight">
@@ -186,7 +186,7 @@ export default function Payment() {
                                     ? `Renew your ${kindLabel.toLowerCase()} membership`
                                     : isCompany && plans.length > 1 ? 'Choose your business plan' : `Activate your ${kindLabel.toLowerCase()} membership`}
                             </h2>
-                            <p className="mt-1.5 max-w-2xl text-base sm:text-ui-caption text-blue-100">
+                            <p className="mt-1.5 max-w-2xl text-[1rem] sm:text-ui-caption text-blue-100">
                                 {renewing
                                     ? renewalMessage(renewal)
                                     : isCompany
@@ -206,13 +206,13 @@ export default function Payment() {
                             ].map((s, i, all) => (
                                 <li key={s.label} className="flex items-center gap-2 sm:gap-3">
                                     <span className="flex items-center gap-2">
-                                        <span className={`grid h-8 w-8 place-items-center rounded-full text-sm font-bold ${
+                                        <span className={`grid h-8 w-8 place-items-center rounded-full text-[0.875rem] font-bold ${
                                             s.state === 'done' ? 'bg-emerald-400 text-emerald-950'
                                                 : s.state === 'now' ? 'bg-white text-blue-800 ring-4 ring-white/25'
                                                     : 'bg-white/15 text-white/80 ring-1 ring-white/25'}`}>
                                             {s.state === 'done' ? <Check className="h-4 w-4" strokeWidth={3} /> : i + 1}
                                         </span>
-                                        <span className={`whitespace-nowrap text-sm font-semibold ${s.state === 'next' ? 'text-blue-200' : 'text-white'}`}>{s.label}</span>
+                                        <span className={`whitespace-nowrap text-[0.9375rem] font-semibold ${s.state === 'next' ? 'text-blue-200' : 'text-white'}`}>{s.label}</span>
                                     </span>
                                     {i < all.length - 1 ? <span className="hidden h-px w-8 bg-white/30 sm:block" /> : null}
                                 </li>
@@ -227,7 +227,7 @@ export default function Payment() {
                         {plans.length === 0 ? (
                             <div className={`${CARD} p-8 text-center`}>
                                 <p className="text-[1.125rem] font-semibold text-slate-900">No plan is available for your account yet.</p>
-                                <p className="mt-1 text-base text-slate-500">
+                                <p className="mt-1 text-[1rem] text-slate-500">
                                     {eligibility?.failed
                                         ? 'The prices could not be loaded. Please try again in a moment.'
                                         : 'Complete your profile and the plan that applies to you appears here.'}
@@ -263,23 +263,23 @@ export default function Payment() {
                                                         <div className="min-w-0">
                                                             <p className="break-words font-display text-[1.375rem] font-bold capitalize text-slate-900">{plan.name}</p>
                                                             {plan.experience && String(plan.experience).toLowerCase() !== String(plan.name).toLowerCase()
-                                                                ? <p className="text-sm text-slate-500">{plan.experience}</p> : null}
+                                                                ? <p className="text-[0.9375rem] text-slate-500">{plan.experience}</p> : null}
                                                         </div>
                                                     </div>
                                                     {active ? (
-                                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-sm font-bold text-white">
+                                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-[0.8125rem] font-bold text-white">
                                                             <BadgeCheck className="h-3.5 w-3.5" /> {locked ? 'Your plan' : 'Selected'}
                                                         </span>
                                                     ) : plan.popular ? (
-                                                        <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-bold text-amber-700 ring-1 ring-amber-100">Popular</span>
+                                                        <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-[0.8125rem] font-bold text-amber-700 ring-1 ring-amber-100">Popular</span>
                                                     ) : null}
                                                 </div>
 
-                                                {plan.description ? <p className="mt-3 text-base text-slate-600">{plan.description}</p> : null}
+                                                {plan.description ? <p className="mt-3 text-[1rem] text-slate-600">{plan.description}</p> : null}
 
                                                 <p className="mt-4 flex items-baseline gap-1.5">
                                                     <span className="font-display text-[2.25rem] sm:text-[2.5rem] font-bold leading-none tabular-nums text-slate-900">{rupees(plan.price)}</span>
-                                                    <span className="text-base font-medium text-slate-500">/ year</span>
+                                                    <span className="text-[1rem] font-medium text-slate-500">/ year</span>
                                                 </p>
 
                                                 {plan.features?.length ? (
@@ -289,7 +289,7 @@ export default function Payment() {
                                                                 <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
                                                                     <Check className="h-3 w-3" strokeWidth={3} />
                                                                 </span>
-                                                                <span className="text-sm leading-snug text-slate-700">{f}</span>
+                                                                <span className="text-[0.9375rem] leading-snug text-slate-700">{f}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -309,7 +309,7 @@ export default function Payment() {
                                 </span>
                                 <div className="min-w-0">
                                     <p className="font-display text-ui-body font-bold text-slate-900">Why join as {isCompany ? 'a Business member' : isStudent ? 'a Student' : 'an Aspirant'}</p>
-                                    <p className="text-sm text-slate-500">What your {kindLabel.toLowerCase()} membership opens up</p>
+                                    <p className="text-[0.9375rem] text-slate-500">What your {kindLabel.toLowerCase()} membership opens up</p>
                                 </div>
                             </div>
                             <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-7 xl:grid-cols-3">
@@ -320,7 +320,7 @@ export default function Payment() {
                                         </span>
                                         <span className="min-w-0">
                                             <span className="block font-semibold text-slate-900">{title}</span>
-                                            <span className="block text-sm text-slate-500">{text}</span>
+                                            <span className="block text-[0.9375rem] text-slate-500">{text}</span>
                                         </span>
                                     </div>
                                 ))}
@@ -338,7 +338,7 @@ export default function Payment() {
                                         </span>
                                         <span className="min-w-0">
                                             <span className="block font-semibold text-slate-900">{title}</span>
-                                            <span className="block text-sm text-slate-500">{text}</span>
+                                            <span className="block text-[0.9375rem] text-slate-500">{text}</span>
                                         </span>
                                     </div>
                                 ))}
@@ -350,7 +350,7 @@ export default function Payment() {
                     <aside className="min-w-0 lg:sticky lg:top-28">
                         <div className={`${CARD} overflow-hidden`}>
                             <div className={`${GRADIENT} px-5 py-4 text-white sm:px-6`}>
-                                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-100">Order summary</p>
+                                <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.16em] text-blue-100">Order summary</p>
                                 <p className="mt-0.5 font-display text-ui-body font-bold">{activePlan ? activePlan.name : 'No plan selected'}</p>
                             </div>
 
@@ -379,16 +379,16 @@ export default function Payment() {
                                     <p className="flex items-center gap-2 font-semibold text-slate-800">
                                         <ShieldCheck className="h-4 w-4 text-emerald-600" /> Secure payment
                                     </p>
-                                    <p className="mt-0.5 text-sm text-slate-500">Processed over an encrypted connection. We never store your card.</p>
+                                    <p className="mt-0.5 text-[0.875rem] text-slate-500">Processed over an encrypted connection. We never store your card.</p>
                                     <div className="mt-2.5 flex flex-wrap gap-1.5">
                                         {['SSL encrypted', 'PCI-DSS compliant'].map((t) => (
-                                            <span key={t} className="rounded-full bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200">{t}</span>
+                                            <span key={t} className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-bold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200">{t}</span>
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-slate-500">
+                        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[0.875rem] text-slate-500">
                             <span className="inline-flex items-center gap-1"><Zap className="h-3.5 w-3.5" /> Instant activation</span>
                             <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" /> 100% safe &amp; secure</span>
                         </p>
@@ -406,7 +406,7 @@ export default function Payment() {
                                 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                     <div className="flex items-center gap-3">
                         <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold uppercase tracking-wide text-slate-500">{activePlan.name} · yearly</p>
+                            <p className="truncate text-[0.8125rem] font-semibold uppercase tracking-wide text-slate-500">{activePlan.name} · yearly</p>
                             <p className="font-display text-[1.375rem] font-bold leading-tight text-slate-900">{rupees(activePlan.price)}</p>
                         </div>
                         <button type="button" onClick={pay} disabled={paying}
@@ -423,7 +423,7 @@ export default function Payment() {
 
 const Row = ({ label, value, tone = 'text-slate-900' }: { label: string; value: string; tone?: string }) => (
     <div className="flex items-center justify-between gap-3">
-        <span className="shrink-0 text-sm text-slate-500">{label}</span>
-        <span className={`min-w-0 break-words text-right text-sm font-semibold ${tone}`}>{value}</span>
+        <span className="shrink-0 text-[0.9375rem] text-slate-500">{label}</span>
+        <span className={`min-w-0 break-words text-right text-[0.9375rem] font-semibold ${tone}`}>{value}</span>
     </div>
 );

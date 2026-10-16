@@ -336,7 +336,7 @@ export default function Hub() {
                             )}
 
                             {/* Platform totals, from `data.stats`. */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-4">
                                 {/*
                                   * `AdminStat`, not a private `stat()`.
                                   *
@@ -398,7 +398,7 @@ export default function Hub() {
                               * The card IS the drill-down, as on mobile — the numbers
                               * and the way in are the same control.
                               */}
-                            <div className="grid gap-3 sm:gap-5 md:grid-cols-3">
+                            <div className="grid gap-3 sm:gap-5 2xl:grid-cols-3">
                                 {TIERS.map(({ key, title, icon: Icon, accent, head, rule, ring }) => {
                                     const t = tierStats[key] || {};
                                     const figures = [
@@ -438,14 +438,14 @@ export default function Hub() {
                                                                          group-hover:text-slate-600" />
                                             </div>
 
-                                            <div className="grid grid-cols-4 md:grid-cols-2 divide-x md:divide-y divide-slate-100
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 2xl:grid-cols-2 divide-x divide-y sm:divide-y-0 2xl:divide-y divide-slate-100
                                                             border-t border-slate-100">
                                                 {figures.map((f) => (
-                                                    <div key={f.label} className="min-w-0 px-2.5 py-3 md:px-5 md:py-4 md:-mt-px md:first:mt-0">
+                                                    <div key={f.label} className="min-w-0 px-2.5 py-3 2xl:px-5 2xl:py-4 2xl:-mt-px 2xl:first:mt-0">
                                                         <p className={`text-[1.75rem] sm:text-[2.125rem] font-semibold tracking-tight tabular-nums ${f.tone}`}>
                                                             {Number(f.value || 0)}
                                                         </p>
-                                                        <p className="text-sm md:text-ui-small leading-tight font-semibold text-slate-500 mt-1">
+                                                        <p className="text-[0.9375rem] md:text-ui-small leading-tight font-semibold text-slate-500 mt-1">
                                                             {f.label}
                                                         </p>
                                                     </div>

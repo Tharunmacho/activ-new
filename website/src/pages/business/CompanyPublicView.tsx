@@ -120,7 +120,7 @@ const ProductTile = ({ product, onView }: {
                     {money(product.price)}
                 </span>
                 {product.stock ? (
-                    <span className="text-base text-slate-500 border border-slate-200 rounded-md px-1.5 py-0.5">
+                    <span className="text-[1rem] text-slate-500 border border-slate-200 rounded-md px-1.5 py-0.5">
                         Stock {product.stock}
                     </span>
                 ) : null}
@@ -387,13 +387,13 @@ export default function CompanyPublicView() {
 
                         <div className="mt-3 sm:mt-4 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                             <div className="min-w-0">
-                                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 break-words">
+                                <h1 className="text-[1.75rem] sm:text-[2.5625rem] font-extrabold tracking-tight text-slate-900 break-words">
                                     {company.businessName || 'Company'}
                                 </h1>
 
                                 {/* The one-line "who are you" — type, constitution,
                                     and the headline category if one is set. */}
-                                <p className="text-ui-body text-slate-600 mt-1.5 font-medium break-words">
+                                <p className="text-ui-body sm:text-[1.375rem] text-slate-600 mt-1.5 font-medium break-words">
                                     {[
                                         company.businessType,
                                         company.constitutionType,
@@ -550,7 +550,7 @@ export default function CompanyPublicView() {
                                                     <span className="block text-ui-body text-slate-800 break-words">
                                                         {category?.description || '—'}
                                                     </span>
-                                                    <span className="block text-base text-slate-500 mt-0.5">
+                                                    <span className="block text-[1rem] text-slate-500 mt-0.5">
                                                         {category?.code
                                                             ? `NIC ${category.code}${category?.industryType ? ` · ${category.industryType}` : ''}`
                                                             : 'Custom category'}

@@ -1,0 +1,58 @@
+/* Donation records follow the space left by the navigation rail. */
+.donation-records { container: donation-records / inline-size; }
+.donation-records th,
+.donation-records td { vertical-align: top; overflow-wrap: break-word; }
+.donation-records td > * { max-width: 100%; }
+
+@container donation-records (max-width: 68rem) {
+  .donation-records table,
+  .donation-records tbody {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .donation-records colgroup,
+  .donation-records thead { display: none; }
+  .donation-records tr {
+    display: block;
+    margin: 0;
+    padding: 1rem 0;
+    border: 0;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .donation-records tr:last-child { border-bottom: 0; }
+  .donation-records.card-table td {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    max-width: none;
+    padding: 0.5rem 0 !important;
+    border: 0 !important;
+    text-align: left !important;
+    white-space: normal;
+    position: static !important;
+    background: transparent !important;
+    overflow-wrap: break-word;
+  }
+  .donation-records.card-table td::before {
+    content: attr(data-label);
+    grid-column: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: none;
+    letter-spacing: normal;
+    padding-top: 0;
+  }
+  .donation-records.card-table td:not([colspan]) > * { grid-column: 2; min-width: 0; }
+  .donation-records.card-table td[colspan] { display: block; }
+  .donation-records.card-table td[colspan]::before { content: none; }
+}
+
+@container donation-records (max-width: 30rem) {
+  .donation-records.card-table td { grid-template-columns: minmax(0, 1fr); }
+  .donation-records.card-table td:not([colspan]) > * { grid-column: 1; }
+  .donation-records.card-table td::before { grid-column: 1; }
+}

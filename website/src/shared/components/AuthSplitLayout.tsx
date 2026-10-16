@@ -148,7 +148,7 @@ export default function AuthSplitLayout({
                         alt="ACTIV"
                         className="h-14 w-auto object-contain brightness-0 invert"
                     />
-                    <span className="max-w-[14rem] text-sm font-bold uppercase leading-[1.35]
+                    <span className="max-w-[14rem] text-[0.8125rem] font-bold uppercase leading-[1.35]
                                      tracking-[0.06em] text-white/70">
                         Adidravidar Confederation of Trade and Industrial Vision
                     </span>
@@ -176,7 +176,7 @@ export default function AuthSplitLayout({
                     </p>
                 </div>
 
-                <p className="relative z-10 mt-auto pt-12 text-sm font-medium text-white/50">
+                <p className="relative z-10 mt-auto pt-12 text-[0.9375rem] font-medium text-white/50">
                     © {new Date().getFullYear()} ACTIV. All rights reserved.
                 </p>
             </aside>

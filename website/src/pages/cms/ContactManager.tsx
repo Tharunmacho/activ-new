@@ -513,7 +513,7 @@ export default function ContactManager() {
                 </div>
                 {/* What visitors will see — the links as the browser will open them. */}
                 <div className="mt-5 rounded-xl bg-slate-900 p-4">
-                    <p className="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-white/60">Preview</p>
+                    <p className="mb-3 text-[0.875rem] font-bold uppercase tracking-[0.14em] text-white/60">Preview</p>
                     {SOCIAL_PLATFORMS.some((k) => (info.social[k] || '').trim()) ? (
                         <SocialButtons
                             tone="dark"
@@ -527,9 +527,9 @@ export default function ContactManager() {
                             })()}
                         />
                     ) : (
-                        <p className="text-base text-white/60">No profiles yet — paste a link above.</p>
+                        <p className="text-[1rem] text-white/60">No profiles yet — paste a link above.</p>
                     )}
-                    <p className="mt-3 text-sm text-white/50">Saved links are tidied into full addresses (e.g. @activ → https://www.instagram.com/activ).</p>
+                    <p className="mt-3 text-[0.875rem] text-white/50">Saved links are tidied into full addresses (e.g. @activ → https://www.instagram.com/activ).</p>
                 </div>
             </CmsStep>
 

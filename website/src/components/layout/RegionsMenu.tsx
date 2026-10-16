@@ -78,7 +78,7 @@ const useRegionMap = () => {
  * Touch and narrow screens get the accordion in `RegionsAccordion` instead: a
  * hover flyout on a phone opens on the tap that was meant to navigate.
  */
-export function RegionsMenu({ accent }: { accent: string }) {
+export function RegionsMenu({ accent, label = 'Zones' }: { accent: string; label?: string }) {
     const regions = useRegionMap();
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState<string>('');
@@ -114,7 +114,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
     const underNational = regions.filter((r) => !r.national && r.hasPage);
 
     return (
-        <div ref={holder} className="relative">
+        <div ref={holder} className="relative" data-zones-menu>
             <button
                 ref={trigger}
                 type="button"
@@ -136,15 +136,17 @@ export function RegionsMenu({ accent }: { accent: string }) {
                     "region" is the word for the tier INSIDE a state, which is
                     drawn on that state's own page. Two tiers under one word
                     is what this menu and the state pages used to share. */}
-                Zones
+                {label}
                 <ChevronDown size={14} className={open ? 'rotate-180 transition-transform' : 'transition-transform'} />
             </button>
 
             {open && (
                 <div
-                    className="absolute right-0 top-[calc(100%+0.75rem)] z-50 flex overflow-hidden
+                    className="absolute top-[calc(100%+0.75rem)] z-50 flex overflow-hidden
                                rounded-2xl border border-gray-200 bg-white
                                shadow-[0_18px_50px_-18px_rgba(28,46,104,0.45)]"
+                    style={trigger.current && trigger.current.getBoundingClientRect().left < window.innerWidth / 2
+                        ? { left: 0 } : { right: 0 }}
                 >
                     {/* ---- the regions ---- */}
                     <ul className="w-44 py-2 border-r border-gray-100">
@@ -210,7 +212,7 @@ export function RegionsMenu({ accent }: { accent: string }) {
 
                     {/* ---- what is inside it ---- */}
                     <div className="w-56 py-2">
-                        <p className="px-4 pb-2 text-base font-bold uppercase tracking-wider text-gray-400">
+                        <p className="px-4 pb-2 text-[1rem] font-bold uppercase tracking-wider text-gray-400">
                             {current?.national ? 'The five zones' : `${zoneName(current?.label)} states`}
                         </p>
 
@@ -264,8 +266,9 @@ export function RegionsMenu({ accent }: { accent: string }) {
  * A hover flyout on a touch screen opens on the tap that was meant to navigate,
  * so the first tap appears to do nothing and the second one leaves the page.
  */
-export function RegionsAccordion({ accent, onNavigate }: {
+export function RegionsAccordion({ accent, onNavigate, label = 'Zones' }: {
     accent: string;
+    label?: string;
     onNavigate: () => void;
 }) {
     const regions = useRegionMap();
@@ -276,10 +279,10 @@ export function RegionsAccordion({ accent, onNavigate }: {
     return (
         /* Rows share the drawer links' px-4 box (HeaderSection), so the
            zone names start on the same left edge as About / Gallery. */
-        <div className="mt-2 border-t border-slate-100 pt-3">
-            <p className="px-4 mb-1 text-sm font-bold uppercase tracking-[0.16em] text-gray-400">
+        <div className="mt-2 border-t border-slate-100 pt-3" data-zones-accordion>
+            <p className="px-4 mb-1 text-[0.8rem] font-bold uppercase tracking-[0.16em] text-gray-400">
                 {/* See the note on the desktop trigger. */}
-                Zones
+                {label}
             </p>
             {regions.map((region) => {
                 const on = openKey === region.key;

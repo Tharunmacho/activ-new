@@ -112,7 +112,7 @@ function Picture({ article, tall = false }: { article: NewsArticle; tall?: boole
 
             {article.category && (
                 <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1
-                                 text-sm font-bold uppercase tracking-wide text-brand-700
+                                 text-[0.9375rem] font-bold uppercase tracking-wide text-brand-700
                                  shadow-sm">
                     {article.category}
                 </span>
@@ -184,7 +184,7 @@ export function NewsGrid({ articles }: { articles: NewsArticle[] }) {
 
                     <div className="flex flex-1 flex-col p-4 sm:p-8 lg:p-10">
                         <span className="mb-3 inline-flex w-fit items-center rounded-full bg-brand-50
-                                         px-3 py-1 text-sm font-bold uppercase
+                                         px-3 py-1 text-[0.9375rem] font-bold uppercase
                                          tracking-[0.14em] text-brand-600">
                             Latest
                         </span>

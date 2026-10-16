@@ -47,7 +47,7 @@ export interface AdminColumn<T> {
      * sort that is not working.
      */
     sortValue?: (row: T) => string | number;
-    /** Column width class, e.g. `w-20`. */
+    /** Width constraints shared by heading and values, e.g. `w-20` or `min-w-[14rem]`. */
     width?: string;
     align?: 'left' | 'right' | 'center';
     /** Hide below `sm`. For a column that is context rather than content. */
@@ -81,6 +81,10 @@ export interface AdminTableProps<T> {
     /** A search box above the table, filtering on every column's `sortValue`. */
     searchable?: boolean;
     searchPlaceholder?: string;
+    /** Disable column sorting when a page owns the sort order; search still uses sortValue. */
+    sortable?: boolean;
+    /** Reset client pagination when page-owned sort/filter controls change, retaining search. */
+    pageResetKey?: string | number;
 
     /** The "records per page" control. `0` shows every row and hides the pager. */
     pageSize?: number;
@@ -106,7 +110,7 @@ export interface AdminTableProps<T> {
 
     /** The minimum width the table needs before it scrolls sideways. */
     minWidth?: string;
-    /** Switch wide data rows to cards when their actual container is narrow. */
+    /** Switch rows to cards below this container width (760px by default). */
     cardBreakpoint?: number;
     /** Row click, for a table whose rows open something. */
     onRowClick?: (row: T) => void;
@@ -135,7 +139,7 @@ const STICKY_RIGHT = 'sticky right-0 z-10 shadow-[-8px_0_12px_-8px_rgba(16,24,40
 /**
  * The header cell.
  *
- * The 18px labels wrap in narrow columns and remain distinct from 20px values.
+ * Column labels use the historical type scale and wrap at spaces in narrow columns.
  */
 function HeadCell({ children, sortable, direction, onSort, width, align = 'left', hideOnMobile, sticky }: {
     children: ReactNode;
@@ -147,8 +151,8 @@ function HeadCell({ children, sortable, direction, onSort, width, align = 'left'
     hideOnMobile?: boolean;
     sticky?: 'right';
 }) {
-    const base = `px-5 py-4 text-sm font-semibold uppercase tracking-wide
-                  text-slate-500 whitespace-normal break-words ${ALIGN[align]} ${width || ''}
+    const base = `px-5 py-4 text-[1.0625rem] font-semibold uppercase tracking-wider
+                  text-slate-500 whitespace-normal break-normal [overflow-wrap:normal] ${ALIGN[align]} ${width || ''}
                   ${hideOnMobile ? 'hidden sm:table-cell' : ''}
                   ${sticky === 'right' ? STICKY_RIGHT + ' bg-slate-50' : ''}`;
 
@@ -189,27 +193,39 @@ export function AdminTable<T>({
     emptyFiltered,
     searchable = false,
     searchPlaceholder = 'Search',
+    sortable = true,
+    pageResetKey,
     pageSize = 10,
     pageSizeOptions = [10, 25, 50, 100],
     toolbar,
     serverPaged,
     minWidth,
-    cardBreakpoint,
+    cardBreakpoint = 760,
     onRowClick,
     footer,
 }: AdminTableProps<T>) {
     const container = useRef<HTMLDivElement>(null);
-    const [cardLayout, setCardLayout] = useState(!!cardBreakpoint);
+    const [containerWidth, setContainerWidth] = useState<number | null>(null);
+    const cardLayout = containerWidth === null || containerWidth < cardBreakpoint;
+    const stackedCardFields = containerWidth === null || containerWidth < 480;
     useEffect(() => {
-        if (!cardBreakpoint || !container.current) return;
-        const observer = new ResizeObserver(([entry]) => setCardLayout(entry.contentRect.width < cardBreakpoint));
-        observer.observe(container.current);
+        const element = container.current;
+        if (!element) return;
+        const measure = () => setContainerWidth(element.getBoundingClientRect().width);
+        measure();
+        if (typeof ResizeObserver === 'undefined') {
+            window.addEventListener('resize', measure);
+            return () => window.removeEventListener('resize', measure);
+        }
+        const observer = new ResizeObserver(([entry]) => setContainerWidth(entry.contentRect.width));
+        observer.observe(element);
         return () => observer.disconnect();
-    }, [cardBreakpoint]);
+    }, []);
     const [query, setQuery] = useState('');
     const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
     const [limit, setLimit] = useState(pageSize);
     const [page, setPage] = useState(1);
+    useEffect(() => { setPage(1); }, [pageResetKey]);
     const searchId = useId();
 
     const client = !serverPaged;
@@ -232,7 +248,7 @@ export function AdminTable<T>({
     /* -------------------------------------------------------------- sort */
 
     const sorted = useMemo(() => {
-        if (!client || !sort) return filtered;
+        if (!client || !sortable || !sort) return filtered;
         const column = columns.find((c) => c.key === sort.key);
         // Hoisted to a local, so the comparator below closes over a value TS has
         // already narrowed. Reading `column.sortValue` inside the callback needs
@@ -262,7 +278,7 @@ export function AdminTable<T>({
         });
 
         return copy;
-    }, [filtered, sort, columns, client]);
+    }, [filtered, sort, columns, client, sortable]);
 
     /* -------------------------------------------------------------- page */
 
@@ -313,18 +329,18 @@ export function AdminTable<T>({
     const filtering = client && !!query.trim();
 
     return (
-        <div ref={container} className={`${ADMIN_CARD} overflow-hidden`}>
+        <div ref={container} data-admin-table className={`${ADMIN_CARD} min-w-0 overflow-hidden`}>
 
             {/* ------------------------------------------------------ toolbar */}
             {(searchable || toolbar || (client && pageSizeOptions.length > 1)) && (
                 <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 p-4 sm:p-5
                                 border-b border-slate-100">
                     {client && perPage > 0 && (
-                        <label className="flex flex-wrap items-center gap-2 text-sm sm:text-base text-slate-500">
+                        <label className="flex flex-wrap items-center gap-2 text-[1.25rem] text-slate-500">
                             <select
                                 value={perPage}
                                 onChange={(e) => setPerPage(Number(e.target.value))}
-                                className="min-h-12 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm sm:text-base
+                                className="min-h-[44px] sm:min-h-12 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[1.25rem]
                                            font-semibold text-slate-800 outline-none
                                            focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                             >
@@ -335,7 +351,7 @@ export function AdminTable<T>({
                     )}
 
                     {searchable && (
-                        <div className="relative flex-1 min-w-0">
+                        <div className="relative flex-1 sm:basis-64 min-w-0">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[1.125rem] h-[1.125rem]
                                                text-slate-400" />
                             <input
@@ -360,19 +376,20 @@ export function AdminTable<T>({
               * meant reading one column at a time with the name scrolled away.
               * Each column's header becomes the label beside its value, the
               * pinned action column becomes a full-width button at the foot,
-              * and `hideOnMobile` columns stay hidden. From `sm` the table.
+              * and `hideOnMobile` columns stay hidden. The available pane width,
+              * including the sidebar, determines when the table fits.
               */}
-            <div className={cardBreakpoint ? undefined : "sm:hidden"} style={cardBreakpoint ? { display: cardLayout ? 'block' : 'none' } : undefined}>
+            <div data-admin-table-cards style={{ display: cardLayout ? 'block' : 'none' }}>
                 {loading && (
                     <div className="px-4 py-10 text-center">
                         <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-                        <p className="mt-4 text-sm font-semibold text-slate-500">Loading…</p>
+                        <p className="mt-4 text-[1.05rem] font-semibold text-slate-500">Loading…</p>
                     </div>
                 )}
                 {!loading && !visible.length && (
                     <div className="px-4 py-10 text-center">
                         <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
-                        <div className="mt-3 text-sm font-semibold text-slate-500 leading-relaxed">
+                        <div className="mt-3 text-[1.05rem] font-semibold text-slate-500 leading-relaxed">
                             {filtering ? (emptyFiltered || `Nothing matches “${query.trim()}”.`) : empty}
                         </div>
                     </div>
@@ -390,28 +407,28 @@ export function AdminTable<T>({
                                     className={`px-4 py-4 transition-colors ${index % 2 === 1 ? 'bg-slate-50/60' : 'bg-white'}
                                                 ${onRowClick ? 'cursor-pointer active:bg-blue-50' : ''}`}
                                 >
-                                    <dl className="grid grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)] gap-x-3 gap-y-2">
+                                    <dl className={`grid gap-x-5 ${stackedCardFields ? 'grid-cols-1 gap-y-4' : 'grid-cols-[minmax(0,10rem)_minmax(0,1fr)] gap-y-3'}`}>
                                         {shown.map((column) => (
                                             column.header ? (
-                                                <div key={column.key} className="contents">
-                                                    <dt className="min-w-0 pt-0.5 text-xs font-bold uppercase tracking-wide text-slate-500 [overflow-wrap:anywhere]">
+                                                <div key={column.key} className={stackedCardFields ? 'min-w-0 space-y-1' : 'contents'}>
+                                                    <dt className="min-w-0 pt-0.5 text-[0.8rem] font-bold uppercase tracking-wide text-slate-500 break-normal [overflow-wrap:normal]">
                                                         {column.header}
                                                     </dt>
-                                                    <dd className="min-w-0 text-sm text-slate-800 [overflow-wrap:anywhere] [&>div.text-right]:text-left [&>div.items-center]:items-start">
+                                                    <dd className="min-w-0 text-[1rem] text-slate-800 break-words [&>div.text-right]:text-left [&>div.items-center]:items-start">
                                                         {column.render(row, n)}
                                                     </dd>
                                                 </div>
                                             ) : (
-                                                <dd key={column.key} className="col-span-2 min-w-0 text-sm text-slate-800 [overflow-wrap:anywhere]">
+                                                <dd key={column.key} className={`${stackedCardFields ? '' : 'col-span-2'} min-w-0 text-[1rem] text-slate-800 break-words`}>
                                                     {column.render(row, n)}
                                                 </dd>
                                             )
                                         ))}
                                     </dl>
                                     {actions.length > 0 && (
-                                        <div className="mt-3 flex flex-wrap gap-2 text-sm [&>*]:flex-1" onClick={(e) => e.stopPropagation()}>
+                                        <div className="mt-3 flex flex-wrap gap-2 [&>*]:flex-1" onClick={(e) => e.stopPropagation()}>
                                             {actions.map((column) => (
-                                                <div key={column.key} className="flex min-w-0 basis-full sm:basis-auto [&>*]:w-full [&>*]:max-w-full [&>*]:whitespace-normal [&>*]:break-words">{column.render(row, n)}</div>
+                                                <div key={column.key} className="flex min-w-0 basis-full sm:basis-auto [&>*]:w-full [&>*]:max-w-full [&>*]:whitespace-normal [&>*]:break-normal [&>*]:[overflow-wrap:normal]">{column.render(row, n)}</div>
                                             ))}
                                         </div>
                                     )}
@@ -423,7 +440,7 @@ export function AdminTable<T>({
             </div>
 
             {/* -------------------------------------------------------- table */}
-            <div className={cardBreakpoint ? "overflow-x-auto" : "hidden sm:block overflow-x-auto"} style={cardBreakpoint ? { display: cardLayout ? 'none' : 'block' } : undefined}>
+            <div data-admin-table-scroll className="overflow-x-auto" style={{ display: cardLayout ? 'none' : 'block' }}>
                 <table
                     className="w-full text-left border-collapse"
                     style={minWidth ? { minWidth } : undefined}
@@ -433,7 +450,7 @@ export function AdminTable<T>({
                             {columns.map((column) => (
                                 <HeadCell
                                     key={column.key}
-                                    sortable={client && !!column.sortValue}
+                                    sortable={client && sortable && !!column.sortValue}
                                     direction={sort?.key === column.key ? sort.direction : null}
                                     onSort={() => toggleSort(column.key)}
                                     width={column.width}
@@ -452,7 +469,7 @@ export function AdminTable<T>({
                             <tr>
                                 <td colSpan={columns.length} className="px-5 py-20 text-center">
                                     <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
-                                    <p className="mt-4 text-ui-body font-semibold text-slate-500">Loading…</p>
+                                    <p className="mt-4 text-[1.25rem] font-semibold text-slate-500">Loading…</p>
                                 </td>
                             </tr>
                         )}
@@ -461,7 +478,7 @@ export function AdminTable<T>({
                             <tr>
                                 <td colSpan={columns.length} className="px-5 py-20 text-center">
                                     <Inbox className="w-12 h-12 text-slate-300 mx-auto" />
-                                    <div className="mt-4 text-ui-body font-semibold text-slate-500
+                                    <div className="mt-4 text-[1.25rem] font-semibold text-slate-500
                                                     max-w-md mx-auto leading-relaxed">
                                         {/*
                                           "Nothing matches" and "nothing here" are
@@ -497,9 +514,10 @@ export function AdminTable<T>({
                                 {columns.map((column) => (
                                     <td
                                         key={column.key}
-                                        className={`px-5 py-4 text-slate-700 align-middle [overflow-wrap:anywhere]
-                                                    ${column.sticky === 'right' || column.key === 'action' ? 'text-sm' : 'text-base'}
+                                        className={`px-5 py-4 text-slate-700 align-top break-normal [overflow-wrap:normal]
+                                                    text-[1.25rem]
                                                     ${ALIGN[column.align || 'left']}
+                                                    ${column.width || ''}
                                                     ${column.hideOnMobile ? 'hidden sm:table-cell' : ''}
                                                     ${column.sticky === 'right'
                                                         ? `${STICKY_RIGHT} bg-inherit` : ''}`}
@@ -509,7 +527,9 @@ export function AdminTable<T>({
                                           the page offset, so S.No reads 11..20 on
                                           page two rather than restarting at 1.
                                         */}
-                                        {column.render(row, (current - 1) * (perPage || 0) + index)}
+                                        <div className={`max-w-[32rem] break-words ${column.align === 'right' ? 'ml-auto' : column.align === 'center' ? 'mx-auto' : ''}`}>
+                                            {column.render(row, (current - 1) * (perPage || 0) + index)}
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
@@ -524,7 +544,7 @@ export function AdminTable<T>({
             {showPager && !loading && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3
                                 px-4 sm:px-5 py-3 sm:py-4 border-t border-slate-100 bg-slate-50/60">
-                    <p className="text-xs sm:text-sm text-slate-500">
+                    <p className="text-[1.0625rem] sm:text-[1.25rem] text-slate-500">
                         Showing <span className="font-semibold text-slate-800">{from}</span> to{' '}
                         <span className="font-semibold text-slate-800">{to}</span> of{' '}
                         <span className="font-semibold text-slate-800">{total}</span>{' '}
@@ -539,14 +559,14 @@ export function AdminTable<T>({
 
                             {pageNumbers(current, pages).map((n, i) =>
                                 n === '…' ? (
-                                    <span key={`gap-${i}`} className="px-2 text-sm text-slate-400">…</span>
+                                    <span key={`gap-${i}`} className="px-2 text-[1.1875rem] text-slate-400">…</span>
                                 ) : (
                                     <button
                                         key={n}
                                         type="button"
                                         onClick={() => goTo(n as number)}
                                         aria-current={n === current ? 'page' : undefined}
-                                        className={`min-h-11 min-w-11 px-2.5 py-1.5 sm:px-3.5 rounded-xl text-sm font-semibold
+                                        className={`min-h-[44px] min-w-[44px] px-2.5 py-1.5 sm:px-3.5 rounded-xl text-[1.1875rem] sm:text-[1.25rem] font-semibold
                                                     transition-colors ${n === current
                                                 ? 'bg-blue-600 text-white shadow-sm'
                                                 : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
@@ -574,7 +594,7 @@ function PagerButton({ children, onClick, disabled }: {
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className="min-h-11 px-3 py-1.5 sm:px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold
+            className="min-h-[44px] px-3 py-1.5 sm:px-4 rounded-xl border border-slate-200 bg-white text-[1.1875rem] sm:text-[1.25rem] font-semibold
                        text-slate-600 transition-colors hover:bg-slate-50
                        disabled:opacity-40 disabled:hover:bg-white"
         >
@@ -626,9 +646,9 @@ export function AdminChip({ tone = 'slate', children, title }: {
     return (
         <span
             title={title}
-            /* Status text wraps inside the available cell width. */
-            className={`inline-flex max-w-full items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
-                        ring-1 ring-inset whitespace-normal [overflow-wrap:anywhere] [&>svg]:shrink-0 ${TONES[tone] || TONES.slate}`}
+            /* Multiword statuses may wrap at spaces; short statuses stay intact. */
+            className={`inline-flex max-w-full items-center gap-1.5 px-3 py-1.5 rounded-full text-[1.1875rem] font-semibold
+                        ring-1 ring-inset whitespace-normal break-normal [overflow-wrap:normal] [&>svg]:shrink-0 ${TONES[tone] || TONES.slate}`}
         >
             {children}
         </span>
@@ -655,7 +675,7 @@ export function AdminCount({ tone = 'slate', children }: {
 
     return (
         <span className={`inline-flex items-center justify-center min-w-[3.25rem] px-3 py-1.5 rounded-xl
-                          text-sm sm:text-base font-bold tabular-nums ${TONES[tone] || TONES.slate}`}>
+                          text-[1.25rem] font-bold tabular-nums ${TONES[tone] || TONES.slate}`}>
             {children}
         </span>
     );
@@ -684,7 +704,7 @@ export function AdminIconButton({ tone = 'blue', title, onClick, disabled, child
             disabled={disabled}
             title={title}
             aria-label={title}
-            className={`w-11 h-11 rounded-xl border inline-flex items-center justify-center
+            className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border inline-flex items-center justify-center
                         transition-colors disabled:opacity-40 ${TONES[tone] || TONES.blue}`}
         >
             {children}

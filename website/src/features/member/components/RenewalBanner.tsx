@@ -35,7 +35,7 @@ export default function RenewalBanner({ renewal, className = '' }: { renewal: Re
                 </span>
 
                 <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-200">
+                    <p className="text-[0.8125rem] font-bold uppercase tracking-[0.16em] text-sky-200">
                         {expired ? 'Membership expired' : 'Renewal open'}
                     </p>
                     <p className="mt-1 text-ui-body sm:text-[1.5rem] font-extrabold leading-tight">
@@ -43,7 +43,7 @@ export default function RenewalBanner({ renewal, className = '' }: { renewal: Re
                             ? 'Renew your membership'
                             : days === 0 ? 'Your membership ends today' : `${days} ${days === 1 ? 'day' : 'days'} left on your membership`}
                     </p>
-                    <p className="mt-1 text-base sm:text-ui-caption leading-relaxed text-blue-100">
+                    <p className="mt-1 text-[1rem] sm:text-ui-caption leading-relaxed text-blue-100">
                         {renewalMessage(renewal)}
                     </p>
                 </div>
@@ -59,7 +59,7 @@ export default function RenewalBanner({ renewal, className = '' }: { renewal: Re
                         <ArrowRight className="h-4 w-4" />
                     </Link>
                     {renewal.expiresAt ? (
-                        <span className="text-center sm:text-right text-sm font-medium text-blue-200">
+                        <span className="text-center sm:text-right text-[0.875rem] font-medium text-blue-200">
                             {expired ? 'Ended' : 'Ends'} {renewalDate(renewal.expiresAt)}
                         </span>
                     ) : null}

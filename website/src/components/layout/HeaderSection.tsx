@@ -10,6 +10,7 @@ import { sectionHidden } from '@/components/shared/cmsSections';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { BAR_CONTAINER } from './pageContainer';
 import { useFluidScale } from './useFluidScale';
+import { headerNavigationLinks, isZonesNavLink } from '@/components/shared/headerNavigation';
 
 /**
  * The public site's header.
@@ -83,7 +84,7 @@ export function HeaderSection() {
      */
     const removed = (key: string) => sectionHidden(site?.sections, key);
 
-    const navLinks = removed('header.navLinks') ? [] : (site?.header?.navLinks || []);
+    const navLinks = removed('header.navLinks') ? [] : headerNavigationLinks(site?.header?.navLinks);
     const ctaLabel = removed('header.cta') ? '' : (site?.header?.ctaLabel || '');
     const ctaHref = site?.header?.ctaHref || '/login';
     // One-tap contact in the phone menu, from the footer's own contact card.
@@ -321,7 +322,7 @@ export function HeaderSection() {
                                  * word; a measure just wraps the new words.
                                  */
                                 className="hidden lg:block xl:hidden min-[1700px]:block shrink-0
-                                           text-base lg:text-ui-caption font-bold uppercase
+                                           text-[1rem] lg:text-ui-caption font-bold uppercase
                                            leading-[1.35] tracking-[0.06em] max-w-[21.6em]"
                                 style={{ color: accent }}
                             >
@@ -337,7 +338,9 @@ export function HeaderSection() {
                     <div className="ml-auto flex items-center gap-5 xl:gap-8">
                         {navLinks.length > 0 && (
                             <nav className="hidden xl:flex shrink-0 items-center gap-5 xl:gap-7 2xl:gap-8" aria-label="Main">
-                                {navLinks.map((item, i) => isSchemes(item.href) ? (
+                                {navLinks.map((item, i) => isZonesNavLink(item.href) ? (
+                                    <RegionsMenu key={`${item.href}-${i}`} accent={accent} label={item.label} />
+                                ) : isSchemes(item.href) ? (
                                     /* The CMS's "Schemes" link opens a dropdown like
                                        Regions — Central, then each region's states. */
                                     <SchemesMenu
@@ -371,17 +374,7 @@ export function HeaderSection() {
                                     </Link>
                                 ))}
 
-                                {/*
-                                  * REGIONS, after the CMS's own links.
-                                  *
-                                  * Not one of `navLinks`: those are single
-                                  * links an editor types, and this is a
-                                  * two-level menu built from
-                                  * `/cms/regions/map`. Putting it last keeps
-                                  * the editor in charge of everything before
-                                  * it.
-                                  */}
-                                <RegionsMenu accent={accent} />
+
                             </nav>
                         )}
 
@@ -398,7 +391,7 @@ export function HeaderSection() {
                                     to={ctaHref}
                                     className="btn-shine group relative inline-flex items-center justify-center gap-2
                                                h-10 min-h-[44px] sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
-                                               text-white text-sm sm:text-ui-caption font-semibold whitespace-nowrap
+                                               text-white text-[0.95rem] sm:text-ui-caption font-semibold whitespace-nowrap
                                                shadow-[0_8px_20px_-8px_rgb(28_46_104/0.7)]
                                                transition-transform duration-200 active:scale-95 hover:-translate-y-0.5"
                                     style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
@@ -431,11 +424,12 @@ export function HeaderSection() {
                     />
                     <div
                         /* From the LEFT — the side the menu button is on. */
-                        className="absolute left-0 top-0 flex h-full w-[88%] max-w-sm flex-col overflow-hidden
+                        data-mobile-menu-scroll
+                        className="absolute left-0 top-0 flex h-full w-[88%] max-w-sm flex-col overflow-y-auto overflow-x-hidden overscroll-contain
                                    rounded-r-[2rem] bg-white shadow-2xl animate-in slide-in-from-left duration-300"
                     >
                         {/* Head: brand + close */}
-                        <div className="relative overflow-hidden px-6 pb-6 pt-7 text-white"
+                        <div className="relative shrink-0 overflow-hidden px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))] text-white"
                              style={{ backgroundImage: `linear-gradient(140deg, ${accent} 0%, #2563eb 100%)` }}>
                             <div aria-hidden="true" className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10" />
                             <div aria-hidden="true" className="absolute -bottom-16 right-16 h-32 w-32 rounded-full bg-white/10" />
@@ -450,9 +444,9 @@ export function HeaderSection() {
                                             </span>
                                         </span>
                                     ) : (
-                                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Menu</p>
+                                        <p className="text-[0.75rem] font-bold uppercase tracking-[0.2em] text-white/70">Menu</p>
                                     )}
-                                    <p className="mt-3 text-base font-bold leading-snug">
+                                    <p className="mt-3 text-[1rem] font-bold leading-snug">
                                         {brand?.fullName || 'ACTIV'}
                                     </p>
                                 </div>
@@ -460,7 +454,7 @@ export function HeaderSection() {
                                     type="button"
                                     onClick={() => setMenuOpen(false)}
                                     aria-label="Close menu"
-                                    className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/15
+                                    className="grid h-10 w-10 min-h-[44px] min-w-[44px] shrink-0 place-items-center rounded-2xl bg-white/15
                                                transition active:scale-90 hover:bg-white/25"
                                 >
                                     <X size={20} />
@@ -469,14 +463,16 @@ export function HeaderSection() {
                         </div>
 
                         {/* Links */}
-                        <nav className="flex-1 overflow-y-auto px-4 py-4" aria-label="Main">
+                        <nav className="flex-none px-4 py-4" aria-label="Main">
                             {navLinks.map((item, i) => (
                                 <div
                                     key={`m-${item.href}-${i}`}
                                     className="animate-in fade-in slide-in-from-left-4 fill-mode-both"
                                     style={{ animationDelay: `${60 + i * 40}ms`, animationDuration: '380ms' }}
                                 >
-                                    {isSchemes(item.href) ? (
+                                    {isZonesNavLink(item.href) ? (
+                                        <RegionsAccordion accent={accent} label={item.label} onNavigate={() => setMenuOpen(false)} />
+                                    ) : isSchemes(item.href) ? (
                                         <SchemesAccordion
                                             accent={accent}
                                             label={item.label}
@@ -486,7 +482,7 @@ export function HeaderSection() {
                                         <Link
                                             to={item.href || '/'}
                                             aria-current={isActive(item.href) ? 'page' : undefined}
-                                            className={`group flex items-center justify-between rounded-2xl px-4 py-3.5
+                                            className={`group flex min-h-[44px] items-center justify-between gap-2 rounded-2xl px-4 py-3.5
                                                         text-ui-caption transition-all active:scale-[0.98] ${
                                                 isActive(item.href) ? 'font-bold text-white shadow-md' : 'font-semibold hover:bg-slate-50'
                                             }`}
@@ -506,36 +502,30 @@ export function HeaderSection() {
                                 </div>
                             ))}
 
-                            {/* An accordion here, not the flyout — see the note in
-                                RegionsMenu about the first tap on a touch screen. */}
-                            <div className="animate-in fade-in slide-in-from-left-4 fill-mode-both"
-                                 style={{ animationDelay: `${60 + navLinks.length * 40}ms`, animationDuration: '380ms' }}>
-                                <RegionsAccordion accent={accent} onNavigate={() => setMenuOpen(false)} />
-                            </div>
                         </nav>
 
                         {/* Foot: one-tap contact + login */}
-                        <div className="border-t border-slate-100 px-5 pb-6 pt-4">
+                        <div className="mt-auto shrink-0 border-t border-slate-100 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4">
                             {socialLinks.length > 0 && (
                                 <div className="mb-3">
-                                    <p className="mb-2 text-sm font-bold uppercase tracking-[0.14em] text-slate-400">Follow us</p>
-                                    <SocialButtons links={socialLinks} size="sm" />
+                                    <p className="mb-2 text-[0.8125rem] font-bold uppercase tracking-[0.14em] text-slate-400">Follow us</p>
+                                    <SocialButtons links={socialLinks} size="sm" className="[&_a]:min-h-[44px] [&_a]:min-w-[44px]" />
                                 </div>
                             )}
                             {(phone || email) && (
                                 <div className="mb-3 grid grid-cols-2 gap-2">
                                     {phone && (
                                         <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}
-                                           className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200
-                                                      py-3 text-sm font-semibold transition active:scale-95 hover:bg-slate-50"
+                                           className="flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-slate-200
+                                                      py-3 text-[0.95rem] font-semibold transition active:scale-95 hover:bg-slate-50"
                                            style={{ color: accent }}>
                                             <Phone size={16} /> Call
                                         </a>
                                     )}
                                     {email && (
                                         <a href={`mailto:${email}`}
-                                           className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200
-                                                      py-3 text-sm font-semibold transition active:scale-95 hover:bg-slate-50"
+                                           className="flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-slate-200
+                                                      py-3 text-[0.95rem] font-semibold transition active:scale-95 hover:bg-slate-50"
                                            style={{ color: accent }}>
                                             <Mail size={16} /> Email
                                         </a>
@@ -545,7 +535,7 @@ export function HeaderSection() {
                             {ctaLabel && (
                                 <Link
                                     to={ctaHref}
-                                    className="btn-shine relative flex items-center justify-center gap-2 overflow-hidden rounded-2xl
+                                    className="btn-shine relative flex min-h-[44px] items-center justify-center gap-2 overflow-hidden rounded-2xl
                                                py-3.5 text-ui-caption font-bold text-white shadow-lg transition active:scale-[0.97]"
                                     style={{ backgroundImage: `linear-gradient(135deg, ${accent} 0%, #2563eb 100%)` }}
                                 >

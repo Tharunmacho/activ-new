@@ -229,6 +229,9 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
 
   const displayName = p.fullName || p.name || "Applicant";
   const roleLabel = isStudent ? "Student" : isAspirant ? "Aspirant" : "Business Member";
+  const missingPersonal = [
+    ["Gender", p.gender], ["Religion", p.religion], ["Social category", p.socialCategory],
+  ].filter(([, value]) => !hasValue(value)).map(([label]) => label);
   const stage = (p.stage || "").toLowerCase();
   const canAct = !!onReview && stage === "pending";
 
@@ -262,12 +265,12 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
         */}
       <DialogContent className="w-[calc(100%-2rem)] max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden
                                 rounded-2xl border-slate-200">
-        <DialogHeader className="shrink-0 px-4 sm:px-6 pt-5 sm:pt-6 pb-4 pr-10 sm:pr-6 border-b border-slate-200 text-left">
+        <DialogHeader className="shrink-0 px-4 sm:px-6 pt-5 sm:pt-6 pb-4 pr-12 sm:pr-12 border-b border-slate-200 text-left">
           <DialogTitle className="text-[1.375rem] sm:text-[1.625rem] font-extrabold tracking-tight text-slate-900">
             Application Details
           </DialogTitle>
           <DialogDescription className="text-ui-body font-medium text-slate-500">
-            Complete application information submitted by the member
+            Application information submitted by the member
           </DialogDescription>
         </DialogHeader>
 
@@ -290,20 +293,20 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
                 {displayName.split(" ").filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[1.375rem] font-extrabold tracking-tight text-slate-900 truncate">
+                <p className="text-[1.375rem] font-extrabold tracking-tight text-slate-900 break-words">
                   {displayName}
                 </p>
                 {/* Both pills the same height and the same case, so the pair
                     reads as one row rather than as two controls. */}
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-sm
+                  <span className={`inline-flex min-h-7 items-center rounded-full px-2.5 py-1 text-[0.9375rem] leading-snug
                                     font-bold text-white
                                     ${isAspirant ? "bg-emerald-600" : "bg-blue-600"}`}>
                     {roleLabel}
                   </span>
                   {!!p.statusLabel && (
-                    <span className={`inline-flex h-6 items-center rounded-full border px-2.5
-                                      text-sm font-bold ${STATUS_PILL[stage] || STATUS_PILL.pending}`}>
+                    <span className={`inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 leading-snug
+                                      text-[0.9375rem] font-bold ${STATUS_PILL[stage] || STATUS_PILL.pending}`}>
                       {p.statusLabel}
                     </span>
                   )}
@@ -320,9 +323,15 @@ export default function ProfileViewModal({ open, onClose, profile, loading, onRe
               */}
             <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 px-3 py-4 sm:px-6 sm:py-5">
               <div className="space-y-4">
+                {missingPersonal.length > 0 && (
+                  <div role="note" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-ui-small text-amber-900">
+                    <p className="font-semibold">Personal details need completing</p>
+                    <p className="mt-1">Not recorded: {missingPersonal.join(", ")}. Ask the member to complete these fields in their profile’s Personal Details form.</p>
+                  </div>
+                )}
                 {!!p.rejectionReason && (
                   <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
-                    <p className="text-sm font-extrabold uppercase tracking-widest text-red-700">
+                    <p className="text-[0.9375rem] font-extrabold uppercase tracking-widest text-red-700">
                       Rejection reason
                     </p>
                     <p className="mt-1.5 text-ui-body font-semibold text-red-900 break-words">{p.rejectionReason}</p>

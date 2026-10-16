@@ -408,7 +408,7 @@ export default function SuperAdminBookings() {
         <div className={`flex h-screen ${ADMIN_BG}`}>
             <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto sm:overflow-hidden">
                 <AdminPageHeader
                     title="Event Bookings"
                     subtitle="Seats booked through the public Book Now page, and what has been paid"
@@ -457,7 +457,7 @@ export default function SuperAdminBookings() {
                     }
                 />
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="shrink-0 sm:flex-1 sm:overflow-y-auto">
                   <div className={ADMIN_PAGE}>
 
                     {/* ---------------------------------------------- picker */}
@@ -497,7 +497,7 @@ export default function SuperAdminBookings() {
                     </div>
 
                     {/* ---------------------------------------------- totals */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-4">
                         <AdminStat
                             icon={<Ticket className="w-5 h-5" />}
                             label="Bookings"
@@ -552,8 +552,8 @@ export default function SuperAdminBookings() {
                                 onClick={() => setTab(value)}
                                 aria-pressed={tab === value}
                                 className={`flex-1 sm:flex-none min-w-0 inline-flex items-center justify-center gap-1.5 sm:gap-2
-                                            h-12 px-2 sm:px-5 rounded-xl text-[1.125rem] sm:text-ui-body font-semibold whitespace-nowrap
-                                            [&>svg]:hidden sm:[&>svg]:block transition-colors
+                                            min-h-12 px-2 sm:px-5 py-2 rounded-xl text-[1.125rem] sm:text-ui-body font-semibold whitespace-normal [overflow-wrap:normal]
+                                            [&>svg]:hidden sm:[&>svg]:block [&>svg]:shrink-0 transition-colors
                                             ${tab === value
                                         ? 'bg-white text-blue-600 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-800'}`}
@@ -561,7 +561,7 @@ export default function SuperAdminBookings() {
                                 {icon}
                                 {label}
                                 {!!count && (
-                                    <span className={`text-ui-small font-semibold tabular-nums px-2 py-0.5 rounded-lg
+                                    <span className={`shrink-0 text-ui-small font-semibold tabular-nums px-2 py-0.5 rounded-lg
                                                       ${tab === value ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
                                         {count}
                                     </span>
@@ -580,8 +580,8 @@ export default function SuperAdminBookings() {
 
                     {tab === 'bookings' && (<>
                     {/* ---------------------------------------------- filters */}
-                    <div className={`${ADMIN_CARD} p-4 sm:p-5 flex flex-col sm:flex-row gap-3`}>
-                        <div className="relative flex-1">
+                    <div className={`${ADMIN_CARD} p-4 sm:p-5 flex flex-col lg:flex-row lg:flex-wrap gap-3`}>
+                        <div className="relative flex-1 min-w-0 lg:min-w-[18rem]">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
                                 value={search}

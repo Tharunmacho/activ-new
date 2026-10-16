@@ -119,7 +119,7 @@ export function RegionGallery() {
         <main className="flex-grow">
             <div className={`${SCREEN_CONTAINER} py-6 sm:py-10 md:py-14`}>
                 <h1 className={`${SECTION_HEADING} text-brand-800 mb-2`}>Photo Gallery</h1>
-                <p className="text-base sm:text-ui-caption font-semibold text-gray-600 mb-5 sm:mb-8">
+                <p className="text-[1rem] sm:text-ui-caption font-semibold text-gray-600 mb-5 sm:mb-8">
                     Photographs from ACTIV events, meetings and programmes.
                 </p>
 
@@ -249,13 +249,13 @@ export function RegionGallery() {
                                 <div className="px-3 py-2.5 sm:px-4 sm:py-3.5">
                                     {/* Title only, as the reference prints it.
                                         The rest is on the photograph's own page. */}
-                                    <p className="text-sm sm:text-ui-caption font-extrabold text-brand-900 line-clamp-2 break-words">
+                                    <p className="text-[0.9375rem] sm:text-ui-caption font-extrabold text-brand-900 line-clamp-2 break-words">
                                         {photo.title || 'Untitled'}
                                     </p>
                                     {/* The state, not the category — see the note
                                         in `GallerySection`. */}
                                     {photo.state && (
-                                        <p className="mt-1 truncate text-sm sm:text-ui-caption font-semibold text-gray-500">
+                                        <p className="mt-1 truncate text-[0.875rem] sm:text-ui-caption font-semibold text-gray-500">
                                             {photo.state}
                                         </p>
                                     )}

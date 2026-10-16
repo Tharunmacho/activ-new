@@ -194,7 +194,7 @@ export default function AdminDashboardScreen({ tier }: { tier: AdminTier }) {
                                     >
                                         <div className="flex items-center gap-2 mb-2">
                                             <t.icon className={`w-5 h-5 shrink-0 ${t.sub}`} />
-                                            <p className={`${t.sub} text-sm sm:text-ui-body font-medium leading-tight`}>{t.label}</p>
+                                            <p className={`${t.sub} text-[0.95rem] sm:text-ui-body font-medium leading-tight`}>{t.label}</p>
                                         </div>
                                         <p className="text-[2rem] sm:text-[2.5625rem] font-bold tracking-tight tabular-nums text-white">
                                             {loading ? "…" : t.value}

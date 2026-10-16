@@ -611,7 +611,7 @@ const MemberRegister = () => {
                           autoComplete="address-level2"
                           {...registerStep2('place')}
                         />
-                        <p className="mt-1.5 text-base text-slate-500">
+                        <p className="mt-1.5 text-[1rem] text-slate-500">
                           Shown on your membership certificate and your dashboard.
                         </p>
                       </div>

@@ -345,8 +345,9 @@ const Analytics = () => {
                                                 tick={{ fontSize: 12, fill: '#64748b' }}
                                                 tickLine={false}
                                                 axisLine={{ stroke: '#e2e8f0' }}
-                                                interval={0}
-                                                height={48}
+                                                interval="preserveStartEnd"
+                                                minTickGap={18}
+                                                height={56}
                                                 tickFormatter={(value: string) => (
                                                     (value || '').length > 14 ? `${(value || '').slice(0, 13)}…` : (value || '')
                                                 )}
@@ -356,7 +357,7 @@ const Analytics = () => {
                                                 tick={{ fontSize: 12, fill: '#64748b' }}
                                                 tickLine={false}
                                                 axisLine={false}
-                                                width={36}
+                                                width={64}
                                             />
                                             <Tooltip
                                                 cursor={{ fill: '#f1f5f9' }}
@@ -364,6 +365,9 @@ const Analytics = () => {
                                                     borderRadius: 12,
                                                     border: '1px solid #e2e8f0',
                                                     fontSize: 14,
+                                                    lineHeight: 1.5,
+                                                    maxWidth: 'min(18rem, calc(100vw - 32px))',
+                                                    overflowWrap: 'anywhere',
                                                 }}
                                                 formatter={(value: number) => [`${value} views`, 'Opened']}
                                             />

@@ -531,7 +531,7 @@ export default function PaidDashboard() {
                                                      break-normal [overflow-wrap:normal] [hyphens:manual]">
                                         {label}
                                     </span>
-                                    <span className="-mt-1.5 block text-sm sm:text-base font-medium text-slate-500">
+                                    <span className="-mt-1.5 block text-[0.9375rem] sm:text-[1rem] font-medium text-slate-500">
                                         {detail}
                                     </span>
                                     <span className="mt-auto block">

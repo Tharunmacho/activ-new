@@ -269,7 +269,7 @@ export default function Notifications() {
                       * Bookings and Categories show one click away. Two stat
                       * rows for one idea is the drift `AdminUI` exists to stop.
                       */}
-                    <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4">
                         <AdminStat
                             icon={<CheckCircle2 className="w-5 h-5" />}
                             label="Accepted"
@@ -302,7 +302,7 @@ export default function Notifications() {
                     </div>
 
                     {/* ========================================= channel cards */}
-                    <div className="grid gap-3 sm:gap-5 lg:grid-cols-2">
+                    <div className="grid gap-3 sm:gap-5 xl:grid-cols-2">
                         <ChannelCard
                             icon={<Mail className="w-5 h-5" />}
                             title="Email"
@@ -481,12 +481,12 @@ function ChannelCard({ icon, title, configured, rows, note, noteIcon }: {
     return (
         <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6
                             shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
                 <span className="w-10 h-10 shrink-0 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     {icon}
                 </span>
-                <h2 className={`${CARD_TITLE} text-slate-900 flex-1 min-w-0`}>{title}</h2>
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-ui-caption
+                <h2 className={`${CARD_TITLE} text-slate-900 flex-1 basis-32 min-w-0 [overflow-wrap:normal]`}>{title}</h2>
+                <span className={`inline-flex max-w-full items-center gap-1.5 px-2.5 py-1 rounded-full text-ui-caption [overflow-wrap:normal]
                                   font-bold uppercase tracking-wide shrink-0 ${configured
                         ? 'bg-emerald-50 text-emerald-700'
                         : 'bg-amber-50 text-amber-700'}`}>

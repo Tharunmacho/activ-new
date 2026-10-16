@@ -280,7 +280,7 @@ export default function ApprovalQueue({
                                     aria-label="View application"
                                     title="View application"
                                     className="inline-flex h-8 items-center gap-1.5 rounded-lg border
-                                               border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-base
+                                               border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-[1rem]
                                                font-bold text-slate-700 transition-colors
                                                hover:bg-slate-100 hover:border-slate-300"
                                 >
@@ -579,7 +579,7 @@ export default function ApprovalQueue({
                             key={tab.key}
                             type="button"
                             onClick={() => setActiveFilter(tab.key)}
-                            className={`sm:flex-1 min-h-10 px-2 py-2 rounded-lg text-ui-small font-semibold truncate
+                            className={`sm:flex-1 min-w-0 min-h-10 px-2 py-2 rounded-lg text-ui-small font-semibold whitespace-normal [overflow-wrap:normal]
                                         transition-colors ${
                                 isActive
                                     ? TAB_ACTIVE[tab.key]

@@ -363,12 +363,12 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                         />
                                     </div>
                                     <div className="px-3 py-2.5 sm:px-4 sm:py-3.5">
-                                        <p className="text-sm sm:text-ui-caption font-extrabold text-brand-900
+                                        <p className="text-[0.9375rem] sm:text-ui-caption font-extrabold text-brand-900
                                                       line-clamp-2 leading-snug break-words">
                                             {photo.title || 'Untitled'}
                                         </p>
                                         {(photo.location || photo.eventDate) && (
-                                            <p className="mt-1 flex min-w-0 items-center gap-1 text-sm sm:text-ui-caption
+                                            <p className="mt-1 flex min-w-0 items-center gap-1 text-[0.875rem] sm:text-ui-caption
                                                           font-semibold text-gray-500">
                                                 <MapPin size={11} className="shrink-0 text-brand-400" />
                                                 <span className="truncate">
@@ -448,7 +448,7 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
                                     <div className="min-w-0 p-4 sm:p-5 break-words">
                                         {person.role && (
                                             <span className="inline-block rounded-full bg-brand-700 px-2.5 py-1
-                                                             text-base font-bold uppercase tracking-wide
+                                                             text-[1rem] font-bold uppercase tracking-wide
                                                              text-white mb-2">
                                                 {person.role}
                                             </span>
@@ -662,15 +662,15 @@ export default function StateDetailPage({ scope }: { scope: 'state' | 'region' }
 
 const BACK_BTN =
     'inline-flex items-center gap-2 bg-brand-800 hover:bg-brand-700 text-white px-6 sm:px-8 py-3.5 '
-    + 'rounded-full font-bold text-sm sm:text-ui-caption uppercase tracking-[0.1em] transition-colors';
+    + 'rounded-full font-bold text-[0.9375rem] sm:text-ui-caption uppercase tracking-[0.1em] transition-colors';
 
 const PAGE_BTN =
-    'inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 sm:px-5 py-2.5 text-sm sm:text-ui-caption font-bold '
+    'inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 sm:px-5 py-2.5 text-[0.9375rem] sm:text-ui-caption font-bold '
     + 'uppercase tracking-[0.1em] text-white transition-colors hover:bg-brand-700 '
     + 'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-800';
 
 const PAGE_BTN_GHOST =
-    'inline-flex items-center gap-2 rounded-full border border-brand-200 px-4 sm:px-5 py-2.5 text-sm sm:text-ui-caption '
+    'inline-flex items-center gap-2 rounded-full border border-brand-200 px-4 sm:px-5 py-2.5 text-[0.9375rem] sm:text-ui-caption '
     + 'font-bold uppercase tracking-[0.1em] text-brand-700 transition-colors hover:bg-brand-50 '
     + 'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent';
 
@@ -796,7 +796,7 @@ function DetailCard({ row, hasMedia }: { row: RegionFeedItem; hasMedia: boolean 
                         {[row.category, row.sector].filter(Boolean).map((tag) => (
                             <span
                                 key={tag}
-                                className="rounded-full bg-brand-50 px-2.5 py-1 text-base font-bold
+                                className="rounded-full bg-brand-50 px-2.5 py-1 text-[1rem] font-bold
                                            text-brand-700"
                             >
                                 {tag}

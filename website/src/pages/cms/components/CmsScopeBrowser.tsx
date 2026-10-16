@@ -206,7 +206,7 @@ export function CmsScopeBrowser<T>({
                     </div>
                     {districtGroups.length ? districtGroups.map((g) => (
                         <div key={g.name} className="space-y-3">
-                            <p className="pt-2 text-base font-bold uppercase tracking-[0.14em] text-slate-500">{g.name}</p>
+                            <p className="pt-2 text-[1rem] font-bold uppercase tracking-[0.14em] text-slate-500">{g.name}</p>
                             {g.rows.map(renderRow)}
                         </div>
                     )) : emptyLine(`No district ${plural} in ${current.name} yet.`)}

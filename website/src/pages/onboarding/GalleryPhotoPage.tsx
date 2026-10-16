@@ -245,7 +245,7 @@ export default function GalleryPhotoPage() {
                         <Link
                             to={`/gallery/${id}`}
                             className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-700
-                                       font-bold text-base uppercase tracking-[0.1em] transition-colors mb-6 sm:mb-8 max-w-full"
+                                       font-bold text-[1rem] uppercase tracking-[0.1em] transition-colors mb-6 sm:mb-8 max-w-full"
                         >
                             <ArrowLeft size={15} /> Back to {item.title || 'the album'}
                         </Link>
@@ -526,7 +526,7 @@ export default function GalleryPhotoPage() {
                                                     on the photograph's own page,
                                                     which this opens. */}
                                                 {(photo.title || photo.caption) && (
-                                                    <p className="mt-2 px-1 text-base font-semibold leading-snug
+                                                    <p className="mt-2 px-1 text-[1rem] font-semibold leading-snug
                                                                   text-gray-700 line-clamp-2">
                                                         {photo.title || photo.caption}
                                                     </p>

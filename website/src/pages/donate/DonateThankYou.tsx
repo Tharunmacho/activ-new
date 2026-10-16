@@ -113,12 +113,12 @@ export default function DonateThankYou() {
 
                 <dl className="mx-auto mt-6 grid max-w-sm grid-cols-1 gap-2 rounded-xl bg-slate-50 p-4 text-left sm:grid-cols-2">
                     <div className="min-w-0">
-                        <dt className="text-sm text-slate-500">Receipt number</dt>
-                        <dd className="break-all text-base font-bold text-slate-900">{result?.receiptNumber || '—'}</dd>
+                        <dt className="text-[0.875rem] text-slate-500">Receipt number</dt>
+                        <dd className="break-all text-[1rem] font-bold text-slate-900">{result?.receiptNumber || '—'}</dd>
                     </div>
                     <div className="min-w-0">
-                        <dt className="text-sm text-slate-500">Financial year</dt>
-                        <dd className="text-base font-bold text-slate-900">{fyLabel(result?.financialYear) || '—'}</dd>
+                        <dt className="text-[0.875rem] text-slate-500">Financial year</dt>
+                        <dd className="text-[1rem] font-bold text-slate-900">{fyLabel(result?.financialYear) || '—'}</dd>
                     </div>
                 </dl>
 
@@ -136,7 +136,7 @@ export default function DonateThankYou() {
                         </Link>
                     ) : null}
                 </div>
-                <p className="mt-5 text-sm text-slate-500">
+                <p className="mt-5 text-[0.9375rem] text-slate-500">
                     Every gift this financial year is added to your year certificate automatically.
                 </p>
             </Shell>

@@ -21,6 +21,8 @@ import {
 } from './components/CmsUI';
 import { RepeatableList, LinkList, LineList, IconPicker , ExtraFieldsEditor } from './components/CmsEditors';
 import MediaPicker from './components/MediaPicker';
+import { NavigationLinksEditor } from './components/NavigationLinksEditor';
+import { headerNavigationLinks } from '@/components/shared/headerNavigation';
 
 /**
  * The header and the footer — two blocks, matching the two bars they control.
@@ -263,7 +265,7 @@ export default function SiteSettingsManager() {
                                     {site.brand.fullName || 'Your organisation'}
                                 </span>
                                 <span className="flex items-center gap-4 whitespace-nowrap">
-                                    {(site.header.navLinks || []).slice(0, 4).map((item, i) => (
+                                    {headerNavigationLinks(site.header.navLinks).slice(0, 4).map((item, i) => (
                                         <span
                                             key={i}
                                             className="text-ui-caption font-medium"
@@ -291,65 +293,10 @@ export default function SiteSettingsManager() {
                             title="Navigation links"
                             hint="Shown left to right in this order. Add, reorder or remove as many as you need."
                         >
-                            <LinkList
+                            <NavigationLinksEditor
                                 items={site.header.navLinks}
                                 onChange={navLinks => patch('header', { navLinks })}
-                                noun="nav link"
                             />
-
-                            {/*
-                              * ==========================================================
-                              * REGIONS IS IN THE HEADER, AND WAS NOT ON THIS SCREEN
-                              * ==========================================================
-                              *
-                              * The menu is built from the region and state pages, so it
-                              * is not one of the links above and never could be: an
-                              * editor cannot type a two-level menu into a label and a
-                              * path, and a link typed here would go stale the moment a
-                              * region page was published or unpublished.
-                              *
-                              * That was a reason to keep it out of the LIST. It was
-                              * never a reason to leave it off the SCREEN — an editor
-                              * counting seven links against eight things in the header
-                              * has found a bug that is not there, and said so.
-                              *
-                              * So it is shown, in the place it actually occupies (after
-                              * the links), with what it holds and where to edit it.
-                              * Locked rather than hidden: an editor should be able to
-                              * see everything the header contains on the screen called
-                              * Header & Footer.
-                              */}
-                            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border
-                                            border-slate-200 bg-slate-50/70 p-3.5 dark:border-[#2a2a2a]
-                                            dark:bg-[#0f0f0f]">
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center
-                                                 rounded-lg bg-slate-200/70 text-slate-500
-                                                 dark:bg-[#161616] dark:text-neutral-400">
-                                    <Lock className="h-4 w-4" />
-                                </span>
-
-                                <div className="min-w-0 flex-1 basis-[12rem]">
-                                    <p className="text-ui-body font-bold text-slate-900 dark:text-white">
-                                        Zones
-                                        <span className="ml-2 text-ui-caption font-semibold text-slate-400">
-                                            always last
-                                        </span>
-                                    </p>
-                                    <p className="text-ui-caption text-slate-500 dark:text-neutral-400">
-                                        A menu of the national page, the five zones and their states —
-                                        built from the pages themselves, so publishing one adds it here.
-                                    </p>
-                                </div>
-
-                                <a
-                                    href="/cms/regions"
-                                    className="shrink-0 rounded-lg px-3 py-1.5 text-ui-caption font-semibold
-                                               text-blue-700 transition-colors hover:bg-blue-50
-                                               dark:text-blue-400 dark:hover:bg-blue-950/40"
-                                >
-                                    Edit in Zones &amp; States
-                                </a>
-                            </div>
                         </CmsStep>
 
                         <CmsStep sectionKey="header.cta" ownFields={false} step="Header 4" title="Button">

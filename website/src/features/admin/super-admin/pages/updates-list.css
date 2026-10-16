@@ -1,0 +1,55 @@
+/* This list follows the content pane, including when the admin rail is open. */
+.admin-updates-records { container: admin-updates / inline-size; }
+.admin-updates-records table { table-layout: fixed; }
+.admin-updates-title { width: auto; }
+.admin-updates-audience { width: 27%; }
+.admin-updates-status { width: 19%; }
+.admin-updates-actions { width: 10rem; }
+.admin-updates-records th,
+.admin-updates-records td { vertical-align: top; overflow-wrap: break-word; }
+.admin-update-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.25rem; }
+.admin-update-actions button { flex-shrink: 0; }
+
+@container admin-updates (max-width: 58rem) {
+  .admin-updates-records .card-table { overflow-x: visible; }
+  .admin-updates-records table,
+  .admin-updates-records tbody { display: block; width: 100%; }
+  .admin-updates-records colgroup,
+  .admin-updates-records thead { display: none; }
+  .admin-updates-records tr {
+    display: block;
+    padding: 1rem 0;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .admin-updates-records tr:last-child { border-bottom: 0; }
+  .admin-updates-records td {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    padding: 0.5rem 0 !important;
+    border: 0;
+    text-align: left;
+    overflow-wrap: break-word;
+  }
+  .admin-updates-records td::before {
+    content: attr(data-label);
+    grid-column: 1;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .admin-updates-records td > * { grid-column: 2; }
+  .admin-updates-records td > span { justify-self: start; max-width: 100%; }
+  .admin-updates-records .admin-update-actions { justify-content: flex-start; }
+}
+
+@container admin-updates (max-width: 26rem) {
+  .admin-updates-records .card-table td { grid-template-columns: minmax(0, 1fr); }
+  .admin-updates-records .card-table td[data-label] > * { grid-column: 1; margin-left: 0; }
+}

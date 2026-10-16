@@ -1,3 +1,5 @@
+import { onlinePlatformName } from './onlineEvent';
+
 /**
  * The "where" line on an event card, never a bare dash.
  *
@@ -5,7 +7,7 @@
  * nothing. Every event carries SOME answer to "where / how do I attend", so
  * the line falls through the real facts in order:
  *
- *   online          -> "Online · Zoom"   (the mode decides, not the fields —
+ *   online          -> "Zoom"            (the mode decides, not the fields —
  *                      an event switched online keeps its old address)
  *   venue/location  -> the venue
  *   region target   -> "Tamil Nadu › Sivaganga" (who it is for, which is where)
@@ -43,8 +45,7 @@ const timeOf = (iso: string | null | undefined) => {
 export function eventWhere(event: EventWhereInput | null | undefined): EventWhere {
     const e = event || {};
     if (e.mode === 'online') {
-        const platform = clean(e.onlinePlatform);
-        return { online: true, label: 'Online', value: platform ? `Online · ${platform}` : 'Online event' };
+        return { online: true, label: 'Platform', value: onlinePlatformName(e.onlinePlatform) };
     }
 
     const venue = clean(e.venue) || clean(e.location);

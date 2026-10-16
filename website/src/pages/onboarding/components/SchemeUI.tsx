@@ -94,7 +94,7 @@ export function SchemesBand({ settings, title, highlight, description }: {
                                      ring-1 ring-white/25">
                         <CmsIcon name={settings?.badgeIcon || 'landmark'} size={14} fallback="landmark"
                                  className="text-white" />
-                        <span className="text-base font-bold uppercase tracking-[0.16em] text-white">
+                        <span className="text-[1rem] font-bold uppercase tracking-[0.16em] text-white">
                             {settings?.badgeText || 'Schemes'}
                         </span>
                     </span>
@@ -166,13 +166,13 @@ export function SchemeCard({ scheme, showWhere = true }: { scheme: SchemeRecord;
                 </span>
                 <div className="flex flex-wrap justify-end gap-1.5">
                     {scheme.category && (
-                        <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-bold
+                        <span className="rounded-full bg-brand-50 px-3 py-1 text-[0.9375rem] font-bold
                                          text-brand-700">
                             {scheme.category}
                         </span>
                     )}
                     {scheme.deadline && (
-                        <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold
+                        <span className="rounded-full bg-amber-50 px-3 py-1 text-[0.9375rem] font-bold
                                          text-amber-700">
                             {scheme.deadline}
                         </span>
@@ -200,7 +200,7 @@ export function SchemeCard({ scheme, showWhere = true }: { scheme: SchemeRecord;
             )}
 
             {scheme.eligibility && (
-                <p className="mt-4 rounded-lg bg-gray-50 px-3.5 py-2.5 text-base leading-relaxed text-gray-600
+                <p className="mt-4 rounded-lg bg-gray-50 px-3.5 py-2.5 text-[1rem] leading-relaxed text-gray-600
                               line-clamp-3">
                     <span className="font-bold text-gray-700">Who it is for: </span>
                     {scheme.eligibility}
@@ -211,7 +211,7 @@ export function SchemeCard({ scheme, showWhere = true }: { scheme: SchemeRecord;
                 <Link
                     to={detail}
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 px-4 py-2
-                               text-base font-bold text-brand-700 transition-colors hover:border-brand-400
+                               text-[1rem] font-bold text-brand-700 transition-colors hover:border-brand-400
                                hover:bg-brand-50"
                 >
                     View more <ArrowRight size={15} className="shrink-0" />
@@ -222,7 +222,7 @@ export function SchemeCard({ scheme, showWhere = true }: { scheme: SchemeRecord;
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 rounded-full bg-brand-800 px-4 py-2
-                                   text-base font-bold text-white transition-colors hover:bg-brand-700"
+                                   text-[1rem] font-bold text-white transition-colors hover:bg-brand-700"
                     >
                         Click to apply <ArrowUpRight size={15} className="shrink-0" />
                     </a>

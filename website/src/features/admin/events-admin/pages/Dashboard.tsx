@@ -285,7 +285,7 @@ export default function EventsAdminDashboard() {
                                                     <div className="text-[1.375rem] font-bold leading-none">
                                                         {e.startAt ? new Date(e.startAt).getDate() : '–'}
                                                     </div>
-                                                    <div className="text-sm font-semibold uppercase mt-1">
+                                                    <div className="text-[0.9375rem] font-semibold uppercase mt-1">
                                                         {e.startAt ? new Date(e.startAt).toLocaleDateString('en-IN', { month: 'short' }) : 'TBC'}
                                                     </div>
                                                 </div>

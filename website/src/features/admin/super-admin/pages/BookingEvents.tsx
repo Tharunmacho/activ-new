@@ -326,11 +326,11 @@ export default function SuperAdminBookingEvents() {
                     /* `whitespace-nowrap`: without it the two-word label wraps
                        inside the button and the row grows a line taller than
                        every other row in the table. */
-                    className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl bg-blue-600
+                    className="inline-flex max-w-full items-center justify-center gap-1.5 min-h-11 px-4 py-2 rounded-xl bg-blue-600
                                text-ui-small font-semibold text-white shadow-sm hover:bg-blue-700
-                               transition-colors whitespace-nowrap"
+                               transition-colors whitespace-normal [overflow-wrap:normal]"
                 >
-                    <Eye className="w-4 h-4" /> Booking Details
+                    <Eye className="w-4 h-4 shrink-0" /> Booking Details
                 </button>
                 {canDeleteHistory && row.historyCategory === 'deleted' && <button
                     type="button"
@@ -347,7 +347,7 @@ export default function SuperAdminBookingEvents() {
         <div className={`flex h-screen ${ADMIN_BG}`}>
             <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto sm:overflow-hidden">
                 <AdminPageHeader
                     title="Booking Details"
                     subtitle="View or download event bookings and contacts. Old event history stays here until a Super Admin permanently deletes it."
@@ -367,9 +367,9 @@ export default function SuperAdminBookingEvents() {
                     }
                 />
 
-                <div className={`flex-1 overflow-y-auto ${ADMIN_PAGE}`}>
+                <div className={`shrink-0 sm:flex-1 sm:overflow-y-auto ${ADMIN_PAGE}`}>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-4">
                         <AdminStat
                             icon={<Users className="w-5 h-5" />}
                             label="Seats booked"
@@ -421,8 +421,8 @@ export default function SuperAdminBookingEvents() {
                                 type="button"
                                 onClick={() => setTab(value)}
                                 aria-pressed={tab === value}
-                                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2
-                                            h-12 px-6 rounded-xl text-ui-body font-semibold transition-colors
+                                className={`flex-1 sm:flex-none min-w-0 inline-flex items-center justify-center gap-2
+                                            min-h-12 px-3 sm:px-6 py-2 rounded-xl text-ui-body font-semibold transition-colors [&>svg]:shrink-0
                                             ${tab === value
                                         ? 'bg-white text-blue-600 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-800'}`}
@@ -448,7 +448,7 @@ export default function SuperAdminBookingEvents() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm text-slate-500">Event totals show all bookings for matching events. People and Excel use the selected registration filters.</p>
                         <button type="button" onClick={exportRows} disabled={exporting || loading}
-                            className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-50">
+                            className="min-h-11 max-w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
                             {exporting ? 'Preparing report…' : 'Download filtered Excel'}
                         </button>
                     </div>
@@ -467,14 +467,14 @@ export default function SuperAdminBookingEvents() {
                             No {history} events in booking history.
                         </>}
                         toolbar={
-                            <label className="inline-flex items-center gap-2.5 h-12 px-4 rounded-xl
+                            <label className="inline-flex max-w-full items-center gap-2.5 min-h-12 px-4 py-2 rounded-xl
                                               border border-slate-200 bg-white cursor-pointer
-                                              text-ui-body font-semibold text-slate-600 whitespace-nowrap">
+                                              text-ui-body font-semibold text-slate-600 whitespace-normal [overflow-wrap:normal]">
                                 <input
                                     type="checkbox"
                                     checked={includeDrafts}
                                     onChange={(e) => setIncludeDrafts(e.target.checked)}
-                                    className="w-[1.125rem] h-[1.125rem] rounded border-slate-300 text-blue-600"
+                                    className="w-[1.125rem] h-[1.125rem] shrink-0 rounded border-slate-300 text-blue-600"
                                 />
                                 {/* Drafts with existing bookings are always included. */}
                                 Include empty drafts

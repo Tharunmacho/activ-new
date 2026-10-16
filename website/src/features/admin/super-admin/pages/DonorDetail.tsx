@@ -12,6 +12,7 @@ import {
     type DonorDetailResponse,
 } from '@/services/donationsApi';
 import { StatusBadge } from './Donations';
+import './donation-records.css';
 
 /**
  * SUPER ADMIN → DONORS → one donor.
@@ -22,7 +23,7 @@ import { StatusBadge } from './Donations';
  * (CLAUDE.md RULE 2).
  */
 
-const LINK_BTN = 'inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-base font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-50';
+const LINK_BTN = 'inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-[1rem] font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-50 break-normal [overflow-wrap:normal] [&>svg]:shrink-0';
 
 function Detail({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
     if (!value) return null;
@@ -30,7 +31,7 @@ function Detail({ icon: Icon, label, value }: { icon: typeof Mail; label: string
         <div className="flex min-w-0 items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600"><Icon className="h-5 w-5" /></span>
             <span className="min-w-0">
-                <span className="block text-sm text-slate-500">{label}</span>
+                <span className="block text-[0.9375rem] text-slate-500">{label}</span>
                 <span className="block break-words text-ui-caption font-semibold text-slate-900">{value}</span>
             </span>
         </div>
@@ -85,7 +86,7 @@ export default function DonorDetail() {
                 />
 
                 <main className={ADMIN_PAGE}>
-                    {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-base text-red-700">{error}</p> : null}
+                    {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-[1rem] text-red-700">{error}</p> : null}
                     {!data && !error ? (
                         <div className="flex items-center justify-center gap-2 py-16 text-slate-500"><Loader2 className="h-5 w-5 animate-spin" /> Loading…</div>
                     ) : null}
@@ -94,7 +95,7 @@ export default function DonorDetail() {
                         <>
                             <section className={`${ADMIN_CARD} p-4 sm:p-6`}>
                                 <h2 className={`${CARD_TITLE} text-slate-900`}>Donor details</h2>
-                                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                                     <Detail icon={User} label={donor.donorType === 'organisation' ? 'Organisation' : 'Name'} value={donor.fullName || ''} />
                                     <Detail icon={Mail} label="Email" value={donor.email || ''} />
                                     <Detail icon={Phone} label="Mobile" value={donor.phone || ''} />
@@ -112,12 +113,12 @@ export default function DonorDetail() {
                                 {byYear.length === 0 ? (
                                     <p className="mt-3 text-ui-caption text-slate-500">No completed donations yet.</p>
                                 ) : (
-                                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                                         {byYear.map((y) => (
                                             <div key={y.financialYear} className="flex min-w-0 flex-col gap-2 rounded-xl border border-slate-200 p-4">
-                                                <p className="text-base font-semibold text-slate-500">FY {fyLabel(y.financialYear)}</p>
+                                                <p className="text-[1rem] font-semibold text-slate-500">FY {fyLabel(y.financialYear)}</p>
                                                 <p className="text-[1.75rem] font-extrabold tabular-nums text-slate-900">{inr(y.total || 0)}</p>
-                                                <p className="text-sm text-slate-500">{y.count || 0} gift{(y.count || 0) === 1 ? '' : 's'}</p>
+                                                <p className="text-[0.9375rem] text-slate-500">{y.count || 0} gift{(y.count || 0) === 1 ? '' : 's'}</p>
                                                 {donor.statementToken ? (
                                                     <a href={statementPath(donor.statementToken, y.financialYear)} target="_blank" rel="noopener noreferrer" className={LINK_BTN}>
                                                         <CalendarRange className="h-4 w-4" /> Year certificate
@@ -134,8 +135,8 @@ export default function DonorDetail() {
                                 {donations.length === 0 ? (
                                     <p className="mt-3 text-ui-caption text-slate-500">No donations recorded.</p>
                                 ) : (
-                                    <div ref={tableRef} className="card-table mt-4">
-                                        <table className="w-full text-left text-ui-caption sm:table-fixed [&_td]:break-words">
+                                    <div ref={tableRef} className="donation-records card-table mt-4 overflow-x-auto">
+                                        <table className="w-full text-left text-ui-caption sm:min-w-[80rem] sm:table-fixed [&_td]:break-words">
                                             <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
                                                 <tr>
                                                     <th className="w-[11%] px-3 py-3 font-semibold">Date</th>
@@ -152,12 +153,12 @@ export default function DonorDetail() {
                                                     const paid = String(r.status || '').toLowerCase() === 'paid';
                                                     return (
                                                         <tr key={r.id} className="align-top">
-                                                            <td className="px-3 py-3 text-sm text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
-                                                            <td className="break-all px-3 py-3 text-sm">{r.receiptNumber || '—'}</td>
-                                                            <td className="px-3 py-3 text-sm">{fyLabel(r.financialYear) || '—'}</td>
-                                                            <td className="px-3 py-3 text-right font-bold tabular-nums">{inr(r.amount || 0)}</td>
+                                                            <td className="px-3 py-3 text-[0.9375rem] text-slate-600">{shortDate(r.paidAt || r.createdAt) || '—'}</td>
+                                                            <td className="break-all px-3 py-3 text-[0.9375rem]">{r.receiptNumber || '—'}</td>
+                                                            <td className="px-3 py-3 text-[0.9375rem]">{fyLabel(r.financialYear) || '—'}</td>
+                                                            <td className="px-3 py-3 text-right font-bold tabular-nums whitespace-nowrap">{inr(r.amount || 0)}</td>
                                                             <td className="px-3 py-3"><StatusBadge status={r.status} /></td>
-                                                            <td className="whitespace-pre-line break-words px-3 py-3 text-sm text-slate-700">{r.message || '—'}</td>
+                                                            <td className="whitespace-pre-line break-words px-3 py-3 text-[0.9375rem] text-slate-700">{r.message || '—'}</td>
                                                             <td className="px-3 py-3">
                                                                 {paid ? (
                                                                     <div className="flex flex-col items-start gap-1">

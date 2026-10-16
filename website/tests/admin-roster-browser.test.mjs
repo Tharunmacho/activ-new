@@ -1,30 +1,43 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdtemp, rm, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import postcss from 'postcss';
+import tailwind from 'tailwindcss';
+import loadConfig from 'tailwindcss/loadConfig.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-admin-roster-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const fontRoot=path.resolve(root,'../artifacts');
+const layouts=[];
 let bundle = '', css = '', chrome, ws;
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   if (req.url === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
   if (req.url === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
-  res.end('<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');
+  if(/^\/font-restore-poppins-[0-5]\.ttf$/.test(req.url)){res.setHeader('Content-Type','font/ttf');return res.end(await readFile(path.join(fontRoot,req.url.slice(1))));}
+  res.end('<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
-  const assets = await readdir(path.join(root, 'dist/assets'));
-  css = await readFile(path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+  if(process.env.TEST_ARTIFACTS)await mkdir(process.env.TEST_ARTIFACTS,{recursive:true});
+  if(process.env.TEST_CSS)css=await readFile(path.resolve(process.env.TEST_CSS),'utf8');
+  else{
+    let inputCss=await readFile(path.join(root,'src/index.css'),'utf8');
+    for(const match of [...inputCss.matchAll(/@import ['"](.+?)['"];?/g)])inputCss=inputCss.replace(match[0],await readFile(path.resolve(root,'src',match[1]),'utf8'));
+    const config=loadConfig(path.join(root,'tailwind.config.ts'));config.content=[path.join(root,'src/**/*.{ts,tsx}')];
+    css=(await postcss([tailwind(config)]).process(inputCss,{from:path.join(root,'src/index.css')})).css;
+  }
+  for(let i=0;i<6;i++)css+=`\n@font-face{font-family:Poppins;font-style:normal;font-weight:${400+i*100};src:url('/font-restore-poppins-${i}.ttf') format('truetype');font-display:block}`;
   const fixturePlugin = { name: 'fixture-api', setup(b) {
     const names = ['@/services/activApi', './AdminSidebar'];
     b.onResolve({filter:/.*/}, args => names.includes(args.path) ? {path:args.path,namespace:'fixture'} : undefined);
     b.onLoad({filter:/.*/,namespace:'fixture'}, args => ({loader:'tsx',resolveDir:root,contents:
-      args.path === './AdminSidebar' ? 'export default function Sidebar() {return <aside className="hidden lg:block w-64 shrink-0 bg-blue-950 text-white p-6 font-bold">ACTIV<br/>Super Admin</aside>}' : `
+      args.path === './AdminSidebar' ? 'export default function Sidebar() {return <aside className="hidden lg:block lg:w-[17.5rem] xl:w-[20.5rem] 2xl:w-[22rem] shrink-0 bg-blue-950 text-white p-6 font-bold">ACTIV<br/>Super Admin</aside>}' : `
       window.rosterRequests=[];window.staffRequests=0;window.requestDelay=0;
       const roles=['state_admin','district_admin','block_admin'];
       const rows=Array.from({length:8184},(_,i)=>({id:String(i),fullName:'Regional '+String(i).padStart(5,'0'),email:'fixture-'+i+'@example.test',role:roles[i%3],active:true,state:i%2?'Tamil Nadu':'Kerala',district:i%2?'Chennai':'Kollam',block:'Guindy',region:i%2?'Guindy, Chennai, Tamil Nadu':'Kollam, Kerala',coAdmins:0}));
@@ -66,6 +79,7 @@ try {
   await send('Runtime.enable');await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}`});
   await until('document.querySelectorAll("tbody tr").length===25');
+  await evaluate('document.fonts.ready');
   await pause(500);
   assert.equal(await evaluate('window.rosterRequests.length'),1,'one initial roster request');
   assert.equal(await evaluate('window.rosterRequests[0].limit'),25);
@@ -95,8 +109,24 @@ try {
   await until('window.rosterRequests.at(-1).state==="Tamil Nadu" && document.querySelectorAll("tbody tr").length===25');
   assert(await evaluate('[...document.querySelectorAll("tbody tr")].every(row=>row.innerText.includes("Tamil Nadu"))'));
   assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'),'mobile table cards fit');
+  for(const width of [1440,390,320]){
+    await send('Emulation.setDeviceMetricsOverride',{width,height:940,deviceScaleFactor:1,mobile:width<600});
+    await evaluate('document.querySelector("table").scrollIntoView({block:"start"})');await pause(80);
+    const result=await evaluate(`(()=>{const row=document.querySelector('tbody tr');return{width:innerWidth,scrollWidth:document.documentElement.scrollWidth,rootSize:parseFloat(getComputedStyle(document.documentElement).fontSize),bodySize:parseFloat(getComputedStyle(document.body).fontSize),bodyFont:getComputedStyle(document.body).fontFamily,poppinsLoaded:document.fonts.check('600 20px Poppins'),columns:getComputedStyle(row.cells[0]).gridTemplateColumns,cells:[...row.cells].map(el=>({text:el.textContent,clientWidth:el.clientWidth,scrollWidth:el.scrollWidth})),buttons:[...row.querySelectorAll('button')].map(el=>{const r=el.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,width:r.width,height:r.height}})}})()`);
+    assert(result.scrollWidth<=width+1,'Roster page fits at '+width);
+    assert(result.cells.every(cell=>cell.scrollWidth<=cell.clientWidth+1),'Roster values fit their cells at '+width);
+    assert(result.buttons.every(button=>button.left>=-1&&button.right<=width+1),'Roster actions stay visible at '+width);
+    if(width<420)assert.equal(result.columns.split(' ').length,1,'Phone roster fields stack above their values');
+    assert.equal(result.buttons[0].top,result.buttons[1].top,'Edit and Delete stay side by side');
+    assert(result.buttons.every(button=>button.width>=44&&button.height>=44),'Roster actions have comfortable touch targets');
+    assert.equal(result.rootSize,width<640?14:16,'Original b0111a3 root scale');
+    assert.equal(result.bodySize,width<640?14:16,'Body follows original root scale');
+    assert(result.poppinsLoaded&&result.bodyFont.includes('Poppins'),'Actual original Poppins loaded');layouts.push(result);
+    if(process.env.TEST_ARTIFACTS){const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await writeFile(path.join(process.env.TEST_ARTIFACTS,'admin-roster-'+width+'.png'),Buffer.from(shot.result.data,'base64'));}
+  }
   assert.deepEqual(errors,[]);
-  console.log('PASS: bounded initial load, next page, full-roster search, first-page reset, Staff shortcut and search, region filters, bold controls and desktop/mobile layout.');
+  if(process.env.TEST_ARTIFACTS)await writeFile(path.join(process.env.TEST_ARTIFACTS,'verification.json'),JSON.stringify({layouts,errors,checks:'bounded initial load, next page, full-roster search, first-page reset, staff shortcut/search, region filters',css:process.env.TEST_CSS||'generated from current source',fonts:'local Poppins'},null,2));
+  console.log('PASS: bounded initial load, next page, full-roster search, first-page reset, Staff shortcut and search, region filters, original Poppins scale, 44px actions and desktop/mobile layout.');
   await send('Browser.close');
 } finally {
   ws?.close();chrome?.kill();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));

@@ -32,11 +32,11 @@ export function MembershipTypeBadge({ member }: { member: Pick<AdminMember, 'kin
     const s = style[member.kind] || { icon: <Users className="h-3.5 w-3.5" />, cls: 'bg-slate-100 text-slate-700 ring-slate-200' };
     return (
         <span className="inline-flex flex-wrap items-center gap-1">
-            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-sm font-semibold ring-1 ${s.cls}`}>
+            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.8125rem] font-semibold ring-1 ${s.cls}`}>
                 {s.icon} {member.kindLabel || 'Member'}
             </span>
             {member.lifetime ? (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-sm font-semibold text-indigo-700 ring-1 ring-indigo-200">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[0.8125rem] font-semibold text-indigo-700 ring-1 ring-indigo-200">
                     <InfinityIcon className="h-3.5 w-3.5" /> Lifetime
                 </span>
             ) : null}
@@ -58,7 +58,7 @@ export function MemberStateChip({ member }: { member: Pick<AdminMember, 'status'
         text = member.daysLeft !== null && member.daysLeft <= 0 ? 'Expires today' : `Expires in ${member.daysLeft} day${member.daysLeft === 1 ? '' : 's'}`;
     }
     return (
-        <span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-sm font-semibold ${cls}`}>
+        <span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.9375rem] font-semibold ${cls}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${dot}`} /> {text}
         </span>
     );
@@ -128,10 +128,10 @@ export default function AdminMemberList({
                                 <span className="flex flex-wrap items-center gap-1.5">
                                     <span className="truncate font-semibold text-slate-900">{m.name || 'Name not provided'}</span>
                                     <MembershipTypeBadge member={m} />
-                                    {m.blocked ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs font-semibold text-white">Blocked</span> : null}
+                                    {m.blocked ? <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[0.75rem] font-semibold text-white">Blocked</span> : null}
                                 </span>
-                                <span className="block truncate text-sm text-slate-500">{[m.email, m.phone].filter(Boolean).join(' · ')}</span>
-                                <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-slate-500">
+                                <span className="block truncate text-[0.9375rem] text-slate-500">{[m.email, m.phone].filter(Boolean).join(' · ')}</span>
+                                <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.875rem] text-slate-500">
                                     {m.memberNumber ? <span className="font-semibold text-slate-700">{m.memberNumber}</span> : null}
                                     {m.planName ? <span>{m.planName}</span> : null}
                                     {region ? <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{region}</span></span> : null}
@@ -153,7 +153,7 @@ export default function AdminMemberList({
                                 do not see it at all, not even greyed out. */}
                             {canManageReminders && m.status !== 'awaiting_payment' && !m.lifetime ? (
                                 <label title="Renewal reminders on the 1st and 15th once the membership expires"
-                                    className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                    className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-2.5 text-[0.875rem] font-semibold text-slate-700 hover:bg-slate-50">
                                     {m.reminders ? <BellRing className="h-4 w-4 text-blue-600" /> : <BellOff className="h-4 w-4" />}
                                     Reminders
                                     <input type="checkbox" role="switch" className="peer sr-only" checked={m.reminders}
@@ -168,7 +168,7 @@ export default function AdminMemberList({
                             {canManageReminders && remindable && onRemindNow ? (
                                 <button type="button" disabled={busy} onClick={() => onRemindNow(m)}
                                     title={m.lastReminderAt ? `Last reminder ${day(m.lastReminderAt)}` : 'Send a renewal reminder now'}
-                                    className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white disabled:opacity-60">
+                                    className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-blue-600 px-3 text-[0.875rem] font-semibold text-white disabled:opacity-60">
                                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Remind now
                                 </button>
                             ) : null}

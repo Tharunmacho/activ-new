@@ -260,7 +260,7 @@ export default function BusinessSidebar({
                         <div key={group.label} className="mb-5 last:mb-0">
                             <div className={`mb-2 flex items-center gap-2 ${collapsed ? 'px-0 justify-center' : 'px-3.5'}`}>
                                 {!collapsed && (
-                                    <p className="flex-1 min-w-0 text-base font-bold uppercase
+                                    <p className="flex-1 min-w-0 text-[1rem] font-bold uppercase
                                                   tracking-[0.06em] text-slate-900 truncate">
                                         {group.label}
                                     </p>
@@ -383,7 +383,7 @@ export default function BusinessSidebar({
                                 <span className="block text-[1.125rem] font-semibold text-slate-900 truncate">
                                     {companyName}
                                 </span>
-                                <span className="block text-base text-slate-500 truncate">
+                                <span className="block text-[1rem] text-slate-500 truncate">
                                     {companyPhone || 'No phone'}
                                 </span>
                             </span>

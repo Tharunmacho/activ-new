@@ -136,9 +136,9 @@ export function StatTile({
                     </span>
                 ) : null}
             </div>
-            <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 tabular-nums leading-tight truncate">{value}</div>
+            <div className="text-[1.875rem] sm:text-[2.5625rem] font-extrabold tracking-tight text-slate-900 tabular-nums leading-tight truncate">{value}</div>
             {unit ? (
-                <p className="text-base sm:text-ui-small text-slate-500 font-bold mt-1.5 uppercase tracking-wider
+                <p className="text-[1rem] sm:text-ui-small text-slate-500 font-bold mt-1.5 uppercase tracking-wider
                               leading-snug break-words">{unit}</p>
             ) : null}
         </div>
@@ -197,7 +197,7 @@ export function EmptyState({
             <span className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 flex items-center justify-center mb-3 sm:mb-4">
                 <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </span>
-            <p className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 mb-1.5 break-words">{title}</p>
+            <p className="text-[1.375rem] sm:text-[1.5625rem] font-extrabold tracking-tight text-slate-900 mb-1.5 break-words">{title}</p>
             {hint ? <p className="text-ui-body text-slate-500 max-w-md break-words">{hint}</p> : null}
             {action ? <div className="mt-4 sm:mt-5 flex flex-wrap justify-center gap-2">{action}</div> : null}
         </div>

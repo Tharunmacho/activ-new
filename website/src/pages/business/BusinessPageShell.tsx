@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, ArrowLeft } from 'lucide-react';
 import BusinessSidebar from './BusinessSidebar';
 
-import { PAGE_SUBTITLE, PAGE_TITLE } from '@/components/layout/appTypography';
+import { PAGE_SUBTITLE } from '@/components/layout/appTypography';
+const PAGE_TITLE = 'text-[1.625rem] sm:text-[2.5rem] font-semibold tracking-tight leading-[1.1]';
 /**
  * The page shell every business screen renders inside.
  *

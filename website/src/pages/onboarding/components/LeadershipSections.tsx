@@ -292,20 +292,20 @@ export function LeaderCard({ person, onOpen, context }: {
                       * three-line designation costs the row three lines once.
                       */}
                     {person.role && (
-                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-base sm:text-ui-small font-semibold
+                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-[1rem] sm:text-ui-small font-semibold
                                          leading-snug text-brand-600 break-words">
                             {person.designation || person.role}
                         </span>
                     )}
                     {!person.role && person.designation && (
-                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-base sm:text-ui-small font-semibold
+                        <span className="mt-1 sm:mt-1.5 min-h-[2.6em] text-balance text-[1rem] sm:text-ui-small font-semibold
                                          leading-snug text-brand-600 break-words">
                             {person.designation}
                         </span>
                     )}
 
                     {person.organisation && (
-                        <span className="mt-1.5 sm:mt-2 min-h-[2.8em] text-balance text-sm sm:text-ui-caption font-medium
+                        <span className="mt-1.5 sm:mt-2 min-h-[2.8em] text-balance text-[0.9375rem] sm:text-ui-caption font-medium
                                          leading-snug text-gray-500 line-clamp-2">
                             {person.organisation}
                         </span>
@@ -317,7 +317,7 @@ export function LeaderCard({ person, onOpen, context }: {
                         divider to divide, and a hairline across open background
                         is a line drawn for its own sake. */}
                     <span className="mt-auto pt-3 sm:pt-4 inline-flex min-h-10 items-center justify-center gap-1.5
-                                     text-base sm:text-ui-caption font-bold text-brand-600
+                                     text-[1rem] sm:text-ui-caption font-bold text-brand-600
                                      transition-colors group-hover:text-brand-800">
                         Read More
                         <ArrowRight

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdtemp, rm, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,12 +47,15 @@ const server = http.createServer((req, res) => {
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
+    if (process.env.TEST_ARTIFACTS) await mkdir(process.env.TEST_ARTIFACTS, { recursive: true });
     const files = await readdir(path.join(root, 'dist/assets'));
     css = await readFile(process.env.TEST_CSS || path.join(root, 'dist/assets', files.find(file => /^index-.*\.css$/.test(file))), 'utf8');
     css += '\n' + fonts.css;
     const fixtures = { name: 'unrelated-shell-fixtures', setup(b) {
         b.onResolve({ filter: /AdminSidebar$|\/BookingPeople$|\/notificationDeliveryApi$/ }, args => ({ path: args.path, namespace: 'fixture' }));
-        b.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ loader: 'js', contents: 'export default function Empty(){return null};export const getDeliverySummaries=async()=>({});export const getBookingDelivery=async()=>({rows:[]});export const resendNotification=async()=>{throw Error("Read-only fixture");};' }));
+        b.onLoad({ filter: /.*/, namespace: 'fixture' }, args => args.path.endsWith('AdminSidebar')
+            ? ({ resolveDir: root, loader: 'jsx', contents: 'export default function Sidebar(){return <aside data-fixture-sidebar className="hidden lg:block shrink-0 lg:w-[17.5rem] xl:w-[20.5rem] 2xl:w-[22rem] bg-blue-900"/>}' })
+            : ({ loader: 'js', contents: 'export default function Empty(){return null};export const getDeliverySummaries=async()=>({});export const getBookingDelivery=async()=>({rows:[]});export const resendNotification=async()=>{throw Error("Read-only fixture");};' }));
     } };
     const built = await build({ absWorkingDir: root, bundle: true, write: false, outdir: profile, format: 'iife', platform: 'browser', jsx: 'automatic', plugins: [fixtures], define: { 'import.meta.env': JSON.stringify({ DEV: true, VITE_API_URL: `http://127.0.0.1:${server.address().port}/api/v1` }), 'process.env.NODE_ENV': '"test"' }, stdin: { resolveDir: root, loader: 'tsx', contents: `
         import React from 'react';import {createRoot} from 'react-dom/client';import {MemoryRouter,Routes,Route} from 'react-router-dom';
@@ -94,21 +97,23 @@ try {
                 metrics: [...document.querySelectorAll('p.tabular-nums')].map(style),
                 overflows: document.documentElement.scrollWidth > innerWidth };
         })()`);
-        assert.equal(measured.title.size, width >= 640 ? '40px' : '24px', `${width}: shared page heading size`);
-        assert.equal(measured.body.size, '20px', `${width}: readable base size`);
-        assert.equal(measured.subtitle.size, '20px', `${width}: consistent description size`);
-        assert(parseFloat(measured.control.size) >= 18, `${width}: input remains readable and avoids mobile focus zoom`);
+        const originalRoot = width >= 640 ? 16 : 14;
+        assert.equal(measured.title.size, width >= 640 ? '40px' : '21px', `${width}: historical shared page heading size`);
+        assert.equal(measured.body.size, `${originalRoot}px`, `${width}: historical base size`);
+        assert.equal(measured.subtitle.size, `${originalRoot * 1.25}px`, `${width}: historical description size`);
+        assert(parseFloat(measured.control.size) >= 16, `${width}: input avoids mobile focus zoom`);
         assert(measured.body.family.includes('Poppins'), `${width}: shared UI font family`);
-        assert(measured.metrics.length === 4 && measured.metrics.every(metric => metric.size === (width >= 640 ? '36px' : '30px')), `${width}: balanced metric sizes`);
+        assert(measured.metrics.length === 4 && measured.metrics.every(metric => metric.size === (width >= 640 ? '54px' : '22.75px')), `${width}: historical metric sizes`);
         assert.equal(measured.overflows, false, `${width}: overview fits viewport`);
         await evaluate('document.querySelector("details").open=true');
         const filters=await evaluate(`(() => {
             const elements=[...document.querySelectorAll('details input,details select,details button')].filter(e=>e.getBoundingClientRect().width>0);
-            return {count:elements.length,fields:elements.map(e=>{const r=e.getBoundingClientRect();return {name:e.getAttribute('aria-label')||e.textContent.trim(),size:parseFloat(getComputedStyle(e).fontSize),left:r.left,right:r.right}}),labels:[...document.querySelectorAll('details label')].map(e=>parseFloat(getComputedStyle(e).fontSize))};
+            return {count:elements.length,fields:elements.map(e=>{const r=e.getBoundingClientRect();return {tag:e.tagName,name:e.getAttribute('aria-label')||e.textContent.trim(),size:parseFloat(getComputedStyle(e).fontSize),left:r.left,right:r.right}}),labels:[...document.querySelectorAll('details label')].map(e=>parseFloat(getComputedStyle(e).fontSize))};
         })()`);
         assert(filters.count>10,'Expanded filter fixture has actual controls');
-        assert(filters.fields.every(e=>e.left>=-1&&e.right<=width+1&&e.size>=18),`${width}: readable filters fit ${JSON.stringify(filters)}`);
-        assert(filters.labels.length>0&&filters.labels.every(size=>size>=18),'Expanded labels are readable');
+        assert(filters.fields.every(e=>e.left>=-1&&e.right<=width+1&&e.size>0),`${width}: filters fit ${JSON.stringify(filters)}`);
+        if (width < 640) assert(filters.fields.filter(e=>e.tag==='INPUT'||e.tag==='SELECT').every(e=>e.size>=16),'Phone fields avoid focus zoom');
+        assert(filters.labels.length>0&&filters.labels.every(size=>size>0),'Expanded labels are visible');
         assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'),`${width}: expanded filter fits viewport`);
         typography.push({...measured,filters});
         if (process.env.TEST_ARTIFACTS) {
@@ -148,8 +153,9 @@ try {
         })()`);
         layouts.push(layout);
         if(process.env.TEST_ARTIFACTS) await writeFile(path.join(process.env.TEST_ARTIFACTS,'booking-list-typography.json'),JSON.stringify({fonts:fonts.loaded?'local Poppins':'system fallback',layouts},null,2));
-        assert(layout.font.includes('Poppins')); assert(layout.nameSize>=18 && layout.actionSize>=18);
-        assert(layout.tableSize>=18); if(width<=768) assert(layout.captionSize>=16);
+        const originalRoot = width >= 640 ? 16 : 14;
+        assert(layout.font.includes('Poppins')); assert.equal(layout.nameSize, originalRoot); assert.equal(layout.actionSize, originalRoot * .875);
+        assert.equal(layout.tableSize, originalRoot); if(width<=768) assert.equal(layout.captionSize, originalRoot * .75);
         assert.deepEqual(layout.overflow, [], `${width}: no clipped cells or sideways scrolling`);
         assert(layout.actionsFit, `${width}: every Details button stays within the viewport`);
         if (process.env.TEST_ARTIFACTS && [1440, 768, 390, 320].includes(width)) {

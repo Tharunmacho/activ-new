@@ -36,8 +36,8 @@ function Row({ label, value, wide = false }: { label: string; value?: ReactNode;
     if (value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length)) return null;
     return (
         <div className={`min-w-0 ${wide ? 'sm:col-span-2' : ''}`}>
-            <dt className="text-sm font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-            <dd className="text-base text-slate-800 [overflow-wrap:anywhere]">{value}</dd>
+            <dt className="text-[0.875rem] font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+            <dd className="text-[1rem] text-slate-800 [overflow-wrap:anywhere]">{value}</dd>
         </div>
     );
 }
@@ -54,9 +54,9 @@ export default function PlatinumRequestDetails({ requestId }: { requestId: strin
         return () => { cancelled = true; };
     }, [requestId]);
 
-    if (error) return <p className="mt-3 rounded-xl bg-rose-50 p-3 text-base text-rose-700">{error}</p>;
+    if (error) return <p className="mt-3 rounded-xl bg-rose-50 p-3 text-[1rem] text-rose-700">{error}</p>;
     if (!data) {
-        return <p className="mt-3 flex items-center gap-2 text-base text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Loading the member’s details…</p>;
+        return <p className="mt-3 flex items-center gap-2 text-[1rem] text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Loading the member’s details…</p>;
     }
 
     const p = data.personal;

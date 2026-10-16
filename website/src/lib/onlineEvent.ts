@@ -2,3 +2,8 @@
 export function onlineRegistrationLink(url?: string): boolean {
   return /register|registration|forms\.|\/form|lu\.ma|eventbrite/i.test(String(url || ''));
 }
+
+/** The same short platform name on event cards, details and booking summaries. */
+export function onlinePlatformName(platform?: string | null): string {
+  return String(platform || '').trim() || 'Online';
+}

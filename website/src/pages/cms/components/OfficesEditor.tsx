@@ -49,19 +49,19 @@ function MapPreview({ input, address }: { input: string; address: string }) {
                     <iframe key={state.embedUrl} src={state.embedUrl} title="Map preview" loading="lazy"
                         className="absolute inset-0 h-full w-full border-0" referrerPolicy="no-referrer-when-downgrade" />
                 ) : (
-                    <div className="absolute inset-0 grid place-items-center p-4 text-center text-base text-slate-500">
+                    <div className="absolute inset-0 grid place-items-center p-4 text-center text-[1rem] text-slate-500">
                         {state.error || 'Paste a Google Maps link, the “Embed a map” code, or type the address above — the map appears here.'}
                     </div>
                 )}
                 {state.loading ? (
-                    <span className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-sm text-slate-600 shadow">
+                    <span className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[0.875rem] text-slate-600 shadow">
                         <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating…
                     </span>
                 ) : null}
             </div>
             {state.mapLink ? (
                 <a href={state.mapLink} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 border-t border-slate-200 dark:border-[#262626] px-3 py-2 text-sm font-semibold text-blue-600 hover:underline">
+                    className="flex items-center gap-1.5 border-t border-slate-200 dark:border-[#262626] px-3 py-2 text-[0.9375rem] font-semibold text-blue-600 hover:underline">
                     <ExternalLink className="h-4 w-4" /> Open this in Google Maps to check the pin
                 </a>
             ) : null}
@@ -120,7 +120,7 @@ export default function OfficesEditor({ offices, onChange }: { offices: ContactO
                             detail: o.state || 'State not set',
                         }))}
                     />
-                    <p className="mt-2 text-sm text-slate-500">
+                    <p className="mt-2 text-[0.9375rem] text-slate-500">
                         Shown first on the Contact page, labelled “Head Office”, and used by the site’s header and footer.
                     </p>
                 </div>
@@ -132,8 +132,8 @@ export default function OfficesEditor({ offices, onChange }: { offices: ContactO
                         <p className="flex min-w-0 items-center gap-2 text-[1.125rem] font-bold text-slate-900 dark:text-neutral-100">
                             {o.isHeadOffice ? <Building2 className="h-5 w-5 text-blue-600" /> : <MapPin className="h-5 w-5 text-slate-400" />}
                             <span className="truncate">{name(o)}</span>
-                            {o.isHeadOffice ? <span className="rounded-full bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">Head office</span> : null}
-                            {o.isActive === false ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-500 dark:bg-white/10">Hidden</span> : null}
+                            {o.isHeadOffice ? <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.8125rem] font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">Head office</span> : null}
+                            {o.isActive === false ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.8125rem] font-semibold text-slate-500 dark:bg-white/10">Hidden</span> : null}
                         </p>
                         <div className="flex items-center gap-1">
                             <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up"
@@ -141,7 +141,7 @@ export default function OfficesEditor({ offices, onChange }: { offices: ContactO
                             <button type="button" onClick={() => move(i, 1)} disabled={i === list.length - 1} aria-label="Move down"
                                 className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-white/10"><ArrowDown className="h-4 w-4" /></button>
                             <button type="button" onClick={() => remove(o.id)} aria-label={`Delete ${name(o)}`}
-                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"><Trash2 className="h-4 w-4" /> Delete</button>
+                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[0.9375rem] font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"><Trash2 className="h-4 w-4" /> Delete</button>
                         </div>
                     </div>
 

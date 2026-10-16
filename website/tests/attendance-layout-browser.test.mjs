@@ -57,7 +57,7 @@ try {
     define: { 'import.meta.env': JSON.stringify({ DEV: true, VITE_API_URL: `${base}/api/v1` }), 'process.env.NODE_ENV': '"test"' },
     plugins: [{ name: 'unrelated-sidebar', setup(b) {
       b.onResolve({ filter: /AdminSidebar$/ }, args => ({ path: args.path, namespace: 'fixture' }));
-      b.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export default function Sidebar(){return null}', loader: 'js' }));
+      b.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ resolveDir: root, contents: 'export default function Sidebar(){return <aside data-fixture-sidebar className="hidden lg:block shrink-0 lg:w-[17.5rem] xl:w-[20.5rem] 2xl:w-[22rem] bg-blue-900"/>}', loader: 'jsx' }));
     } }], stdin: { resolveDir: root, loader: 'tsx', contents: `
       import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter,Routes,Route}from'react-router-dom';
       import Attendance from './src/features/admin/super-admin/pages/Attendance';
@@ -112,7 +112,7 @@ try {
     assert.equal(result.scrollWidth, width, `${screen}/${width}: page fits viewport`);
     assert(!result.paneOverflow && !result.contentOverflow, `${screen}/${width}: pane fits`);
     assert.equal(result.cards.length, screen === 'events' ? 2 : 4);
-    assert(result.labels.every(r => r.fontSize >= 20 && r.fontFamily.includes('Poppins') && r.wordsFit), `${screen}/${width}: stat words stay intact`);
+    assert(result.labels.every(r => r.fontSize === (width < 640 ? 14 : 20) && r.fontFamily.includes('Poppins') && r.wordsFit), `${screen}/${width}: historical stat typography keeps words intact`);
     assert(result.hints.every(r => !r.clipped && r.clamp === 'none'), `${screen}/${width}: complete stat descriptions`);
     assert(result.controls.every(r => r.left >= -1 && r.right <= width + 1 && !r.clipped), `${screen}/${width}: controls fit ${JSON.stringify(result.controls.filter(r=>r.left< -1||r.right>width+1||r.clipped))}`);
     if (width < 640) assert(result.cards.every(r => Math.abs(r.width - result.cards[0].width) < 1 && r.width >= width - 34), 'Mobile stats use the full content width');
