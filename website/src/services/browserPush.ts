@@ -104,11 +104,25 @@ export function syncBrowserPush(): Promise<void> {
   const snapshot = session();
   const revision = generation;
   return serial(async () => {
+    const previousIdentity = await readPushIdentity();
+    if (revision !== generation || session().auth !== snapshot.auth) return;
+    // Account changes and browser permission revocation also happen outside our controls.
+    // Remove the worker's display permission before any slow Firebase work.
+    const canReceive = snapshot.auth && snapshot.userId && snapshot.expiresAt > Date.now()
+      && pushConfigured() && pushEnabled() && 'Notification' in window && Notification.permission === 'granted';
+    if (previousIdentity && (!canReceive || previousIdentity.userId !== snapshot.userId)) {
+      await writePushIdentity(null);
+      stopMessages?.(); stopMessages = undefined;
+      const registration = await navigator.serviceWorker?.getRegistration('/firebase-messaging-sw.js').catch(() => undefined);
+      (await registration?.getNotifications())?.forEach(notification => notification.close());
+      if (snapshot.auth && previousIdentity.token) await deviceRequest('DELETE', previousIdentity.token, snapshot.auth).catch(() => undefined);
+      changed();
+    }
     if (!snapshot.auth || !snapshot.userId || snapshot.expiresAt <= Date.now() || !pushConfigured() || !pushEnabled()) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') {
       await writePushIdentity(null); return;
     }
-    const current = () => revision === generation && session().auth === snapshot.auth && pushEnabled();
+    const current = () => revision === generation && session().auth === snapshot.auth && snapshot.expiresAt > Date.now() && pushEnabled();
     // Bound external SDK work so logout is never trapped behind a stalled request.
     // A late SDK result cannot reach the server registration or write an identity.
     const { sdk, messaging, token } = await registrationDeadline((async () => {

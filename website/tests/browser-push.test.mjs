@@ -46,7 +46,7 @@ try {
       b.onLoad({ filter: /.*/, namespace: 'fake' }, args => ({ contents: args.path.endsWith('/app')
         ? 'export const getApps=()=>[];export const initializeApp=()=>({});'
         : `export const isSupported=async()=>true;export const getMessaging=()=>({});
-           export const getToken=async()=>{if(window.holdToken)await new Promise(r=>window.releaseToken=r);return 'test-browser-device-token-123456789';};
+           export const getToken=async()=>{if(window.holdToken)await new Promise(r=>window.releaseToken=r);return window.fcmToken || 'test-browser-device-token-123456789';};
            export const deleteToken=async()=>{window.deleted=true;return true;};
            export const onMessage=(m,fn)=>{window.receivePush=fn;return ()=>window.receivePush=null;};` }));
     } }],
@@ -101,12 +101,27 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 });
     assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), `settings fit at ${width}px`);
   }
+  await evaluate('window.fcmToken="refreshed-browser-device-token-123456789";push.syncBrowserPush()');
+  assert.equal(calls.at(-2).method, 'DELETE', 'token refresh removes the previous registration');
+  assert.equal(calls.at(-1).body.token, 'refreshed-browser-device-token-123456789');
+  await evaluate('window.permission="denied";push.syncBrowserPush()');
+  assert.equal(await evaluate('identity.readPushIdentity()'), null, 'revoked permission clears the worker identity');
+  assert.equal(calls.at(-1).method, 'DELETE', 'revoked permission unregisters the browser');
+  assert.equal(await evaluate('window.receivePush'), null, 'revoked permission removes the foreground listener');
+  await evaluate('window.permission="granted";push.syncBrowserPush()');
   await evaluate('push.clearBrowserPushSession()');
   assert.equal(await evaluate('identity.readPushIdentity()'), null, 'logout clears persisted worker identity');
   assert.equal(calls.at(-1).method, 'DELETE');
   await evaluate("signIn('member-b');push.syncBrowserPush()");
   assert.equal((await evaluate('identity.readPushIdentity()')).userId, 'member-b');
   assert.equal(await evaluate("(async()=>identity.ownsPush(await identity.readPushIdentity(), {userId:'member-a'}))()"), false);
+  // A direct account switch must revoke the old worker identity before Firebase finishes.
+  await evaluate("signIn('member-c');window.holdToken=true;window.switching=push.syncBrowserPush();void 0");
+  await until('window.releaseToken');
+  assert.equal(await evaluate('identity.readPushIdentity()'), null);
+  await evaluate('window.releaseToken();window.holdToken=false;window.switching');
+  assert.equal((await evaluate('identity.readPushIdentity()')).userId, 'member-c');
+  await evaluate('window.releaseToken=null');
   await evaluate('logout()');
   assert.equal(await evaluate('identity.readPushIdentity()'), null, 'shared logout waits for worker identity removal');
   assert.equal(await evaluate('localStorage.getItem("token")'), null, 'shared logout clears the session');
@@ -165,11 +180,34 @@ try {
   handlers.notificationclick({ notification: { ...displayed[0], close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });
   await clicked;
   assert.equal(opened[0], origin + '/member/updates/notice-1');
+  for (const [data, destination] of [
+    [{ kind: 'event', eventId: 'event-1', slug: 'annual-meeting' }, '/member/events/annual-meeting'],
+    [{ event: 'EVENT_BOOKING_CONFIRMED', eventId: 'event-1', bookingRef: 'ACT 123' }, '/member/events/event-1/book?ref=ACT%20123'],
+    [{ kind: 'message', conversationId: 'chat-1' }, '/member/messages?c=chat-1'],
+    [{ event: 'MEMBERSHIP_ACTIVATED' }, '/member/plan'],
+    [{ event: 'MEMBERSHIP_RENEWAL_DUE' }, '/member/plan'],
+    [{ event: 'PAYMENT_FAILED', orderId: 'order/1' }, '/payment-success?orderId=order%2F1'],
+    [{ event: 'DONATION_RECEIPT' }, '/member/donation-certificate'],
+    [{ kind: 'news', slug: 'notice-1' }, '/news/notice-1'],
+    [{ kind: 'gallery', slug: 'gallery-1' }, '/gallery/gallery-1'],
+    [{ kind: 'scheme', slug: 'scheme-1' }, '/schemes/view/scheme-1'],
+    [{ kind: 'test' }, '/super-admin/notifications'],
+  ]) {
+    await context.background({ data: { userId: 'member-b', ...data } });
+    handlers.notificationclick({ notification: { ...displayed.at(-1), close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });
+    await clicked;
+    assert.equal(opened.at(-1), origin + destination, `opens the correct destination for ${data.kind || data.event}`);
+  }
+  const openedCount = opened.length;
   context.identity = null;
   handlers.notificationclick({ notification: { ...displayed[0], close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });
   await clicked;
-  assert.equal(opened.length, 1, 'old notification cannot open after logout');
-  console.log('PASS: browser opt-in/denial, real worker registration and IndexedDB, shared logout, account switching, late-token race and deadline, responsive controls, background ownership and notification clicks. No external delivery.');
+  assert.equal(opened.length, openedCount, 'old notification cannot open after logout');
+  context.identity = { userId: 'member-b', expiresAt: Date.now() - 1000 };
+  const displayCount = displayed.length;
+  await context.background({ data: { userId: 'member-b', kind: 'announcement', sourceId: 'expired' } });
+  assert.equal(displayed.length, displayCount, 'expired sessions cannot display alerts');
+  console.log('PASS: browser opt-in/denial/revocation, token refresh, real worker registration and IndexedDB, shared logout, account switching, late-token race and deadline, responsive controls, background ownership and all notification destinations. No external delivery.');
 } finally {
   ws?.close(); chrome?.kill();
   server.closeAllConnections();

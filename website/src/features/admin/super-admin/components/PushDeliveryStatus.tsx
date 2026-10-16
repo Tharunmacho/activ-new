@@ -42,8 +42,8 @@ export default function PushDeliveryStatus() {
         <div key={label} className="min-w-0 rounded-xl bg-slate-50 p-3"><p className={`${STAT_FIGURE} text-slate-900 [overflow-wrap:anywhere]`}>{value}</p><p className="mt-2 text-ui-caption text-slate-600 break-words">{label}</p></div>)}
     </div>}
     {status?.workerEnabled === false && <p className="text-amber-800">Notification delivery is paused on the server.</p>}
-    <BrowserPushSettings />
-    <p className="text-sm text-slate-600">Enable notifications in this browser or the ACTIV app before testing. Events and updates reach members according to their membership and region.</p>
+    <BrowserPushSettings administrator />
+    <p className="text-sm text-slate-600">Publishing events and updates automatically queues notifications for eligible members according to their membership and region. Each member must enable notifications on their browser or in the ACTIV app. The test below checks only devices signed in to your account.</p>
     <button type="button" onClick={() => void test()} disabled={busy || !status?.configured || !status?.workerEnabled} className="rounded-xl bg-blue-700 px-4 py-3 text-ui-body font-semibold text-white disabled:opacity-50">{busy ? 'Queuing…' : 'Send test to my devices'}</button>
     {message && <p role="status" className="text-sm text-slate-700">{message}</p>}
   </section>;
