@@ -150,7 +150,7 @@ try {
   await evaluate('signIn("member-b");window.holdToken=true;window.releaseToken=null;window.registrationError=null;window.stalled=push.enableBrowserPush().catch(error=>window.registrationError=error.message);void 0');
   await until('window.releaseToken');
   await evaluate('clearSession()');
-  assert.match(await evaluate('window.registrationError'), /timed out/);
+  assert.equal(await evaluate('window.registrationError'), null, 'logout cancels pending SDK work without showing a connection error');
   await evaluate('window.releaseToken();window.holdToken=false;');
   await pause(100);
   assert.equal(calls.length, count, 'late SDK result after timeout cannot register a signed-out account');
@@ -198,6 +198,13 @@ try {
     await clicked;
     assert.equal(opened.at(-1), origin + destination, `opens the correct destination for ${data.kind || data.event}`);
   }
+  await context.background({ data: { userId: 'member-b', kind: 'announcement', sourceId: 'notice-1', notificationId: 'abcdef0123456789abcdef01' } });
+  handlers.notificationclick({ notification: { ...displayed.at(-1), close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });
+  await clicked;
+  const tracked = new URL(opened.at(-1));
+  assert.equal(tracked.pathname, '/member/updates/notice-1');
+  assert.equal(tracked.searchParams.get('notificationId'), 'abcdef0123456789abcdef01');
+  assert.equal(tracked.searchParams.get('notificationSource'), 'push', 'only an actual notification click supplies open attribution');
   const openedCount = opened.length;
   context.identity = null;
   handlers.notificationclick({ notification: { ...displayed[0], close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });

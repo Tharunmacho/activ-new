@@ -46,6 +46,7 @@ export interface DirectMessage {
     mine: boolean;
     at: string;
     readAt: string | null;
+    deleted?: boolean;
 }
 
 export interface MessageAttachment {
@@ -54,7 +55,7 @@ export interface MessageAttachment {
     name: string;
     mimeType: string;
     size: number;
-    kind: 'image' | 'file';
+    kind: 'image' | 'file' | 'audio';
 }
 export interface UploadedMessageAttachment extends MessageAttachment { token: string }
 
@@ -129,6 +130,14 @@ export const downloadMessageAttachment = async (attachment: MessageAttachment) =
 
 export const markConversationRead = async (conversationId: string) =>
     unwrap<{ ok: boolean }>(await api.post(`/messages/${conversationId}/read`), { ok: false });
+
+export const deleteMessage = async (conversationId: string, messageId: string, scope: 'me' | 'everyone') =>
+    unwrap<{ id: string; scope: 'me' | 'everyone'; deleted: boolean }>(await api.delete(`/messages/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}`, { data: { scope } }), null as any);
+
+export const loadMessageAudio = async (attachment: MessageAttachment, signal?: AbortSignal): Promise<Blob> => {
+    const response = await api.get(`/messages/attachments/${encodeURIComponent(attachment.id)}`, { responseType: 'blob', signal });
+    return response.data;
+};
 
 export const getUnreadMessageCount = async () =>
     unwrap<{ unread: number }>(await api.get('/messages/unread-count'), { unread: 0 }).unread;

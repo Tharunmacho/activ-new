@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { FileText, ImagePlus, Loader2, Paperclip, Send, Trash2, X } from 'lucide-react';
+import { FileText, ImagePlus, Loader2, Paperclip, Send, Trash2, UserRound, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { resolveMediaUrl } from '@/config/api.config';
-import { errorMessage, getStates, getDistricts, getBlocks, listMembershipPlans, type MembershipPlanRow } from '@/services/activApi';
+import { errorMessage, listMembershipPlans, type MembershipPlanRow } from '@/services/activApi';
 import { uploadMedia, uploadEventAttachment } from '@/services/cmsApi';
 import { createAnnouncement, updateAnnouncement, type Announcement, type AnnouncementCategory } from '@/services/memberHubApi';
 import { UPDATE_AUDIENCES, type UpdateAudience } from '@/lib/memberAudience';
+import RegionTargetPicker, { type RegionTarget } from '@/pages/cms/components/RegionTargetPicker';
 
 const INPUT = 'w-full min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-ui-body leading-6 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-400';
 const SECONDARY = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50';
@@ -16,7 +17,7 @@ const CATEGORIES: { value: AnnouncementCategory; label: string }[] = [
 ];
 type Form = {
     title: string; summary: string; body: string; category: AnnouncementCategory;
-    state: string; district: string; block: string; audience: UpdateAudience; planKeys: string[];
+    targets: RegionTarget[]; audience: UpdateAudience; planKeys: string[]; includeVisitors: boolean;
     bannerUrl: string; bannerAlt: string; attachmentUrl: string; attachmentLabel: string;
     pinned: boolean; expiresAt: string;
 };
@@ -37,15 +38,16 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
 }) {
     const [form, setForm] = useState<Form>(() => ({
         title: initial?.title || '', summary: initial?.summary || '', body: initial?.body || '', category: initial?.category || 'general',
-        state: initial?.state || '', district: initial?.district || '', block: initial?.block || '',
+        targets: initial?.targets?.length ? initial.targets : initial?.state ? [{ state: initial.state, district: initial.district || '', block: initial.block || '' }] : [],
+        includeVisitors: !!initial?.includeVisitors,
         audience: initial?.audience || 'all', planKeys: initial?.planKeys || [],
         bannerUrl: initial?.bannerUrl || '', bannerAlt: initial?.bannerAlt || '',
         attachmentUrl: initial?.attachmentUrl || '', attachmentLabel: initial?.attachmentLabel || '',
         pinned: !!initial?.pinned, expiresAt: dateInput(initial?.expiresAt),
     }));
-    const [states, setStates] = useState<string[]>([]);
-    const [districts, setDistricts] = useState<string[]>([]);
-    const [blocks, setBlocks] = useState<string[]>([]);
+    const [regional, setRegional] = useState(!!(initial?.targets?.length || initial?.state));
+    const [previewName, setPreviewName] = useState('Tharun');
+    const messageInput = useRef<HTMLTextAreaElement>(null);
     const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
     const [plansLoading, setPlansLoading] = useState(true);
     const [plansError, setPlansError] = useState('');
@@ -61,25 +63,18 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
     const selectedAudience = UPDATE_AUDIENCES.find(option => option.value === form.audience);
     const planNames = form.planKeys.map(key => plans.find(plan => plan.key === key)?.name || key);
     const recipients = form.audience === 'plans' ? (planNames.join(', ') || 'Choose at least one plan') : selectedAudience?.title;
-    const region = [form.state, form.district, form.block].filter(Boolean).join(' / ') || 'All regions';
+    const region = regional ? form.targets.map(target => [target.state, target.district, target.block].filter(Boolean).join(' / ')).join(', ') || 'Choose at least one region' : 'All regions';
+    const previewText = (value: string) => plainText(value).replace(/(?<!\{)\{\s*name\s*\}(?!\})/gi, () => previewName.trim() || 'ACTIVian');
+    const insertName = () => {
+        const input = messageInput.current;
+        const start = input?.selectionStart ?? form.body.length;
+        const end = input?.selectionEnd ?? start;
+        change('body', form.body.slice(0, start) + '{Name}' + form.body.slice(end));
+        requestAnimationFrame(() => { input?.focus(); input?.setSelectionRange(start + 6, start + 6); });
+    };
     const change = <K extends keyof Form>(key: K, value: Form[K]) => { setDirty(true); setForm(current => ({ ...current, [key]: value })); };
 
     useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-    useEffect(() => {
-        let active = true;
-        getStates().then(data => { if (active) setStates((data?.states || []).map((s: any) => s.name).filter(Boolean)); }).catch(() => undefined);
-        return () => { active = false; };
-    }, []);
-    useEffect(() => {
-        let active = true; setDistricts([]);
-        if (form.state) getDistricts(form.state).then(data => { if (active) setDistricts((data?.districts || []).map((d: any) => d.name).filter(Boolean)); }).catch(() => undefined);
-        return () => { active = false; };
-    }, [form.state]);
-    useEffect(() => {
-        let active = true; setBlocks([]);
-        if (form.state && form.district) getBlocks(form.state, form.district).then(data => { if (active) setBlocks((data?.blocks || []).map((b: any) => b.name).filter(Boolean)); }).catch(() => undefined);
-        return () => { active = false; };
-    }, [form.state, form.district]);
     useEffect(() => {
         let active = true; setPlansLoading(true); setPlansError('');
         listMembershipPlans().then(data => { if (active) setPlans(data?.plans || []); })
@@ -116,6 +111,7 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
         const status = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'published' ? 'published' : 'draft';
         setError('');
         if (!form.title.trim()) { setError('Add a title so members know what the update is about.'); return; }
+        if (regional && !form.targets.length) { setError('Choose at least one region, or select all regions.'); return; }
         if (status === 'published' && ![form.body, form.summary, form.bannerUrl, form.attachmentUrl].some(value => plainText(value))) {
             setError('Write a message or add a poster or document before publishing.'); return;
         }
@@ -126,7 +122,7 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
         if (expiry && (!Number.isFinite(expiry.getTime()) || dateInput(expiry.toISOString()) !== form.expiresAt)) { setError('Choose a valid end date.'); return; }
         setSaving(true);
         try {
-            const payload = { ...form, title: form.title.trim(), status, planKeys: form.audience === 'plans' ? form.planKeys : [], expiresAt: expiry?.toISOString() || '' };
+            const payload = { ...form, targets: regional ? form.targets : [], includeVisitors: form.includeVisitors && form.audience === 'all' && !regional, title: form.title.trim(), status, planKeys: form.audience === 'plans' ? form.planKeys : [], expiresAt: expiry?.toISOString() || '' };
             if (initial) await updateAnnouncement(initial.id, payload); else await createAnnouncement(payload);
             toast.success(status === 'draft' ? 'Draft saved' : initial?.status === 'published' ? 'Update saved' : 'Update published');
             onSaved();
@@ -143,7 +139,8 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
             <div className="min-w-0 space-y-6">
                 <Section title="Write your update" detail="A clear title and a short message are enough. Media is optional.">
                     <Field label="Title" required><input name="title" required maxLength={200} value={form.title} onChange={e => change('title', e.target.value)} placeholder="For example: New membership benefits" className={INPUT} /></Field>
-                    <Field label="Message"><textarea name="body" value={form.body} onChange={e => change('body', e.target.value)} rows={7} placeholder={'Dear members,\n\nShare the details of your update here.\n\nThank you for being part of ACTIV.'} className={`${INPUT} resize-y`} /></Field>
+                    <Field label="Message"><textarea ref={messageInput} name="body" value={form.body} onChange={e => change('body', e.target.value)} rows={7} placeholder={'Dear {Name},\n\nShare the details of your update here.\n\nThank you for being part of ACTIV.'} className={`${INPUT} resize-y`} /></Field>
+                    <div className="rounded-xl bg-blue-50 p-3"><button type="button" onClick={insertName} disabled={busy} className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-blue-700"><UserRound size={17} />Insert member name</button><p className="text-sm leading-6 text-slate-600">Use {'{Name}'} in the title, message or summary. Each member sees their own name. Visitors and members without a name see “ACTIVian”.</p></div>
                     <details className="rounded-xl border border-slate-200 px-4 py-3" open={!!form.summary || undefined}>
                         <summary className="cursor-pointer text-sm font-medium text-slate-600">Short summary (optional)</summary>
                         <div className="mt-3"><Field label="Summary" hint="Shown on the update card. If blank, we use the start of your message."><input name="summary" value={form.summary} maxLength={300} onChange={e => change('summary', e.target.value)} className={INPUT} /></Field></div>
@@ -178,19 +175,15 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
                             {!plans.length && <p className="text-sm text-slate-500">No membership plans are available. Add them under Membership plans first.</p>}
                         </>}
                     </fieldset>}
-                    <div className="grid gap-4 sm:grid-cols-3">
-                        <Field label="State"><select name="state" value={form.state} className={INPUT} onChange={e => { setDirty(true); setForm(current => ({ ...current, state: e.target.value, district: '', block: '' })); }}><option value="">All states</option>{[...new Set([...states, form.state].filter(Boolean))].map(name => <option key={name}>{name}</option>)}</select></Field>
-                        <Field label="District"><select name="district" value={form.district} disabled={!form.state} className={INPUT} onChange={e => { setDirty(true); setForm(current => ({ ...current, district: e.target.value, block: '' })); }}><option value="">{form.state ? 'All districts' : 'Select a state first'}</option>{[...new Set([...districts, form.district].filter(Boolean))].map(name => <option key={name}>{name}</option>)}</select></Field>
-                        <Field label="Block"><select name="block" value={form.block} disabled={!form.district} className={INPUT} onChange={e => change('block', e.target.value)}><option value="">{form.district ? 'All blocks' : 'Select a district first'}</option>{[...new Set([...blocks, form.block].filter(Boolean))].map(name => <option key={name}>{name}</option>)}</select></Field>
-                    </div>
-                    <p className="text-sm leading-6 text-slate-500">Leave a region set to All to include everyone within the level above it.</p>
+                    <RegionTargetPicker multipleSelection targets={form.targets} onChange={value => change('targets', value)} reachEveryone={!regional} onReachEveryoneChange={value => { setDirty(true); setRegional(!value); }} title="Regions" contentLabel="update" audienceLabel="Selected audience in all regions" hint="Select multiple states, districts or blocks. Members must match the audience above and at least one chosen region." />
+                    <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-4"><input type="checkbox" checked={form.includeVisitors && form.audience === 'all' && !regional} disabled={busy || form.audience !== 'all' || regional} onChange={event => change('includeVisitors', event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-blue-700" /><span><span className="block text-sm font-semibold text-slate-800">Also show to visitors</span><span className="mt-1 block text-sm leading-6 text-slate-500">Makes this update public and notifies visitors who enabled app notifications. Available for all members in all regions.</span></span></label>
                 </Section>
             </div>
             <aside className="min-w-0 space-y-5 xl:sticky xl:top-5">
                 <section aria-label="Member preview" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-100 px-5 py-4"><h3 className="text-base font-semibold text-slate-800">Member preview</h3><p className="mt-1 text-sm text-slate-500">Check your content before publishing.</p></div>
+                    <div className="space-y-3 border-b border-slate-100 px-5 py-4"><h3 className="text-base font-semibold text-slate-800">Member preview</h3><Field label="Example recipient name" hint="Preview only. The saved update uses each recipient’s profile name."><input value={previewName} onChange={e => setPreviewName(e.target.value)} placeholder="ACTIVian (visitor)" className={INPUT} /></Field></div>
                     {form.bannerUrl && <img src={mediaLink(form.bannerUrl)} alt={form.bannerAlt || 'Update poster'} className="max-h-72 w-full bg-slate-50 object-contain" />}
-                    <div className="space-y-3 p-5"><span className="inline-block rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{CATEGORIES.find(c => c.value === form.category)?.label}</span><h4 className="break-words text-xl font-semibold leading-7 text-slate-900">{form.title.trim() || 'Your update title'}</h4>{form.summary && <p className="break-words text-sm leading-6 text-slate-500">{plainText(form.summary)}</p>}<p className="whitespace-pre-wrap break-words text-base leading-7 text-slate-700">{plainText(form.body) || (!form.bannerUrl && !form.attachmentUrl ? 'Your message will appear here.' : '')}</p>{form.attachmentUrl && <span className="flex items-center gap-2 break-words text-sm font-medium text-blue-700"><Paperclip size={16} className="shrink-0" />{form.attachmentLabel || 'View document'}</span>}</div>
+                    <div className="space-y-3 p-5"><span className="inline-block rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{CATEGORIES.find(c => c.value === form.category)?.label}</span><h4 className="break-words text-xl font-semibold leading-7 text-slate-900">{previewText(form.title).trim() || 'Your update title'}</h4>{form.summary && <p className="break-words text-sm leading-6 text-slate-500">{previewText(form.summary)}</p>}<p className="whitespace-pre-wrap break-words text-base leading-7 text-slate-700">{previewText(form.body) || (!form.bannerUrl && !form.attachmentUrl ? 'Your message will appear here.' : '')}</p>{form.attachmentUrl && <span className="flex items-center gap-2 break-words text-sm font-medium text-blue-700"><Paperclip size={16} className="shrink-0" />{form.attachmentLabel || 'View document'}</span>}</div>
                 </section>
                 <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
                     <h3 className="text-base font-semibold text-slate-900">Review & publish</h3>

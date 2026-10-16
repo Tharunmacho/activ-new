@@ -17,7 +17,10 @@ self.addEventListener('notificationclick', event => {
     const data = event.notification.data.payload || {};
     if (!ownsPush(await readPushIdentity(), data)) return;
     // Construct the path from known fields; never navigate to a payload-supplied URL.
-    const url = new URL(notificationPath({ data }), self.location.origin).href;
+    const target = new URL(notificationPath({ data }), self.location.origin);
+    if (/^[a-f\d]{24}$/i.test(String(data.notificationId || ''))) { target.searchParams.set('notificationId', data.notificationId); target.searchParams.set('notificationSource', 'push'); }
+    if (data.audience === 'visitor') target.searchParams.set('notificationSource', 'push');
+    const url = target.href;
     const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const existing = windows.find(client => new URL(client.url).origin === self.location.origin) as WindowClient | undefined;
     if (existing) { await existing.navigate(url); await existing.focus(); }
@@ -29,7 +32,7 @@ onBackgroundMessage(getMessaging(initializeApp(firebasePushConfig)), async messa
     if (!ownsPush(await readPushIdentity(), message.data)) return;
     await self.registration.showNotification('ACTIV', {
       body: 'You have an update from ACTIV. Open to view it.',
-      tag: message.data?.notificationId || message.messageId,
+      tag: message.data?.notificationId || message.data?.publicNotificationId || message.messageId,
       data: { activPush: true, payload: message.data },
     });
   } catch { /* Storage unavailable: fail closed rather than display another account's alert. */ }

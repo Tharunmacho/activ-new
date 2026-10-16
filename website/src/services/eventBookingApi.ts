@@ -185,6 +185,8 @@ export interface EventBooking {
         mode: string;
         reference: string;
         paidAt: string | null;
+        reconciliationRequired?: boolean;
+        reconciliationReason?: string;
     };
 
     /**
@@ -199,7 +201,7 @@ export interface EventBooking {
      * does not prevent the value arriving; it only prevents handling it.
      *
      *   active    holding its seats
-     *   waitlist  the event was full — NO seat is held, and none is charged
+     *   waitlist  no seat is held; a paid late settlement needs organiser review
      *   expired   an unpaid hold that lapsed after thirty minutes
      *   cancelled withdrawn, by the booker or by an administrator
      */
@@ -215,6 +217,7 @@ export interface BookingRequest {
     phone: string;
     noOfPersons: number;
     participants: BookingParticipant[];
+    useBookerForFirstParticipant?: boolean;
     note?: string;
     responses?: RegistrationAnswers;
 }
@@ -241,6 +244,7 @@ export const createEventBooking = async (eventId: string, input: BookingRequest)
             phone: input.phone,
             noOfPersons: input.noOfPersons,
             participants: input.participants,
+            ...(typeof input.useBookerForFirstParticipant === 'boolean' ? { useBookerForFirstParticipant: input.useBookerForFirstParticipant } : {}),
             ...(input.responses ? { responses: input.responses } : {}),
             ...(input.note ? { note: input.note } : {}),
         }),

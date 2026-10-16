@@ -4,7 +4,7 @@ import { useSocialLinks, SocialButtons } from '@/components/shared/SocialLinks';
 import { RegionsMenu, RegionsAccordion } from './RegionsMenu';
 import { SchemesMenu, SchemesAccordion } from './SchemesMenu';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, LogIn, Mail, Phone, X } from 'lucide-react';
+import { Bell, ChevronRight, LogIn, Mail, Phone, X } from 'lucide-react';
 import { getSiteSettings, peekCmsCache, type SiteSettings } from '@/services/cmsApi';
 import { sectionHidden } from '@/components/shared/cmsSections';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
@@ -166,7 +166,7 @@ export function HeaderSection() {
                   where it was — the one strip on the page that ignored the zoom
                   fix. Everything here is now rem-based and scales with the rest.
                 */}
-                <div className="flex h-[4.5rem] sm:h-[5.5rem] items-center gap-3 sm:gap-5 xl:gap-9">
+                <div className="flex h-[4.5rem] sm:h-[5.5rem] items-center gap-2 sm:gap-5 2xl:gap-9">
 
                     {/*
                       * THE MENU BUTTON — on the LEFT, before the mark, the way
@@ -335,9 +335,9 @@ export function HeaderSection() {
                         One right-hand group, so the spacing between the last
                         link and the button is set here and not left to whatever
                         `justify-between` happened to produce at a given width. */}
-                    <div className="ml-auto flex items-center gap-5 xl:gap-8">
+                    <div className="ml-auto flex shrink-0 items-center gap-5 2xl:gap-8">
                         {navLinks.length > 0 && (
-                            <nav className="hidden xl:flex shrink-0 items-center gap-5 xl:gap-7 2xl:gap-8" aria-label="Main">
+                            <nav className="hidden xl:flex shrink-0 items-center gap-5 2xl:gap-7" aria-label="Main">
                                 {navLinks.map((item, i) => isZonesNavLink(item.href) ? (
                                     <RegionsMenu key={`${item.href}-${i}`} accent={accent} label={item.label} />
                                 ) : isSchemes(item.href) ? (
@@ -378,7 +378,8 @@ export function HeaderSection() {
                             </nav>
                         )}
 
-                        <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                            <Link to="/notifications" aria-label="Notifications" className="inline-flex h-11 w-[44px] sm:w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full border border-blue-100 text-blue-700 hover:bg-blue-50"><Bell size={21} /></Link>
                             {ctaLabel && (
                                 /*
                                  * THE LOGIN PILL. A gradient in the header's own
@@ -389,8 +390,8 @@ export function HeaderSection() {
                                  */
                                 <Link
                                     to={ctaHref}
-                                    className="btn-shine group relative inline-flex items-center justify-center gap-2
-                                               h-10 min-h-[44px] sm:h-11 px-4 sm:px-7 rounded-full overflow-hidden
+                                    className="btn-shine group relative inline-flex shrink-0 items-center justify-center gap-2
+                                               h-10 min-h-[44px] sm:h-11 px-3 sm:px-7 rounded-full overflow-hidden
                                                text-white text-[0.95rem] sm:text-ui-caption font-semibold whitespace-nowrap
                                                shadow-[0_8px_20px_-8px_rgb(28_46_104/0.7)]
                                                transition-transform duration-200 active:scale-95 hover:-translate-y-0.5"

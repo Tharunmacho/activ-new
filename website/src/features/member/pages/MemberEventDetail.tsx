@@ -478,6 +478,11 @@ export default function MemberEventDetail() {
                                         </button>
                                     ) : null}
 
+                                    {gate.open && !isPast(event) ? <button type="button" onClick={() => navigate(memberEventPath(event, '/book') + '?forOthers=1')}
+                                        className="w-full h-11 rounded-xl border border-blue-200 text-blue-700 text-ui-small font-bold hover:bg-blue-50">
+                                        Book for someone else
+                                    </button> : null}
+
                                     {/*
                                       The receipt, for a seat that was paid for.
 

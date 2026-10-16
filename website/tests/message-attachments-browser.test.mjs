@@ -18,6 +18,9 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const peer = { id: 'member-two', fullName: 'Fixture Member', state: 'Tamil Nadu' };
 const conversation = { id: 'thread-one', withMember: peer, unread: 0, lastMessageText: 'A conversation', lastMessageMine: false };
 const attachment = { id: 'attachment-one', url: '/api/v1/messages/attachments/attachment-one', name: 'quotation.pdf', mimeType: 'application/pdf', size: 20, kind: 'file' };
+const audioAttachment = { ...attachment, id: 'audio-one', url: '/api/v1/messages/attachments/audio-one', name: 'voice.wav', mimeType: 'audio/wav', size: 16044, kind: 'audio' };
+let lastUpload = attachment;
+let sentCount = 0;
 const messages = [{ id: 'first', body: 'Existing message', attachmentUrl: '', mine: false, at: '2026-10-15T10:00:00Z' }];
 let bundle = '', css = '', chrome, ws, failSend = true;
 const requests = [], errors = [], checks = [];
@@ -38,22 +41,35 @@ const server = http.createServer(async (req, res) => {
       if (url.pathname === '/api/v1/messages/thread-one' && req.method === 'GET') return send({ conversation, messages, hasMore: false });
       if (url.pathname === '/api/v1/messages/attachment' && req.method === 'POST') {
         assert(multipart, 'Upload preserves browser-generated multipart boundary');
-        assert(raw.includes('name="file"; filename="quotation.pdf"'), 'Expected named file uploaded');
-        return send({ ...attachment, token: 'signed-fixture-upload' });
+        assert(raw.includes('name="file"; filename="quotation.pdf"') || raw.includes('name="file"; filename="voice.wav"'), 'Expected named file uploaded');
+        lastUpload = raw.includes('filename="voice.wav"') ? audioAttachment : attachment;
+        return send({ ...lastUpload, token: 'signed-fixture-upload' });
       }
       if (url.pathname === '/api/v1/messages/thread-one' && req.method === 'POST') {
         assert.deepEqual(body.attachment, { token: 'signed-fixture-upload' });
         if (failSend) { res.statusCode = 409; return res.end(JSON.stringify({ success: false, message: 'Fixture send refused; please retry.' })); }
-        const message = { id: `sent-${messages.length}`, body: body.body, attachmentUrl: attachment.url, attachment, mine: true, at: '2026-10-15T11:00:00Z' };
+        const message = { id: `sent-${++sentCount}`, body: body.body, attachmentUrl: lastUpload.url, attachment: lastUpload, mine: true, at: '2026-10-15T11:00:00Z' };
         messages.push(message); return send(message);
       }
       if (url.pathname === '/api/v1/messages/attachments/attachment-one' && req.method === 'GET') {
         assert(req.headers.authorization, 'Download remains authenticated');
         res.setHeader('Content-Type', 'application/pdf'); return res.end('%PDF-1.4\nfixture');
       }
+      if (url.pathname === '/api/v1/messages/attachments/audio-one' && req.method === 'GET') {
+        assert(req.headers.authorization, 'Audio playback remains authenticated');
+        const wav = Buffer.alloc(16044); wav.write('RIFF', 0); wav.writeUInt32LE(16036, 4); wav.write('WAVE', 8); wav.write('fmt ', 12); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(16000, 28); wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(16000, 40);
+        res.setHeader('Content-Type', 'audio/wav'); return res.end(wav);
+      }
+      if (url.pathname.startsWith('/api/v1/messages/thread-one/messages/') && req.method === 'DELETE') {
+        const id = url.pathname.split('/').pop(), index = messages.findIndex(message => message.id === id);
+        assert(index >= 0); assert(['me', 'everyone'].includes(body.scope));
+        if (body.scope === 'me') messages.splice(index, 1);
+        else { assert(messages[index].mine); messages[index] = { ...messages[index], deleted: true, body: '', attachmentUrl: '', attachment: null }; }
+        return send({ id, scope: body.scope });
+      }
       throw new Error(`Unexpected fixture request ${req.method} ${url.pathname}`);
     }
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'");
     res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');
   } catch (error) { errors.push(error.message); res.statusCode = 500; res.end(JSON.stringify({ success: false, message: error.message })); }
 });
@@ -88,7 +104,7 @@ try {
   await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/member/messages?c=thread-one` });
   await until('document.body.textContent.includes("Existing message")');
   await selectFile('program.exe', 'application/octet-stream');
-  await until('document.body.textContent.includes("Choose a photo, PDF")');
+  await until('document.body.textContent.includes("Choose a photo, document")');
   assert.equal(requests.filter(request => request.path.endsWith('/attachment')).length, 0);
   await selectFile('quotation.pdf', 'application/pdf', '%PDF-1.4 fixture');
   await until('document.body.textContent.includes("quotation.pdf")');
@@ -116,9 +132,31 @@ try {
     if (output) { const shot = await send('Page.captureScreenshot', { format: 'png' }); await writeFile(path.join(output, `chat-files-${width}.png`), Buffer.from(shot.data, 'base64')); }
   }
   checks.push('Unsupported file rejected before upload', 'Remove/cancel sends nothing', 'Document-only message uploads once and retries without reupload', 'Private download uses signed-in API', 'File cards and composer fit 390/320px');
+  for (const label of ['Attach a photo', 'Attach a document', 'Attach audio']) assert(await evaluate(`!!document.querySelector('button[aria-label="${label}"]')`));
+  await evaluate(`document.querySelector('button[aria-label="Message options first"]').click()`);
+  await until(`!!document.querySelector('[role="dialog"]')`);
+  assert.equal(await evaluate(`document.querySelector('[role="dialog"]').textContent.includes('Delete for everyone removes') && [...document.querySelectorAll('[role="dialog"] button')].some(button => button.textContent === 'Delete for everyone')`), false, 'Received message cannot be deleted for everyone');
+  await evaluate(`[...document.querySelectorAll('[role="dialog"] button')].find(button => button.textContent === 'Delete for me').click()`);
+  await until(`!document.body.textContent.includes('Existing message')`);
+  await evaluate(`document.querySelector('button[aria-label="Message options sent-1"]').click()`);
+  await until(`!!document.querySelector('[role="dialog"]')`);
+  await evaluate(`[...document.querySelectorAll('[role="dialog"] button')].find(button => button.textContent === 'Delete for everyone').click()`);
+  await until(`document.body.textContent.includes('Message deleted') && !document.querySelector('button[aria-label="Download quotation.pdf"]')`);
+  await selectFile('voice.wav', 'audio/wav', 'RIFF fixture voice');
+  await submit();
+  await until(`!!document.querySelector('button[aria-label="Play voice.wav"]')`);
+  await evaluate(`document.querySelector('button[aria-label="Play voice.wav"]').click()`);
+  await until(`!!document.querySelector('audio') && document.querySelector('audio').readyState >= 2`);
+  assert(requests.some(request => request.path.endsWith('/attachments/audio-one') && request.authorization));
+  assert.equal(await evaluate('document.querySelectorAll("img").length'), 0);
+  await send('Page.reload');
+  await until(`!!document.querySelector('button[aria-label="Play voice.wav"]')`);
+  assert.equal(await evaluate(`document.body.textContent.includes('Existing message')`), false);
+  assert(await evaluate(`document.body.textContent.includes('Message deleted')`));
+  checks.push('Both deletion options with sender-only everyone option', 'Hidden and withdrawn messages persist after reload', 'Separate photo/document/audio controls', 'Authenticated audio playback with native browser player');
   assert.deepEqual(errors, []);
   if (output) await writeFile(path.join(output, 'verification.json'), JSON.stringify({ checkedAt: new Date().toISOString(), checks, requests, errors, productionMessagesSent: false }, null, 2));
-  console.log('PASS: chat document selection, safe preview, upload/send/retry, authenticated download and mobile layout.');
+  console.log('PASS: chat attachment selection/send/retry, both deletion modes, authenticated audio playback/download and mobile layout.');
   await send('Browser.close');
 } finally {
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

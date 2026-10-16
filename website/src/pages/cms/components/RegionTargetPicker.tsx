@@ -66,6 +66,9 @@ interface Props {
     audience?: 'all' | 'paid';
     hint?: string;
     title?: string;
+    contentLabel?: string;
+    audienceLabel?: string;
+    multipleSelection?: boolean;
 }
 
 interface BlockNode { name?: string }
@@ -94,6 +97,9 @@ export default function RegionTargetPicker({
     audience = 'all',
     hint,
     title,
+    contentLabel = 'event',
+    audienceLabel = 'Everyone in the association',
+    multipleSelection = false,
 }: Props) {
     const [states, setStates] = useState<StateNode[]>([]);
     const [loading, setLoading] = useState(true);
@@ -194,6 +200,11 @@ export default function RegionTargetPicker({
      */
     const effective = everyone ? [] : list;
     const everywhere = effective.length === 0;
+    const checkbox = (target: RegionTarget, text: string) => {
+        const selected = list.some(item => covers(item, target));
+        const inherited = selected && !list.some(item => same(item, target));
+        return <label className="flex min-h-11 flex-1 cursor-pointer items-center gap-3 py-2 text-sm text-slate-800"><input type="checkbox" aria-label={label(target)} checked={selected} disabled={inherited} onChange={() => selected ? deselect(target) : select(target)} className="h-4 w-4 shrink-0 accent-blue-700" /><span className="min-w-0 break-words">{text}</span></label>;
+    };
 
 
     const loadTree = (force = false) => {
@@ -342,7 +353,7 @@ export default function RegionTargetPicker({
               from a blank list. That was the entire reason they were split.
             */}
             <CmsChoice
-                label="Who sees this event"
+                label={`Who sees this ${contentLabel}`}
                 size="lg"
                 value={everyone ? 'everyone' : 'regions'}
                 onChange={(next) => onReachEveryoneChange?.(next === 'everyone')}
@@ -350,7 +361,7 @@ export default function RegionTargetPicker({
                     {
                         value: 'everyone',
                         icon: <Globe className="w-4 h-4" />,
-                        title: 'Everyone in the association',
+                        title: audienceLabel,
                         detail: list.length
                             ? `Every member, wherever they are. Your ${list.length} `
                               + `${list.length === 1 ? 'region is' : 'regions are'} kept, `
@@ -398,7 +409,26 @@ export default function RegionTargetPicker({
                               district. That is what makes three fields express
                               three levels without a tree.
                             */}
-                            <div className="grid gap-4 sm:grid-cols-3">
+                            {multipleSelection ? <div className="space-y-3">
+                                <label className="block text-sm font-semibold text-slate-700">Find a region<input type="search" value={term} onChange={event => setTerm(event.target.value)} placeholder="Search states, districts or blocks" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 py-2 text-ui-body font-normal" /></label>
+                                <div className="max-h-96 overflow-y-auto rounded-xl border border-slate-200 p-3">
+                                    {!filtered.length && <p className="text-sm text-slate-500">No regions match your search.</p>}
+                                    {filtered.map(state => {
+                                        const st = { state: state.name || '', district: '', block: '' };
+                                        const stateOpen = !!term || openStates.has(st.state);
+                                        return <div key={st.state} className="border-b border-slate-100 last:border-0"><div className="flex items-center gap-2">{checkbox(st, st.state)}{!!state.districts?.length && <button type="button" aria-expanded={stateOpen} aria-label={`Show districts in ${st.state}`} onClick={() => toggleIn(setOpenStates, st.state)} className="min-h-11 px-2 text-sm font-semibold text-blue-700">{stateOpen ? 'Hide' : 'Districts'}</button>}</div>
+                                            {stateOpen && state.districts?.map(district => {
+                                                const dt = { ...st, district: district.name || '' };
+                                                const districtKey = `${st.state}|${dt.district}`;
+                                                const districtOpen = !!term || openDistricts.has(districtKey);
+                                                return <div key={districtKey} className="ml-4 border-l border-slate-200 pl-3"><div className="flex items-center gap-2">{checkbox(dt, dt.district)}{!!district.blocks?.length && <button type="button" aria-expanded={districtOpen} aria-label={`Show blocks in ${dt.district}`} onClick={() => toggleIn(setOpenDistricts, districtKey)} className="min-h-11 px-2 text-sm font-semibold text-blue-700">{districtOpen ? 'Hide' : 'Blocks'}</button>}</div>
+                                                    {districtOpen && district.blocks?.map(block => <div key={block.name} className="ml-4">{checkbox({ ...dt, block: block.name || '' }, block.name || '')}</div>)}
+                                                </div>;
+                                            })}
+                                        </div>;
+                                    })}
+                                </div>
+                            </div> : <><div className="grid gap-4 sm:grid-cols-3">
                                 <Step
                                     n={1}
                                     label="State"
@@ -485,6 +515,7 @@ export default function RegionTargetPicker({
                                 ) : null}
                             </div>
 
+                            </>}
                             {/* ------------------------------------- chosen -- */}
                             {list.length > 0 ? (
                                 <div className="mt-5">

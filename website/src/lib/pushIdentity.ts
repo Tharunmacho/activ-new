@@ -1,5 +1,5 @@
 // Shared by the page and service worker. No authentication credentials are stored here.
-export type PushIdentity = { userId: string; token: string; expiresAt: number };
+export type PushIdentity = { userId?: string; visitorId?: string; token: string; expiresAt: number };
 function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('activ-web-push', 1);
@@ -31,5 +31,7 @@ export async function writePushIdentity(value: PushIdentity | null): Promise<voi
   } finally { db.close(); }
 }
 export function ownsPush(identity: PushIdentity | null, data: Record<string, string> = {}) {
-  return Boolean(identity?.userId && identity.userId === data.userId && identity.expiresAt > Date.now());
+  if (!identity || identity.expiresAt <= Date.now()) return false;
+  if (data.audience === 'visitor') return Boolean(!identity.userId && identity.visitorId && identity.visitorId === data.visitorId && /^[a-f\d]{24}$/i.test(data.publicNotificationId || ''));
+  return Boolean(identity.userId && identity.userId === data.userId);
 }

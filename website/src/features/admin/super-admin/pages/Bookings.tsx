@@ -1144,6 +1144,7 @@ function BookingDetail(props: {
                 </header>
 
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-6">
+                    {booking.payment.reconciliationRequired ? <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><p className="font-bold">Payment received; seats need organiser review.</p><p>{booking.payment.reconciliationReason} No entry pass has been issued. Do not collect another payment.</p></div> : null}
 
                     {/* ------------------------------------- event details */}
                     <section className={`${ADMIN_CARD} p-4 sm:p-6`}>

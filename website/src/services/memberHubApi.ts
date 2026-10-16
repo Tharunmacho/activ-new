@@ -39,6 +39,8 @@ export interface Announcement {
     state: string;
     district: string;
     block: string;
+    targets?: { state: string; district: string; block: string }[];
+    includeVisitors?: boolean;
     /** "Tamil Nadu › Ariyalur", or empty when it went to every member. */
     targetLabel: string;
     audience: import('@/lib/memberAudience').UpdateAudience;

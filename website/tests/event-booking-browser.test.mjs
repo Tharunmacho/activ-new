@@ -45,7 +45,7 @@ try {
         import {eventWhere} from './src/lib/eventWhere';window.eventLocation=eventWhere;
         window.eventFixture={id:'fixture',title:'Conference fixture',startAt:'2030-10-23T03:30:00Z',endAt:'2030-10-23T11:30:00Z',mode:'offline',venue:'Chennai',amount:0,price:0,capacity:100,seatsLeft:100,maxPerBooking:10,registrationFields:[{key:'meal',label:'Meal preference',type:'select',required:true,options:['Vegetarian','Other']},{key:'consent',label:'Confirm attendance',type:'checkbox',required:true}]};
         window.bookingFixture={bookingRef:'FIXTURE-REF',eventId:'fixture',eventTitle:'Conference fixture',eventStartAt:window.eventFixture.startAt,status:'active',payment:{status:'not_required'},bookedBy:{name:'Booker',email:'booker@example.test',phone:'9000000001'},participants:[{name:'Booker'}],noOfPersons:1,unitAmount:0,totalAmount:0,responses:[{key:'meal',label:'Meal preference',value:'Vegetarian'}],passes:[{index:0,name:'Booker',registrationNo:'FIXTURE-REF-P1',url:'https://example.test/checkin/'+('a'.repeat(40))}]};
-        const root=createRoot(document.getElementById('root'));let version=0;window.mountBooking=(ref='')=>root.render(<MemoryRouter key={++version} initialEntries={['/events/fixture/book'+(ref?'?ref='+ref:'')]}><Routes><Route path='/events/:id/book' element={<EventBookingPage chrome='member'/>}/></Routes></MemoryRouter>);window.mountBooking();
+        const root=createRoot(document.getElementById('root'));let version=0;window.mountBooking=(ref='',forOthers=false)=>root.render(<MemoryRouter key={++version} initialEntries={['/events/fixture/book'+(ref?'?ref='+ref:forOthers?'?forOthers=1':'')]}><Routes><Route path='/events/:id/book' element={<EventBookingPage chrome='member'/>}/></Routes></MemoryRouter>);window.mountBooking();
         window.mountDetail=()=>root.render(<MemoryRouter key={++version} initialEntries={['/events/fixture']}><Routes><Route path='/events/:id' element={<EventDetailPage/>}/></Routes></MemoryRouter>);
         window.mountExplorer=()=>root.render(<MemoryRouter key={++version}><div id='explorer'><EventsExplorer events={[window.eventFixture]} settings={{categories:[]}}/></div></MemoryRouter>);
     ` } });
@@ -108,6 +108,23 @@ try {
     assert(await evaluate('window.savedBody.participants.every(p=>p.name&&p.email&&p.phone)'));
     assert(await evaluate('document.body.textContent.includes("FIXTURE-REF-P1")'));
     if (css) assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'mobile ticket fits viewport');
+    await evaluate("delete window.savedBody;window.eventFixture={...window.eventFixture,memberRateApplied:true,price:1000,memberPrice:0,amount:0}");
+    await click('Book for someone else'); await until('document.querySelector("#registration-meal")');
+    assert.equal(await evaluate("document.querySelectorAll('input')[0].value"), 'Booker', 'receipt contact remains the booking contact');
+    assert.equal(await evaluate("document.querySelectorAll('input')[4].value"), '', 'another booking starts with an empty attendee');
+    assert(await evaluate('document.body.textContent.includes("Your member rate applies to each seat")'));
+    await click('Continue');
+    await until("document.querySelectorAll('[data-invalid=true]').length>=3");
+    assert.equal(await evaluate('window.savedBody'), undefined, 'empty friend cannot create a booking for the booker');
+    await fill(4, 'Friend'); await fill(5, 'friend@example.test'); await fill(6, '9000000001');
+    await evaluate(`(()=>{const select=document.querySelector('#registration-meal');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(select,'Vegetarian');select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('#registration-consent').click();})()`);
+    await click('Continue'); await until('document.body.textContent.includes("Review your booking")');
+    await click('Confirm booking'); await until('document.body.textContent.includes("Entry passes")');
+    assert.equal(await evaluate('window.savedBody.useBookerForFirstParticipant'), false);
+    assert.deepEqual(await evaluate('window.savedBody.participants'), [{ name: 'Friend', email: 'friend@example.test', phone: '9000000001' }]);
+    await evaluate("window.mountBooking('',true)"); await until('document.querySelector("#registration-meal")');
+    await fill(0, 'Booker'); await fill(1, 'booker@example.test'); await fill(2, '9000000001');
+    assert.equal(await evaluate("document.querySelectorAll('input')[4].value"), '', 'forOthers entry never mirrors the booking contact');
     await evaluate("window.eventFixture={...window.eventFixture,mode:'online',onlinePlatform:'Google Meet',venue:''};window.mountBooking()");
     await until('document.body.textContent.includes("Platform")');
     assert(await evaluate('document.body.textContent.includes("Google Meet")'));
@@ -142,7 +159,13 @@ try {
     }
     assert.deepEqual(errors, []);
     if(output)await writeFile(path.join(output,'verification.json'),JSON.stringify({checkedAt:new Date().toISOString(),layouts,errors,checks:'Required questions and attendees, review/edit, server-only amount, confirmed passes, meeting/registration hrefs, missing-link guidance; Zoom-only platform labels across booking/detail/explorer on phone and desktop'},null,2));
-    console.log('PASS: event questions and attendees, review/edit, confirmed passes, meeting/registration links and missing-link guidance; Zoom-only platform labels in booking/detail/explorer at390/1440px with no overflow.');
+    await evaluate("window.bookingFixture={...window.bookingFixture,status:'waitlist',payment:{...window.bookingFixture.payment,status:'paid',reconciliationRequired:true,reconciliationReason:'An attendee email is already registered.'}};window.mountBooking('FIXTURE-REF')");
+    await until("document.body.textContent.includes('Payment received — organiser review needed')");
+    assert(await evaluate("document.body.textContent.includes('Please do not pay again')"));
+    assert(!(await evaluate("document.body.textContent.includes('Booking confirmed')")));
+    assert(!(await evaluate("document.body.textContent.includes('nothing has been charged')")));
+    assert.equal(await evaluate("document.querySelectorAll('img[alt^=\"Entry pass\"]').length"), 0);
+    console.log('PASS: event questions/attendees, friend-mode validation and receipt rebooking, paid review without false passes, review/edit, confirmed passes, meeting/registration links; platform labels and layout at390/1440px.');
     await send('Browser.close');
 } finally {
     ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

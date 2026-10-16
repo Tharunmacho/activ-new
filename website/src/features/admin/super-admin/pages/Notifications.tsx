@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import PushDeliveryStatus from '../components/PushDeliveryStatus';
 import {
     Mail, MessageSquare, Bell, RefreshCw, Loader2, Send, AlertTriangle,
     CheckCircle2, XCircle, Search, RotateCcw, Webhook, Info,
@@ -15,6 +14,7 @@ import {
     type NotificationLogRow, type NotificationHealth, type DeliveryStatus,
 } from '@/services/activApi';
 import NotificationsAutomation from './NotificationsAutomation';
+import NotificationReports from './NotificationReports';
 
 /**
  * Delivery oversight — is the platform actually reaching anybody?
@@ -70,7 +70,7 @@ export default function Notifications() {
      * booking. The DELIVERY LOG is the raw record plus configuration and the
      * test send. The configuration banner shows on both.
      */
-    const [view, setView] = useState<'automation' | 'log'>('automation');
+    const [view, setView] = useState<'reports' | 'automation' | 'log'>('reports');
     const [automationNonce, setAutomationNonce] = useState(0);
 
     const [status, setStatus] = useState<DeliveryStatus | null>(null);
@@ -177,12 +177,12 @@ export default function Notifications() {
             <div className="flex-1 min-w-0">
                 <AdminPageHeader
                     title="Notifications"
-                    subtitle="Every email and WhatsApp message the platform has attempted, and whether it arrived."
+                    subtitle="Delivery reports, recipient activity and automations across email, WhatsApp, push and member inboxes."
                     onMenu={() => setSidebarOpen(true)}
                     actions={
                         <button
                             type="button"
-                            onClick={() => { if (view === 'automation') setAutomationNonce((n) => n + 1); else load(); }}
+                            onClick={() => { if (view !== 'log') setAutomationNonce((n) => n + 1); else load(); }}
                             disabled={loading && view === 'log'}
                             className={ADMIN_SECONDARY_BTN}
                         >
@@ -233,10 +233,10 @@ export default function Notifications() {
                         </div>
                     )}
 
-                    <PushDeliveryStatus />
                     {/* ============================================ view switch */}
                     <div className="flex gap-1 p-1 rounded-xl bg-slate-100 w-full sm:w-auto sm:inline-flex">
                         {([
+                            ['reports', 'Reports', 'Delivery reports'],
                             ['automation', 'Automation', 'Automation'],
                             ['log', 'Delivery log', 'Delivery log & setup'],
                         ] as const).map(([value, short, label]) => (
@@ -258,6 +258,7 @@ export default function Notifications() {
                     </div>
 
                     {view === 'automation' ? <NotificationsAutomation refreshKey={automationNonce} /> : null}
+                    {view === 'reports' ? <NotificationReports refreshKey={automationNonce} /> : null}
 
                     {view === 'log' && (<>
                     {/* ================================================ health */}

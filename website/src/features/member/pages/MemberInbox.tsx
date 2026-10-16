@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-    Inbox, Send, ArrowLeft, Loader2, AlertCircle, Paperclip, Download, Smile, X,
+    Inbox, Send, ArrowLeft, Loader2, AlertCircle, Paperclip, Download, Smile, X, ImagePlus, AudioLines, MoreHorizontal, Trash2,
     MessagesSquare, Search, Lock, PackageSearch, FileText, Handshake,
 } from 'lucide-react';
 import { resolveMediaUrl } from '@/config/api.config';
+import ChatAudio from '../components/ChatAudio';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 /**
  * ============================================================================
@@ -66,7 +68,7 @@ const EMOJI = [
 ];
 import { errorMessage } from '@/services/activApi';
 import {
-    listConversations, listMessages, sendMessage, uploadMessageAttachment, downloadMessageAttachment, markConversationRead,
+    listConversations, listMessages, sendMessage, uploadMessageAttachment, downloadMessageAttachment, markConversationRead, deleteMessage,
     type Conversation, type DirectMessage, type MessageAttachment, type UploadedMessageAttachment,
 } from '@/services/messagesApi';
 
@@ -109,7 +111,8 @@ const initialsOf = (name: string) =>
 
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
 const FILE_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'rtf']);
-const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf';
+const AUDIO_EXTENSIONS = new Set(['mp3', 'm4a', 'aac', 'wav', 'ogg', 'opus', 'webm']);
+const ATTACHMENT_ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf';
 const fileSize = (size: number) => size >= 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.ceil(size / 1024))} KB`;
 
 /**
@@ -204,9 +207,14 @@ export default function MemberInbox() {
      * strip above the box draws. Both, because a file input that reports
      * “chosen” and shows nothing is how somebody sends the wrong photograph.
      */
-    const [picture, setPicture] = useState<{ file: File; preview: string; kind: 'image' | 'file'; uploaded?: UploadedMessageAttachment } | null>(null);
+    const [picture, setPicture] = useState<{ file: File; preview: string; kind: 'image' | 'file' | 'audio'; uploaded?: UploadedMessageAttachment } | null>(null);
     const [emojiOpen, setEmojiOpen] = useState(false);
     const fileRef = useRef<HTMLInputElement | null>(null);
+    const photoRef = useRef<HTMLInputElement | null>(null);
+    const audioRef = useRef<HTMLInputElement | null>(null);
+    const [messageAction, setMessageAction] = useState<DirectMessage | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const deletedLocally = useRef(new Map<string, 'me' | 'everyone'>());
     const boxRef = useRef<HTMLTextAreaElement | null>(null);
     const [sending, setSending] = useState(false);
     const sendingRef = useRef(false);
@@ -239,7 +247,7 @@ export default function MemberInbox() {
         try {
             const data = await listMessages(id);
             if (id !== activeId.current || request !== threadRequest.current) return;
-            setMessages(data?.messages || []);
+            setMessages((data?.messages || []).filter(message => deletedLocally.current.get(message.id) !== 'me').map(message => deletedLocally.current.get(message.id) === 'everyone' ? { ...message, deleted: true, body: '', attachment: null, attachmentUrl: '' } : message));
             setThread(data?.conversation || null);
             /*
              * Marked read on OPEN, not on scroll-to-bottom. A member who opens a
@@ -259,6 +267,7 @@ export default function MemberInbox() {
     useEffect(() => {
         followLatest.current = true;
         setDraft(''); setPicture(null); setEmojiOpen(false);
+        setMessageAction(null);
         if (fileRef.current) fileRef.current.value = '';
         if (openId) loadThread(openId);
         else { setMessages([]); setThread(null); }
@@ -293,7 +302,8 @@ export default function MemberInbox() {
         if (!file || sendingRef.current) return;
         const extension = file.name.split('.').pop()?.toLowerCase() || '';
         const isImage = IMAGE_EXTENSIONS.has(extension);
-        if (!isImage && !FILE_EXTENSIONS.has(extension)) { setError('Choose a photo, PDF, Word, Excel, PowerPoint or text file.'); if (fileRef.current) fileRef.current.value = ''; return; }
+        const isAudio = AUDIO_EXTENSIONS.has(extension);
+        if (!isImage && !isAudio && !FILE_EXTENSIONS.has(extension)) { setError('Choose a photo, document, MP3, M4A, AAC, WAV, Ogg or WebM audio file.'); if (fileRef.current) fileRef.current.value = ''; return; }
         const maxMb = isImage ? 5 : 10;
         if (!file.size || file.size > maxMb * 1024 * 1024) { setError(`Choose a non-empty ${isImage ? 'photo' : 'file'} smaller than ${maxMb} MB.`); if (fileRef.current) fileRef.current.value = ''; return; }
         setError('');
@@ -301,7 +311,7 @@ export default function MemberInbox() {
             /* The old object URL is released, or every picture a member
                changes their mind about stays in memory for the session. */
             if (current?.preview) URL.revokeObjectURL(current.preview);
-            return { file, preview: isImage ? URL.createObjectURL(file) : '', kind: isImage ? 'image' : 'file' };
+            return { file, preview: isImage ? URL.createObjectURL(file) : '', kind: isImage ? 'image' : isAudio ? 'audio' : 'file' };
         });
     };
 
@@ -311,6 +321,8 @@ export default function MemberInbox() {
             return null;
         });
         if (fileRef.current) fileRef.current.value = '';
+        if (photoRef.current) photoRef.current.value = '';
+        if (audioRef.current) audioRef.current.value = '';
     };
 
     /**
@@ -392,6 +404,23 @@ export default function MemberInbox() {
         setParams(id ? { c: id } : {}, { replace: false });
     };
 
+    const remove = async (scope: 'me' | 'everyone') => {
+        if (!messageAction || deleting) return;
+        const selected = messageAction, conversationId = openId;
+        setDeleting(true);
+        try {
+            await deleteMessage(conversationId, selected.id, scope);
+            deletedLocally.current.set(selected.id, scope);
+            if (activeId.current === conversationId) {
+                ++threadRequest.current;
+                setMessages(rows => scope === 'me' ? rows.filter(row => row.id !== selected.id) : rows.map(row => row.id === selected.id ? { ...row, deleted: true, body: '', attachmentUrl: '', attachment: null } : row));
+                setMessageAction(null);
+            }
+            void loadInbox(true);
+        } catch (err) { setError(memberFacing(err, 'The message could not be deleted. Please try again.')); }
+        finally { setDeleting(false); }
+    };
+
     const peerName = thread?.withMember?.fullName || 'Member';
     const peerWhere = useMemo(
         () => [thread?.withMember?.block, thread?.withMember?.district, thread?.withMember?.state]
@@ -436,6 +465,14 @@ export default function MemberInbox() {
 
     return (
         <div className="space-y-4">
+            <Dialog open={!!messageAction} onOpenChange={open => { if (!open && !deleting) setMessageAction(null); }}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader><DialogTitle>Delete message</DialogTitle><DialogDescription>Delete for me removes this message from your account. Delete for everyone removes your message from both sides of the conversation.</DialogDescription></DialogHeader>
+                    <button type="button" disabled={deleting} onClick={() => void remove('me')} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-ui-small font-semibold"><Trash2 className="h-4 w-4" />Delete for me</button>
+                    {messageAction?.mine && !messageAction.deleted && <button type="button" disabled={deleting} onClick={() => void remove('everyone')} className="min-h-11 rounded-xl bg-red-600 px-4 text-ui-small font-semibold text-white">Delete for everyone</button>}
+                    <button type="button" disabled={deleting} onClick={() => setMessageAction(null)} className="min-h-11 rounded-xl text-ui-small font-semibold text-slate-600">Cancel</button>
+                </DialogContent>
+            </Dialog>
             {error ? (
                 <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
                     <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -649,7 +686,7 @@ export default function MemberInbox() {
                                                   often saved, and the browser
                                                   already does both.
                                                 */}
-                                                {m.attachment?.kind === 'file' ? (
+                                                {m.deleted ? <p className="text-ui-small italic opacity-80">Message deleted</p> : m.attachment?.kind === 'audio' ? <ChatAudio attachment={m.attachment} /> : m.attachment?.kind === 'file' ? (
                                                     <button type="button" onClick={() => void download(m.attachment!)} disabled={!!downloading}
                                                         className={`mb-2 flex w-full min-w-0 items-center gap-2 rounded-xl border p-3 text-left ${m.mine ? 'border-white/30 bg-white/10' : 'border-slate-200 bg-white'}`}
                                                         aria-label={`Download ${m.attachment.name}`}>
@@ -678,16 +715,16 @@ export default function MemberInbox() {
                                                     line breaks meant them. Nothing is drawn
                                                     for a picture sent without a caption — an
                                                     empty paragraph is a gap under the image. */}
-                                                {m.body ? (
+                                                {!m.deleted && m.body ? (
                                                     <p className="text-ui-small leading-relaxed whitespace-pre-wrap
                                                                   break-words">
                                                         {m.body}
                                                     </p>
                                                 ) : null}
-                                                <p className={`text-ui-caption mt-1 ${
+                                                <div className="mt-1 flex items-center justify-end gap-2"><p className={`text-ui-caption ${
                                                     m.mine ? 'text-blue-100' : 'text-slate-400'}`}>
                                                     {timeOf(m.at)}
-                                                </p>
+                                                </p><button type="button" aria-label={`Message options ${m.id}`} title="Delete message" onClick={() => setMessageAction(m)} className="flex h-8 w-8 items-center justify-center rounded-lg opacity-80 hover:bg-black/10 focus:opacity-100"><MoreHorizontal className="h-4 w-4" /></button></div>
                                             </div>
                                         </div>
                                     ))}
@@ -812,7 +849,7 @@ export default function MemberInbox() {
                                             src={picture.preview}
                                             alt=""
                                             className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                                        /> : <FileText className="h-10 w-10 shrink-0 text-blue-600" />}
+                                        /> : picture.kind === 'audio' ? <AudioLines className="h-10 w-10 shrink-0 text-blue-600" /> : <FileText className="h-10 w-10 shrink-0 text-blue-600" />}
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-ui-small font-semibold text-slate-800">
                                                 {picture.file.name}
@@ -875,14 +912,17 @@ export default function MemberInbox() {
                                     accept={ATTACHMENT_ACCEPT}
                                     className="hidden"
                                     disabled={sending}
-                                    aria-label="Choose a photo or document"
-                                    onChange={(e) => choosePicture(e.target.files?.[0])}
+                                    aria-label="Choose a document"
+                                    onChange={(e) => { choosePicture(e.target.files?.[0]); e.target.value = ''; }}
                                 />
+                                <input ref={photoRef} type="file" accept=".jpg,.jpeg,.png,.webp,.gif" className="hidden" disabled={sending} aria-label="Choose a photo" onChange={e => { choosePicture(e.target.files?.[0]); e.target.value = ''; }} />
+                                <input ref={audioRef} type="file" accept=".mp3,.m4a,.aac,.wav,.ogg,.opus,.webm" className="hidden" disabled={sending} aria-label="Choose audio" onChange={e => { choosePicture(e.target.files?.[0]); e.target.value = ''; }} />
+                                <button type="button" onClick={() => photoRef.current?.click()} aria-label="Attach a photo" title="Photo · up to 5 MB" disabled={sending} className="mb-0.5 shrink-0 rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600"><ImagePlus className="h-5 w-5" /></button>
 
                                 <button
                                     type="button"
                                     onClick={() => fileRef.current?.click()}
-                                    aria-label="Attach a photo or file"
+                                    aria-label="Attach a document"
                                     title="Photos up to 5 MB; PDF, Word, Excel, PowerPoint and text up to 10 MB"
                                     disabled={sending}
                                     className="mb-0.5 shrink-0 rounded-xl border border-slate-200 bg-white p-2.5
@@ -891,6 +931,8 @@ export default function MemberInbox() {
                                 >
                                     <Paperclip className="h-5 w-5" />
                                 </button>
+
+                                <button type="button" onClick={() => audioRef.current?.click()} aria-label="Attach audio" title="Audio · up to 10 MB" disabled={sending} className="mb-0.5 shrink-0 rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600"><AudioLines className="h-5 w-5" /></button>
 
                                 <button
                                     type="button"

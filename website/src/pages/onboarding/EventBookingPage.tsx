@@ -341,7 +341,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
     const [countText, setCountText] = useState('1');
     // Start with the booking contact as the first attendee.
     const [participantDetails, setParticipants] = useState<BookingParticipant[]>([emptyPerson()]);
-    const [firstUsesBooker, setFirstUsesBooker] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [firstUsesBooker, setFirstUsesBooker] = useState(searchParams.get('forOthers') !== '1');
     const participants = useMemo(() => Array.from({ length: count }, (_, index) =>
         index === 0 && firstUsesBooker ? booker : participantDetails[index] || emptyPerson()
     ), [count, firstUsesBooker, booker, participantDetails]);
@@ -389,7 +390,6 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * "View your booking" link in the confirmation email. The page is a fresh
      * load in both cases, so the booking is read back by its reference.
      */
-    const [searchParams] = useSearchParams();
     const refFromUrl = (searchParams.get('ref') || '').trim();
     const [loadingRef, setLoadingRef] = useState(!!refFromUrl);
 
@@ -588,21 +588,15 @@ export default function EventBookingPage({ chrome = 'public' }: {
         /*
          * PARTICIPANTS MAY NOT REPEAT EACH OTHER. You and a participant may
          * share details (booking for yourself); two participant rows with the
-         * same email or mobile may not. The server applies the same rule.
+         * same email may not. The server applies the same rule.
          */
         const seenEmail = new Set<string>();
-        const seenPhone = new Set<string>();
         participants.forEach((person, i) => {
             const email = person.email.trim().toLowerCase();
-            const phone = nationalMobile(person.phone);
             if (email && !found[`p${i}.email`] && seenEmail.has(email)) {
                 found[`p${i}.email`] = 'Use another email';
             }
-            if (phone && !found[`p${i}.phone`] && seenPhone.has(phone)) {
-                found[`p${i}.phone`] = 'Use another mobile number';
-            }
             if (email) seenEmail.add(email);
-            if (phone) seenPhone.add(phone);
         });
 
         return found;
@@ -755,7 +749,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         try {
             const fresh = await getBookableEvent(id);
             setEvent(fresh);
-            const fieldErrors = validateRegistrationAnswers(fresh.registrationFields, answers);
+            const fieldErrors = { ...validate(), ...validateRegistrationAnswers(fresh.registrationFields, answers) };
             if (Object.keys(fieldErrors).length) { setErrors(fieldErrors); setStep('form'); setPaying(false); return; }
             if (fresh.closed || isPastEvent(fresh) || (fresh.registrationClosesAt && Date.parse(fresh.registrationClosesAt) <= Date.now())) throw new Error('Bookings for this event have closed.');
             if (Number(fresh.capacity) > 0 && Number(fresh.seatsLeft) < count) throw new Error('The available seats have changed. Please review your booking.');
@@ -765,6 +759,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 email: booker.email.trim(),
                 phone: nationalMobile(booker.phone),
                 noOfPersons: count,
+                useBookerForFirstParticipant: firstUsesBooker,
                 responses: answers,
                 participants: participants.map((p) => ({
                     name: p.name.trim(),
@@ -790,8 +785,8 @@ export default function EventBookingPage({ chrome = 'public' }: {
 
             setBooking(result);
             setStep('done');
+            await getEventBooking(result.bookingRef).then(setBooking).catch(() => {});
             setPaying(false);
-            getEventBooking(result.bookingRef).then(setBooking).catch(() => {});
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
             const held = (error as { booking?: EventBooking })?.booking;
@@ -1553,8 +1548,9 @@ export default function EventBookingPage({ chrome = 'public' }: {
                                     Participants
                                 </h2>
                                 <p className="text-ui-caption text-gray-600 font-semibold mb-5">
-                                    Name, email and mobile are required for every participant.
-                                    Participant 1 is filled from your booking details; edit it if someone else is attending.
+                                    Enter each attendee’s name, email and mobile. Each email can be booked once for this event; your booking contact can stay the same.
+                                    {firstUsesBooker ? ' Participant 1 uses your booking details; edit it if someone else is attending.' : ' You are booking for someone else. Enter their details in Participant 1.'}
+                                    {event.memberRateApplied ? ' Your member rate applies to each seat, including the friends you book for.' : ''}
                                 </p>
 
                                 <div className="space-y-4">
@@ -1750,10 +1746,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
          * review would otherwise disagree with the receipt.
          */
         const participantRows = participants
-            .map((person, i) => ({
-                name: person.name.trim() || (i === 0 ? booker.name : ''),
-                email: person.email.trim() || (i === 0 ? booker.email : ''),
-                phone: nationalMobile(person.phone) || (i === 0 ? nationalMobile(booker.phone) : ''),
+            .map((person) => ({
+                name: person.name.trim(),
+                email: person.email.trim(),
+                phone: nationalMobile(person.phone),
             }))
             .filter((row) => row.name || row.email || row.phone);
 
@@ -1967,9 +1963,10 @@ export default function EventBookingPage({ chrome = 'public' }: {
      * (or no longer) confirmed — an unfinished checkout, or one the organiser
      * cancelled. The heading must say so rather than print "confirmed".
      */
-    const settled = !!confirmed && (confirmed.status === 'active' || (confirmed.status === 'expired' && confirmed.payment?.status === 'paid'))
+    const needsReview = !!confirmed?.payment?.reconciliationRequired || (confirmed?.status === 'waitlist' && confirmed?.payment?.status === 'paid');
+    const settled = !needsReview && !!confirmed && (confirmed.status === 'active' || (confirmed.status === 'expired' && confirmed.payment?.status === 'paid'))
         && (confirmed.payment?.status === 'paid' || confirmed.payment?.status === 'not_required');
-    const headline = settled ? 'Booking confirmed'
+    const headline = needsReview ? 'Payment received — organiser review needed' : settled ? 'Booking confirmed'
         : !confirmed ? 'Booking unavailable'
         : confirmed.status === 'cancelled' ? 'Booking cancelled'
             : confirmed.status === 'waitlist' ? 'You are on the waitlist'
@@ -2000,7 +1997,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 </span>
                 <h1 className={`${SECTION_HEADING} text-brand-800 mb-3`}>{headline}</h1>
                 <p className="text-ui-body sm:text-ui-caption text-gray-600 font-semibold">
-                    {settled ? (
+                    {needsReview ? 'Your payment has been received, but your seats are not confirmed. Contact the organiser with this booking reference so they can review it. Please do not pay again.' : settled ? (
                         <>
                             Your seats are confirmed. Keep your booking reference and entry pass for the event.
                         </>
@@ -2194,6 +2191,18 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 finally { setPaying(false); }
             }}>Refresh booking status</button> : null}
             <div className="flex flex-col sm:flex-row gap-3 mt-7 sm:mt-9">
+                {settled && !event.closed && !isPastEvent(event, eventNow) ? <button type="button" disabled={paying} className={PRIMARY_BUTTON} onClick={async () => {
+                    setPaying(true); setPayError('');
+                    try {
+                        const fresh = await getBookableEvent(id);
+                        if (fresh.closed || isPastEvent(fresh) || (fresh.registrationClosesAt && Date.parse(fresh.registrationClosesAt) <= Date.now())) throw new Error('Bookings for this event have closed.');
+                        if (Number(fresh.capacity) > 0 && Number(fresh.seatsLeft) <= 0) throw new Error('This event is fully booked. Please contact the organiser.');
+                        setEvent(fresh); setBooking(null); setCount(1); setCountText('1'); setParticipants([emptyPerson()]); setFirstUsesBooker(false); setAnswers({}); setErrors({});
+                        setBooker(current => current.email ? current : confirmed?.bookedBy || emptyPerson());
+                        setSearchParams({ forOthers: '1' }); setStep('form');
+                    } catch (error) { setPayError(errorMessage(error, 'Could not start another booking. Please try again.')); }
+                    finally { setPaying(false); }
+                }}><UserPlus size={16} /> Book for someone else</button> : null}
                 <Link to={eventsHref} className={GHOST_BUTTON}>See other events</Link>
                 {!signedIn && (
                     <button

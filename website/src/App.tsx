@@ -1,3 +1,5 @@
+import BrowserNotificationPrompt from '@/components/BrowserNotificationPrompt';
+import PublicNotificationsPage from '@/pages/onboarding/PublicNotificationsPage';
 import UsageAnalytics from '@/components/UsageAnalytics';
 import BrowserPushLifecycle from '@/components/BrowserPushLifecycle';
 import { lazy, useEffect } from "react";
@@ -293,6 +295,7 @@ const App = () => (
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <UsageAnalytics />
             <BrowserPushLifecycle />
+            <BrowserNotificationPrompt />
             <NativePublicAppGate>
             {/* A routed page opens at its top. Without this the window keeps
                 the offset it had, so pressing a link from the foot of one page
@@ -310,6 +313,7 @@ const App = () => (
                   this association", one about the body and one about joining it. */}
               <Route path="/membership" element={<MembershipPage />} />
               <Route path="/events" element={<EventsPage />} />
+              <Route path="/notifications" element={<PublicNotificationsPage />} />
               {/* Where an event card goes when it is clicked. Below /events,
                   so the list keeps the bare path. */}
               <Route path="/events/:id" element={<EventDetailPage />} />

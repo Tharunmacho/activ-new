@@ -57,7 +57,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (url.pathname === '/api/v1/admin/super/membership/plans') return reply(res, { plans, settings: { showAllPlans: false } });
-  if (url.pathname.includes('regions')) return reply(res, { states: [{ name: 'Tamil Nadu', districts: [{ name: 'Chennai', blocks: [{ name: 'Central' }] }] }] });
+  if (url.pathname.includes('regions')) return reply(res, { states: [{ name: 'Tamil Nadu', districts: [{ name: 'Chennai', blocks: [{ name: 'Central' }, { name: 'North' }] }, { name: 'Coimbatore', blocks: [{ name: 'West' }] }] }, { name: 'Kerala', districts: [] }] });
   return reply(res, {});
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -153,9 +153,10 @@ try {
   assert.equal(saves[2].payload.audience, 'paid_non_student'); assert.deepEqual(saves[2].payload.planKeys, [], 'Other audiences clear stale plan keys');
   console.log('PASS: draft/publication validation, live plan catalogue including retired plans, non-student selection and exact targeting payloads.');
 
-  await remount(original); await until(`document.querySelector('[name="block"]').value==='Central'`);
+  await remount(original); await until(`document.querySelector('[aria-label="Remove Central"]')`);
   await click('Save published update'); await waitSaved(4);
-  for (const key of ['title', 'summary', 'body', 'category', 'audience', 'state', 'district', 'block', 'bannerUrl', 'bannerAlt', 'attachmentUrl', 'attachmentLabel', 'pinned']) assert.deepEqual(saves[3].payload[key], original[key], `${key} survives edit/save`);
+  for (const key of ['title', 'summary', 'body', 'category', 'audience', 'bannerUrl', 'bannerAlt', 'attachmentUrl', 'attachmentLabel', 'pinned']) assert.deepEqual(saves[3].payload[key], original[key], `${key} survives edit/save`);
+  assert.deepEqual(saves[3].payload.targets, [{ state: original.state, district: original.district, block: original.block }], 'Legacy region preserved as a complete target');
   assert.deepEqual(saves[3].payload.planKeys, original.planKeys);
 
   await upload('image', 'replacement.png'); await waitUpload('image');
@@ -189,6 +190,17 @@ try {
   assert.equal(saves[6].payload.body, ''); assert.equal(saves[6].payload.bannerUrl, '/uploads/poster.png');
   console.log('PASS: preserved edit data, upload locking, failed replacement, full-image previews, document uploads, concurrent edits and explicit media removal.');
 
+  await remount({ ...original, title: 'Dear {Name}', summary: 'Welcome {name}', body: 'Hello {NAME}, your benefits are ready.' });
+  await until(`document.querySelector('input[aria-label="Kerala"]')`);
+  await evaluate(`document.querySelector('input[aria-label="Kerala"]').click()`);
+  await click('Show districts in Tamil Nadu'); await click('Show blocks in Chennai');
+  await evaluate(`[...document.querySelectorAll('input[type="checkbox"]')].find(input=>input.getAttribute('aria-label')?.endsWith('North')).click()`);
+  assert(await evaluate(`document.querySelector('[aria-label="Member preview"]').textContent.includes('Dear Tharun')`));
+  assert(await evaluate(`document.querySelector('[aria-label="Member preview"]').textContent.includes('Hello Tharun')`));
+  await click('Save published update'); await waitSaved(8);
+  assert.equal(saves[7].payload.title, 'Dear {Name}', 'Preview never replaces authored tokens');
+  assert.equal(saves[7].payload.targets.length, 3, 'Multiple states and blocks saved together');
+  assert.equal(saves[7].payload.includeVisitors, false, 'Restricted membership/region remains private');
   await remount(original); await mkdir(artifacts, { recursive: true });
   for (const width of [320, 390, 1440]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: width < 500 ? 844 : 1100, deviceScaleFactor: 1, mobile: width < 500 });
@@ -198,7 +210,7 @@ try {
     const measured = await evaluate(`(() => {
       const visible=e=>e.getBoundingClientRect().width>0;
       const style=e=>({size:parseFloat(getComputedStyle(e).fontSize),family:getComputedStyle(e).fontFamily});
-      return {width:innerWidth,body:style(document.body),poppinsLoaded:document.fonts.check('600 20px Poppins'),
+      return {width:innerWidth,rootSize:parseFloat(getComputedStyle(document.documentElement).fontSize),body:style(document.body),poppinsLoaded:document.fonts.check('600 20px Poppins'),
         labels:[...document.querySelectorAll('label > span:first-child')].filter(visible).map(style),
         preview:style(document.querySelector('[aria-label="Member preview"] p.text-base')),
         caption:style(document.querySelector('[aria-label="Member preview"] .text-xs')),
@@ -206,16 +218,16 @@ try {
     })()`);
     layouts.push({...measured,textFields});
     await writeFile(path.join(artifacts,'update-composer-typography.json'),JSON.stringify({fonts:fonts.loaded?'local Poppins':'system fallback',layouts},null,2));
-    assert(textFields.every(field => field.size === '20px'), `Inputs stay 20px at ${width}px: ${JSON.stringify(textFields)}`);
-    assert.equal(measured.body.size,20); assert.equal(measured.preview.size,20); assert.equal(measured.caption.size,16);
-    assert(measured.labels.length>0&&measured.labels.every(label=>label.size>=18&&label.family.includes('Poppins')),'Readable Poppins labels');
+    assert(textFields.every(field => parseFloat(field.size) >= 16), `Inputs retain the shared readable minimum at ${width}px: ${JSON.stringify(textFields)}`);
+    assert.equal(measured.body.size,measured.rootSize); assert.equal(measured.preview.size,measured.rootSize); assert.equal(measured.caption.size,measured.rootSize * 0.75);
+    assert(measured.labels.length>0&&measured.labels.every(label=>label.size>=measured.rootSize * 0.875&&label.family.includes('Poppins')),'Labels use the shared Poppins scale');
     if(fonts.loaded) assert(measured.poppinsLoaded,'Local Poppins loaded');
     assert.deepEqual(measured.overflow,[],`${width}: controls stay inside the viewport`);
     const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
     await writeFile(path.join(artifacts, `update-composer-${width}.png`), Buffer.from(shot.result.data, 'base64'));
   }
   assert.deepEqual(exceptions, []);
-  console.log('PASS: responsive 320/390/1440 layouts, Poppins 20px form fields, 18px labels and 16px captions and no browser exceptions. Screenshots saved in artifacts/update-composer-*.png.');
+  console.log('PASS: responsive 320/390/1440 layouts, shared Poppins scale, at least 16px form inputs and no browser exceptions. Screenshots saved in artifacts/update-composer-*.png.');
   await send('Browser.close');
 } finally {
   pendingPoster?.destroy(); pendingDocument?.destroy(); ws?.close(); chrome?.kill();

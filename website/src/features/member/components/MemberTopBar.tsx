@@ -4,6 +4,7 @@ import {
     Bell, MessageSquare, CalendarDays, Megaphone, CheckCheck, Check, Inbox, ChevronRight,
 } from 'lucide-react';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from '@/services/activApi';
+import { recordNotificationOpen } from '@/services/deliveryReportApi';
 import { listAnnouncements, listMemberEvents } from '@/services/memberHubApi';
 import { memberEventPath } from '@/lib/eventPath';
 import { notificationPath } from '@/lib/notificationPath';
@@ -526,6 +527,7 @@ export default function MemberTopBar({ className = '' }: { className?: string })
                                                         // for clearing something
                                                         // without going to it.
                                                         if (item.unread) markOne(item);
+                                                        if (item.kind === 'notification') void recordNotificationOpen(item.id.replace(/^n:/, ''), 'in_app').catch(() => undefined);
                                                         go(item.to);
                                                     }}
                                                     className={`w-full flex items-start gap-3 py-3 pl-4 text-left

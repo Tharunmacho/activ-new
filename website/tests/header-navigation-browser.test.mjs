@@ -63,6 +63,7 @@ try{
   css=(process.env.TEST_CSS
     ? await readFile(path.resolve(process.env.TEST_CSS),'utf8')
     : (await postcss([tailwindcss({config:path.join(root,'tailwind.config.ts')})]).process(source,{from:path.join(root,'src/index.css')})).css)+'\n'+fonts.css;
+  await writeFile(path.join(output,'current.css'),css);
   const compiled=await build({absWorkingDir:root,bundle:true,write:false,format:'iife',platform:'browser',jsx:'automatic',loader:{'.svg':'dataurl'},
     define:{'import.meta.env':JSON.stringify({DEV:true,VITE_API_URL:base+'/api/v1'}),'process.env.NODE_ENV':'"test"'},
     stdin:{resolveDir:root,loader:'tsx',contents:`import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import SiteSettingsManager from './src/pages/cms/SiteSettingsManager';import{HeaderSection}from'./src/components/layout/HeaderSection';import{headerNavigationLinks}from'./src/components/shared/headerNavigation';window.normalizeNavigation=headerNavigationLinks;createRoot(document.getElementById('root')).render(<BrowserRouter>{location.pathname.startsWith('/cms/')?<SiteSettingsManager/>:<><HeaderSection/><main style={{padding:24}}>Public page fixture</main></>}</BrowserRouter>);`}});
@@ -79,6 +80,21 @@ try{
   const until=async expression=>{for(let i=0;i<100;i++){if(await evaluate(`Boolean(${expression})`))return;await pause(60);}throw Error(expression+errors.join('\n'));};
   const navigate=async(url,width,height=900)=>{await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<600});await send('Page.navigate',{url:base+url});};
   const screenshot=async name=>writeFile(path.join(output,name+'.png'),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).result.data,'base64'));
+  const inspectClosedHeader=async(width,height)=>{
+    await evaluate('document.fonts.ready');
+    const layout=await evaluate(`(()=>{
+      const rect=e=>{const r=e.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,width:r.width,height:r.height,scrollWidth:e.scrollWidth,clientWidth:e.clientWidth};};
+      const header=document.querySelector('header'),bell=header.querySelector('a[aria-label="Notifications"]'),login=header.querySelector('a[href="/login"]'),brand=header.querySelector('a[aria-label="ACTIV home"]'),menu=header.querySelector('button[aria-label="Open menu"]');
+      return{kind:'closed-header',width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,bell:rect(bell),login:rect(login),brand:rect(brand),logo:rect(brand.querySelector('img')),menu:menu?rect(menu):null};
+    })()`);
+    layouts.push(layout);
+    await screenshot(`closed-header-${width}-${height}`);
+    assert(layout.scrollWidth<=width,'Closed header fits viewport');
+    assert(layout.bell.width>=44&&layout.bell.height>=44,'Notification bell has44px touch target');
+    assert(layout.bell.left>=layout.logo.right,'Bell does not overlap logo');
+    assert(layout.login.left>=layout.bell.right&&layout.login.right<=width,'Bell and login do not overlap or overflow');
+    assert(layout.login.scrollWidth<=layout.login.clientWidth+1,'Login label is not clipped');
+  };
   await send('Runtime.enable');
   await navigate('/cms/site',1440);
   await until('document.querySelector("[data-navigation-entry=zones]")');
@@ -102,6 +118,7 @@ try{
   await screenshot('cms-zones-first-390');
   for(const width of [1280,1440]){
     await navigate('/',width);await until('document.querySelector("[data-zones-menu]")');await evaluate('document.fonts.ready');
+    await inspectClosedHeader(width,900);
     assert(await evaluate('document.querySelector("nav[aria-label=Main]").firstElementChild.hasAttribute("data-zones-menu")'),'Desktop renders stored order');
     await evaluate('document.querySelector("[data-zones-menu] > button").click()');await pause(120);
     const layout=await evaluate('(()=>{const menu=document.querySelector("[data-zones-menu] > div"),r=menu.getBoundingClientRect();return{width:innerWidth,scrollWidth:document.documentElement.scrollWidth,menuLeft:r.left,menuRight:r.right,text:menu.textContent};})()');
@@ -110,6 +127,7 @@ try{
   }
   for(const [width,height] of [[320,568],[390,600],[390,844],[768,700]]){
     await navigate('/',width,height);await until('document.querySelector("button[aria-label=\\"Open menu\\"]")');
+    await inspectClosedHeader(width,height);
     await evaluate('document.querySelector("button[aria-label=\\"Open menu\\"]").click()');
     await until('document.querySelectorAll("[aria-label=Menu] a[aria-label^=\\"ACTIV on\\"]").length===8');await evaluate('document.fonts.ready');await pause(500);
     assert(await evaluate('document.querySelector("[aria-label=Menu] nav").firstElementChild.querySelector("[data-zones-accordion]")!==null'),'Mobile renders stored Zones order');
