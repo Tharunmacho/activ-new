@@ -14,6 +14,7 @@
 import api, { clearSession, errorMessage, loginPathFor } from '@/services/api';
 import {
     login as apiLogin,
+    logout as apiLogout,
     register as apiRegister,
     getMyProfile,
     getAdminProfile,
@@ -164,10 +165,9 @@ export const getCurrentUser = async (): Promise<UserData | null> => {
     }
 };
 
-export const logout = () => {
+export const logout = async () => {
     const signIn = loginPathFor();
-    api.post('/auth/logout').catch(() => null);
-    clearSession();
+    await apiLogout();
     window.location.href = signIn;
 };
 

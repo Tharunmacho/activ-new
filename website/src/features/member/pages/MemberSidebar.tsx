@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/contexts/ProfileContext';
 import { MemberAvatar } from '@/features/member/memberPhoto';
-import { apiFetch, getPaymentStatus, getMyApplication } from "@/services/activApi";
+import { apiFetch, getPaymentStatus, getMyApplication, logout } from "@/services/activApi";
 import {
     NO_ACCESS,
     deriveMemberAccess,
@@ -431,7 +431,9 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
         })).filter(group => group.entries.length > 0);
     }, [filteredNav]);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // Unregister this browser and clear the worker identity before leaving.
+        await logout();
         // Clear all user-related localStorage data
         localStorage.removeItem("token");
         localStorage.removeItem("userName");

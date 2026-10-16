@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "start": "node server.mjs",
     "test:share-previews": "node tests/server-preview.test.mjs && node tests/cms-share-previews.test.mjs",
+    "test:browser-push": "node tests/browser-push.test.mjs",
     "test:media-uploads": "node tests/media-upload-browser.test.mjs",
     "test:payment-return": "node tests/payment-return.test.mjs"
   },
@@ -52,6 +53,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "firebase": "^12.0.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",

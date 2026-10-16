@@ -1,5 +1,6 @@
 export function notificationPath(row: any): string {
   const data = row?.data || {};
+  if (data.kind === 'test') return '/super-admin/notifications';
   const id = (value: unknown) => encodeURIComponent(String(value || ''));
   if (data.conversationId) return `/member/messages?c=${id(data.conversationId)}`;
   if (data.announcementId || data.kind === 'announcement') return `/member/updates/${id(data.announcementId || data.sourceId)}`;

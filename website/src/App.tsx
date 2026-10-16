@@ -1,4 +1,5 @@
 import UsageAnalytics from '@/components/UsageAnalytics';
+import BrowserPushLifecycle from '@/components/BrowserPushLifecycle';
 import { lazy, useEffect } from "react";
 import RouteRecovery from "@/components/RouteRecovery";
 import { Toaster } from "@/shared/components/ui/toaster";
@@ -291,6 +292,7 @@ const App = () => (
               changes nothing about how this app routes. */}
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <UsageAnalytics />
+            <BrowserPushLifecycle />
             <NativePublicAppGate>
             {/* A routed page opens at its top. Without this the window keeps
                 the offset it had, so pressing a link from the foot of one page

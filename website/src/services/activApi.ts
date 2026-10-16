@@ -9,6 +9,7 @@
  * Everything here maps 1:1 onto a route in `backend/src/routes.js`.
  */
 import { analyticsLogin } from '@/lib/analytics';
+import { clearBrowserPushSession } from './browserPush';
 import api, {
     unwrap,
     setAuthToken,
@@ -448,6 +449,7 @@ export const register = async (payload: {
 };
 
 export const logout = async (): Promise<void> => {
+    await clearBrowserPushSession().catch(() => undefined);
     // Best effort: the server only drops a cache entry, so a failure here must
     // not stop the client from forgetting its own token.
     await api.post(ENDPOINTS.AUTH.LOGOUT).catch(() => null);

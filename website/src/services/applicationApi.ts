@@ -1,5 +1,6 @@
 import { apiFetch, getMyProfile, pickMostAdvancedApplication } from "@/services/activApi";
 import { resolveApplicantKind } from "@/features/member/memberAccess";
+import { clearSession } from "@/services/api";
 // Member Application API Service
 // Empty: every call below goes through apiFetch, which prefixes the real
 // API base itself. Kept as a constant so the call sites need no edit.
@@ -210,7 +211,7 @@ export const getUserApplication = async (): Promise<Application | null> => {
       
       if (response.status === 401) {
         // Clear invalid token
-        localStorage.removeItem('token');
+        await clearSession();
         return null;
       }
       

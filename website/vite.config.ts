@@ -6,6 +6,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from "./share-preview.mjs";
 import { resolveApiBase } from "./api-base.mjs";
+import { firebaseWorkerPlugin } from './firebase-worker-plugin';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -30,7 +31,7 @@ export default defineConfig(({ mode }) => ({
       ],
     },
   },
-  plugins: [react(), mode === "development" && componentTagger(), {
+  plugins: [react(), firebaseWorkerPlugin(mode), mode === "development" && componentTagger(), {
     name: "activ-api-prefetch-base",
     transformIndexHtml: {
       order: "pre" as const,

@@ -8,6 +8,7 @@
  * against a sleeping server.
  */
 import { analyticsLogout } from '@/lib/analytics';
+import { clearBrowserPushSession } from './browserPush';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { API_BASE_URL, API_TIMEOUT, STORAGE_KEYS } from '@/config/api.config';
 
@@ -119,7 +120,8 @@ export const loginPathFor = (role?: string | null): string => {
     return value && value !== 'member' ? '/admin/login' : '/login';
 };
 
-export const clearSession = (): void => {
+export const clearSession = (): Promise<void> => {
+    const pushCleared = clearBrowserPushSession(getAuthToken()).catch(() => undefined);
     analyticsLogout();
     try {
         Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
@@ -149,6 +151,7 @@ export const clearSession = (): void => {
     // something to leave to a technicality.
     clearRequestCache();
     announceSessionChange();
+    return pushCleared;
 };
 
 // ------------------------------------------------------------- request/response
@@ -292,7 +295,7 @@ api.interceptors.response.use(
         if (String(response.config?.method || 'get').toLowerCase() !== 'get') clearRequestCache();
         return response;
     },
-    (error: AxiosError) => {
+    async (error: AxiosError) => {
         const status = error.response?.status;
         const url = error.config?.url || '';
 
@@ -313,7 +316,7 @@ api.interceptors.response.use(
 
         if (status === 401 && !isAuthAttempt && !isPublicDonation) {
             const signIn = loginPathFor();
-            clearSession();
+            await clearSession();
             if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
                 window.location.assign(signIn);
             }

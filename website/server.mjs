@@ -172,7 +172,7 @@ const server = http.createServer(async(req, res) => {
             const hashed = pathname.startsWith('/assets/');
             res.writeHead(200, {
                 'Content-Type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream',
-                'Cache-Control': hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600'
+                'Cache-Control': pathname === '/firebase-messaging-sw.js' ? 'no-cache' : hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600'
             });
             fs.createReadStream(file).pipe(res);
             return;

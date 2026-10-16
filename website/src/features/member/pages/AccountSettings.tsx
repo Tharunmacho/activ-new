@@ -12,6 +12,7 @@ import {
 } from '@/services/activApi';
 import { MemberAvatar, uploadMemberPhoto } from '@/features/member/memberPhoto';
 import AssociationUpdatePreferences from '../components/AssociationUpdatePreferences';
+import BrowserPushSettings from '@/components/BrowserPushSettings';
 
 /**
  * SETTINGS — THE ACCOUNT, NOT THE APPLICATION.
@@ -291,6 +292,7 @@ export default function AccountSettings() {
                     </Section>
 
                     <AssociationUpdatePreferences />
+                    <BrowserPushSettings />
 
                     {/* ---- shortcuts + sign out ---- */}
                     <section className="lg:col-span-2 xl:col-span-3 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
