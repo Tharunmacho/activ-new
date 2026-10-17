@@ -6,7 +6,7 @@ import { mkdtemp, readFile, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "esbuild";
+import { build, stop } from "esbuild";
 import postcss from "postcss";
 import tailwind from "tailwindcss";
 import loadConfig from "tailwindcss/loadConfig.js";
@@ -238,7 +238,7 @@ try {
   const send = (method, params = {}) =>
     new Promise((resolve, reject) => {
       const id = ++seq,
-        timer = setTimeout(() => reject(Error(method)), 20000);
+        timer = setTimeout(() => reject(Error(method)), 45000);
       pending.set(id, (r) => {
         clearTimeout(timer);
         resolve(r);
@@ -438,8 +438,21 @@ try {
     "PASS: report filters/layout and failed-delivery review, per-recipient eligibility, cancel, automation filters, frozen confirmation, duplicate-click protection, status refresh and later-page retries beyond 100 ineligible failures. All deliveries are mocked; no external requests."
   );
 } finally {
+  // Let Chrome close its DevTools socket before the process fallback. Killing
+  // it mid-close can leave Node's WebSocket/child handles alive after PASS.
+  if (ws?.readyState === WebSocket.OPEN) {
+    await new Promise(resolve => {
+      const timer = setTimeout(resolve, 2000);
+      ws.addEventListener('close', () => { clearTimeout(timer); resolve(); }, { once: true });
+      try { ws.send(JSON.stringify({ id: 1000000, method: 'Browser.close' })); }
+      catch { clearTimeout(timer); resolve(); }
+    });
+  }
   ws?.close();
-  chrome?.kill();
+  if (chrome?.exitCode == null) chrome?.kill();
+  chrome?.unref();
+  stop();
+  const serverClosed = new Promise(resolve => server.close(resolve));
   server.closeAllConnections();
-  await new Promise((resolve) => server.close(resolve));
+  await serverClosed;
 }
