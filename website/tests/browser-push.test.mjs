@@ -3,11 +3,11 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, readdir } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'esbuild';
+import { build, stop } from 'esbuild';
 import vm from 'node:vm';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -53,17 +53,18 @@ try {
     stdin: { resolveDir: root, loader: 'tsx', contents: `
       import React from 'react';import {createRoot} from 'react-dom/client';
       import Settings from './src/components/BrowserPushSettings';
+      import {Toaster,toast} from 'sonner';
       import * as push from './src/services/browserPush';
       import * as identity from './src/lib/pushIdentity';
       import {clearSession} from './src/services/api';
       import {logout} from './src/services/activApi';
-      Object.assign(window,{push,identity,clearSession,logout});
+      Object.assign(window,{push,identity,clearSession,logout,toast});
       window.permission='granted';
       Object.defineProperty(Notification,'permission',{get:()=>window.permission});
       Notification.requestPermission=async()=>window.permission;
       window.signIn=id=>localStorage.setItem('token','x.'+btoa(JSON.stringify({userId:id,exp:Math.floor(Date.now()/1000)+3600}))+'.x');
       window.signIn('member-a');
-      createRoot(document.getElementById('root')).render(<Settings/>);
+      createRoot(document.getElementById('root')).render(<><Settings/><Toaster/></>);
     ` } });
   bundle = built.outputFiles[0].text;
   chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -96,6 +97,17 @@ try {
   await until('document.body.textContent.includes("enabled for this account")');
   assert.equal((await evaluate('identity.readPushIdentity()')).userId, 'member-a');
   assert.equal(calls[0].body.platform, 'web');
+  const workerRegistration = await evaluate(`(async()=>{const registration=await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');return {scope:registration.scope,scriptURL:registration.active.scriptURL,updateViaCache:registration.updateViaCache}})()`);
+  assert.deepEqual(workerRegistration, {scope:origin+'/',scriptURL:origin+'/firebase-messaging-sw.js',updateViaCache:'none'}, 'Worker controls the site root and bypasses cached update scripts');
+  await evaluate(`window.receivePush({data:{userId:'member-a',kind:'announcement',sourceId:'foreground-notice',notificationId:'abcdef0123456789abcdef01',title:'Private member title'}})`);
+  await until('document.querySelector("[data-sonner-toast]")');
+  assert(await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("You have an update from ACTIV.")'));
+  assert(!await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("Private member title")'), 'Foreground push uses a generic notice');
+  await evaluate(`window.receivePush({data:{userId:'member-other',notificationId:'wrong-account'}})`);
+  assert.equal(await evaluate('document.querySelectorAll("[data-sonner-toast]").length'), 1, 'Foreground ignores another account');
+  await evaluate(`Object.defineProperty(document,'visibilityState',{value:'hidden',configurable:true});window.receivePush({data:{userId:'member-a',notificationId:'hidden-window'}})`);
+  assert.equal(await evaluate('document.querySelectorAll("[data-sonner-toast]").length'), 1, 'Hidden pages do not duplicate background notifications');
+  await evaluate(`Object.defineProperty(document,'visibilityState',{value:'visible',configurable:true});toast.dismiss()`);
   assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'settings fit a narrow phone');
   for (const width of [320, 1440]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 });
@@ -119,6 +131,7 @@ try {
   await evaluate("signIn('member-c');window.holdToken=true;window.switching=push.syncBrowserPush();void 0");
   await until('window.releaseToken');
   assert.equal(await evaluate('identity.readPushIdentity()'), null);
+
   await evaluate('window.releaseToken();window.holdToken=false;window.switching');
   assert.equal((await evaluate('identity.readPushIdentity()')).userId, 'member-c');
   await evaluate('window.releaseToken=null');
@@ -156,6 +169,14 @@ try {
   assert.equal(calls.length, count, 'late SDK result after timeout cannot register a signed-out account');
   assert.equal(await evaluate('identity.readPushIdentity()'), null);
 
+  // Revocation while Firebase obtains a token must prevent a late registration.
+  await evaluate('signIn("member-b");window.permission="granted";window.holdToken=true;window.releaseToken=null;window.revoking=push.enableBrowserPush();void 0');
+  await until('window.releaseToken');
+  const registrationsBeforeRevocation = calls.length;
+  await evaluate('window.permission="denied";window.releaseToken();window.holdToken=false;window.revoking');
+  assert.equal(calls.length, registrationsBeforeRevocation, 'Permission revoked during token retrieval cannot register the browser');
+  assert.equal(await evaluate('identity.readPushIdentity()'), null);
+
   // Exercise the actual worker's background and click handlers with a fake Firebase adapter.
   const worker = await build({ entryPoints: [path.join(root, 'src/firebaseMessagingWorker.ts')], bundle: true, write: false, format: 'iife',
     define: { 'import.meta.env': JSON.stringify(env) }, plugins: [{ name: 'worker-fixtures', setup(b) {
@@ -166,12 +187,15 @@ try {
       b.onLoad({ filter: /.*/, namespace: 'identity' }, () => ({ contents: `export const readPushIdentity=async()=>globalThis.identity;
         export {ownsPush} from ${JSON.stringify(path.join(root, 'src/lib/pushIdentity.ts'))};`, resolveDir: root }));
     } }] });
-  const handlers = {}, displayed = [], opened = [];
+  const handlers = {}, displayed = [], opened = [], navigated = [];
+  let focused = 0, activated = 0, installed = 0;
   const context = vm.createContext({ URL, Date, identity: { userId: 'member-b', expiresAt: Date.now() + 60000 },
-    self: { addEventListener: (name, fn) => handlers[name] = fn, location: { origin },
+    self: { addEventListener: (name, fn) => handlers[name] = fn, location: { origin }, skipWaiting:async()=>{installed++;},
       registration: { showNotification: async (title, options) => displayed.push({ title, ...options }) },
-      clients: { matchAll: async () => [], openWindow: async url => opened.push(url) } } });
+      clients: { claim:async()=>{activated++;},matchAll: async () => [], openWindow: async url => opened.push(url) } } });
   vm.runInContext(worker.outputFiles[0].text, context);
+  let lifecycle; handlers.install({waitUntil:promise=>lifecycle=promise}); await lifecycle; handlers.activate({waitUntil:promise=>lifecycle=promise}); await lifecycle;
+  assert.equal(installed,1); assert.equal(activated,1,'Updated worker activates and claims clients');
   await context.background({ data: { userId: 'member-a', notificationId: 'old' } });
   assert.equal(displayed.length, 0, 'worker ignores a previous account');
   await context.background({ data: { userId: 'member-b', kind: 'announcement', sourceId: 'notice-1' } });
@@ -180,6 +204,10 @@ try {
   handlers.notificationclick({ notification: { ...displayed[0], close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });
   await clicked;
   assert.equal(opened[0], origin + '/member/updates/notice-1');
+  context.self.clients.matchAll = async()=>[{url:origin+'/news',navigate:async url=>{navigated.push(url);},focus:async()=>{focused++;}}];
+  handlers.notificationclick({ notification:{...displayed[0],close(){}},stopImmediatePropagation(){},waitUntil:promise=>clicked=promise }); await clicked;
+  assert.equal(navigated[0],origin+'/member/updates/notice-1'); assert.equal(focused,1,'Background click reuses and focuses the existing tab');
+  context.self.clients.matchAll = async()=>[];
   for (const [data, destination] of [
     [{ kind: 'event', eventId: 'event-1', slug: 'annual-meeting' }, '/member/events/annual-meeting'],
     [{ event: 'EVENT_BOOKING_CONFIRMED', eventId: 'event-1', bookingRef: 'ACT 123' }, '/member/events/event-1/book?ref=ACT%20123'],
@@ -214,9 +242,17 @@ try {
   const displayCount = displayed.length;
   await context.background({ data: { userId: 'member-b', kind: 'announcement', sourceId: 'expired' } });
   assert.equal(displayed.length, displayCount, 'expired sessions cannot display alerts');
-  console.log('PASS: browser opt-in/denial/revocation, token refresh, real worker registration and IndexedDB, shared logout, account switching, late-token race and deadline, responsive controls, background ownership and all notification destinations. No external delivery.');
+  await evaluate('window.permission="granted";signIn("member-b");push.enableBrowserPush()');
+  await evaluate(`window.receivePush({data:{userId:'member-b',kind:'announcement',sourceId:'foreground-notice',notificationId:'abcdef0123456789abcdef02'}})`);
+  await until(`document.querySelector('[data-sonner-toast] button')`);
+  await evaluate(`document.querySelector('[data-sonner-toast] button').click()`);
+  await until(`location.pathname==='/member/updates/foreground-notice'`);
+  assert.equal(await evaluate(`new URL(location.href).searchParams.get('notificationSource')`),'push','Foreground Open carries click attribution');
+  console.log('PASS: browser opt-in/denial/revocation including late permission changes, token refresh, root worker scope/update lifecycle and IndexedDB, foreground generic display/ownership/visibility/Open navigation, shared logout, account switching, late-token race and deadline, responsive controls, background ownership, existing-tab focus and all notification destinations. No external delivery.');
 } finally {
-  ws?.close(); chrome?.kill();
+  if(ws?.readyState===WebSocket.OPEN)await new Promise(resolve=>{const timer=setTimeout(resolve,2000);ws.addEventListener('close',()=>{clearTimeout(timer);resolve();},{once:true});try{ws.send(JSON.stringify({id:1000000,method:'Browser.close'}));}catch{clearTimeout(timer);resolve();}});
+  ws?.close(); if(chrome?.exitCode==null)chrome?.kill();chrome?.unref();stop();
   server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));
+  if(path.resolve(profile).startsWith(path.resolve(tmpdir())+path.sep+'activ-push-test-'))await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:200}).catch(()=>{});
 }

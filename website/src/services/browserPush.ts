@@ -198,7 +198,8 @@ export function syncBrowserPush(): Promise<void> {
     if (!('Notification' in window) || Notification.permission !== 'granted') {
       await writePushIdentity(null); return;
     }
-    const current = () => revision === generation && session().auth === snapshot.auth && snapshot.expiresAt > Date.now() && pushEnabled();
+    const current = () => revision === generation && session().auth === snapshot.auth && snapshot.expiresAt > Date.now()
+      && pushEnabled() && Notification.permission === 'granted';
     const { sdk, messaging, token } = await registeredToken(current);
     if (!current()) return;
     const previous = await readPushIdentity();

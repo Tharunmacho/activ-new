@@ -2,11 +2,11 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'esbuild';
+import { build, stop } from 'esbuild';
 import vm from 'node:vm';
 import { localTypographyFonts } from './browserTypographyFixtures.mjs';
 
@@ -414,6 +414,8 @@ try {
   assert.equal(errors.length, 0, errors.join('\n'));
   console.log('PASS: no floating prompt or passive permission request; native permission on explicit bell; same-page accessible responsive notification card/detail, block/dismiss/opt-out, empty/error/retry, Escape/outside close; existing ownership/race/offline registration coverage; new and legacy worker/deep-link routes with owned, one-time push attribution and no false in-app receipts. No external delivery.');
 } finally {
-  ws?.close(); chrome?.kill(); server.closeAllConnections();
+  if(ws?.readyState===WebSocket.OPEN)await new Promise(resolve=>{const timer=setTimeout(resolve,2000);ws.addEventListener('close',()=>{clearTimeout(timer);resolve();},{once:true});try{ws.send(JSON.stringify({id:1000000,method:'Browser.close'}));}catch{clearTimeout(timer);resolve();}});
+  ws?.close(); if(chrome?.exitCode==null)chrome?.kill();chrome?.unref();stop();server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));
+  if(path.resolve(profile).startsWith(path.resolve(tmpdir())+path.sep+'activ-visitor-push-test-'))await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:200}).catch(()=>{});
 }
