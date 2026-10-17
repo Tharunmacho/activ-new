@@ -15,6 +15,7 @@ import {
 } from '@/services/activApi';
 import NotificationsAutomation from './NotificationsAutomation';
 import NotificationReports from './NotificationReports';
+import { notificationReason } from '@/utils/notificationCopy';
 
 /**
  * Delivery oversight — is the platform actually reaching anybody?
@@ -138,7 +139,7 @@ export default function Notifications() {
         setRetrying(id);
         try {
             const row = await retryNotification(id);
-            toast.success(row?.status === 'sent' ? 'Re-sent' : `Still failing: ${row?.lastError || 'unknown error'}`);
+            toast.success(row?.status === 'sent' ? 'Sent again' : `Could not send again: ${notificationReason(row?.lastError) || 'reason not recorded'}`);
             await load();
         } catch (err) {
             toast.error(errorMessage(err, 'Could not re-send that message'));
@@ -156,9 +157,9 @@ export default function Notifications() {
         setTesting(true);
         try {
             const result = await sendTestNotification(testChannel, target);
-            if (result?.mock) toast.warning('Nothing was sent — that channel has no credentials configured');
-            else if (result?.success) toast.success('Sent — check the inbox or handset');
-            else toast.error(result?.error || 'Send failed');
+            if (result?.mock) toast.warning('Nothing was sent. The sending service needs setup.');
+            else if (result?.success) toast.success('Sent. Check your email or phone.');
+            else toast.error(notificationReason(result?.error) || 'Send failed');
             await load();
         } catch (err) {
             toast.error(errorMessage(err, 'Test send failed'));
@@ -177,7 +178,7 @@ export default function Notifications() {
             <div className="flex-1 min-w-0">
                 <AdminPageHeader
                     title="Notifications"
-                    subtitle="Delivery reports, recipient activity and automations across email, WhatsApp, push and member inboxes."
+                    subtitle="Check messages sent by email, WhatsApp, push and in the app, including automatic messages."
                     onMenu={() => setSidebarOpen(true)}
                     actions={
                         <button
@@ -237,7 +238,7 @@ export default function Notifications() {
                     <div className="flex gap-1 p-1 rounded-xl bg-slate-100 w-full sm:w-auto sm:inline-flex">
                         {([
                             ['reports', 'Reports', 'Delivery reports'],
-                            ['automation', 'Automation', 'Automation'],
+                            ['automation', 'Automatic messages', 'Automatic messages'],
                             ['log', 'Delivery log', 'Delivery log & setup'],
                         ] as const).map(([value, short, label]) => (
                             <button
@@ -273,9 +274,9 @@ export default function Notifications() {
                     <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4">
                         <AdminStat
                             icon={<CheckCircle2 className="w-5 h-5" />}
-                            label="Accepted"
+                            label="Sent"
                             value={String(health.sent || 0)}
-                            hint="taken by the mail server or WhatsApp"
+                            hint="passed to the sending service; arrival not confirmed"
                             tone="emerald"
                             primary
                         />
@@ -283,19 +284,19 @@ export default function Notifications() {
                             icon={<XCircle className="w-5 h-5" />}
                             label="Failed"
                             value={String(health.failed || 0)}
-                            hint="the provider refused it"
+                            hint="could not be sent or delivered"
                             tone="rose"
                         />
                         <AdminStat
                             icon={<AlertTriangle className="w-5 h-5" />}
                             label="Not sent"
                             value={String(health.mock || 0)}
-                            hint="no credentials configured"
+                            hint="the sending service needs setup"
                             tone="amber"
                         />
                         <AdminStat
                             icon={<Send className="w-5 h-5" />}
-                            label="Total attempts"
+                            label="Sending tries"
                             value={String(health.total || 0)}
                             hint="every message, however it ended"
                             tone="slate"
@@ -392,7 +393,7 @@ export default function Notifications() {
                             ['email', 'Email'], ['whatsapp', 'WhatsApp'], ['in_app', 'In-app'],
                         ]} />
                         <Select value={rowStatus} onChange={setRowStatus} label="Every status" options={[
-                            ['sent', 'Accepted'], ['failed', 'Failed'], ['queued', 'Queued'],
+                            ['sent', 'Sent'], ['failed', 'Failed'], ['queued', 'Waiting to send'],
                         ]} />
                         <Select value={event} onChange={setEvent} label="All messages"
                             options={EVENT_OPTIONS} />
@@ -431,11 +432,9 @@ export default function Notifications() {
                                                 {messageLabel(row.event)} · to <span className="font-medium">{row.recipient}</span>
                                                 {row.replyTo ? <> · reply-to {row.replyTo}</> : null}
                                             </p>
-                                            {/* The provider's own words. This is the
-                                                only place the reason a message failed
-                                                is visible at all. */}
+                                            {/* Explain known stored errors without changing their raw values. */}
                                             {row.lastError ? (
-                                                <p className="text-ui-small text-rose-600 mt-1 break-words">{row.lastError}</p>
+                                                <p className="text-ui-small text-rose-600 mt-1 break-words">{notificationReason(row.lastError)}</p>
                                             ) : null}
                                         </div>
 
@@ -528,9 +527,9 @@ function ChannelCard({ icon, title, configured, rows, note, noteIcon }: {
 
 function StatePill({ state }: { state: string }) {
     const MAP: Record<string, { label: string; className: string }> = {
-        sent: { label: 'Accepted', className: 'bg-emerald-50 text-emerald-700' },
+        sent: { label: 'Sent', className: 'bg-emerald-50 text-emerald-700' },
         failed: { label: 'Failed', className: 'bg-rose-50 text-rose-700' },
-        queued: { label: 'Queued', className: 'bg-slate-100 text-slate-600' },
+        queued: { label: 'Waiting to send', className: 'bg-slate-100 text-slate-600' },
         mock: { label: 'Not sent', className: 'bg-amber-50 text-amber-700' },
     };
     const pill = MAP[state] || MAP.queued;

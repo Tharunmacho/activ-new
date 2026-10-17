@@ -62,7 +62,7 @@ export default function UpdatePersonalizationEditor(props: Props) {
         <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4" disabled={disabled}>
             <legend className="px-1 text-[20px] font-semibold text-slate-900">Member selection</legend>
             <label className="block"><span className="mb-2 block font-semibold">Send to</span><select aria-label="Send to" className={INPUT} value={mode} onChange={event => onMode(event.target.value as Props['mode'])}><option value="audience">All members who match the audience and regions</option><option value="selected">Specific members who also match those rules</option></select></label>
-            <p className="text-[18px] leading-7 text-slate-600">Specific members must still qualify for the audience, membership plans and regions above. Selecting a member never grants access to an otherwise restricted update.</p>
+            <p className="text-[18px] leading-7 text-slate-600">Selected members must also match the audience, plans and regions above. Choosing someone here does not change who is allowed to see the update.</p>
             <label className="block"><span className="mb-2 block font-semibold">Find a member to {mode === 'selected' ? 'select or preview' : 'preview or personalize'}</span><input aria-label="Search update members" className={INPUT} value={search} onChange={event => setSearch(event.target.value)} placeholder="Name, email, phone or membership number (2+ characters)" /></label>
             {loading && <p role="status">Searching members…</p>}
             {error && <p role="alert" className="text-red-700">{error} <button type="button" className="min-h-[48px] underline" onClick={() => setAttempt(value => value + 1)}>Retry</button></p>}

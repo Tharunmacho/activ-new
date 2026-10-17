@@ -257,7 +257,7 @@ try {
   assert.equal(saves[7].payload.includeVisitors, false, 'Restricted membership/region remains private');
   await remount(); await fill('title', 'Dear {name}'); await fill('body', 'A personal update');
   await fillAria('Send to', 'selected'); await click('Publish update');
-  await until(`document.body.textContent.includes('Choose at least one specific member')`);
+  await until(`document.body.textContent.includes('Choose at least one member')`);
   assert.equal(saves.length, 8, 'An empty specific-member selection never becomes everyone');
   await fillAria('Search update members', 'Alice');
   await until(`document.querySelector('[aria-label="Member search results"]')?.textContent.includes('Alice Member')`);

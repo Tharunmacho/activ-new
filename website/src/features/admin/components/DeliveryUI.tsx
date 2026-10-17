@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Mail, MessageSquare, Loader2, RotateCcw, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { errorMessage } from '@/services/api';
+import { notificationReason, notificationTemplatePath } from '@/utils/notificationCopy';
 import {
     getBookingDelivery, resendNotification,
     type DeliveryLogRow, type DeliveryState, type BookingDelivery, type BookingDeliverySummary, type ChannelSummary,
@@ -19,19 +20,19 @@ import {
 
 export const STATE_META: Record<string, { label: string; className: string; hint: string }> = {
     resent: {
-        label: 'Re-sent',
+        label: 'Tried again',
         className: 'bg-slate-100 text-slate-700 border-slate-300',
-        hint: 'This message was sent again. The newer entry in the list shows how that went.',
+        hint: 'This message was tried again. The newer entry in the list shows the result.',
     },
     failed: {
         label: 'Failed',
         className: 'bg-rose-50 text-rose-700 border-rose-200',
-        hint: 'The provider refused it or could not deliver it. The reason is shown with it.',
+        hint: 'The message could not be sent or delivered. The reason is shown below.',
     },
     read: {
-        label: 'Read',
+        label: 'Opened',
         className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        hint: 'WhatsApp reports the recipient opened it.',
+        hint: 'WhatsApp confirms the person opened it.',
     },
     delivered: {
         label: 'Delivered',
@@ -41,22 +42,22 @@ export const STATE_META: Record<string, { label: string; className: string; hint
     sent: {
         label: 'Sent',
         className: 'bg-blue-50 text-blue-700 border-blue-200',
-        hint: 'WhatsApp sent it towards the handset; delivery not yet confirmed.',
+        hint: 'WhatsApp has sent it. Arrival on the phone is not yet confirmed.',
     },
     accepted: {
         label: 'Sent',
         className: 'bg-blue-50 text-blue-700 border-blue-200',
-        hint: 'The provider (Meta or the mail server) accepted it. Not yet confirmed delivered.',
+        hint: 'The message was passed to the sending service. Arrival is not yet confirmed.',
     },
     mock: {
         label: 'Not sent',
         className: 'bg-slate-100 text-slate-600 border-slate-200',
-        hint: 'No provider is configured, so nothing left the server.',
+        hint: 'The sending service needs to be set up. No message was sent.',
     },
     queued: {
-        label: 'Queued',
+        label: 'Waiting to send',
         className: 'bg-slate-100 text-slate-600 border-slate-200',
-        hint: 'Not attempted yet.',
+        hint: 'The message is waiting to send or is currently being sent.',
     },
 };
 
@@ -159,24 +160,12 @@ export const reasonOf = (row: Partial<DeliveryLogRow> | null | undefined) =>
  * also carries a note in `lastError` — that is not a failure, and is said so.
  */
 export const plainReason = (row: Partial<DeliveryLogRow> | null | undefined): { text: string; failed: boolean } => {
-    if (stateOf(row) === 'resent') return { text: 'Sent again — the newer entry shows the result', failed: false };
+    if (stateOf(row) === 'resent') return { text: 'Tried again — the newer entry shows the result', failed: false };
     const raw = reasonOf(row);
     if (!raw) return { text: '', failed: false };
     const failed = stateOf(row) === 'failed';
     if (!failed && /^Sent on /i.test(raw)) return { text: 'Sent using the backup WhatsApp message', failed: false };
-    const rules: [RegExp, string][] = [
-        [/132005|too long/i, 'Message was too long for WhatsApp'],
-        [/132001|does not exist/i, 'WhatsApp template not found'],
-        [/131026|not.*whatsapp|undeliverable/i, 'This number is not on WhatsApp'],
-        [/131049|marketing|ecosystem/i, 'WhatsApp blocked it (too many promotional messages to this number)'],
-        [/131047|24 hours|re-engagement/i, 'WhatsApp needs an approved template outside the 24-hour window'],
-        [/535|Invalid login|authentication/i, 'Email server login failed'],
-        [/invalid.*(phone|number)|phone.*invalid/i, 'Phone number is not valid'],
-        [/no (email|address)|missing email/i, 'No email address'],
-        [/ETIMEDOUT|ECONNREFUSED|timeout/i, 'Could not reach the provider'],
-    ];
-    const hit = rules.find(([rx]) => rx.test(raw));
-    return { text: hit ? hit[1] : raw, failed };
+    return { text: notificationReason(raw), failed };
 };
 
 export const ChannelIcon = ({ channel, className = 'w-4 h-4' }: { channel: string; className?: string }) =>
@@ -207,8 +196,8 @@ export function ResendButton({ row, onDone, size = 'sm' }: {
         try {
             const { row: next, message } = await resendNotification(row._id);
             const failed = /still failing|fail/i.test(message) || stateOf(next) === 'failed';
-            if (failed) toast.error(message || 'Still failing');
-            else toast.success(message || 'Re-sent');
+            if (failed) toast.error(message || 'Could not send again');
+            else toast.success(message || 'Sent again');
             onDone?.();
         } catch (err) {
             toast.error(errorMessage(err, 'Could not resend that message'));
@@ -332,7 +321,8 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => {
  */
 export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
     const state = stateOf(row);
-    const reason = reasonOf(row);
+    const rawReason = reasonOf(row);
+    const reason = notificationReason(rawReason);
     const history = Array.isArray(row?.statusHistory) ? row.statusHistory : [];
 
     return (
@@ -346,15 +336,14 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
                 <p className="text-ui-caption text-slate-500 mt-2">{(STATE_META[state] || STATE_META.queued).hint}</p>
                 {row.channel === 'email' ? (
                     <p className="text-ui-caption text-slate-500 mt-1">
-                        Email has no delivery receipts: the furthest an email can be shown is "accepted" by the mail
-                        server, or "failed" with the server's reason.
+                        Sent means the email was passed to the mail service. We cannot tell whether it reached
+                        the inbox or was opened.
                     </p>
                 ) : null}
                 {reason ? (
                     <div className="mt-3 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
                         <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                         <p className="text-[1.125rem] text-rose-800 [overflow-wrap:anywhere] min-w-0">
-                            {row.failureCode ? <strong>{String(row.failureCode)} · </strong> : null}
                             {reason}
                         </p>
                     </div>
@@ -366,20 +355,24 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
                 <Field label="Booking">{row.bookingRef}</Field>
                 <Field label="Event">{row.eventTitle}</Field>
                 <Field label="Subject / template">{row.subject || row.templateId}</Field>
-                <Field label="Template used">{row.templatePath || row.templateId}</Field>
-                <Field label="Provider">
+                <Field label="Message format used">{notificationTemplatePath(row.templatePath || row.templateId)}</Field>
+                <Field label="Sending service">
                     {row.provider === 'meta' ? 'Meta WhatsApp Cloud API'
                         : row.provider === 'botbee' ? 'BotBee'
                             : row.provider === 'smtp' ? 'SMTP mail server' : row.provider}
                 </Field>
-                <Field label="Provider message id">
+                <Field label="Message reference">
                     {row.providerMessageId ? <span className="font-mono text-ui-caption">{row.providerMessageId}</span> : null}
                 </Field>
-                <Field label="First attempted">{whenLabel(row.createdAt)}</Field>
-                <Field label="Attempts">{row.attempts ? String(row.attempts) : ''}</Field>
-                <Field label="Resent as">{row.resentAs ? <span className="font-mono text-ui-caption">{row.resentAs}</span> : null}</Field>
-                <Field label="Resend of">{row.resendOf ? <span className="font-mono text-ui-caption">{row.resendOf}</span> : null}</Field>
+                <Field label="First try">{whenLabel(row.createdAt)}</Field>
+                <Field label="Tries">{row.attempts ? String(row.attempts) : ''}</Field>
+                <Field label="New message">{row.resentAs ? <span className="font-mono text-ui-caption">{row.resentAs}</span> : null}</Field>
+                <Field label="Original message">{row.resendOf ? <span className="font-mono text-ui-caption">{row.resendOf}</span> : null}</Field>
             </dl>
+            {(rawReason !== reason || row.failureCode) && <details className="text-ui-caption text-slate-500 [overflow-wrap:anywhere]">
+                <summary className="cursor-pointer">Technical details</summary>
+                <p>{[row.failureCode, rawReason].filter(Boolean).join(' · ')}</p>
+            </details>}
 
             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                 <h3 className="text-ui-caption font-semibold uppercase tracking-wider text-slate-500 mb-3">Timeline</h3>
@@ -395,19 +388,25 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
                                         {(STATE_META[h?.status || ''] || { label: h?.status || '' }).label}
                                         <span className="ml-2 font-normal text-slate-500">{whenLabel(h?.at)}</span>
                                     </p>
-                                    {h?.code || h?.title || h?.detail ? (
+                                    {h?.title || h?.detail ? (
                                         <p className="text-ui-caption text-slate-600 [overflow-wrap:anywhere]">
-                                            {[h?.code, h?.title, h?.detail].filter(Boolean).join(' · ')}
+                                            {[h?.title, h?.detail].filter(Boolean).map(notificationReason).join(' · ')}
                                         </p>
                                     ) : null}
+                                    {(h?.code || (h?.title && notificationReason(h.title) !== h.title) || (h?.detail && notificationReason(h.detail) !== h.detail)) && (
+                                        <details className="text-ui-caption text-slate-500 [overflow-wrap:anywhere]">
+                                            <summary className="cursor-pointer">Technical details</summary>
+                                            <p>{[h?.code, h?.title, h?.detail].filter(Boolean).join(' · ')}</p>
+                                        </details>
+                                    )}
                                 </div>
                             </li>
                         ))}
                     </ol>
                 ) : (
                     <p className="text-[1.125rem] text-slate-500">
-                        No delivery reports recorded for this message yet
-                        {row.channel === 'whatsapp' ? ' — WhatsApp reports arrive through the provider webhook.' : '.'}
+                        No delivery update for this message yet
+                        {row.channel === 'whatsapp' ? '. WhatsApp updates this automatically.' : '.'}
                     </p>
                 )}
             </div>

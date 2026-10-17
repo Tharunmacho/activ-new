@@ -144,21 +144,21 @@ export const CHANNEL_LABELS: Record<ReportChannel, string> = {
 };
 export const statusLabel = (row: Pick<ReportRow, "channel" | "status">) => {
   if (row.status === "accepted")
-    return row.channel === "in_app" ? "In member inbox" : "Provider accepted";
+    return row.channel === "in_app" ? "In the app" : "Sent";
   if (row.status === "read")
     return row.channel === "push"
-      ? "Notification tapped"
+      ? "Opened"
       : row.channel === "whatsapp"
-      ? "Read on WhatsApp"
+      ? "Opened"
       : "Opened";
   return (
     (
       {
-        queued: "Queued",
-        sent: "Sent to handset",
+        queued: "Waiting to send",
+        sent: "Sent",
         delivered: "Delivered",
         failed: "Failed",
-        skipped: "Skipped",
+        skipped: "Not sent",
         mock: "Not sent",
         marked_read: "Marked as read",
       } as Record<string, string>

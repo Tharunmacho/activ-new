@@ -23,28 +23,28 @@ export default function PushDeliveryStatus() {
     try {
       const response = await apiFetch('/notifications/push/test', { method: 'POST' });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.message || 'The test could not be queued.');
-      setMessage('Test queued for browsers and phones signed in to your Super Admin account.');
+      if (!response.ok) throw new Error(body.message || 'The test could not be prepared. Please try again.');
+      setMessage('The test is waiting to send to browsers and phones signed in to your Super Admin account.');
       await load();
-    } catch (error: any) { setMessage(error?.message || 'The test could not be queued.'); }
+    } catch (error: any) { setMessage(error?.message || 'The test could not be prepared. Please try again.'); }
     finally { setBusy(false); }
   };
   return <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm space-y-4" aria-label="Push notifications">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-3"><BellRing className="shrink-0 text-blue-600" /><div>
         <h2 className={`${CARD_TITLE} text-slate-900`}>Push notifications</h2>
-        <p className="text-sm text-slate-600">{status ? status.configured ? 'Firebase configured' : 'Firebase setup required' : 'Loading status…'}</p>
+        <p className="text-sm text-slate-600">{status ? status.configured ? 'Push service is set up' : 'Push service needs setup' : 'Loading status…'}</p>
       </div></div>
       <button type="button" onClick={() => void load()} className="inline-flex gap-2 items-center rounded-xl border px-3 py-2 text-sm font-semibold"><RefreshCw size={16} />Refresh</button>
     </div>
     {status && <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      {[[status.devices, 'Registered devices'], [status.queued, 'Queued alerts'], [status.broadcasts, 'Publications processing'], [status.failed, 'Failed alerts']].map(([value, label]) =>
+      {[[status.devices, 'Devices signed up'], [status.queued, 'Waiting to send'], [status.broadcasts, 'Updates being prepared'], [status.failed, 'Failed alerts']].map(([value, label]) =>
         <div key={label} className="min-w-0 rounded-xl bg-slate-50 p-3"><p className={`${STAT_FIGURE} text-slate-900 [overflow-wrap:anywhere]`}>{value}</p><p className="mt-2 text-ui-caption text-slate-600 break-words">{label}</p></div>)}
     </div>}
     {status?.workerEnabled === false && <p className="text-amber-800">Notification delivery is paused on the server.</p>}
     <BrowserPushSettings administrator />
-    <p className="text-sm text-slate-600">Publishing events and updates automatically queues notifications for eligible members according to their membership and region. Each member must enable notifications on their browser or in the ACTIV app. The test below checks only devices signed in to your account.</p>
-    <button type="button" onClick={() => void test()} disabled={busy || !status?.configured || !status?.workerEnabled} className="rounded-xl bg-blue-700 px-4 py-3 text-ui-body font-semibold text-white disabled:opacity-50">{busy ? 'Queuing…' : 'Send test to my devices'}</button>
+    <p className="text-sm text-slate-600">Published events can notify members who match the membership and region choices. Updates send push notifications only when that option is selected before publishing. Members must allow notifications on their browser or in the ACTIV app. The test below uses only devices signed in to your account.</p>
+    <button type="button" onClick={() => void test()} disabled={busy || !status?.configured || !status?.workerEnabled} className="rounded-xl bg-blue-700 px-4 py-3 text-ui-body font-semibold text-white disabled:opacity-50">{busy ? 'Preparing…' : 'Send test to my devices'}</button>
     {message && <p role="status" className="text-sm text-slate-700">{message}</p>}
   </section>;
 }

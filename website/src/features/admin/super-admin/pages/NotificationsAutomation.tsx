@@ -36,7 +36,7 @@ const GROUPS: { key: Group; label: string; short: string; hint: string; icon: ty
     { key: 'booking', label: 'Events', short: 'Events', hint: 'Booking confirmations, reminders, cancellations, documents', icon: CalendarDays },
     { key: 'membership', label: 'Membership', short: 'Membership', hint: 'Applications, approvals, payments, renewals', icon: IdCard },
     { key: 'account', label: 'Account & donations', short: 'Accounts', hint: 'Password resets, admin welcomes, 80G receipts', icon: KeyRound },
-    { key: 'automation', label: 'Everything', short: 'All', hint: 'Every automated email and WhatsApp message', icon: Layers },
+    { key: 'automation', label: 'Everything', short: 'All', hint: 'Every automatic email and WhatsApp message', icon: Layers },
 ];
 
 const ACCOUNT_TYPES = new Set(['PASSWORD_RESET', 'ADMIN_WELCOME', 'DONATION_RECEIPT', 'DONATION_STATEMENT']);
@@ -150,7 +150,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             // Keep an open panel in step with a refreshed row (after a resend).
             setOpen((current) => (current ? result.logs.find((r) => r._id === current._id) || current : current));
         } catch (err) {
-            setError(errorMessage(err, 'The automation log could not be loaded'));
+            setError(errorMessage(err, 'The message history could not be loaded'));
         } finally {
             setLoading(false);
         }
@@ -253,7 +253,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     </p>
                     <p className="mt-1 text-[1rem] break-words">
                         {health.email.configured === false
-                            ? 'No email server is set up on the server.'
+                            ? 'The email service has not been set up.'
                             : `The mail server refused the connection or login${health.email.error ? ` (${health.email.error})` : ''}.`}
                         {' '}Correct EMAIL_HOST / EMAIL_USER / EMAIL_PASS in the server settings. Failed emails are sent again automatically once it works.
                     </p>
@@ -262,7 +262,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                 <p className="flex items-center gap-2 text-[1rem] text-emerald-700">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     Email server connected
-                    {health.autoRetry?.enabled ? ` · failed messages are retried automatically every ${health.autoRetry.everyMinutes} min` : ''}
+                    {health.autoRetry?.enabled ? ` · failed messages are tried again automatically every ${health.autoRetry.everyMinutes} min` : ''}
                 </p>
             ) : null}
 
@@ -290,7 +290,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     icon={CircleSlash}
                     label="Not sent"
                     value={n(email.mock) + n(whatsapp.mock)}
-                    note={n(email.mock) + n(whatsapp.mock) ? 'Email/WhatsApp was switched off' : 'None'}
+                    note={n(email.mock) + n(whatsapp.mock) ? 'The sending service needs setup' : 'None'}
                     tone="slate"
                     active={delivery === 'mock'}
                     onClick={() => toggleDelivery('mock')}
@@ -302,15 +302,15 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                 <div className={`${ADMIN_CARD} px-4 py-3 flex flex-wrap items-center gap-3`}>
                     {retryResult ? (
                         <p className="flex-1 min-w-0 text-[1rem] text-slate-700">
-                            Retried {fmt(retryResult.retried)}: <strong className="text-emerald-700">{fmt(retryResult.sent)} sent</strong>
-                            {retryResult.stillFailed ? <>, <strong className="text-rose-700">{fmt(retryResult.stillFailed)} still failing</strong></> : null}
+                            Tried again: {fmt(retryResult.retried)}. <strong className="text-emerald-700">{fmt(retryResult.sent)} sent</strong>
+                            {retryResult.stillFailed ? <>, <strong className="text-rose-700">{fmt(retryResult.stillFailed)} failed again</strong></> : null}
                             {retryResult.permanent ? `, ${fmt(retryResult.permanent)} cannot be fixed by retrying (wrong number or address)` : ''}
                             {retryResult.waitingForEmail ? `, ${fmt(retryResult.waitingForEmail)} waiting for the email server` : ''}
-                            {retryResult.skipped ? `, ${fmt(retryResult.skipped)} skipped` : ''}.
+                            {retryResult.skipped ? `, ${fmt(retryResult.skipped)} not sent` : ''}.
                         </p>
                     ) : (
                         <p className="flex-1 min-w-0 text-[1rem] text-slate-600">
-                            Send every failed message from the last 7 days again — those a retry can fix.
+                            Send failed messages from the last 7 days again. Messages that cannot be retried, such as an invalid address, are left out.
                         </p>
                     )}
                     {retryAsk ? (
@@ -326,7 +326,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
                     ) : (
                         <button type="button" onClick={() => setRetryAsk(true)}
                             className="inline-flex items-center gap-1.5 min-h-10 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-ui-caption text-blue-700 font-semibold hover:bg-blue-100">
-                            Retry all failed
+                            Send failed messages again
                         </button>
                     )}
                 </div>

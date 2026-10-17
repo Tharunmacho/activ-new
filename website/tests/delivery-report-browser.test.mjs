@@ -88,7 +88,7 @@ const fixture = {
       title: "Regional association update",
       campaignKey: "publication:announcement:fixture:v1",
       status: "failed",
-      error: "The device registration expired. Enable notifications again.",
+      error: "This recipient has no enabled push device.",
       createdAt: "2026-10-16T10:00:00Z",
     },
     ...[
@@ -141,7 +141,7 @@ try {
               ? "export const errorMessage=(e,f)=>e.message || f;"
               : `
         export const CHANNEL_LABELS={email:'Email',whatsapp:'WhatsApp',push:'Push notifications',in_app:'In-app notifications'};
-        export const statusLabel=r=>({read:'Read on WhatsApp',failed:'Failed',accepted:'Provider accepted',delivered:'Delivered',sent:'Sent to handset',marked_read:'Marked as read',queued:'Queued'}[r.status]||r.status);
+        export const statusLabel=r=>({read:'Opened',failed:'Failed',accepted:r.channel==='in_app'?'In the app':'Sent',delivered:'Delivered',sent:'Sent',marked_read:'Marked as read',queued:'Waiting to send',skipped:'Not sent'}[r.status]||r.status);
         const fixture=${JSON.stringify(fixture)};
         window.useLargeFailureFixture=()=>{fixture.rows=Array.from({length:105},(_,index)=>({
           _id:'failure-'+index,channel:index<100?'push':'email',status:'failed',recipientName:'Failed recipient '+index,
@@ -155,7 +155,7 @@ try {
           const rows=fixture.rows.filter(r=>r.status==='failed'&&(!selection.ids||selection.ids.includes(r._id))&&(!filters.channel||r.channel===filters.channel));
           const reviewed=selection.ids?rows:rows.slice(0,100);
           const eligible=reviewed.filter(r=>r.channel!=='push');
-          return {matched:rows.length,reviewed:reviewed.length,remaining:rows.length-reviewed.length,eligible:eligible.length,skipped:reviewed.length-eligible.length,ids:eligible.map(r=>r._id),token:eligible.length?'review-fixture':'',truncated:rows.length>reviewed.length,reasons:reviewed.length>eligible.length?[{reason:'Device registration expired',count:reviewed.length-eligible.length}]:[]};
+          return {matched:rows.length,reviewed:reviewed.length,remaining:rows.length-reviewed.length,eligible:eligible.length,skipped:reviewed.length-eligible.length,ids:eligible.map(r=>r._id),token:eligible.length?'review-fixture':'',truncated:rows.length>reviewed.length,reasons:reviewed.length>eligible.length?[{reason:'Current delivery or recipient eligibility could not be verified.',count:reviewed.length-eligible.length}]:[]};
         };
         export const retryDeliveryReport=async confirmation=>{
           window.retryCalls.push(confirmation);
@@ -188,7 +188,7 @@ try {
     stdin: {
       resolveDir: root,
       loader: "tsx",
-      contents: `import React from 'react';import{createRoot}from'react-dom/client';import Report from './src/features/admin/super-admin/pages/NotificationReports';createRoot(document.getElementById('root')).render(<Report/>);`,
+      contents: `import React from 'react';import{createRoot}from'react-dom/client';import Report from './src/features/admin/super-admin/pages/NotificationReports';import{notificationReason,notificationTemplatePath}from'./src/utils/notificationCopy';window.notificationCopy={notificationReason,notificationTemplatePath};createRoot(document.getElementById('root')).render(<Report/>);`,
     },
   });
   bundle = built.outputFiles[0].text;
@@ -267,6 +267,17 @@ try {
   await send("Network.setBlockedURLs", { urls: ["https://*"] });
   await send("Page.navigate", { url: origin });
   await until('document.body.textContent.includes("Asha Test")');
+  const unknownReasons = [
+    'Email address is too long', 'Email marketing policy refused this message',
+    'Email was undeliverable', 'Email message reference 132005 and batch 535 failed',
+    'SMTP configuration has an invalid port number.',
+    'Unknown sending service response: route Q7', 'Sent on "backup" after "original": (#132005) too long',
+  ];
+  for (const reason of unknownReasons) {
+    assert.equal(await evaluate(`window.notificationCopy.notificationReason(${JSON.stringify(reason)})`), reason, 'unknown/provider diagnostic text is preserved');
+  }
+  assert.equal(await evaluate('window.notificationCopy.notificationReason("(#132005) Translated text too long")'), 'The message was too long for WhatsApp.');
+  assert.equal(await evaluate('window.notificationCopy.notificationTemplatePath("photo template skipped: no image | sent on backup")'), 'photo template not used: no image | sent using backup');
   for (const width of [320, 390, 768, 1440]) {
     await send("Emulation.setDeviceMetricsOverride", {
       width,
@@ -316,15 +327,15 @@ try {
   );
   await until("window.lastFilters.campaignKey");
   const campaignKey = await evaluate("window.lastFilters.campaignKey");
-  await evaluate('document.querySelector("[aria-label=\\"Next recipients\\"]").click()');
+  await evaluate('document.querySelector("[aria-label=\\"Next people and messages\\"]").click()');
   await until("window.lastFilters.page === 2");
-  await evaluate('document.querySelector("[aria-label=\\"Show accepted / in inbox\\"]").click()');
+  await evaluate('document.querySelector("[aria-label=\\"Show sent / in activ\\"]").click()');
   await until('window.lastFilters.status === "accepted_any" && window.lastFilters.page === 1');
   await until('document.body.textContent.includes("Read-inbox Member")');
   assert(await evaluate('document.body.textContent.includes("Delivered Member") && document.body.textContent.includes("Handset Member")'));
   assert(await evaluate('window.lastReport.pagination.total === window.lastReport.summary.accepted'));
   assert.equal(await evaluate('document.activeElement.id'), "delivery-report-recipient-heading", "summary card reveals and focuses details");
-  assert.equal(await evaluate('document.querySelector("[aria-label=\\"Show accepted / in inbox\\"]").getAttribute("aria-pressed")'), "true");
+  assert.equal(await evaluate('document.querySelector("[aria-label=\\"Show sent / in activ\\"]").getAttribute("aria-pressed")'), "true");
   await evaluate('document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="accepted";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
   await until('window.lastFilters.status === "accepted"');
   await until('!document.body.textContent.includes("Delivered Member")');
@@ -332,8 +343,8 @@ try {
 
   await send("Page.bringToFront");
   await send("Emulation.setFocusEmulationEnabled", { enabled: true });
-  await evaluate('document.querySelector("[aria-label=\\"Show confirmed opens\\"]").focus()');
-  assert.equal(await evaluate('document.activeElement.getAttribute("aria-label")'), "Show confirmed opens");
+  await evaluate('document.querySelector("[aria-label=\\"Show opened\\"]").focus()');
+  assert.equal(await evaluate('document.activeElement.getAttribute("aria-label")'), "Show opened");
   await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", text: "\r", windowsVirtualKeyCode: 13 });
   await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
   await until('window.lastFilters.status === "read"');
@@ -354,12 +365,12 @@ try {
   await until('window.lastFilters.channel === "email"');
   await until('document.querySelectorAll("[data-report-row]").length === 1');
   assert(await evaluate('document.body.textContent.includes("Refused Email Member")'));
-  await evaluate('document.querySelector("[aria-label=\\"Show recipient identities\\"]").click()');
+  await evaluate('document.querySelector("[aria-label=\\"Show people and contacts\\"]").click()');
   await until('window.lastFilters.status === ""');
   assert.equal(await evaluate('window.lastFilters.channel'), "email", "recipient card retains channel scope");
   await until('document.querySelectorAll("[data-report-row]").length > 1');
   assert(await evaluate('window.lastReport.summary.recipients < window.lastReport.pagination.total'), "identity count is distinct from delivery records");
-  assert(await evaluate('document.body.textContent.includes("the same recipient can appear more than once")'));
+  assert(await evaluate('document.body.textContent.includes("The same person can appear more than once")'));
   await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by Email\\"]").click()');
   await until('window.lastFilters.channel === ""');
   await evaluate(
@@ -371,18 +382,21 @@ try {
     '[...document.querySelectorAll("button")].find(b=>b.textContent.includes("Very Long Member Name")).click()'
   );
   await until(
-    'document.body.textContent.includes("device registration expired")'
+    'document.body.textContent.includes("No phone or browser is currently set up to receive notifications for this person.")'
   );
   assert(
     await evaluate(
-      'document.body.textContent.includes("Email opens are not measured")'
+      'document.body.textContent.includes("Email opens are not tracked")'
     )
   );
   await send("Emulation.setDeviceMetricsOverride", { width: 320, height: 1000, deviceScaleFactor: 1, mobile: true });
   await pause(200);
   assert(await evaluate("document.documentElement.scrollWidth <= innerWidth"), "expanded recipient contact, error and timeline fit a narrow screen");
   await evaluate('document.querySelector("[aria-label=\\"Review resend for Very Long Member Name For A Narrow Screen\\"]").click()');
-  await until('document.body.textContent.includes("0 eligible")');
+  await until('document.body.textContent.includes("0 ready to resend")');
+  assert(await evaluate('document.body.textContent.includes("We could not check whether this message can be sent again. Please try again.")'), 'stored/API retry reason is explained in plain words');
+  assert.equal(await evaluate('window.lastReport.rows.find(r=>r._id==="push:fixture").error'), 'This recipient has no enabled push device.', 'display wording leaves the raw stored reason unchanged');
+  assert.equal(await evaluate('window.lastReport.rows.find(r=>r._id==="push:fixture").status'), 'failed', 'retry gating continues to receive raw status values');
   assert.deepEqual(await evaluate('window.retryPreviewCalls.at(-1)'), { ids: ['push:fixture'] }, 'individual review sends only the selected report ID');
   assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (0)").disabled'), 'ineligible deliveries cannot be resent');
   assert.equal(await evaluate('window.retryCalls.length'), 0, 'reviewing a failure performs no send');
@@ -395,7 +409,7 @@ try {
   await until('window.lastFilters.channel==="email"');
   await until('!document.querySelector("[aria-busy=\\"true\\"]")');
   await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Review failed deliveries").click()');
-  await until('document.body.textContent.includes("1 eligible")');
+  await until('document.body.textContent.includes("1 ready to resend")');
   const previewFilters = await evaluate('window.retryPreviewCalls.at(-1).filters');
   assert.equal(previewFilters.group, 'automation');
   assert.equal(previewFilters.channel, 'email');
@@ -408,31 +422,31 @@ try {
   assert.deepEqual(await evaluate('window.retryCalls[0]'), { ids: ['extra:1'], token: 'review-fixture' }, 'confirmation sends the frozen eligible IDs and review token');
   assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Resending…").disabled'), 'repeat clicks are disabled');
   await evaluate('window.finishRetry()');
-  await until('document.body.textContent.includes("1 attempted · 1 sent · 0 queued · 0 failed · 0 skipped")');
+  await until('document.body.textContent.includes("1 tried · 1 sent · 0 waiting to send · 0 failed · 0 not sent")');
   await until(`window.reportReads>${readsBeforeRetry}`);
   assert.equal(await evaluate('window.retryCalls.length'), 1);
   await evaluate('window.useLargeFailureFixture();document.querySelector("[aria-label=\\"Report activity\\"]").value="";document.querySelector("[aria-label=\\"Report activity\\"]").dispatchEvent(new Event("change",{bubbles:true}));document.querySelector("[aria-label=\\"Report channel\\"]").value="";document.querySelector("[aria-label=\\"Report channel\\"]").dispatchEvent(new Event("change",{bubbles:true}));document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="failed";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
   await until('window.lastReport.pagination.total===105 && !document.querySelector("[aria-busy=\\"true\\"]")');
   await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Review failed deliveries").click()');
-  await until('document.body.textContent.includes("100 skipped")');
-  assert(await evaluate('document.body.textContent.includes("Batch review starts with the newest 100 failures") && document.body.textContent.includes("use the recipient pages")'), 'capped review explains how to reach later failures');
+  await until('document.body.textContent.includes("100 not sent")');
+  assert(await evaluate('document.body.textContent.includes("Batch review starts with the newest 100 failures") && document.body.textContent.includes("go through the pages of people and messages")'), 'capped review explains how to reach later failures');
   assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (0)").disabled'));
   assert.equal(await evaluate('window.retryCalls.length'), 1, 'initial ineligible batch does not send');
   for (let page = 2; page <= 5; page++) {
-    await evaluate('document.querySelector("[aria-label=\\"Next recipients\\"]").click()');
+    await evaluate('document.querySelector("[aria-label=\\"Next people and messages\\"]").click()');
     await until(`window.lastFilters.page===${page} && !document.querySelector('[aria-busy="true"]')`);
   }
   await evaluate('document.querySelector("[aria-label=\\"Review failed deliveries on this page\\"]").click()');
-  await until('document.body.textContent.includes("5 eligible")');
+  await until('document.body.textContent.includes("5 ready to resend")');
   const laterIds = Array.from({ length: 5 }, (_, index) => `failure-${index + 100}`);
   assert.deepEqual(await evaluate('window.retryPreviewCalls.at(-1)'), { ids: laterIds }, 'page five reviews its exact visible failures instead of restarting at the first 100');
-  assert(await evaluate('document.body.textContent.includes("Failed deliveries on recipient page 5")'));
+  assert(await evaluate('document.body.textContent.includes("Failed deliveries on page 5")'));
   assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'page-review actions and guidance fit 320px');
   await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (5)").click()');
   await until('window.retryCalls.length===2');
   assert.deepEqual(await evaluate('window.retryCalls.at(-1)'), { ids: laterIds, token: 'review-fixture' });
   await evaluate('window.finishRetry()');
-  await until('document.body.textContent.includes("5 attempted · 5 sent")');
+  await until('document.body.textContent.includes("5 tried · 5 sent")');
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
     "PASS: report filters/layout and failed-delivery review, per-recipient eligibility, cancel, automation filters, frozen confirmation, duplicate-click protection, status refresh and later-page retries beyond 100 ineligible failures. All deliveries are mocked; no external requests."
