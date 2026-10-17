@@ -1,16 +1,19 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { SESSION_EVENT, getAuthToken } from '@/services/api';
 import { recordNotificationOpen } from '@/services/deliveryReportApi';
 import { syncBrowserPush } from '@/services/browserPush';
 import { recordVisitorOpen } from '@/services/visitorBrowserPush';
 
 export default function BrowserPushLifecycle() {
+  const location = useLocation();
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     let acknowledging = false;
     const acknowledge = async () => {
       const url = new URL(window.location.href);
-      const visitorNotice = url.pathname === '/notifications' ? url.searchParams.get('notice') : null;
+      const visitorNotice = url.pathname === '/notifications' || url.searchParams.get('notifications') === 'open'
+        ? url.searchParams.get('notice') : null;
       if (!acknowledging && url.searchParams.get('notificationSource') === 'push' && /^[a-f\d]{24}$/i.test(visitorNotice || '')) {
         acknowledging = true;
         try {
@@ -52,6 +55,6 @@ export default function BrowserPushLifecycle() {
       window.removeEventListener('focus', sync);
       window.removeEventListener('online', sync);
     };
-  }, []);
+  }, [location.pathname, location.search]);
   return null;
 }

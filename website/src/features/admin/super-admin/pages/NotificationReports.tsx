@@ -16,6 +16,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  ArrowRight,
 } from "lucide-react";
 import {
   ADMIN_CARD,
@@ -66,6 +67,29 @@ const tones: Record<string, string> = {
 };
 const startDate = () =>
   new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+const recipientColumns =
+  "grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_14rem]";
+
+function SummaryCard({
+  active,
+  onClick,
+  ...stat
+}: Parameters<typeof AdminStat>[0] & { active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={`Show ${stat.label.toLowerCase()}`}
+      aria-pressed={active}
+      aria-controls="delivery-report-recipients"
+      onClick={onClick}
+      className={`min-w-0 rounded-2xl text-left transition-shadow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/40 [&>[data-admin-stat]]:h-full ${
+        active ? "ring-2 ring-blue-600 ring-offset-2" : "hover:ring-2 hover:ring-blue-300"
+      }`}
+    >
+      <AdminStat {...stat} footer={active ? "Selected · View records" : "View delivery records"} />
+    </button>
+  );
+}
 
 function Ratio({
   label,
@@ -99,7 +123,7 @@ function Ratio({
 
 function Detail({ row }: { row: ReportRow }) {
   return (
-    <div className="grid gap-4 p-4 sm:p-5 bg-slate-50/70 text-ui-small sm:grid-cols-2">
+    <div className="grid gap-4 p-4 sm:p-5 bg-slate-50/70 text-ui-small [overflow-wrap:anywhere] sm:grid-cols-2">
       <div className="space-y-2">
         <p className="font-semibold text-slate-900">Recipient & delivery</p>
         <p>
@@ -168,6 +192,7 @@ export default function NotificationReports({
     [error, setError] = useState(""),
     [expanded, setExpanded] = useState("");
   const seq = useRef(0);
+  const recipientHeading = useRef<HTMLHeadingElement>(null);
   const change = (patch: ReportFilters) => {
     setExpanded("");
     setFilters((f) => ({
@@ -178,6 +203,14 @@ export default function NotificationReports({
         ? { campaignPage: 1 }
         : {}),
     }));
+  };
+  const showRecipients = (patch: ReportFilters) => {
+    change(patch);
+    recipientHeading.current?.focus({ preventScroll: true });
+    recipientHeading.current?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
   };
   const load = useCallback(async () => {
     const request = ++seq.current;
@@ -297,29 +330,35 @@ export default function NotificationReports({
         </div>
       )}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <AdminStat
+        <SummaryCard
           icon={<Users className="w-5 h-5" />}
           label="Recipient identities"
           value={fmt(summary?.recipients)}
-          hint="Accounts and unregistered contacts"
+          hint="Distinct accounts and contact identities"
           tone="blue"
           primary
+          active={!filters.status}
+          onClick={() => showRecipients({ status: "" })}
         />
-        <AdminStat
+        <SummaryCard
           icon={<Send className="w-5 h-5" />}
           label="Accepted / in inbox"
           value={fmt(summary?.accepted)}
           hint={`${fmt(summary?.records)} delivery records`}
           tone="emerald"
+          active={filters.status === "accepted_any"}
+          onClick={() => showRecipients({ status: "accepted_any" })}
         />
-        <AdminStat
+        <SummaryCard
           icon={<Eye className="w-5 h-5" />}
           label="Confirmed opens"
           value={fmt(summary?.opened)}
-          hint="WhatsApp reads and recorded taps"
+          hint="WhatsApp reads and recorded opens / taps"
           tone="blue"
+          active={filters.status === "read"}
+          onClick={() => showRecipients({ status: "read" })}
         />
-        <AdminStat
+        <SummaryCard
           icon={<AlertCircle className="w-5 h-5" />}
           label="Failed"
           value={fmt(summary?.failed)}
@@ -327,6 +366,8 @@ export default function NotificationReports({
             summary?.skipped
           )} skipped / not sent`}
           tone="rose"
+          active={filters.status === "failed"}
+          onClick={() => showRecipients({ status: "failed" })}
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -334,7 +375,17 @@ export default function NotificationReports({
           const channel = data?.channels.find((c) => c._id === key);
           const Icon = icons[key as keyof typeof icons];
           return (
-            <section key={key} className={`${ADMIN_CARD} p-4 space-y-4`}>
+            <button
+              key={key}
+              type="button"
+              aria-label={`Filter delivery records by ${label}`}
+              aria-pressed={filters.channel === key}
+              aria-controls="delivery-report-recipients"
+              onClick={() => showRecipients({ channel: filters.channel === key ? "" : key })}
+              className={`${ADMIN_CARD} min-w-0 p-4 space-y-4 text-left transition-colors hover:border-blue-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30 ${
+                filters.channel === key ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50/30" : ""
+              }`}
+            >
               <h3 className="flex items-center gap-2 font-semibold text-ui-small text-slate-900">
                 <Icon className="w-4 h-4 text-blue-600" />
                 {label}
@@ -381,7 +432,11 @@ export default function NotificationReports({
                 {fmt(channel?.failed)} failed · {fmt(channel?.queued)} queued ·{" "}
                 {fmt(channel?.skipped)} skipped
               </p>
-            </section>
+              <span className="flex items-center justify-between gap-2 text-ui-caption font-semibold text-blue-700">
+                {filters.channel === key ? "Selected · Show all channels" : "View recipient records"}
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </span>
+            </button>
           );
         })}
       </div>
@@ -502,9 +557,18 @@ export default function NotificationReports({
           </>
         )}
       </section>
-      <section className={`${ADMIN_CARD} overflow-hidden`}>
+      <section id="delivery-report-recipients" aria-labelledby="delivery-report-recipient-heading" className={`${ADMIN_CARD} overflow-hidden`}>
         <div className="p-4 sm:p-6 space-y-3">
-          <h2 className={CARD_TITLE}>Recipient details</h2>
+          <h2 id="delivery-report-recipient-heading" ref={recipientHeading} tabIndex={-1} className={`${CARD_TITLE} scroll-mt-6 focus:outline-none`}>Recipient details</h2>
+          <p className="text-ui-small text-slate-600" aria-live="polite">
+            {filters.channel ? CHANNEL_LABELS[filters.channel as keyof typeof CHANNEL_LABELS] : "All channels"}
+            {" · "}{filters.status === "accepted_any" ? "All accepted deliveries, including delivered, opened and marked read" : filters.status === "read" ? "Confirmed opens / taps" : filters.status ? human(filters.status) : "Every outcome"}
+            {busy ? " · Updating records…" : ""}
+          </p>
+          <p className="text-ui-caption text-slate-500">
+            {fmt(summary?.recipients)} distinct recipient identities across {fmt(summary?.records)} delivery records for the current activity, channel, date and search filters.
+            {" "}Each row is a delivery record, so the same recipient can appear more than once. Select a row for its timeline and provider details.
+          </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-400" />
@@ -525,6 +589,7 @@ export default function NotificationReports({
               <option value="">Every outcome</option>
               <option value="unconfirmed">No confirmed open</option>
               <option value="read">Confirmed open / tap</option>
+              <option value="accepted_any">All accepted deliveries (including delivered / opened)</option>
               <option value="delivered">Delivered</option>
               <option value="accepted">Provider accepted / in inbox</option>
               <option value="marked_read">Marked as read</option>
@@ -540,6 +605,11 @@ export default function NotificationReports({
             sends a message.
           </p>
         </div>
+        <div aria-hidden="true" className={`${recipientColumns} hidden sm:grid border-y border-slate-100 bg-slate-50 px-4 sm:px-6 py-3 text-ui-caption font-semibold text-slate-500`}>
+          <span>Recipient</span>
+          <span>Notification</span>
+          <span className="text-right pr-6">Outcome</span>
+        </div>
         <div className="divide-y divide-slate-100">
           {busy && !data ? (
             <div className="p-10 text-center">
@@ -550,34 +620,35 @@ export default function NotificationReports({
               <div key={row._id}>
                 <button
                   type="button"
+                  data-report-row
                   aria-expanded={expanded === row._id}
                   onClick={() =>
                     setExpanded(expanded === row._id ? "" : row._id)
                   }
-                  className="w-full grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-start px-4 sm:px-6 py-4 text-left hover:bg-slate-50"
+                  className={`w-full ${recipientColumns} items-start px-4 sm:px-6 py-4 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500`}
                 >
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-ui-small text-slate-900 break-words">
+                  <span data-report-column="recipient" className="min-w-0">
+                    <span className="block font-semibold text-ui-small text-slate-900 [overflow-wrap:anywhere]">
                       {row.recipientName}
                     </span>
-                    <span className="block text-ui-caption text-slate-500 break-all">
+                    <span className="block text-ui-caption text-slate-500 [overflow-wrap:anywhere]">
                       {row.recipient || "Account inbox / device"}
                     </span>
                   </span>
-                  <span className="min-w-0">
+                  <span data-report-column="notification" className="min-w-0">
                     <span className="block text-ui-small text-slate-700">
                       {CHANNEL_LABELS[row.channel]}
                     </span>
-                    <span className="block text-ui-caption text-slate-500 line-clamp-1">
+                    <span className="block text-ui-caption text-slate-500 [overflow-wrap:anywhere]">
                       {row.title}
                     </span>
                     <span className="text-ui-caption text-slate-400">
                       {when(row.createdAt)}
                     </span>
                   </span>
-                  <span className="flex items-center gap-2">
+                  <span data-report-column="outcome" className="grid min-w-0 grid-cols-[minmax(0,1fr)_1rem] items-center gap-2">
                     <span
-                      className={`rounded-full px-3 py-1 text-ui-caption font-semibold ${
+                      className={`max-w-full justify-self-end rounded-full px-3 py-1 text-center text-ui-caption font-semibold [overflow-wrap:anywhere] ${
                         tones[row.status] || "bg-slate-100 text-slate-600"
                       }`}
                     >

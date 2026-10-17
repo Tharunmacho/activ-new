@@ -1,4 +1,3 @@
-import BrowserNotificationPrompt from '@/components/BrowserNotificationPrompt';
 import PublicNotificationsPage from '@/pages/onboarding/PublicNotificationsPage';
 import UsageAnalytics from '@/components/UsageAnalytics';
 import BrowserPushLifecycle from '@/components/BrowserPushLifecycle';
@@ -295,7 +294,6 @@ const App = () => (
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <UsageAnalytics />
             <BrowserPushLifecycle />
-            <BrowserNotificationPrompt />
             <NativePublicAppGate>
             {/* A routed page opens at its top. Without this the window keeps
                 the offset it had, so pressing a link from the foot of one page

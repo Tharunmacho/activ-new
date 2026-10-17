@@ -106,6 +106,52 @@ interface BannerSlide {
    know it, and an event the CMS cannot account for must not ride the banner. */
 const inBanner = (events: CmsEvent[] | null) => (events || []).filter((e) => e?.showInBanner === true && isUpcomingEvent(e));
 
+/** Keep the banner informative while storage answers, and reuse one download
+ * for the phone's blurred background instead of requesting another rendition. */
+function BannerMedia({ media, active, label, className, onSettled }: {
+    media: CmsMedia; active: boolean; label: string; className: string;
+    onSettled: (url: string) => void;
+}) {
+    const [source, setSource] = useState('');
+    const [failed, setFailed] = useState(false);
+    const [slow, setSlow] = useState(false);
+    useEffect(() => {
+        if (!active || source || failed) return;
+        const timer = window.setTimeout(() => setSlow(true), 8000);
+        return () => window.clearTimeout(timer);
+    }, [active, source, failed]);
+
+    return (
+        <>
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-[#0f1d4a] via-[#1c2e68] to-[#2563eb]" />
+            {source && media.type !== 'video' && (
+                <div aria-hidden="true" className="md:hidden absolute inset-0 overflow-hidden">
+                    <img src={source} alt="" decoding="async" className="w-full h-full object-cover scale-125 blur-2xl opacity-70" />
+                </div>
+            )}
+            <div className="absolute inset-0">
+                <CmsMediaFrame
+                    media={media}
+                    priority={active}
+                    width={1920}
+                    sizes="100vw"
+                    transparent
+                    fallback={<span />}
+                    onMediaLoad={(url) => { setSource(url); onSettled(media.url); }}
+                    onMediaError={() => { setSource(''); setFailed(true); onSettled(media.url); }}
+                    className={className}
+                />
+            </div>
+            {!source && active && (
+                <div role="status" className="absolute inset-x-16 top-6 z-20 mx-auto w-fit max-w-[calc(100%-8rem)] rounded-xl bg-slate-950/70 px-4 py-3 text-center text-sm text-white">
+                    {label && <p className="font-semibold">{label}</p>}
+                    <p>{failed || !media?.url ? 'Image temporarily unavailable.' : slow ? 'This image is taking longer to load.' : 'Loading image...'}</p>
+                </div>
+            )}
+        </>
+    );
+}
+
 export function CarouselSection() {
     const now = useEventClock();
     /*
@@ -132,6 +178,10 @@ export function CarouselSection() {
 
     /* Which slide is on screen — the words over the banner follow it. */
     const [selected, setSelected] = useState(0);
+    const [settledMedia, setSettledMedia] = useState<Set<string>>(() => new Set());
+    const onMediaSettled = useCallback((url: string) => {
+        setSettledMedia(previous => previous.has(url) ? previous : new Set([...previous, url]));
+    }, []);
     useEffect(() => {
         if (!emblaApi) return;
         const onSelect = () => setSelected(emblaApi.selectedScrollSnap());
@@ -303,6 +353,31 @@ export function CarouselSection() {
     useEffect(() => {
         if (emblaApi) emblaApi.reInit();
     }, [emblaApi, slides.length]);
+    const selectedMedia = (slides[selected] || slides[0])?.media?.url;
+    const waitingForMedia = !!selectedMedia && !settledMedia.has(selectedMedia);
+    useEffect(() => {
+        const autoplay = emblaApi?.plugins().autoplay;
+        if (!autoplay) return;
+        let disposed = false;
+        const shouldWait = () => waitingForMedia || emblaApi.containerNode().contains(document.activeElement);
+        const sync = () => {
+            if (shouldWait()) autoplay.stop();
+            else autoplay.play();
+        };
+        // The plugin can restart after a tap, focusout or visibility change.
+        // It finishes starting after emitting timerset, so guard in a microtask.
+        const guardRestart = () => queueMicrotask(() => {
+            if (!disposed && shouldWait()) autoplay.stop();
+        });
+        sync();
+        emblaApi.on('reInit', sync);
+        emblaApi.on('autoplay:timerset', guardRestart);
+        return () => {
+            disposed = true;
+            emblaApi.off('reInit', sync);
+            emblaApi.off('autoplay:timerset', guardRestart);
+        };
+    }, [emblaApi, selectedMedia, waitingForMedia]);
     const card = carousel?.highlightCard;
     const cardFields = sectionFields(sections, 'carousel.highlightCard');
     const showCard = !sectionHidden(sections, 'carousel.highlightCard')
@@ -464,35 +539,16 @@ export function CarouselSection() {
                             {slides.map((slide, i) => {
                                 const picture = (
                                     <>
-                                        <div aria-hidden="true" className="md:hidden absolute inset-0 overflow-hidden">
-                                            <CmsMediaFrame
-                                                media={{ ...slide.media, fit: 'cover', alt: '' }}
-                                                width={320}
-                                                className="scale-125 blur-2xl opacity-70"
-                                            />
-                                        </div>
-                                        <div className="absolute inset-0">
-                                            <CmsMediaFrame
-                                                media={slide.media}
-                                                priority={i === 0}
-                                                width={1920}
-                                                sizes="100vw"
-                                                transparent
-                                                /* No picture, or one that will not load: the
-                                                   brand's navy→blue, never a black band that
-                                                   reads as a broken image. */
-                                                fallback={
-                                                    <div aria-hidden="true" className="absolute inset-0
-                                                         bg-gradient-to-br from-[#0f1d4a] via-[#1c2e68] to-[#2563eb]">
-                                                        <div className="absolute inset-0 opacity-20
-                                                             bg-[radial-gradient(circle_at_20%_30%,#ffffff_0,transparent_45%)]" />
-                                                    </div>
-                                                }
-                                                className={`max-md:!object-contain max-md:!object-center md:!object-cover ${slide.href
-                                                    ? 'group-hover:scale-[1.03] transition-transform duration-[1200ms] transform-gpu'
-                                                    : ''}`}
-                                            />
-                                        </div>
+                                        <BannerMedia
+                                            key={slide.media?.url || i}
+                                            media={slide.media}
+                                            active={i === selected}
+                                            label={slide.href && !slide.ownWords ? slide.title || '' : ''}
+                                            onSettled={onMediaSettled}
+                                            className={`max-md:!object-contain max-md:!object-center md:!object-cover ${slide.href
+                                                ? 'group-hover:scale-[1.03] transition-transform duration-[1200ms] transform-gpu'
+                                                : ''}`}
+                                        />
                                         {/* The shade sits under the words, on their side — none on
                                             a poster, unless the editor wrote banner words for it. */}
                                         <div className={`absolute inset-0 ${slide.href && !slide.ownWords ? 'hidden' : ''} ${slide.align === 'right'

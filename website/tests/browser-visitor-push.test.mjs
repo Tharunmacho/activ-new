@@ -19,6 +19,7 @@ const calls = [];
 const noticeId = 'd'.repeat(24), eventNoticeId = 'e'.repeat(24), eventId = 'f'.repeat(24);
 const receipts = new Set();
 let bundle = '', css = '', chrome, ws, installations = 0, rejectDelete = false, expireNext = false;
+let feedMode = 'normal', rejectDetail = false;
 const server = http.createServer(async (req, res) => {
   if (fonts.serve(new URL(req.url, 'http://localhost'), res)) return;
   if (req.url === '/logo_ACTIVian-removebg-preview.png') { res.setHeader('Content-Type', 'image/png'); return res.end(await readFile(path.join(root, 'public/logo_ACTIVian-removebg-preview.png'))); }
@@ -39,7 +40,8 @@ const server = http.createServer(async (req, res) => {
       { id: eventNoticeId, kind: 'event', sourceId: eventId, title: 'Scale your business with ACTIV', summary: 'Join our upcoming public community event.', body: 'Explore opportunities with the ACTIV community.', imageUrl: origin + '/fixture.svg', createdAt: '2026-10-15T09:00:00Z' }];
     if (req.method === 'GET' && req.url.startsWith('/api/v1/public-notifications')) {
       const id = req.url.split('/').at(-1);
-      return res.end(JSON.stringify({ data: id === 'public-notifications' ? notices : notices.find(row => row.id === id) }));
+      if ((id === 'public-notifications' && feedMode === 'error') || (id !== 'public-notifications' && rejectDetail)) { res.statusCode = 503; return res.end('{}'); }
+      return res.end(JSON.stringify({ data: id === 'public-notifications' ? feedMode === 'empty' ? [] : notices : notices.find(row => row.id === id) }));
     }
     if (req.method === 'PATCH' && req.url.endsWith('/open')) {
       const key = req.headers['x-activ-visitor-key'] + ':' + req.url + ':' + JSON.parse(body).channel;
@@ -80,8 +82,8 @@ try {
            export const onMessage=(m,fn)=>{window.receivePush=fn;return ()=>window.receivePush=null;};` }));
     } }],
     stdin: { resolveDir: root, loader: 'tsx', contents: `
-      import React from 'react';import {createRoot} from 'react-dom/client';import {BrowserRouter} from 'react-router-dom';
-      import Prompt from './src/components/BrowserNotificationPrompt';
+      import React from 'react';import {createRoot} from 'react-dom/client';import {BrowserRouter,Routes,Route} from 'react-router-dom';
+      import {HeaderSection} from './src/components/layout/HeaderSection';
       import PublicPage from './src/pages/onboarding/PublicNotificationsPage';
       import Lifecycle from './src/components/BrowserPushLifecycle';
       import * as push from './src/services/browserPush';import * as identity from './src/lib/pushIdentity';
@@ -92,8 +94,9 @@ try {
       Notification.requestPermission=async()=>{window.permissionRequests++;if(window.holdPermission)await new Promise(r=>window.releasePermission=r);window.permission=window.nextPermission;return window.permission;};
       window.signIn=id=>localStorage.setItem('token','x.'+btoa(JSON.stringify({userId:id,exp:Math.floor(Date.now()/1000)+3600}))+'.x');
       const root=createRoot(document.getElementById('root'));let revision=0;
-      window.mountPrompt=()=>root.render(<BrowserRouter><Prompt key={++revision}/></BrowserRouter>);window.mountPrompt();
-      window.mountPublic=url=>{history.replaceState({},'',url);root.render(<BrowserRouter key={++revision}><Lifecycle/><PublicPage/></BrowserRouter>);};
+      function CurrentPage(){return <><HeaderSection/><main id="current-page" style={{minHeight:'1200px',padding:'32px'}}><h1>Current ACTIV page</h1><button id="outside-control">Page content action</button></main></>;}
+      window.mountPublic=(url,withLifecycle=true)=>{history.replaceState({},'',url);root.render(<BrowserRouter key={++revision}>{withLifecycle&&<Lifecycle/>}<Routes><Route path="/notifications" element={<PublicPage/>}/><Route path="*" element={<CurrentPage/>}/></Routes></BrowserRouter>);};
+      window.mountPublic('/events?view=upcoming',false);
     ` } });
   bundle = built.outputFiles.find(file => file.path.endsWith('.js')).text;
   css += '\n' + built.outputFiles.filter(file => file.path.endsWith('.css')).map(file => file.text).join('\n');
@@ -121,33 +124,42 @@ try {
   const screenshots = path.join(root, '..', 'artifacts', 'browser-visitor-push');
   await mkdir(screenshots, { recursive: true });
   const screenshot = async name => { const result = await send('Page.captureScreenshot', { format: 'png' }); await writeFile(path.join(screenshots, name + '.png'), Buffer.from(result.result.data, 'base64')); };
+  const dialog = 'document.querySelector(\'[role="dialog"][aria-label="Notifications"]\')';
+  const bell = 'document.querySelector(\'header button[aria-label="Notifications"]\')';
+  const openBell = async () => {
+    await until(bell);
+    await evaluate(`${bell}.click()`);
+    await until(dialog);
+  };
+  const closeBell = async () => {
+    await evaluate('document.querySelector(\'button[aria-label="Close notifications"]\').click()');
+    await until(`!${dialog}`);
+  };
+  const chooseNotice = async title => {
+    await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.textContent.includes(${JSON.stringify(title)})).click()`);
+  };
   const reset = async () => {
-    rejectDelete = false; expireNext = false;
-    await evaluate(`(async()=>{await push.disableBrowserPush();localStorage.clear();await identity.writePushIdentity(null);window.permission='default';window.nextPermission='granted';window.tokenFailure=false;window.holdToken=false;window.releaseToken=null;window.holdPermission=false;window.releasePermission=null;window.mountPrompt();})()`);
+    rejectDelete = false; expireNext = false; feedMode = 'normal'; rejectDetail = false;
+    await evaluate(`(async()=>{await push.disableBrowserPush();localStorage.clear();sessionStorage.clear();await identity.writePushIdentity(null);window.permission='default';window.nextPermission='granted';window.tokenFailure=false;window.holdToken=false;window.releaseToken=null;window.holdPermission=false;window.releasePermission=null;window.mountPublic('/events?view=upcoming',false);})()`);
+    await until(bell);
   };
   await send('Runtime.enable'); await send('Network.enable');
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await send('Page.navigate', { url: origin }); await until('window.push');
   await evaluate('push.syncBrowserPush()');
-  assert.equal(calls.length, 0, 'first visit does not silently create an installation');
+  assert.equal(installations, 0, 'first visit does not silently create an installation');
   assert.equal(await evaluate('window.permissionRequests'), 0, 'passive sync never prompts the browser');
-  await until('document.querySelector("aside")');
+  await until(bell);
+  await pause(1700);
+  assert.equal(await evaluate('!!document.querySelector(\'aside[aria-label="Enable ACTIV notifications"]\')'), false, 'no floating ACTIV permission prompt appears');
+  assert.equal(await evaluate(`!!${dialog}`), false, 'notifications stay closed until requested');
   await evaluate('document.fonts.ready');
-  for (const width of [320, 390, 1440]) {
-    await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 });
-    assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), `welcome prompt fits ${width}px`);
-    assert(await evaluate('document.querySelector("aside").getBoundingClientRect().width>250'), 'prompt receives its shared layout CSS');
-    await screenshot('prompt-' + width);
-  }
-  await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Later").click()');
-  assert.equal(await evaluate('localStorage.getItem("activ:notification-prompt-dismissed")'), 'true');
-  await evaluate('window.mountPrompt()'); await pause(1700);
-  assert.equal(await evaluate('!!document.querySelector("aside")'), false, 'Later is persisted across remounts');
-  assert.equal(calls.length, 0);
-
-  await reset(); await until('document.querySelector("aside")');
-  await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Allow notifications").click()');
+  const originalLocation = await evaluate('location.pathname+location.search+location.hash');
+  const beforePermission = await evaluate('window.permissionRequests');
+  await openBell();
+  assert.equal(await evaluate('window.permissionRequests'), beforePermission + 1, 'explicit bell opening invokes the native permission request once');
+  assert.equal(await evaluate('location.pathname+location.search+location.hash'), originalLocation, 'bell opens a card without navigating away');
   await until('(await identity.readPushIdentity())?.visitorId');
   const firstIdentity = await evaluate('identity.readPushIdentity()');
   const stored = await evaluate('visitor.visitorIdentity()');
@@ -158,12 +170,34 @@ try {
   assert.deepEqual(visitorPuts().at(-1).body, { token: 'visitor-browser-token-1234567890', platform: 'web' });
   assert.equal(await evaluate('push.browserPushStatus()'), 'Public notifications are enabled on this browser.');
   assert.equal(await evaluate('(async()=>(await identity.readPushIdentity()).expiresAt>Date.now())()'), true);
+  await closeBell(); await openBell();
+  assert.equal(await evaluate('window.permissionRequests'), beforePermission + 1, 'already granted permission is not requested again');
+  await closeBell();
 
   await reset(); const deniedCount = visitorPuts().length;
-  await evaluate('window.nextPermission="denied";push.enableBrowserPush().catch(error=>window.lastError=error.message)');
+  const beforeDeniedPrompt = await evaluate('window.permissionRequests');
+  await evaluate('window.nextPermission="denied"'); await openBell();
+  await until('window.permission === "denied"');
   assert.equal(visitorPuts().length, deniedCount, 'denying permission cannot enroll a guest');
   assert.equal(await evaluate('visitor.visitorIdentity()'), null);
   assert.equal(await evaluate('identity.readPushIdentity()'), null);
+  await until(`${dialog}?.textContent.includes('Dear ACTIVian, discover')`);
+  assert.match(await evaluate(`${dialog}.textContent`), /settings|blocked|not allowed/i, 'blocked browser permission has a local explanation');
+  await closeBell(); await openBell();
+  assert.equal(await evaluate('window.permissionRequests'), beforeDeniedPrompt + 1, 'blocked permission is never requested again by opening the card');
+  await closeBell();
+
+  await reset(); await evaluate('window.nextPermission="default"');
+  const beforeDismissedPrompt = await evaluate('window.permissionRequests');
+  await openBell(); await pause(200);
+  assert.equal(await evaluate('window.permissionRequests'), beforeDismissedPrompt + 1);
+  await evaluate('window.dispatchEvent(new Event("focus"))'); await pause(200);
+  assert.equal(await evaluate('window.permissionRequests'), beforeDismissedPrompt + 1, 'dismissed native permission does not reappear from rerenders or focus');
+  await closeBell(); await openBell();
+  assert.equal(await evaluate('window.permissionRequests'), beforeDismissedPrompt + 1, 'a dismissed native request is not repeated by reopening the bell');
+  await evaluate(`${dialog}.querySelector('button[aria-label="Enable browser notifications"]').click()`);
+  assert.equal(await evaluate('window.permissionRequests'), beforeDismissedPrompt + 2, 'the explicit inline enable action can retry an undecided permission');
+  await closeBell();
 
   await reset(); const permissionCount = await evaluate('window.permissionRequests');
   await evaluate('window.permission="granted";push.syncBrowserPush()');
@@ -240,7 +274,8 @@ try {
   let clicked;
   const click = async notification => { handlers.notificationclick({ notification: { ...notification, close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p }); await clicked; };
   await click(displayed[0]);
-  assert.equal(new URL(opened[0]).pathname, '/notifications');
+  assert.equal(new URL(opened[0]).pathname, '/');
+  assert.equal(new URL(opened[0]).searchParams.get('notifications'), 'open');
   assert.equal(new URL(opened[0]).searchParams.get('notice'), data.publicNotificationId);
   assert.equal(new URL(opened[0]).searchParams.get('notificationSource'), 'push');
   assert.equal(new URL(opened[0]).origin, origin, 'payload URLs never control the destination');
@@ -257,46 +292,127 @@ try {
   context.identity = null; await context.background({ data }); await click(displayed[0]);
   assert.equal(displayed.length, 1, 'expired and revoked identities cannot display');
   assert.equal(opened.length, 1, 'expired and revoked identities cannot open');
-  // Public screen uses its real header/footer and API clients, with localhost content.
-  await evaluate('window.mountPublic("/notifications")');
-  await until('document.querySelector("main") && document.body.textContent.includes("Dear ACTIVian, discover")');
+  // The card uses the real public header and API clients, with localhost content.
+  await evaluate('window.mountPublic("/events?view=upcoming",false)');
+  await openBell();
+  await until(`${dialog}?.textContent.includes('Dear ACTIVian, discover')`);
   await evaluate('document.fonts.ready');
-  assert.equal(await evaluate('document.querySelector("header a[aria-label=Notifications]").getAttribute("href")'), '/notifications');
+  assert.equal(await evaluate(`${bell}.getAttribute('aria-expanded')`), 'true');
+  assert.equal(await evaluate('location.pathname+location.search'), '/events?view=upcoming');
   for (const width of [320, 390, 1440]) {
-    await send('Emulation.setDeviceMetricsOverride', { width, height: 1050, deviceScaleFactor: 1, mobile: width < 600 });
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 });
     await pause(100);
-    assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), `public notifications fit ${width}px`);
-    assert(await evaluate('getComputedStyle(document.querySelector("h1")).fontFamily.includes("Poppins")'), 'page preserves shared website typography');
-    await screenshot('public-feed-' + width);
+    const bounds = await evaluate(`(()=>{const r=${dialog}.getBoundingClientRect();return {width:r.width,left:r.left,right:r.right,top:r.top,bottom:r.bottom}})()`);
+    assert(bounds.width > 240 && bounds.width <= 440 && bounds.left >= 0 && bounds.right <= width, `compact card stays within ${width}px viewport`);
+    assert(bounds.top >= 0 && bounds.bottom <= 900, `card stays within the viewport height at ${width}px`);
+    assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), `notification card does not add horizontal scroll at ${width}px`);
+    assert(await evaluate(`getComputedStyle(${dialog}).fontFamily.includes('Poppins')`), 'card preserves shared website typography');
+    await screenshot('public-card-' + width);
   }
-  await evaluate(`document.querySelector('a[href="/notifications?notice=${noticeId}"]').click()`);
-  await until('document.querySelector("article img")?.complete && document.querySelector("article img").naturalWidth>0');
-  assert.equal(await evaluate('document.querySelector("article p").textContent'), 'Welcome ACTIVian. Meet members and explore the latest community updates.');
-  assert.equal(await evaluate('document.querySelector("article p strong")'), null, 'public body uses the plain-text API contract');
+  const inAppOpens = () => calls.filter(c => c.method === 'PATCH' && c.path.endsWith('/' + noticeId + '/open') && c.body?.channel === 'in_app');
+  const beforeSelection = inAppOpens().length;
+  await chooseNotice('Dear ACTIVian, discover');
+  await until(`${dialog}?.querySelector('article img')?.complete && ${dialog}.querySelector('article img').naturalWidth>0`);
+  await until(`${dialog}?.querySelector('article')?.textContent.includes('Welcome ACTIVian. Meet members and explore the latest community updates.')`);
+  assert.equal(await evaluate(`${dialog}.querySelector('article p strong')`), null, 'public body uses the plain-text API contract');
+  assert.equal(inAppOpens().length, beforeSelection + 1, 'successful user selection records one in-app open');
+  assert.equal(await evaluate('location.pathname+location.search'), '/events?view=upcoming', 'notice details remain inside the current-page card');
   for (const width of [320, 390, 1440]) {
-    await send('Emulation.setDeviceMetricsOverride', { width, height: 1050, deviceScaleFactor: 1, mobile: width < 600 });
-    const dimensions = await evaluate('(()=>{const r=document.querySelector("article img").getBoundingClientRect();return {width:r.width,height:r.height,left:r.left,right:r.right}})()');
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 });
+    await pause(100);
+    const dimensions = await evaluate(`(()=>{const r=${dialog}.querySelector('article img').getBoundingClientRect();return {width:r.width,height:r.height,left:r.left,right:r.right}})()`);
     assert(dimensions.width > 150 && dimensions.height > 40 && dimensions.left >= 0 && dimensions.right <= width, `notice image remains visible within ${width}px`);
     assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'));
+    await screenshot('public-card-detail-' + width);
   }
-  await screenshot('public-notice-1440');
-  await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 1050, deviceScaleFactor: 1, mobile: true });
-  await screenshot('public-notice-390');
-  await evaluate(`window.mountPublic('/notifications?notice=${eventNoticeId}')`);
-  await until('document.querySelector("article a[href^=\\"/events/\\"]")');
-  assert.equal(await evaluate('document.querySelector("article a[href^=\\"/events/\\"]").getAttribute("href")'), '/events/' + eventId);
-  const beforeReceipt = calls.filter(c => c.method === 'PATCH' && c.path.endsWith('/' + noticeId + '/open')).length;
-  await evaluate(`window.mountPublic('/notifications?notice=${noticeId}&notificationSource=push')`);
+  await evaluate('document.querySelector(\'button[aria-label="Back to notifications"]\').click()');
+  await until(`${dialog}?.textContent.includes('Dear ACTIVian, discover') && !${dialog}.querySelector('article')`);
+  await chooseNotice('Scale your business');
+  await until(`${dialog}?.querySelector('article a[href^="/events/"]')`);
+  assert.equal(await evaluate(`${dialog}.querySelector('article a[href^="/events/"]').getAttribute('href')`), '/events/' + eventId);
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+  await until(`!${dialog}`);
+  assert.equal(await evaluate(`document.activeElement === ${bell}`), true, 'Escape returns keyboard focus to the bell');
+  assert.equal(await evaluate(`${bell}.getAttribute('aria-expanded')`), 'false');
+  await openBell();
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 3, y: 895, button: 'left', clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 3, y: 895, button: 'left', clickCount: 1 });
+  await until(`!${dialog}`);
+  assert.equal(await evaluate('location.pathname+location.search'), '/events?view=upcoming', 'outside dismissal preserves the current page');
+
+  // Permission preferences remain available inside the card and opt-out survives reopening.
+  await openBell();
+  await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.getAttribute('aria-label')==='Disable browser notifications'||button.textContent.trim()==='Disable browser notifications').click()`);
+  await until('!push.pushEnabled() && !(await identity.readPushIdentity())');
+  const afterOptOut = visitorPuts().length;
+  await closeBell(); await openBell(); await pause(200);
+  assert.equal(visitorPuts().length, afterOptOut, 'viewing the card does not undo explicit browser opt-out');
+  await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.getAttribute('aria-label')==='Enable browser notifications'||button.textContent.trim()==='Enable browser notifications').click()`);
+  await until('(await identity.readPushIdentity())?.visitorId');
+  await closeBell();
+
+  feedMode = 'empty';
+  await evaluate('window.mountPublic("/events?view=empty",false)'); await openBell();
+  await until(`${dialog} && /all caught up|no (public )?(updates|notifications)|updates will appear|nothing new/i.test(${dialog}.textContent)`);
+  assert.equal(await evaluate('location.pathname+location.search'), '/events?view=empty');
+  await closeBell();
+
+  feedMode = 'error';
+  await evaluate('window.mountPublic("/events?view=retry",false)'); await openBell();
+  await until(`${dialog}?.querySelector('[role="alert"]')`);
+  feedMode = 'normal';
+  await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>/retry|try again/i.test(button.textContent)).click()`);
+  await until(`${dialog}?.textContent.includes('Dear ACTIVian, discover')`);
+  assert.equal(await evaluate('location.pathname+location.search'), '/events?view=retry', 'retry refreshes the card without a page navigation');
+  rejectDetail = true;
+  const beforeFailedSelection = inAppOpens().length;
+  await chooseNotice('Dear ACTIVian, discover');
+  await until(`${dialog}?.querySelector('[role="alert"]')`);
+  assert.equal(inAppOpens().length, beforeFailedSelection, 'a failed detail request never records an in-app open');
+  rejectDetail = false;
+  await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>/retry|try again/i.test(button.textContent)).click()`);
+  await until(`${dialog}?.querySelector('article')?.textContent.includes('Welcome ACTIVian.')`);
+  assert.equal(inAppOpens().length, beforeFailedSelection + 1, 'successful retry of a user selection records the open once');
+  await closeBell();
+
+  // Compatibility and actual push links open the same card, without fabricating in-app reads.
+  const beforePlainLink = calls.filter(c => c.method === 'PATCH' && c.path.endsWith('/open')).length;
+  await evaluate(`window.mountPublic('/?notifications=open&notice=${eventNoticeId}')`);
+  await until(`${dialog}?.querySelector('article a[href^="/events/"]')`);
+  assert.equal(calls.filter(c => c.method === 'PATCH' && c.path.endsWith('/open')).length, beforePlainLink, 'plain deep links do not invent push or in-app receipts');
+  await closeBell();
+  assert.equal(await evaluate('new URL(location.href).searchParams.has("notifications")'), false, 'closing a query-opened card clears its open trigger');
+
+  const opens = () => calls.filter(c => c.method === 'PATCH' && c.path.endsWith('/' + noticeId + '/open'));
+  const beforeReceipt = opens().length;
+  const beforePushInApp = inAppOpens().length;
+  await evaluate(`window.mountPublic('/?notifications=open&notice=${noticeId}&notificationSource=push')`);
+  await until(`${dialog}?.querySelector('article')?.textContent.includes('Welcome ACTIVian.')`);
   await until('!new URL(location.href).searchParams.has("notificationSource")');
   const ownKey = await evaluate('visitor.visitorIdentity().key');
-  const opens = () => calls.filter(c => c.method === 'PATCH' && c.path.endsWith('/' + noticeId + '/open'));
   assert.equal(opens().length, beforeReceipt + 1, 'actual push URL is acknowledged once');
   assert.equal(opens().at(-1).key, ownKey, 'push receipt uses the current installation owner');
   assert.equal(opens().at(-1).body.channel, 'push');
+  assert.equal(inAppOpens().length, beforePushInApp, 'opening a push deep link does not also record an in-app read');
   await evaluate('window.dispatchEvent(new Event("focus"));window.dispatchEvent(new Event("online"))');
   await pause(500);
   assert.equal(opens().length, beforeReceipt + 1, 'repeated lifecycle focus does not count another click');
-  console.log('PASS: browser visitor first-use Allow/Later, deny, existing permission, offline opt-in/opt-out retry, installation expiry, late-permission race, login/logout ownership, real IndexedDB/service worker registration, public worker routing, responsive public screen/image/header and one-time owned click attribution. No external delivery.');
+  await closeBell();
+  const beforeLegacy = opens().length;
+  await evaluate(`window.mountPublic('/notifications?notice=${noticeId}&notificationSource=push')`);
+  await until(`${dialog}?.querySelector('article')?.textContent.includes('Welcome ACTIVian.')`);
+  await until('location.pathname === "/" && !new URL(location.href).searchParams.has("notificationSource")');
+  assert.equal(opens().length, beforeLegacy + 1, 'legacy push links preserve and acknowledge their original attribution once');
+  assert.equal(opens().at(-1).body.channel, 'push');
+  assert.equal(inAppOpens().length, beforePushInApp, 'legacy redirects do not invent an in-app receipt');
+  await closeBell();
+  const beforeLegacyFeed = opens().length;
+  await evaluate('window.mountPublic("/notifications")');
+  await until(`location.pathname === '/' && ${dialog}?.textContent.includes('Dear ACTIVian, discover')`);
+  assert.equal(opens().length, beforeLegacyFeed, 'legacy feed redirect alone does not record any read');
+  assert.equal(errors.length, 0, errors.join('\n'));
+  console.log('PASS: no floating prompt or passive permission request; native permission on explicit bell; same-page accessible responsive notification card/detail, block/dismiss/opt-out, empty/error/retry, Escape/outside close; existing ownership/race/offline registration coverage; new and legacy worker/deep-link routes with owned, one-time push attribution and no false in-app receipts. No external delivery.');
 } finally {
   ws?.close(); chrome?.kill(); server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));

@@ -160,6 +160,10 @@ interface Props {
     natural?: boolean;
     /** Called with the image's intrinsic size once it loads (e.g. to tell portrait from landscape). */
     onNaturalSize?: (width: number, height: number) => void;
+    /** Successful source selected by the browser (including responsive variants). */
+    onMediaLoad?: (source: string) => void;
+    /** Called only after both the sized rendition and original have failed. */
+    onMediaError?: () => void;
     /**
      * How wide the frame is drawn, as an `<img sizes>` value (`"100vw"`,
      * `"(min-width: 768px) 60vw, 100vw"`). Given, the browser picks from a
@@ -173,7 +177,7 @@ const WIDTH_LADDER = [320, 480, 640, 800, 1024, 1280, 1600, 1920];
 
 export function CmsMediaFrame({
     media, className = '', fallback = null, priority = false, width = 900,
-    transparent = false, natural = false, onNaturalSize, sizes,
+    transparent = false, natural = false, onNaturalSize, onMediaLoad, onMediaError, sizes,
 }: Props) {
     const m = { ...EMPTY_MEDIA, ...(media || {}) };
 
@@ -206,7 +210,14 @@ export function CmsMediaFrame({
         objectPosition: m.position || 'center',
     };
 
-    if (m.type === 'video') {
+    const fail = () => { setFailed(true); onMediaError?.(); };
+    const loaded = (event: React.SyntheticEvent<HTMLImageElement>) => {
+        const image = event.currentTarget;
+        onNaturalSize?.(image.naturalWidth, image.naturalHeight);
+        onMediaLoad?.(image.currentSrc || image.src);
+    };
+
+    if (m.type === 'video' && !failed) {
         return (
             <video
                 src={resolveMediaUrl(m.url)}
@@ -216,6 +227,8 @@ export function CmsMediaFrame({
                 muted
                 loop
                 playsInline
+                onLoadedData={(event) => onMediaLoad?.(event.currentTarget.currentSrc || event.currentTarget.src)}
+                onError={fail}
                 // No controls: this is decorative background media, and a
                 // control bar over a banner reads as a broken embed.
                 aria-label={m.alt || undefined}
@@ -237,11 +250,10 @@ export function CmsMediaFrame({
                 src={resolveMediaUrl(m.url)}
                 alt={m.alt || ''}
                 loading={priority ? 'eager' : 'lazy'}
+                {...{ fetchpriority: priority ? 'high' : undefined }}
                 decoding="async"
-                onError={() => setFailed(true)}
-                onLoad={onNaturalSize
-                    ? (e) => onNaturalSize(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)
-                    : undefined}
+                onError={fail}
+                onLoad={loaded}
                 className={natural ? `block w-full h-auto ${className}` : `w-full h-full ${plate} ${className}`}
                 style={natural ? { objectFit: 'contain', objectPosition: 'center' } : style}
             />
@@ -278,11 +290,9 @@ export function CmsMediaFrame({
             onError={() => {
                 // Retry the untouched file only when a resized one was asked for.
                 const sized = sizedSrc(m.url, width) !== resolveMediaUrl(m.url) || isResizable(m.url);
-                if (sized) setPlain(true); else setFailed(true);
+                if (sized) setPlain(true); else fail();
             }}
-            onLoad={onNaturalSize
-                ? (e) => onNaturalSize(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)
-                : undefined}
+            onLoad={loaded}
             className={natural ? `block w-full h-auto ${className}` : `w-full h-full ${plate} ${className}`}
             style={natural ? { objectFit: 'contain', objectPosition: 'center' } : style}
         />

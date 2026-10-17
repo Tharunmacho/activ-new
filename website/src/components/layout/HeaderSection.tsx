@@ -4,7 +4,8 @@ import { useSocialLinks, SocialButtons } from '@/components/shared/SocialLinks';
 import { RegionsMenu, RegionsAccordion } from './RegionsMenu';
 import { SchemesMenu, SchemesAccordion } from './SchemesMenu';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, ChevronRight, LogIn, Mail, Phone, X } from 'lucide-react';
+import { ChevronRight, LogIn, Mail, Phone, X } from 'lucide-react';
+import PublicNotificationsBell from '@/components/PublicNotificationsBell';
 import { getSiteSettings, peekCmsCache, type SiteSettings } from '@/services/cmsApi';
 import { sectionHidden } from '@/components/shared/cmsSections';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
@@ -379,7 +380,7 @@ export function HeaderSection() {
                         )}
 
                         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                            <Link to="/notifications" aria-label="Notifications" className="inline-flex h-11 w-[44px] sm:w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full border border-blue-100 text-blue-700 hover:bg-blue-50"><Bell size={21} /></Link>
+                            <PublicNotificationsBell />
                             {ctaLabel && (
                                 /*
                                  * THE LOGIN PILL. A gradient in the header's own

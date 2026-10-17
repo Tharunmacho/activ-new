@@ -2,11 +2,14 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile, readdir, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import postcss from "postcss";
+import tailwind from "tailwindcss";
+import loadConfig from "tailwindcss/loadConfig.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), "activ-delivery-report-"));
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -88,21 +91,36 @@ const fixture = {
       error: "The device registration expired. Enable notifications again.",
       createdAt: "2026-10-16T10:00:00Z",
     },
+    ...[
+      ["email", "accepted", "Email Member"],
+      ["email", "failed", "Refused Email Member"],
+      ["whatsapp", "delivered", "Delivered Member"],
+      ["whatsapp", "sent", "Handset Member"],
+      ["in_app", "marked_read", "Read-inbox Member"],
+      ["push", "queued", "Queued Member"],
+      ...Array.from({ length: 22 }, () => ["email", "accepted", "Email Member"]),
+    ].map(([channel, status, recipientName], index) => ({
+      _id: `extra:${index}`,
+      channel,
+      status,
+      recipientName,
+      recipient: `${recipientName.replaceAll(" ", "-").toLowerCase()}@example.test`,
+      title: index === 0 ? "A very long notification subject that must wrap without moving the outcome column or hiding its final words" : "Regional association update",
+      campaignKey: "publication:announcement:fixture:v1",
+      createdAt: "2026-10-16T10:00:00Z",
+    })),
   ],
   pagination: { page: 1, limit: 25, total: 2, pages: 1 },
   campaignPagination: { page: 1, total: 1, pages: 1 },
   generatedAt: "2026-10-16T12:00:00Z",
 };
 try {
-  const assets = await readdir(path.join(root, "dist/assets"));
-  css = await readFile(
-    path.join(
-      root,
-      "dist/assets",
-      assets.find((name) => /^index-.*\.css$/.test(name))
-    ),
-    "utf8"
-  );
+  const config = loadConfig(path.join(root, "tailwind.config.ts"));
+  config.content = [path.join(root, "src/**/*.{ts,tsx}")];
+  css = (await postcss([tailwind(config)]).process(
+    await readFile(path.join(root, "src/index.css"), "utf8"),
+    { from: path.join(root, "src/index.css") },
+  )).css;
   const built = await build({
     bundle: true,
     write: false,
@@ -123,9 +141,24 @@ try {
               ? "export const errorMessage=(e,f)=>e.message || f;"
               : `
         export const CHANNEL_LABELS={email:'Email',whatsapp:'WhatsApp',push:'Push notifications',in_app:'In-app notifications'};
-        export const statusLabel=r=>r.status==='read'?'Read on WhatsApp':r.status==='failed'?'Failed':r.status;
+        export const statusLabel=r=>({read:'Read on WhatsApp',failed:'Failed',accepted:'Provider accepted',delivered:'Delivered',sent:'Sent to handset',marked_read:'Marked as read',queued:'Queued'}[r.status]||r.status);
         const fixture=${JSON.stringify(fixture)};
-        export const getDeliveryReport=async filters=>{window.lastFilters=filters;let rows=fixture.rows;if(filters.status==='unconfirmed')rows=rows.filter(r=>r.status!=='read');if(filters.search)rows=rows.filter(r=>(r.recipientName+r.recipient).toLowerCase().includes(filters.search.toLowerCase()));return {...fixture,rows,pagination:{...fixture.pagination,total:rows.length}};};
+        const accepted=['accepted','sent','delivered','read','marked_read'];
+        const counts=rows=>({records:rows.length,accepted:rows.filter(r=>accepted.includes(r.status)).length,opened:rows.filter(r=>r.status==='read').length,delivered:rows.filter(r=>r.channel==='whatsapp'&&['delivered','read'].includes(r.status)).length,failed:rows.filter(r=>r.status==='failed').length,queued:rows.filter(r=>r.status==='queued').length,skipped:rows.filter(r=>['skipped','mock'].includes(r.status)).length,unconfirmed:rows.filter(r=>r.status!=='read').length});
+        export const getDeliveryReport=async filters=>{
+          window.lastFilters=filters;
+          let base=fixture.rows.filter(r=>!filters.channel||r.channel===filters.channel);
+          if(filters.campaignKey)base=base.filter(r=>r.campaignKey===filters.campaignKey);
+          if(filters.search)base=base.filter(r=>(r.recipientName+r.recipient).toLowerCase().includes(filters.search.toLowerCase()));
+          let rows=base;
+          if(filters.status==='accepted_any')rows=rows.filter(r=>accepted.includes(r.status));
+          else if(filters.status==='unconfirmed')rows=rows.filter(r=>r.status!=='read');
+          else if(filters.status==='delivered')rows=rows.filter(r=>r.channel==='whatsapp'&&['delivered','read'].includes(r.status));
+          else if(filters.status)rows=rows.filter(r=>r.status===filters.status);
+          const page=filters.page||1,limit=filters.limit||25;
+          const report={...fixture,summary:{...counts(base),recipients:new Set(base.map(r=>r.recipientName)).size},channels:Object.keys(CHANNEL_LABELS).map(_id=>({_id,...counts(base.filter(r=>r.channel===_id))})),rows:rows.slice((page-1)*limit,page*limit),pagination:{page,limit,total:rows.length,pages:Math.max(1,Math.ceil(rows.length/limit))}};
+          window.lastReport=report;return report;
+        };
       `,
           }));
         },
@@ -211,7 +244,7 @@ try {
   await send("Network.setBlockedURLs", { urls: ["https://*"] });
   await send("Page.navigate", { url: origin });
   await until('document.body.textContent.includes("Asha Test")');
-  for (const width of [320, 390, 1440]) {
+  for (const width of [320, 390, 768, 1440]) {
     await send("Emulation.setDeviceMetricsOverride", {
       width,
       height: 1000,
@@ -223,6 +256,23 @@ try {
       await evaluate("document.documentElement.scrollWidth <= innerWidth"),
       `report fits ${width}px`
     );
+    if (width >= 640) {
+      assert(await evaluate(`(() => {
+        const rows=[...document.querySelectorAll('[data-report-row]')];
+        return ['recipient','notification','outcome'].every(column=>{
+          const lefts=rows.map(row=>row.querySelector('[data-report-column="'+column+'"]').getBoundingClientRect().left);
+          return Math.max(...lefts)-Math.min(...lefts)<1;
+        }) && Math.max(...rows.map(row=>row.lastElementChild.lastElementChild.getBoundingClientRect().right))
+          -Math.min(...rows.map(row=>row.lastElementChild.lastElementChild.getBoundingClientRect().right))<1;
+      })()`), `recipient, notification, outcome columns and chevrons align at ${width}px`);
+    } else {
+      assert(await evaluate(`(() => {
+        const row=document.querySelector('[data-report-row]');
+        const recipient=row.children[0].getBoundingClientRect(),notification=row.children[1].getBoundingClientRect();
+        return notification.top>=recipient.bottom && Math.abs(notification.left-recipient.left)<1;
+      })()`), `recipient rows stack on ${width}px`);
+    }
+    await evaluate("window.scrollTo(0,0)");
     const screenshot = await send("Page.captureScreenshot", {
       format: "png",
       captureBeyondViewport: false,
@@ -233,11 +283,62 @@ try {
       path.join(dir, `report-${width}.png`),
       Buffer.from(screenshot.result.data, "base64")
     );
+    await evaluate('document.getElementById("delivery-report-recipient-heading").scrollIntoView()');
+    const recipients = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    await writeFile(path.join(dir, `report-recipients-${width}.png`), Buffer.from(recipients.result.data, "base64"));
   }
+  const initialFrom = await evaluate("window.lastFilters.from");
   await evaluate(
     '[...document.querySelectorAll("button")].find(b=>b.textContent.includes("Regional association update")).click()'
   );
   await until("window.lastFilters.campaignKey");
+  const campaignKey = await evaluate("window.lastFilters.campaignKey");
+  await evaluate('document.querySelector("[aria-label=\\"Next recipients\\"]").click()');
+  await until("window.lastFilters.page === 2");
+  await evaluate('document.querySelector("[aria-label=\\"Show accepted / in inbox\\"]").click()');
+  await until('window.lastFilters.status === "accepted_any" && window.lastFilters.page === 1');
+  await until('document.body.textContent.includes("Read-inbox Member")');
+  assert(await evaluate('document.body.textContent.includes("Delivered Member") && document.body.textContent.includes("Handset Member")'));
+  assert(await evaluate('window.lastReport.pagination.total === window.lastReport.summary.accepted'));
+  assert.equal(await evaluate('document.activeElement.id'), "delivery-report-recipient-heading", "summary card reveals and focuses details");
+  assert.equal(await evaluate('document.querySelector("[aria-label=\\"Show accepted / in inbox\\"]").getAttribute("aria-pressed")'), "true");
+  await evaluate('document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="accepted";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
+  await until('window.lastFilters.status === "accepted"');
+  await until('!document.body.textContent.includes("Delivered Member")');
+  assert(await evaluate('window.lastReport.rows.every(r=>r.status === "accepted")'), "existing exact accepted filter remains available");
+
+  await send("Page.bringToFront");
+  await send("Emulation.setFocusEmulationEnabled", { enabled: true });
+  await evaluate('document.querySelector("[aria-label=\\"Show confirmed opens\\"]").focus()');
+  assert.equal(await evaluate('document.activeElement.getAttribute("aria-label")'), "Show confirmed opens");
+  await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", text: "\r", windowsVirtualKeyCode: 13 });
+  await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+  await until('window.lastFilters.status === "read"');
+  await until('document.querySelectorAll("[data-report-row]").length === 1');
+  assert(await evaluate('document.body.textContent.includes("Asha Test")'), "keyboard opens confirmed recipient records");
+  await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by WhatsApp\\"]").click()');
+  await until('window.lastFilters.channel === "whatsapp"');
+  assert.equal(await evaluate('window.lastFilters.status'), "read", "channel cards preserve selected outcome");
+  assert.equal(await evaluate('window.lastFilters.campaignKey'), campaignKey, "cards preserve selected campaign");
+  assert.equal(await evaluate('window.lastFilters.from'), initialFrom, "cards preserve date range");
+  assert.equal(await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by WhatsApp\\"]").getAttribute("aria-pressed")'), "true");
+  await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by WhatsApp\\"]").click()');
+  await until('window.lastFilters.channel === ""');
+  await evaluate('document.querySelector("[aria-label=\\"Show failed\\"]").click()');
+  await until('window.lastFilters.status === "failed"');
+  await until('document.querySelectorAll("[data-report-row]").length === 2');
+  await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by Email\\"]").click()');
+  await until('window.lastFilters.channel === "email"');
+  await until('document.querySelectorAll("[data-report-row]").length === 1');
+  assert(await evaluate('document.body.textContent.includes("Refused Email Member")'));
+  await evaluate('document.querySelector("[aria-label=\\"Show recipient identities\\"]").click()');
+  await until('window.lastFilters.status === ""');
+  assert.equal(await evaluate('window.lastFilters.channel'), "email", "recipient card retains channel scope");
+  await until('document.querySelectorAll("[data-report-row]").length > 1');
+  assert(await evaluate('window.lastReport.summary.recipients < window.lastReport.pagination.total'), "identity count is distinct from delivery records");
+  assert(await evaluate('document.body.textContent.includes("the same recipient can appear more than once")'));
+  await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by Email\\"]").click()');
+  await until('window.lastFilters.channel === ""');
   await evaluate(
     'document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="unconfirmed";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))'
   );
@@ -254,9 +355,12 @@ try {
       'document.body.textContent.includes("Email opens are not measured")'
     )
   );
+  await send("Emulation.setDeviceMetricsOverride", { width: 320, height: 1000, deviceScaleFactor: 1, mobile: true });
+  await pause(200);
+  assert(await evaluate("document.documentElement.scrollWidth <= innerWidth"), "expanded recipient contact, error and timeline fit a narrow screen");
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
-    "PASS: responsive report at 320/390/1440, publication drill-down, no-confirmed-open filter, recipient timeline/error details. No external requests or deliveries."
+    "PASS: report cards filter and focus recipient details; cumulative accepted and exact outcomes, keyboard activation, combined channel/campaign/date filters, pagination reset, identity-count explanation, aligned rows at 320/390/768/1440, and recipient timeline/error details. No external requests or deliveries."
   );
 } finally {
   ws?.close();
