@@ -139,14 +139,20 @@ try {
             export default {get:unexpected,post:async(url,body)=>{
               if(url==='/notifications/history/delete-preview'){
                 window.historyPreviews.push(JSON.parse(JSON.stringify(body)));
-                const ids=body.ids||window.historyFixture.rows.filter(row=>row.status!=='queued').map(row=>row._id).slice(0,500);
-                return window.historyPreviewResponse||{matched:ids.length,reviewed:ids.length,eligible:ids.length,retained:0,remaining:0,truncated:false,ids,token:'history-snapshot',reasons:[]};
+                const ids=body.ids||window.historyFixture.rows.filter(row=>row.status!=='queued').map(row=>row._id).slice(0,body.all?10000:500);
+                const batches=body.all?Array.from({length:Math.ceil(ids.length/500)},(_,index)=>({ids:ids.slice(index*500,(index+1)*500),eligible:Math.min(500,ids.length-index*500),token:'history-snapshot-'+window.historyPreviews.length+'-'+index})):undefined;
+                return window.historyPreviewResponse||{matched:ids.length,reviewed:ids.length,eligible:ids.length,retained:0,remaining:0,truncated:false,ids,token:body.all?'':'history-snapshot',batches,reasons:[]};
               }
               if(url==='/notifications/history/delete'){
                 window.historyDeletes.push(body);await new Promise(resolve=>window.finishHistoryDelete=resolve);
                 if(window.historyProcessing)return {removed:0,retained:0,processing:true,alreadySubmitted:true,reasons:[]};
+                if(window.historyResults[body.token])return {...window.historyResults[body.token],alreadySubmitted:true};
                 window.historyFixture.rows=window.historyFixture.rows.filter(row=>!body.ids.includes(row._id));
-                return {removed:body.ids.length,retained:0,reasons:[]};
+                const result={removed:body.ids.length,retained:0,reasons:[]};
+                window.historyApplied.push(body.token);window.historyResults[body.token]=result;
+                if(window.historyFailOnceToken===body.token){window.historyFailOnceToken='';throw Error('Network response was interrupted.');}
+                if(window.historyMalformedOnce){window.historyMalformedOnce=false;return {retained:0,reasons:[]};}
+                return result;
               }
               return unexpected();
             },put:unexpected,patch:unexpected};
@@ -172,7 +178,7 @@ try {
         import {CHANNEL_LABELS,statusLabel} from ${JSON.stringify(path.join(root,'src/services/deliveryReportApi.ts'))};
         export {CHANNEL_LABELS,statusLabel};
         const fixture=${JSON.stringify(fixture)};
-        window.historyFixture=fixture;window.historyPreviews=[];window.historyDeletes=[];
+        window.historyFixture=fixture;window.historyPreviews=[];window.historyDeletes=[];window.historyApplied=[];window.historyResults={};
         window.useLargeFailureFixture=()=>{fixture.rows=Array.from({length:105},(_,index)=>({
           _id:'failure-'+index,channel:index<100?'push':'email',status:'failed',recipientName:'Failed recipient '+index,
           recipient:'fixture@example.test',title:'Regional association update',campaignKey:'automation:fixture',createdAt:'2026-10-16T10:00:00Z'
@@ -327,6 +333,7 @@ try {
     assert.equal(await evaluate(`window.notificationCopy.notificationReason(${JSON.stringify(unrelated)})`), unrelated);
   }
   assert.equal(await evaluate('window.notificationCopy.notificationReason("app/invalid-credential")'), 'The push notification service could not sign in. Its settings need checking.');
+  assert.equal(await evaluate('window.notificationCopy.notificationReason("Media upload error: WebP image uploads are not currently supported. (code131053)")'), 'WhatsApp could not send this image because its format is not supported. Try Resend to use a compatible image.');
   assert.equal(await evaluate('window.notificationCopy.notificationTemplatePath("photo template skipped: no image | sent on backup")'), 'photo template not used: no image | sent using backup');
   for (const width of [320, 390, 768, 1440]) {
     await send("Emulation.setDeviceMetricsOverride", {
@@ -472,7 +479,8 @@ try {
   assert.deepEqual(await evaluate('window.retryCalls[0]'), { ids: ['extra:1'], token: 'review-fixture' }, 'confirmation sends the frozen eligible IDs and review token');
   assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Resending…").disabled'), 'repeat clicks are disabled');
   await evaluate('window.finishRetry()');
-  await until('document.body.textContent.includes("1 tried · 1 sent · 0 waiting to send · 0 failed · 0 not sent")');
+  await until('document.body.textContent.includes("1 tried · 1 accepted for sending · 0 waiting to send · 0 failed · 0 not sent")');
+  assert(await evaluate('document.body.textContent.includes("Resend submission result") && document.body.textContent.includes("the service can still report a failure")'),'Submission summary does not claim confirmed arrival or override later row failures');
   await until(`window.reportReads>${readsBeforeRetry}`);
   assert.equal(await evaluate('window.retryCalls.length'), 1);
   await evaluate('window.useLargeFailureFixture();document.querySelector("[aria-label=\\"Report activity\\"]").value="";document.querySelector("[aria-label=\\"Report activity\\"]").dispatchEvent(new Event("change",{bubbles:true}));document.querySelector("[aria-label=\\"Report channel\\"]").value="";document.querySelector("[aria-label=\\"Report channel\\"]").dispatchEvent(new Event("change",{bubbles:true}));document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="failed";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
@@ -496,7 +504,7 @@ try {
   await until('window.retryCalls.length===2');
   assert.deepEqual(await evaluate('window.retryCalls.at(-1)'), { ids: laterIds, token: 'review-fixture' });
   await evaluate('window.finishRetry()');
-  await until('document.body.textContent.includes("5 tried · 5 sent")');
+  await until('document.body.textContent.includes("5 tried · 5 accepted for sending")');
   // Failed rows expose their own action even while history is collapsed.
   await evaluate('window.useRowActionsFixture();document.querySelector("[aria-label=\\"Show people and contacts\\"]").click()');
   await until('window.lastReport.pagination.total===15 && !document.querySelector("[aria-busy=\\"true\\"]")');
@@ -560,7 +568,7 @@ try {
   await evaluate(`window.historyProcessing=true;window.finishHistoryDelete()`);
   await until('document.querySelector("[role=alertdialog]")?.textContent.includes("still being cleared")');
   assert(await evaluate(`${waDelete}!==null`),'Processing is not treated as completed deletion');
-  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Delete 1 log').click()`);
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Continue clearing').click()`);
   assert.deepEqual(await evaluate('window.historyDeletes[1]'),{ids:['whatsapp:resend'],token:'history-snapshot'},'Check again reuses the same reviewed token');
   await evaluate(`window.historyProcessing=false;window.historyFixture.rows.push({_id:'new-arrival',channel:'email',status:'accepted',recipientName:'New arrival',title:'New message'});window.finishHistoryDelete()`);
   await until(`${waDelete}===null && document.querySelector('[data-delivery-id="new-arrival"]')`);
@@ -568,10 +576,78 @@ try {
   await evaluate(`document.querySelector('button[aria-label^="Clear logs:"]').click()`);
   await until('document.querySelector("[role=alertdialog]")?.textContent.includes("ready to delete")');
   const clearSelection=await evaluate('window.historyPreviews.at(-1)');
+  assert.equal(clearSelection.all,true,'Bulk clear reviews the whole filtered history');
   assert.equal(clearSelection.view,'reports');assert(!('page' in clearSelection.filters));assert(!('limit' in clearSelection.filters));assert(!('campaignPage' in clearSelection.filters));
   assert.equal(await evaluate('window.historyDeletes.length'),2,'Clear logs still needs explicit confirmation');
   await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Cancel').click()`);
   console.log('PASS: history exact-ID review/cancel/confirm, duplicate protection, processing check, new arrivals, page reset, filter-only clear and mobile dialog layout. No real deletions.');
+  // More than one server batch: complete exactly the reviewed set with one
+  // confirmation, preserving a committed-but-lost response and new arrivals.
+  await evaluate(`window.historyFixture.rows=[...Array.from({length:1205},(_,index)=>({_id:'bulk-'+index,channel:'email',status:'accepted',recipientName:'Bulk recipient '+index,title:'Earlier message'})),{_id:'queued-keep',channel:'email',status:'queued',recipientName:'Waiting recipient',title:'Still waiting'}];document.querySelector('[aria-label="Show people and contacts"]').click()`);
+  await until('window.lastReport.pagination.total===1206 && !document.querySelector("[aria-busy=\\"true\\"]")');
+  await evaluate(`document.querySelector('[aria-label="Next people and messages"]').click()`);
+  await until('window.lastFilters.page===2 && !document.querySelector("[aria-busy=\\"true\\"]")');
+  const bulkReads=await evaluate('window.reportReads');
+  const bulkDeleteStart=await evaluate('window.historyDeletes.length');
+  const bulkAppliedStart=await evaluate('window.historyApplied.length');
+  await evaluate(`document.querySelector('button[aria-label^="Clear logs:"]').click()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("1205 logs ready")');
+  const bulkPreviews=await evaluate('window.historyPreviews.length');
+  assert.equal(await evaluate('window.historyDeletes.length'),bulkDeleteStart,'Full review never deletes');
+  await evaluate(`window.historyFixture.rows.push({_id:'later-keep',channel:'email',status:'accepted',recipientName:'Later arrival',title:'After review'});{const button=[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Delete 1205 logs');button.click();button.click()}`);
+  assert.equal(await evaluate('window.historyDeletes.length'),bulkDeleteStart+1,'One confirmation starts one batch');
+  assert.equal(await evaluate('window.historyDeletes.at(-1).ids.length'),500);
+  await evaluate('window.finishHistoryDelete()');
+  await until(`window.historyDeletes.length===${bulkDeleteStart+2}`);
+  assert(await evaluate('document.querySelector("[role=alertdialog]").textContent.includes("500 logs deleted")'),'Progress advances after the first final response');
+  assert.equal(await evaluate('window.reportReads'),bulkReads,'No partial refresh between batches');
+  const secondBatch=await evaluate('window.historyDeletes.at(-1)');
+  await evaluate('window.historyFailOnceToken=window.historyDeletes.at(-1).token;window.finishHistoryDelete()');
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("Network response was interrupted")');
+  assert.equal(await evaluate('window.reportReads'),bulkReads,'Uncertain response does not refresh or discard the job');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Close').click()`);
+  await evaluate(`document.querySelector('button[aria-label^="Clear logs:"]').click()`);
+  await until('document.querySelector("[role=alertdialog]")');
+  assert.equal(await evaluate('window.historyPreviews.length'),bulkPreviews,'Reopening continues the frozen job without collecting new arrivals');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Continue clearing').click()`);
+  assert.deepEqual(await evaluate('window.historyDeletes.at(-1)'),secondBatch,'Network recovery reuses the committed batch token and IDs');
+  await evaluate('window.historyProcessing=true;window.finishHistoryDelete()');
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("still being cleared")');
+  assert(await evaluate('document.querySelector("[role=alertdialog]").textContent.includes("500 logs deleted")'),'Processing is not counted as a completed batch');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Continue clearing').click()`);
+  assert.deepEqual(await evaluate('window.historyDeletes.at(-1)'),secondBatch,'Processing recovery also keeps the same token');
+  await evaluate('window.historyProcessing=false;window.finishHistoryDelete()');
+  await until(`window.historyDeletes.length===${bulkDeleteStart+5}`);
+  assert.equal(await evaluate('window.historyDeletes.at(-1).ids.length'),205,'The final batch includes every remaining reviewed log');
+  assert.equal(await evaluate('window.reportReads'),bulkReads,'Refresh waits for the entire selection');
+  await evaluate('window.finishHistoryDelete()');
+  await until('!document.querySelector("[role=alertdialog]") && window.lastReport.pagination.total===2 && window.lastFilters.page===1');
+  assert.deepEqual(await evaluate('window.historyFixture.rows.map(row=>row._id)'),['queued-keep','later-keep'],'All 1205 reviewed logs clear while queued and later messages survive');
+  assert.equal(await evaluate('window.historyApplied.length'),bulkAppliedStart+3,'Only three distinct mutations occurred despite uncertain retries');
+  assert.equal(await evaluate('window.legacyToasts.at(-1).title'),'1205 logs deleted.','Recovered responses are counted exactly once');
+  assert.equal(await evaluate('window.historyPreviews.length'),bulkPreviews,'No fresh preview silently expands the snapshot');
+  console.log('PASS: 1205 logs cleared after one confirmation, with sequential progress, same-token network/processing recovery, no double counts, frozen new arrivals and page-one refresh.');
+  const beforeMalformed=await evaluate('window.historyDeletes.length');
+  await evaluate(`window.historyPreviewResponse={eligible:2,retained:0,remaining:0,ids:['later-keep','later-keep'],batches:[{ids:['later-keep','later-keep'],token:'duplicate-plan',eligible:2}],reasons:[]};document.querySelector('button[aria-label^="Clear logs:"]').click()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("could not review every selected log")');
+  assert.equal(await evaluate('window.historyDeletes.length'),beforeMalformed,'A malformed snapshot cannot cause any deletion');
+  assert.equal(await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].some(button=>button.textContent.startsWith('Delete '))`),false,'A malformed snapshot has no confirmation action');
+  await evaluate(`window.historyPreviewResponse=null;[...document.querySelectorAll('[role=alertdialog] button')].find(button=>button.textContent==='Cancel').click()`);
+  await evaluate(`document.querySelector('button[aria-label^="Clear logs:"]').click()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("1 log ready")');
+  const readsBeforeMalformed=await evaluate('window.reportReads');
+  await evaluate(`window.historyMalformedOnce=true;[...document.querySelectorAll('[role=alertdialog] button')].find(button=>button.textContent==='Delete 1 log').click()`);
+  const malformedBatch=await evaluate('window.historyDeletes.at(-1)');
+  await evaluate('window.finishHistoryDelete()');
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("incomplete deletion result")');
+  assert.equal(await evaluate('window.reportReads'),readsBeforeMalformed,'An incomplete result does not advance or refresh');
+  assert(await evaluate('document.querySelector("[role=alertdialog]").textContent.includes("0 logs deleted")'),'Undefined counts never become a NaN success');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(button=>button.textContent==='Continue clearing').click()`);
+  assert.deepEqual(await evaluate('window.historyDeletes.at(-1)'),malformedBatch,'Malformed-result recovery checks the same request');
+  await evaluate('window.finishHistoryDelete()');
+  await until('!document.querySelector("[role=alertdialog]") && window.lastReport.pagination.total===1');
+  assert.equal(await evaluate('window.legacyToasts.at(-1).title'),'1 log deleted.');
+  console.log('PASS: malformed snapshot rejected before writes and incomplete committed result recovered with the same token and accurate final count.');
   await evaluate('window.renderLegacyRows()');
   await until('document.querySelector("[data-legacy-state=failed] button")');
   assert.equal(await evaluate('document.querySelectorAll("#legacy-fixture button").length'),1,'Legacy resend appears only for a confirmed failed external message');

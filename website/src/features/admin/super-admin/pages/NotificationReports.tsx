@@ -668,7 +668,7 @@ export default function NotificationReports({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="delivery-report-recipient-heading" ref={recipientHeading} tabIndex={-1} className={`${CARD_TITLE} scroll-mt-6 focus:outline-none`}>People and messages</h2>
             <HistoryDeleteButton label="Clear logs" context="Messages matching the current report filters" disabled={busy || !data?.rows.length}
-              selection={{ view: 'reports', filters: { channel: filters.channel, status: filters.status, from: filters.from, to: filters.to, group: filters.group, campaignKey: filters.campaignKey, search: filters.search } }} onRemoved={() => { change({ page: 1, campaignPage: 1 }); setRetryRefresh(value => value + 1); }} />
+              selection={{ view: 'reports', all: true, filters: { channel: filters.channel, status: filters.status, from: filters.from, to: filters.to, group: filters.group, campaignKey: filters.campaignKey, search: filters.search } }} onRemoved={() => { setRetryResult(null); change({ page: 1, campaignPage: 1 }); setRetryRefresh(value => value + 1); }} />
           </div>
           <p className="text-ui-small text-slate-600" aria-live="polite">
             {filters.channel ? CHANNEL_LABELS[filters.channel as keyof typeof CHANNEL_LABELS] : "All channels"}
@@ -744,9 +744,9 @@ export default function NotificationReports({
             )}
             {retryResult && (
               <div role="status" className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-ui-small">
-                <p className="font-semibold">Resend result</p>
-                {retryResult.processing ? <p>These messages are being sent again. Refresh the report to check their progress.</p> : <p>{fmt(retryResult.attempted)} tried · {fmt(retryResult.sent)} sent · {fmt(retryResult.queued)} waiting to send · {fmt(retryResult.failed)} failed · {fmt(retryResult.skipped)} not sent</p>}
-                <p className="text-slate-500">Sent means the message was passed to the sending service. Arrival is not yet confirmed. Waiting to send means it is waiting or being sent now.</p>
+                <p className="font-semibold">Resend submission result</p>
+                {retryResult.processing ? <p>These messages are being sent again. Refresh the report to check their progress.</p> : <p>{fmt(retryResult.attempted)} tried · {fmt(retryResult.sent)} accepted for sending · {fmt(retryResult.queued)} waiting to send · {fmt(retryResult.failed)} failed · {fmt(retryResult.skipped)} not sent</p>}
+                <p className="text-slate-500">This is the initial result. Accepted for sending does not confirm arrival: the service can still report a failure. Check each message below for its latest outcome. Delivered or Seen confirms WhatsApp reached the recipient.</p>
                 {(retryResult.reasons || []).map((reason, index) => <p key={index}>{fmt(reason.count)} messages: {notificationReason(reason.reason)}</p>)}
               </div>
             )}

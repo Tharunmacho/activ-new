@@ -367,7 +367,7 @@ try {
     await evaluate('window.scrollTo(0,0)'); await pause(100);
     assert(await evaluate(`document.documentElement.scrollWidth<=innerWidth`), `No horizontal overflow at ${width}px`);
     assert(await evaluate(`(() => {const fieldset=document.querySelector('[aria-label="Notification channels"]');const choices=[...fieldset.querySelectorAll('label')];return fieldset.getBoundingClientRect().bottom<=document.querySelector('[name="title"]').getBoundingClientRect().top&&choices.every(label=>{const box=label.getBoundingClientRect();return box.top>=0&&box.bottom<innerHeight&&box.height>=44&&box.height<=48;})})()`),`Compact channel choices appear above writing and within the initial viewport at ${width}px`);
-    const textFields = await evaluate(`[...document.querySelectorAll('input:not([type="file"]):not([type="checkbox"]),textarea,select')].map(input=>({name:input.name,size:getComputedStyle(input).fontSize}))`);
+    const textFields = await evaluate(`[...document.querySelectorAll('input:not([type="file"]):not([type="checkbox"]),textarea,select')].map(input=>({name:input.name,label:input.getAttribute('aria-label'),size:getComputedStyle(input).fontSize}))`);
     const measured = await evaluate(`(() => {
       const visible=e=>e.getBoundingClientRect().width>0;
       const style=e=>({size:parseFloat(getComputedStyle(e).fontSize),family:getComputedStyle(e).fontFamily});
@@ -375,12 +375,18 @@ try {
         labels:[...document.querySelectorAll('label > span:first-child')].filter(visible).map(style),
         preview:style(document.querySelector('[aria-label="Member preview"] p.whitespace-pre-wrap')),
         caption:style(document.querySelector('[aria-label="Member preview"] span.rounded-full')),
+        channels:[...document.querySelectorAll('[aria-label="Notification channels"] label')].map(style),
+        title:style(document.querySelector('[aria-label="Update composer"] h2')),
         overflow:[...document.querySelectorAll('input:not([type=file]),select,textarea,button')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1||e.scrollWidth>e.clientWidth+1&&e.tagName==='BUTTON'}).map(e=>({tag:e.tagName,label:e.getAttribute('aria-label')||e.name||e.textContent.trim()}))};
     })()`);
     layouts.push({...measured,textFields});
     await writeFile(path.join(artifacts,'update-composer-typography.json'),JSON.stringify({fonts:fonts.loaded?'local Poppins':'system fallback',layouts},null,2));
     assert(textFields.every(field => parseFloat(field.size) >= 16), `Inputs retain the shared readable minimum at ${width}px: ${JSON.stringify(textFields)}`);
-    assert.equal(measured.body.size,measured.rootSize); assert(measured.preview.size>=18); assert(measured.caption.size>=18);
+    const composerFields = textFields.filter(field=>['title','body','summary','category','expiresAt','audience'].includes(field.name)||['Send to','Search update members','Insert variable','Custom variable name'].includes(field.label));
+    assert(composerFields.length>=6&&composerFields.every(field=>parseFloat(field.size)>=20),`Composer inputs and personalization use larger 20px text: ${JSON.stringify(composerFields)}`);
+    assert.equal(measured.body.size,measured.rootSize); assert(measured.preview.size>=20); assert(measured.caption.size>=20);
+    assert(measured.channels.every(channel=>channel.size>=18),'Channel labels use at least 18px text');
+    assert(measured.title.size>=30,'Composer title grows to 30px');
     assert(measured.labels.length>0&&measured.labels.every(label=>label.size>=16&&label.family.includes('Poppins')),'Labels use readable 16px Poppins');
     if(fonts.loaded) assert(measured.poppinsLoaded,'Local Poppins loaded');
     assert.deepEqual(measured.overflow,[],`${width}: controls stay inside the viewport`);
@@ -391,7 +397,7 @@ try {
     await writeFile(path.join(artifacts, `update-channels-${width}.png`), Buffer.from(channelsShot.result.data, 'base64'));
   }
   assert.deepEqual(exceptions, []);
-  console.log('PASS: responsive 320/390/1440 layouts, shared Poppins scale, at least 16px form inputs and no browser exceptions. Screenshots saved in artifacts/update-composer-*.png.');
+  console.log('PASS: responsive 320/390/1440 layouts, 20px composer/preview inputs, 18px channel labels, 30px title, shared Poppins and no clipping or browser exceptions.');
 } finally {
   pendingPoster?.destroy(); pendingDocument?.destroy(); pendingSave?.res.destroy();
   if (ws?.readyState === WebSocket.OPEN) await new Promise(resolve => {

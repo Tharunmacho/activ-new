@@ -538,8 +538,8 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                     </div>
 
                     <div className="flex justify-end">
-                        <HistoryDeleteButton label="Clear logs" context={`Messages for booking ${bookingRef}${rows.length > 500 ? ` · Up to 500 finished logs at a time; clear the next batch afterwards` : ''}`} disabled={loading || !rows.some(row => stateOf(row) !== 'queued')}
-                            selection={{ view: 'logs', ids: rows.filter(row => stateOf(row) !== 'queued').slice(0, 500).map(row => row._id) }} onRemoved={async () => { setOpenId(''); await load(); onChanged?.(); }} />
+                        <HistoryDeleteButton label="Clear logs" context={`Messages for booking ${bookingRef}`} disabled={loading || !rows.some(row => stateOf(row) !== 'queued')}
+                            selection={{ view: 'logs', all: true, filters: { bookingRef } }} onRemoved={async () => { setOpenId(''); await load(); onChanged?.(); }} />
                     </div>
                     <ul className="space-y-2">
                         {rows.map((row) => {

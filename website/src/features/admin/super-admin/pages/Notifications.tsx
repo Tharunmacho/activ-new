@@ -390,7 +390,7 @@ export default function Notifications() {
                     {/* ==================================================== log */}
                     <div className="flex justify-end">
                         <HistoryDeleteButton label="Clear logs" context="Logs matching the current filters" disabled={loading || failed || !logs.length}
-                            selection={{ view: 'logs', filters: { channel, status: rowStatus, event, search: search.trim().length >= 2 ? search.trim() : '' } }} onRemoved={load} />
+                            selection={{ view: 'logs', all: true, filters: { channel, status: rowStatus, event, search: search.trim().length >= 2 ? search.trim() : '' } }} onRemoved={load} />
                     </div>
                     {loading && !logs.length ? (
                         <Busy />

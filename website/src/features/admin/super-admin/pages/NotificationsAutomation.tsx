@@ -211,7 +211,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
     const toggleDelivery = (value: string) => setDelivery((d) => (d === value ? '' : value));
 
     const rows = data.logs || [];
-    const afterDelete = async () => { setOpen(null); if (page !== 1) setPage(1); else await load(); };
+    const afterDelete = async () => { setOpen(null); setRetryResult(null); if (page !== 1) setPage(1); else await load(); };
     const pagination = data.pagination || EMPTY_AUTOMATION.pagination;
     const filtered = !!(eventId || channel || delivery || type || from || to || search.trim());
     const current = GROUPS.find((g) => g.key === group) || GROUPS[0];
@@ -444,7 +444,7 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             {/* ---------------------------------------------------------- list */}
             <div className="flex justify-end">
                 <HistoryDeleteButton label="Clear logs" context={`${current.label}: logs matching the current filters`} disabled={loading || !rows.length}
-                    selection={{ view: 'logs', filters: { group, eventId: eventFilter ? eventId : '', channel, delivery, event: type, from, to, search: search.trim().length >= 2 ? search.trim() : '' } }} onRemoved={afterDelete} />
+                    selection={{ view: 'logs', all: true, filters: { group, eventId: eventFilter ? eventId : '', channel, delivery, event: type, from, to, search: search.trim().length >= 2 ? search.trim() : '' } }} onRemoved={afterDelete} />
             </div>
             <div className={`${ADMIN_CARD} overflow-hidden`}>
                 <div ref={tableRef} className="relative min-w-0 max-w-full overflow-x-auto card-table">

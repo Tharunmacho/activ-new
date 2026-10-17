@@ -3,6 +3,7 @@ export function notificationReason(value: unknown): string {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text) return '';
   const rules: [RegExp, string][] = [
+    [/^Media upload error:.*WebP.*not.*supported/i, 'WhatsApp could not send this image because its format is not supported. Try Resend to use a compatible image.'],
     [/^Media download error\b|^Media upload error:.*Downloading media from weblink failed/i, 'WhatsApp could not download the image or document. Check that the file opens, then try Resend.'],
     [/^Not sent: this is ACTIV['’]s own WhatsApp number\b/i, 'WhatsApp cannot send to its own sending number. Use a different recipient number.'],
     [/Current delivery or recipient eligibility could not be verified/i, 'We could not check whether this message can be sent again. Please try again.'],
