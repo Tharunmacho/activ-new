@@ -121,7 +121,7 @@ try {
     return r.result?.result?.value;
   };
   const until = async expression => { for (let i = 0; i < 80; i++) { if (await evaluate(`(async()=>Boolean(${expression}))()`)) return; await pause(100); } throw Error(expression + '\n' + errors.join('\n')); };
-  const screenshots = path.join(root, '..', 'artifacts', 'browser-visitor-push');
+  const screenshots = process.env.TEST_ARTIFACTS ? path.resolve(process.env.TEST_ARTIFACTS) : path.join(root, '..', 'artifacts', 'browser-visitor-push');
   await mkdir(screenshots, { recursive: true });
   const screenshot = async name => { const result = await send('Page.captureScreenshot', { format: 'png' }); await writeFile(path.join(screenshots, name + '.png'), Buffer.from(result.result.data, 'base64')); };
   const dialog = 'document.querySelector(\'[role="dialog"][aria-label="Notifications"]\')';

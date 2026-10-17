@@ -143,9 +143,25 @@ try {
         export const CHANNEL_LABELS={email:'Email',whatsapp:'WhatsApp',push:'Push notifications',in_app:'In-app notifications'};
         export const statusLabel=r=>({read:'Read on WhatsApp',failed:'Failed',accepted:'Provider accepted',delivered:'Delivered',sent:'Sent to handset',marked_read:'Marked as read',queued:'Queued'}[r.status]||r.status);
         const fixture=${JSON.stringify(fixture)};
+        window.retryPreviewCalls=[];window.retryCalls=[];window.reportReads=0;
+        export const getDeliveryRetryStatus=async()=>({found:false,processing:false});
+        export const previewDeliveryRetry=async selection=>{
+          window.retryPreviewCalls.push(selection);
+          const filters=selection.filters||{};
+          const rows=fixture.rows.filter(r=>r.status==='failed'&&(!selection.ids||selection.ids.includes(r._id))&&(!filters.channel||r.channel===filters.channel));
+          const eligible=rows.filter(r=>r.channel!=='push');
+          return {matched:rows.length,eligible:eligible.length,skipped:rows.length-eligible.length,ids:eligible.map(r=>r._id),token:'review-fixture',truncated:false,reasons:rows.length>eligible.length?[{reason:'Device registration expired',count:rows.length-eligible.length}]:[]};
+        };
+        export const retryDeliveryReport=async confirmation=>{
+          window.retryCalls.push(confirmation);
+          await new Promise(resolve=>window.finishRetry=resolve);
+          fixture.rows.forEach(r=>{if(confirmation.ids.includes(r._id))r.status='accepted'});
+          return {attempted:confirmation.ids.length,sent:confirmation.ids.length,queued:0,failed:0,skipped:0,reasons:[]};
+        };
         const accepted=['accepted','sent','delivered','read','marked_read'];
         const counts=rows=>({records:rows.length,accepted:rows.filter(r=>accepted.includes(r.status)).length,opened:rows.filter(r=>r.status==='read').length,delivered:rows.filter(r=>r.channel==='whatsapp'&&['delivered','read'].includes(r.status)).length,failed:rows.filter(r=>r.status==='failed').length,queued:rows.filter(r=>r.status==='queued').length,skipped:rows.filter(r=>['skipped','mock'].includes(r.status)).length,unconfirmed:rows.filter(r=>r.status!=='read').length});
         export const getDeliveryReport=async filters=>{
+          window.reportReads++;
           window.lastFilters=filters;
           let base=fixture.rows.filter(r=>!filters.channel||r.channel===filters.channel);
           if(filters.campaignKey)base=base.filter(r=>r.campaignKey===filters.campaignKey);
@@ -176,6 +192,8 @@ try {
       "C:/Program Files/Google/Chrome/Application/chrome.exe",
     [
       "--headless=new",
+      "--disable-gpu",
+      "--disable-background-networking",
       "--remote-debugging-port=0",
       `--user-data-dir=${profile}`,
       "--no-first-run",
@@ -358,9 +376,39 @@ try {
   await send("Emulation.setDeviceMetricsOverride", { width: 320, height: 1000, deviceScaleFactor: 1, mobile: true });
   await pause(200);
   assert(await evaluate("document.documentElement.scrollWidth <= innerWidth"), "expanded recipient contact, error and timeline fit a narrow screen");
+  await evaluate('document.querySelector("[aria-label=\\"Review resend for Very Long Member Name For A Narrow Screen\\"]").click()');
+  await until('document.body.textContent.includes("0 eligible")');
+  assert.deepEqual(await evaluate('window.retryPreviewCalls.at(-1)'), { ids: ['push:fixture'] }, 'individual review sends only the selected report ID');
+  assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (0)").disabled'), 'ineligible deliveries cannot be resent');
+  assert.equal(await evaluate('window.retryCalls.length'), 0, 'reviewing a failure performs no send');
+  assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'confirmation fits 320px');
+  await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Cancel resend").click()');
+  await until('!document.querySelector("[aria-label=\\"Review failed delivery resend\\"]")');
+  await evaluate('document.querySelector("[aria-label=\\"Report activity\\"]").value="automation";document.querySelector("[aria-label=\\"Report activity\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
+  await until('window.lastFilters.group==="automation"');
+  await evaluate('document.querySelector("[aria-label=\\"Filter delivery records by Email\\"]").click()');
+  await until('window.lastFilters.channel==="email"');
+  await until('!document.querySelector("[aria-busy=\\"true\\"]")');
+  await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Review failed deliveries").click()');
+  await until('document.body.textContent.includes("1 eligible")');
+  const previewFilters = await evaluate('window.retryPreviewCalls.at(-1).filters');
+  assert.equal(previewFilters.group, 'automation');
+  assert.equal(previewFilters.channel, 'email');
+  assert.equal(previewFilters.from, initialFrom);
+  assert.equal(previewFilters.status, 'failed', 'review overrides non-failure outcome without dropping activity/date/channel filters');
+  assert.equal(await evaluate('window.retryCalls.length'), 0);
+  const readsBeforeRetry = await evaluate('window.reportReads');
+  await evaluate('(()=>{const b=[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (1)");b.click();b.click()})()');
+  await until('window.retryCalls.length===1');
+  assert.deepEqual(await evaluate('window.retryCalls[0]'), { ids: ['extra:1'], token: 'review-fixture' }, 'confirmation sends the frozen eligible IDs and review token');
+  assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Resending…").disabled'), 'repeat clicks are disabled');
+  await evaluate('window.finishRetry()');
+  await until('document.body.textContent.includes("1 attempted · 1 sent · 0 queued · 0 failed · 0 skipped")');
+  await until(`window.reportReads>${readsBeforeRetry}`);
+  assert.equal(await evaluate('window.retryCalls.length'), 1);
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
-    "PASS: report cards filter and focus recipient details; cumulative accepted and exact outcomes, keyboard activation, combined channel/campaign/date filters, pagination reset, identity-count explanation, aligned rows at 320/390/768/1440, and recipient timeline/error details. No external requests or deliveries."
+    "PASS: report filters/layout and failed-delivery review, per-recipient eligibility, cancel, automation filter scope, frozen confirmation IDs/token, duplicate-click protection, resend counts and refreshed report. All deliveries are mocked; no external requests."
   );
 } finally {
   ws?.close();

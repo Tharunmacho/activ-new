@@ -52,12 +52,13 @@
 
       var store = window.__ACTIV_PREFETCH__ = {};
       var get = function (path) {
-        store[path] = fetch(base + path, { credentials: 'omit' })
+        store[path] = fetch(base + path, { credentials: 'omit', signal: AbortSignal.timeout(10000) })
           .then(function (r) { return r.ok ? r.json() : null; })
           .catch(function () { return null; });
       };
-      get('/cms/site');
       var p = location.pathname.replace(/\/+$/, '') || '/';
+      if (/^\/(?:cms|super-admin|state-admin|district-admin|block-admin|events-admin|admin|member|business|payment)(?:\/|$)/.test(p)) return;
+      get('/cms/site');
       if (p === '/' || p === '/onboarding') {
         get('/cms/home');
         get('/cms/gallery?home=true');
@@ -106,7 +107,7 @@
     else window.addEventListener('load', later);
   })();
 </script>
-<script defer src="https://app.botbee.io/script/webchat-link.js?code=1787443396160769"></script>
+<!-- The public chat launcher loads its widget after the page is ready. -->
 <!-- The Meta Pixel's <noscript> fallback is at the top of <body>: an <img>
      inside <noscript> in <head> is invalid HTML and Vite refuses to serve it. -->
     <!-- Poppins is the website UI face; Playfair preserves certificate artwork. -->
@@ -115,7 +116,10 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700&display=swap" /></noscript>
     <style>
       /* Hide BotBee default circular chat button, as it uses inline !important display block */
       .xit-widget-bswc-button { 

@@ -1,4 +1,3 @@
-import PublicNotificationsPage from '@/pages/onboarding/PublicNotificationsPage';
 import UsageAnalytics from '@/components/UsageAnalytics';
 import BrowserPushLifecycle from '@/components/BrowserPushLifecycle';
 import { lazy, useEffect } from "react";
@@ -7,7 +6,7 @@ import { Toaster } from "@/shared/components/ui/toaster";
 import { Toaster as Sonner } from "@/shared/components/ui/sonner";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import NativePublicAppGate from "./components/NativePublicAppGate";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import PublicSharePreview from "@/components/shared/PublicSharePreview";
@@ -16,61 +15,52 @@ import FloatingLaunchers from "@/components/layout/FloatingLaunchers";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { ActiveCompanyProvider } from "@/contexts/ActiveCompanyContext";
-/**
- * The public site is eager; everything behind a login is lazy.
- *
- * Every page used to be a static import, so one bundle held the onboarding
- * site, four admin panels, the CMS, payments and the business area — 1.25 MB
- * a visitor had to download before the landing page could paint, and in dev
- * every one of those modules had to be transformed before the first render.
- * Splitting at the route boundary means someone reading the About or Contact
- * page fetches those two pages and nothing else.
- *
- * ONLY THE LANDING PAGE IS IN THE ENTRY BUNDLE NOW. The other public pages,
- * the login and a dozen member and business screens were eager too, which made
- * the one file every first visit waits on 1.15 MB — seconds on a phone before
- * the banner could draw. They are lazy, and `PreloadPublicPages` below fetches
- * the public ones as soon as the landing page is up and the browser is idle, so
- * a visitor moving from Home to About still gets it instantly, without having
- * paid for it before the first paint.
- */
-import Hero from "./pages/onboarding/Hero";
+const PublicNotificationsPage = lazy(() => import('@/pages/onboarding/PublicNotificationsPage'));
 
-/**
- * Warm the public pages' chunks once the landing page is on screen. Idle-time,
- * low priority, and it only downloads code — nothing renders.
- */
-const PRELOAD_PUBLIC = [
-  () => import("./pages/onboarding/AboutPage"),
-  () => import("./pages/onboarding/EventsPage"),
-  () => import("./pages/onboarding/GalleryPage"),
-  () => import("./pages/onboarding/ContactPage"),
-  () => import("./pages/onboarding/MembershipPage"),
-  () => import("./pages/onboarding/NewsPage"),
-  () => import("./pages/onboarding/SchemesPage"),
-  () => import("./pages/onboarding/EventDetailPage"),
-  () => import("./pages/onboarding/GalleryDetailPage"),
-  () => import("./pages/onboarding/RegionPage"),
-  () => import("./pages/onboarding/StatePage"),
-  () => import("./shared/components/EnhancedLoginPage"),
-  () => import("./pages/member/Register"),
-];
+// Keep public landing-page code out of admin and member startup downloads.
+const Hero = lazy(() => import("./pages/onboarding/Hero"));
+
+// Fetch a destination's code on navigation intent instead of downloading every
+// public screen in the background of every admin/member page.
+const PUBLIC_PAGE_LOADERS: Record<string, () => Promise<unknown>> = {
+  '/': () => import("./pages/onboarding/Hero"),
+  '/onboarding': () => import("./pages/onboarding/Hero"),
+  '/about': () => import("./pages/onboarding/AboutPage"),
+  '/events': () => import("./pages/onboarding/EventsPage"),
+  '/gallery': () => import("./pages/onboarding/GalleryPage"),
+  '/contact': () => import("./pages/onboarding/ContactPage"),
+  '/membership': () => import("./pages/onboarding/MembershipPage"),
+  '/news': () => import("./pages/onboarding/NewsPage"),
+  '/schemes': () => import("./pages/onboarding/SchemesPage"),
+  '/login': () => import("./shared/components/EnhancedLoginPage"),
+  '/register': () => import("./pages/member/Register"),
+};
 const PreloadPublicPages = () => {
+  const { pathname } = useLocation();
   useEffect(() => {
-    let cancelled = false;
-    const run = () => {
-      // One after another, so the preload never competes with itself.
-      PRELOAD_PUBLIC.reduce<Promise<unknown>>(
-        (chain, load) => chain.then(() => (cancelled ? null : load().catch(() => null))),
-        Promise.resolve(),
-      );
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
+    const requested = new Set<string>();
+    const preload = (event: Event) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!(link instanceof HTMLAnchorElement) || link.download || link.target === '_blank') return;
+      const target = new URL(link.href, location.href);
+      const key = target.pathname.replace(/\/+$/, '') || '/';
+      if (target.origin !== location.origin || key === pathname || requested.has(key)) return;
+      const load = PUBLIC_PAGE_LOADERS[key];
+      if (!load) return;
+      requested.add(key);
+      void load().catch(() => requested.delete(key));
     };
-    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
-    const start = () => (w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 5000 }) : window.setTimeout(run, 2000));
-    if (document.readyState === 'complete') start();
-    else window.addEventListener('load', start, { once: true });
-    return () => { cancelled = true; };
-  }, []);
+    document.addEventListener('pointerover', preload, { passive: true });
+    document.addEventListener('focusin', preload);
+    document.addEventListener('touchstart', preload, { passive: true });
+    return () => {
+      document.removeEventListener('pointerover', preload);
+      document.removeEventListener('focusin', preload);
+      document.removeEventListener('touchstart', preload);
+    };
+  }, [pathname]);
   return null;
 };
 const AboutPage = lazy(() => import("./pages/onboarding/AboutPage"));

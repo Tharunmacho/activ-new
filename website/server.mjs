@@ -24,6 +24,8 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { brotliCompress, gzip, constants as zlibConstants } from 'node:zlib';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from './share-preview.mjs';
 import { resolveApiBase } from './api-base.mjs';
@@ -156,9 +158,93 @@ const eventPage = (event, pageUrl) => {
         .replace('</head>', `    <link rel="canonical" href="${esc(pageUrl)}" />\n    ${tags}\n  </head>`);
 };
 
-const send = (res, status, body, type, cacheControl = 'no-cache') => {
-    res.writeHead(status, { 'Content-Type': type, 'Cache-Control': cacheControl });
-    res.end(body);
+const brotli = promisify(brotliCompress);
+const gzipAsync = promisify(gzip);
+const compressible = type => /^(?:text\/|application\/(?:json|javascript|xml)|image\/svg\+xml)/i.test(type);
+
+// Keep the compressed versions between requests. The byte and entry limits also
+// bound dynamic share-preview variants, and in-flight work is shared by callers.
+const representations = new Map();
+const pendingRepresentations = new Map();
+let representationBytes = 0;
+const MAX_REPRESENTATION_BYTES = 16 * 1024 * 1024;
+const MAX_REPRESENTATIONS = 128;
+
+const acceptedEncoding = (header, canCompress) => {
+    const weights = new Map();
+    for (const part of String(header || '').toLowerCase().split(',')) {
+        const [name, ...parameters] = part.trim().split(';');
+        if (!name) continue;
+        const quality = parameters.find(value => value.trim().startsWith('q='));
+        const q = quality ? Number(quality.trim().slice(2)) : 1;
+        weights.set(name, Number.isFinite(q) && q >= 0 && q <= 1 ? q : 0);
+    }
+    if (canCompress) {
+        const weight = name => weights.get(name) ?? weights.get('*') ?? 0;
+        const br = weight('br'), gz = weight('gzip');
+        if ((weights.get('identity') || 0) > Math.max(br, gz)) return 'identity';
+        if (br > 0 || gz > 0) return br >= gz ? 'br' : 'gzip';
+    }
+    const identity = weights.get('identity') ?? (weights.get('*') === 0 ? 0 : 1);
+    return identity > 0 ? 'identity' : null;
+};
+
+const representation = async (key, encoding, load) => {
+    const cacheKey = `${key}:${encoding}`;
+    const hit = representations.get(cacheKey);
+    if (hit) {
+        representations.delete(cacheKey);
+        representations.set(cacheKey, hit);
+        return hit;
+    }
+    if (pendingRepresentations.has(cacheKey)) return pendingRepresentations.get(cacheKey);
+    const pending = (async () => {
+        const original = await load();
+        const body = encoding === 'br'
+            ? await brotli(original, { params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 4 } })
+            : encoding === 'gzip' ? await gzipAsync(original, { level: 6 }) : original;
+        const result = { body, etag: `"${encoding}-${crypto.createHash('sha256').update(body).digest('hex').slice(0, 32)}"` };
+        if (body.length <= MAX_REPRESENTATION_BYTES) {
+            while (representations.size >= MAX_REPRESENTATIONS || representationBytes + body.length > MAX_REPRESENTATION_BYTES) {
+                const oldest = representations.keys().next().value;
+                representationBytes -= representations.get(oldest).body.length;
+                representations.delete(oldest);
+            }
+            representations.set(cacheKey, result);
+            representationBytes += body.length;
+        }
+        return result;
+    })();
+    pendingRepresentations.set(cacheKey, pending);
+    try { return await pending; }
+    finally { pendingRepresentations.delete(cacheKey); }
+};
+
+const send = async (req, res, status, body, type, cacheControl = 'no-cache', fileKey = '') => {
+    const canCompress = compressible(type);
+    const encoding = acceptedEncoding(req.headers['accept-encoding'], canCompress);
+    const headers = { 'Content-Type': type, 'Cache-Control': cacheControl };
+    if (canCompress) headers.Vary = 'Accept-Encoding';
+    if (!encoding) {
+        res.writeHead(406, { ...headers, 'Content-Length': 0 });
+        res.end();
+        return;
+    }
+    const original = typeof body === 'function' ? null : Buffer.from(body);
+    const key = fileKey || crypto.createHash('sha256').update(original).digest('hex');
+    const encoded = await representation(key, encoding, typeof body === 'function' ? body : () => original);
+    if (encoding !== 'identity') headers['Content-Encoding'] = encoding;
+    headers.ETag = encoded.etag;
+    const matches = String(req.headers['if-none-match'] || '').split(',')
+        .some(value => value.trim() === '*' || value.trim().replace(/^W\//, '') === encoded.etag);
+    if (status === 200 && ['GET', 'HEAD'].includes(req.method) && matches) {
+        res.writeHead(304, headers);
+        res.end();
+        return;
+    }
+    headers['Content-Length'] = encoded.body.length;
+    res.writeHead(status, headers);
+    res.end(req.method === 'HEAD' ? undefined : encoded.body);
 };
 
 const server = http.createServer(async(req, res) => {
@@ -170,11 +256,23 @@ const server = http.createServer(async(req, res) => {
         const file = path.normalize(path.join(ROOT, pathname));
         if (file.startsWith(ROOT) && pathname !== '/' && fs.existsSync(file) && fs.statSync(file).isFile()) {
             const hashed = pathname.startsWith('/assets/');
-            res.writeHead(200, {
-                'Content-Type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream',
-                'Cache-Control': pathname === '/firebase-messaging-sw.js' ? 'no-cache' : hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600'
-            });
-            fs.createReadStream(file).pipe(res);
+            const type = TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream';
+            const cacheControl = pathname === '/firebase-messaging-sw.js' ? 'no-cache' : hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600';
+            const stat = fs.statSync(file);
+            if (compressible(type)) {
+                await send(req, res, 200, () => fs.promises.readFile(file), type, cacheControl, `${file}:${stat.mtimeMs}:${stat.size}`);
+            } else {
+                // Images, fonts and video are already compressed. Keep streaming
+                // them without retaining media in the text representation cache.
+                if (!acceptedEncoding(req.headers['accept-encoding'], false)) {
+                    res.writeHead(406, { Vary: 'Accept-Encoding', 'Content-Length': 0 });
+                    res.end();
+                    return;
+                }
+                res.writeHead(200, { 'Content-Type': type, 'Cache-Control': cacheControl, 'Content-Length': stat.size });
+                if (req.method === 'HEAD') res.end();
+                else fs.createReadStream(file).pipe(res);
+            }
             return;
         }
 
@@ -184,7 +282,7 @@ const server = http.createServer(async(req, res) => {
             const preview = await fetchPagePreview(API, pathname);
             if (preview) {
                 const origin = SITE_URL || `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
-                send(res, 200, mergePagePreview(index(), preview, origin), TYPES['.html']);
+                await send(req, res, 200, mergePagePreview(index(), preview, origin), TYPES['.html']);
                 return;
             }
         }
@@ -196,7 +294,7 @@ const server = http.createServer(async(req, res) => {
             if (event) {
                 const origin = SITE_URL || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
                 const pageUrl = `${origin}/events/${encodeURIComponent(event.slug || event.id)}`;
-                send(res, 200, eventPage(event, pageUrl), TYPES['.html']);
+                await send(req, res, 200, eventPage(event, pageUrl), TYPES['.html']);
                 return;
             }
         }
@@ -208,7 +306,7 @@ const server = http.createServer(async(req, res) => {
             if (item) {
                 const origin = SITE_URL || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
                 const pageUrl = `${origin}/gallery/${encodeURIComponent(item.slug || item._id)}`;
-                send(res, 200, eventPage({
+                await send(req, res, 200, eventPage({
                     title: item.title || 'ACTIV gallery',
                     description: item.caption || '',
                     imageUrl: (item.media && item.media.url) || ''
@@ -218,10 +316,10 @@ const server = http.createServer(async(req, res) => {
         }
 
         // Every other route belongs to the SPA.
-        send(res, 200, index(), TYPES['.html']);
+        await send(req, res, 200, index(), TYPES['.html']);
     } catch (error) {
         console.error('server error', error);
-        send(res, 500, 'Server error', 'text/plain');
+        await send(req, res, 500, 'Server error', 'text/plain');
     }
 });
 

@@ -19,14 +19,20 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], layouts = [], externalRequests = [], apiRequests = [], expectedErrors = [];
 let bundle, css, chrome, ws, apiCrash = false, lazyFailure = false;
 const pendingModules = new Set();
+const pendingFonts = new Set();
 const entryHtml = await readFile(path.join(root, 'index.html'), 'utf8');
 const startup = entryHtml.slice(entryHtml.indexOf('    <div id="root">'), entryHtml.indexOf('  </body>'))
   .replace('src="/src/main.tsx"', 'src="/bundle.js"');
 assert(startup.includes('activ-startup-recovery') && startup.includes('MutationObserver'));
+const fontLink = entryHtml.match(/<link\s+href="https:\/\/fonts\.googleapis\.com[\s\S]*?\/>/)?.[0];
+assert(fontLink, 'The production font stylesheet is present');
+const slowFontLink = fontLink.replace(/href="[^"]+"/, 'href="/slow-font.css"');
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (url.pathname === '/prepare') return res.end('<!doctype html><p>Fixture preparation</p>');
+  if (url.pathname === '/slow-font.css') { pendingFonts.add(res); return; }
   if (url.pathname === '/bundle.js') {
+    if (req.headers.referer?.includes('mode=slow-font')) { pendingModules.add(res); return; }
     if (req.headers.referer?.includes('mode=bootstrap')) { res.statusCode = 503; return res.end('Unavailable fixture module'); }
     res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle);
   }
@@ -63,7 +69,7 @@ const server = http.createServer(async (req, res) => {
     }
     window.rootFault=mode==='root-failure';
   </script>`;
-  res.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body>${setup}${startup}</body></html>`);
+  res.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css">${url.searchParams.get('mode') === 'slow-font' ? slowFontLink : ''}</head><body>${setup}${startup}</body></html>`);
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
@@ -156,11 +162,11 @@ try {
   const sessionPreserved = async () => assert.equal(await evaluate("localStorage.getItem('token')"), 'isolated-test-session');
   const recoveryLayout = async name => {
     await evaluate('document.fonts.ready');
-    const value = await evaluate(`(() => {const actions=[...document.querySelectorAll('button,a')].filter(el=>el.getBoundingClientRect().width>0).map(el=>{const r=el.getBoundingClientRect();return {label:el.textContent.trim(),left:r.left,right:r.right,height:r.height,clientWidth:el.clientWidth,scrollWidth:el.scrollWidth}});return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,actions,font:getComputedStyle(document.body).fontFamily,bodySize:parseFloat(getComputedStyle(document.body).fontSize)}})()`);
+    const value = await evaluate(`(() => {const actions=[...document.querySelectorAll('button,a')].filter(el=>el.getBoundingClientRect().width>0).map(el=>{const r=el.getBoundingClientRect();return {label:el.textContent.trim(),left:r.left,right:r.right,height:r.height,clientWidth:el.clientWidth,scrollWidth:el.scrollWidth}});const surface=document.querySelector('[role="alert"],[role="status"]');return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,actions,font:getComputedStyle(surface).fontFamily,surfaceSize:parseFloat(getComputedStyle(surface).fontSize),bodySize:parseFloat(getComputedStyle(document.body).fontSize)}})()`);
     assert(value.scrollWidth <= value.width + 1, 'Recovery page has no horizontal overflow');
     assert(value.actions.length >= 2);
     for (const action of value.actions) assert(action.left >= -1 && action.right <= value.width + 1 && action.height >= 44 && action.scrollWidth <= action.clientWidth + 1, JSON.stringify(action));
-    assert(value.font.includes('Poppins') && value.bodySize === 20, 'Recovery uses readable Poppins scale');
+    assert(value.font.includes('Poppins') && value.surfaceSize === 20, 'Recovery uses readable 20px Poppins independently of the page root scale');
     layouts.push({ name, ...value });
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     await writeFile(path.join(output, `${name}.png`), Buffer.from(shot.result.data, 'base64'));
@@ -225,6 +231,15 @@ try {
   apiCrash = true; await visit('/super-admin/dashboard'); await until(textHas('Something went wrong on this page'));
   await evaluate("window.fixtureNavigate('/')"); await until(textHas('Public home')); apiCrash = false;
   checks.push('Route navigation resets a failed page boundary without changing the session');
+  await visit('/super-admin/updates?mode=slow-font');
+  await until("document.getElementById('activ-startup')?.getBoundingClientRect().height>0");
+  await until("performance.getEntriesByName('first-contentful-paint').length>0");
+  assert(pendingFonts.size > 0, 'The font stylesheet is still waiting on the network');
+  assert.equal(await evaluate("document.querySelector('link[href=\"/slow-font.css\"]').media"), 'print');
+  assert(await evaluate("document.body.textContent.includes('Loading ACTIV')"));
+  checks.push('Startup paints while font CSS and the app bundle are still downloading');
+  for (const response of pendingFonts) response.destroy(); pendingFonts.clear();
+
   await visit('/super-admin/dashboard?mode=bootstrap'); await until("document.getElementById('activ-startup-recovery')?.hidden===false");
   await recoveryLayout('entry-module-unavailable-320'); await sessionPreserved();
   checks.push('Actual index.html exposes manual recovery when the entry module is unavailable');
@@ -241,6 +256,7 @@ try {
   await send('Browser.close');
 } finally {
   for (const response of pendingModules) response.destroy();
+  for (const response of pendingFonts) response.destroy();
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
   if (path.resolve(profile).startsWith(path.resolve(tmpdir()) + path.sep + 'activ-page-recovery-')) await rm(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }).catch(() => {});
 }

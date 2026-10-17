@@ -26,11 +26,16 @@ import {
 import { CARD_TITLE } from "@/components/layout/appTypography";
 import {
   getDeliveryReport,
+  previewDeliveryRetry,
+  retryDeliveryReport,
+  getDeliveryRetryStatus,
   CHANNEL_LABELS,
   statusLabel,
   type DeliveryReport,
   type ReportFilters,
   type ReportRow,
+  type DeliveryRetryPreview,
+  type DeliveryRetryResult,
 } from "@/services/deliveryReportApi";
 import { errorMessage } from "@/services/activApi";
 
@@ -191,6 +196,15 @@ export default function NotificationReports({
   const [busy, setBusy] = useState(true),
     [error, setError] = useState(""),
     [expanded, setExpanded] = useState("");
+  const [retryPreview, setRetryPreview] = useState<DeliveryRetryPreview | null>(null);
+  const [retryResult, setRetryResult] = useState<DeliveryRetryResult | null>(null);
+  const [retryBusy, setRetryBusy] = useState<"review" | "send" | null>(null);
+  const [retryError, setRetryError] = useState("");
+  const [retryLabel, setRetryLabel] = useState("");
+  const [retryRefresh, setRetryRefresh] = useState(0);
+  const retryLock = useRef(false);
+  const retrySeq = useRef(0);
+  const mounted = useRef(true);
   const seq = useRef(0);
   const recipientHeading = useRef<HTMLHeadingElement>(null);
   const change = (patch: ReportFilters) => {
@@ -234,7 +248,77 @@ export default function NotificationReports({
       clearTimeout(timer);
       seq.current++;
     };
-  }, [load, refreshKey]);
+  }, [load, refreshKey, retryRefresh]);
+  useEffect(() => {
+    retrySeq.current++;
+    setRetryPreview(null);
+    setRetryError("");
+  }, [filters]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; retrySeq.current++; };
+  }, []);
+  const reviewRetry = async (row?: ReportRow) => {
+    if (retryLock.current || busy) return;
+    retryLock.current = true;
+    const request = ++retrySeq.current;
+    setRetryBusy("review");
+    setRetryPreview(null);
+    setRetryResult(null);
+    setRetryError("");
+    setRetryLabel(row ? `${row.recipientName || "This recipient"} · ${CHANNEL_LABELS[row.channel]}` : "Failed deliveries for the current activity, channel, date and search filters");
+    recipientHeading.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    try {
+      const preview = await previewDeliveryRetry(row
+        ? { ids: [row._id] }
+        : { filters: { ...filters, status: "failed" } });
+      if (mounted.current && request === retrySeq.current) setRetryPreview(preview);
+    } catch (err) {
+      if (mounted.current && request === retrySeq.current)
+        setRetryError(errorMessage(err, "Could not review failed deliveries."));
+    } finally {
+      retryLock.current = false;
+      if (mounted.current) setRetryBusy(null);
+    }
+  };
+  const confirmRetry = async () => {
+    if (retryLock.current || !retryPreview?.eligible || !retryPreview.token || !retryPreview.ids?.length) return;
+    retryLock.current = true;
+    setRetryBusy("send");
+    setRetryError("");
+    const token = retryPreview.token;
+    const recover = async () => {
+      let status = await getDeliveryRetryStatus(token);
+      for (let attempt = 1; status?.processing && attempt < 5 && mounted.current; attempt++) {
+        await new Promise<void>(resolve => setTimeout(resolve, 2000));
+        if (!mounted.current) break;
+        status = await getDeliveryRetryStatus(token);
+      }
+      return status;
+    };
+    try {
+      const result = await retryDeliveryReport({ ids: retryPreview.ids, token: retryPreview.token });
+      const finalResult = result?.processing && mounted.current ? await recover().catch(() => result) : result;
+      if (mounted.current) setRetryResult(finalResult);
+    } catch (err) {
+      // Recover an uncertain network outcome through reads, never another send.
+      let recovered = false;
+      if (!(err as { response?: unknown })?.response && mounted.current) {
+        try {
+          const status = await recover();
+          if (mounted.current && status?.found) { setRetryResult(status); recovered = true; }
+        } catch { /* Keep the original request error when status is unavailable. */ }
+      }
+      if (mounted.current && !recovered) setRetryError(errorMessage(err, "The resend result could not be confirmed. Review the refreshed report before trying again."));
+    } finally {
+      retryLock.current = false;
+      if (mounted.current) {
+        setRetryPreview(null);
+        setRetryBusy(null);
+        setRetryRefresh(value => value + 1);
+      }
+    }
+  };
   const summary = data?.summary;
   const selected = data?.campaigns.find((c) => c._id === filters.campaignKey);
   return (
@@ -599,11 +683,42 @@ export default function NotificationReports({
               <option value="mock">Not sent</option>
             </select>
           </div>
-          <p className="text-ui-caption text-slate-500">
-            Use “No confirmed open” to review follow-up candidates. Existing
-            Automation controls manage eligible retries. Opening a report never
-            sends a message.
-          </p>
+          <div className="space-y-3">
+            <button type="button" className={ADMIN_SECONDARY_BTN}
+              disabled={busy || !!retryBusy || !summary?.failed}
+              onClick={() => void reviewRetry()}>
+              {retryBusy === "review" ? "Reviewing failures…" : "Review failed deliveries"}
+            </button>
+            <p className="text-ui-caption text-slate-500">
+              Review failed messages and automations before resending. Only eligible failed deliveries are included; a missing open confirmation does not mean delivery failed.
+            </p>
+            {retryBusy === "send" && <p role="status" className="text-ui-small text-blue-700">Resending the reviewed deliveries…</p>}
+            {retryError && <p role="alert" className="text-ui-small text-rose-700">{retryError}</p>}
+            {retryPreview && (
+              <div role="region" aria-label="Review failed delivery resend" className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3 text-ui-small">
+                <p className="font-semibold text-slate-900">Confirm resend</p>
+                <p className="break-words text-slate-700">{retryLabel}</p>
+                <p>{fmt(retryPreview.matched)} matched · {fmt(retryPreview.eligible)} eligible · {fmt(retryPreview.skipped)} skipped</p>
+                {(retryPreview.reasons || []).map((reason, index) => <p key={index} className="text-slate-600">{fmt(reason.count)} skipped: {reason.reason}</p>)}
+                {retryPreview.truncated && <p>{fmt(retryPreview.reviewed ?? (retryPreview.eligible + retryPreview.skipped))} reviewed, {fmt(retryPreview.remaining ?? Math.max(0, retryPreview.matched - retryPreview.eligible - retryPreview.skipped))} still to review. Each batch reviews up to 100 deliveries. Review the remaining failures after this batch finishes.</p>}
+                <p>Confirmation resends only this reviewed selection. Delivery eligibility is checked again before sending.</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" className={ADMIN_SECONDARY_BTN} disabled={!!retryBusy || !retryPreview.eligible || !retryPreview.ids?.length || !retryPreview.token} onClick={() => void confirmRetry()}>
+                    {retryBusy === "send" ? "Resending…" : `Confirm resend (${fmt(retryPreview.eligible)})`}
+                  </button>
+                  <button type="button" className={ADMIN_SECONDARY_BTN} disabled={!!retryBusy} onClick={() => setRetryPreview(null)}>Cancel resend</button>
+                </div>
+              </div>
+            )}
+            {retryResult && (
+              <div role="status" className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-ui-small">
+                <p className="font-semibold">Resend result</p>
+                {retryResult.processing ? <p>This resend is already processing. Refresh the report to see delivery progress.</p> : <p>{fmt(retryResult.attempted)} attempted · {fmt(retryResult.sent)} sent · {fmt(retryResult.queued)} queued · {fmt(retryResult.failed)} failed · {fmt(retryResult.skipped)} skipped</p>}
+                <p className="text-slate-500">Sent means the provider accepted the request. Queued deliveries are waiting for processing.</p>
+                {(retryResult.reasons || []).map((reason, index) => <p key={index}>{fmt(reason.count)} records: {reason.reason}</p>)}
+              </div>
+            )}
+          </div>
         </div>
         <div aria-hidden="true" className={`${recipientColumns} hidden sm:grid border-y border-slate-100 bg-slate-50 px-4 sm:px-6 py-3 text-ui-caption font-semibold text-slate-500`}>
           <span>Recipient</span>
@@ -661,7 +776,14 @@ export default function NotificationReports({
                     )}
                   </span>
                 </button>
-                {expanded === row._id && <Detail row={row} />}
+                {expanded === row._id && <>
+                  <Detail row={row} />
+                  {row.status === "failed" && <div className="px-4 sm:px-5 pb-4 bg-slate-50/70">
+                    <button type="button" className={ADMIN_SECONDARY_BTN} disabled={busy || !!retryBusy}
+                      aria-label={`Review resend for ${row.recipientName || "recipient"}`}
+                      onClick={() => void reviewRetry(row)}>Review resend</button>
+                  </div>}
+                </>}
               </div>
             ))
           )}

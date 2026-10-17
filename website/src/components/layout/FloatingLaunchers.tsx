@@ -157,6 +157,25 @@ export default function FloatingLaunchers() {
     const support = useFloatingDrag(SUPPORT_SPOT_KEY, { side: 'right', y: 0.82 });
     const donate = useFloatingDrag(DONATE_SPOT_KEY, { side: 'left', y: 0.82 });
 
+    useEffect(() => {
+        if (HIDDEN_ON.test(pathname) || chatClosed) return;
+        let cancelled = false;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const load = () => {
+            if (cancelled || document.getElementById('activ-webchat-script')) return;
+            const script = document.createElement('script');
+            script.id = 'activ-webchat-script';
+            script.async = true;
+            script.src = 'https://app.botbee.io/script/webchat-link.js?code=1787443396160769';
+            script.onerror = () => script.remove();
+            document.head.appendChild(script);
+        };
+        const schedule = () => { timer = setTimeout(load, 1500); };
+        if (document.readyState === 'complete') schedule();
+        else window.addEventListener('load', schedule, { once: true });
+        return () => { cancelled = true; clearTimeout(timer); window.removeEventListener('load', schedule); };
+    }, [pathname, chatClosed]);
+
     if (HIDDEN_ON.test(pathname)) return null;
     const showSupport = !(chatClosed && waClosed);
     const showDonate = !donateClosed && !DONATE_HIDDEN_ON.test(pathname);

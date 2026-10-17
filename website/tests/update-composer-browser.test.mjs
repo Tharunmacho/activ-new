@@ -291,7 +291,7 @@ try {
     layouts.push({...measured,textFields});
     await writeFile(path.join(artifacts,'update-composer-typography.json'),JSON.stringify({fonts:fonts.loaded?'local Poppins':'system fallback',layouts},null,2));
     assert(textFields.every(field => parseFloat(field.size) >= 16), `Inputs retain the shared readable minimum at ${width}px: ${JSON.stringify(textFields)}`);
-    assert.equal(measured.body.size,measured.rootSize); assert(measured.preview.size>=16); assert(measured.caption.size>=16);
+    assert.equal(measured.body.size,measured.rootSize); assert(measured.preview.size>=18); assert(measured.caption.size>=18);
     assert(measured.labels.length>0&&measured.labels.every(label=>label.size>=16&&label.family.includes('Poppins')),'Labels use readable 16px Poppins');
     if(fonts.loaded) assert(measured.poppinsLoaded,'Local Poppins loaded');
     assert.deepEqual(measured.overflow,[],`${width}: controls stay inside the viewport`);

@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         if (this.props.fallback) return <>{this.props.fallback}</>;
 
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white px-4 py-10">
+            <div className="min-h-screen flex items-center justify-center bg-white px-4 py-10 text-[20px]">
                 <div role="alert" className="max-w-lg w-full text-center">
                     <h1 className="text-[1.5625rem] font-bold text-[#1c2e68] mb-3">
                         Something went wrong on this page
@@ -85,14 +85,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
                         <button
                             type="button"
                             onClick={this.reset}
-                            className="min-h-11 px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold hover:opacity-90"
+                            className="min-h-[44px] px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold hover:opacity-90"
                         >
                             Try again
                         </button>
                         <button
                             type="button"
                             onClick={this.reload}
-                            className="min-h-11 px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold
+                            className="min-h-[44px] px-6 py-2.5 rounded-full bg-[#1c2e68] text-white font-semibold
                                        hover:opacity-90 transition-opacity"
                         >
                             Reload page
@@ -100,7 +100,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                         <a
                             href="/"
                             onClick={this.reset}
-                            className="min-h-11 px-6 py-2.5 rounded-full border border-gray-200 text-[#1c2e68]
+                            className="min-h-[44px] px-6 py-2.5 rounded-full border border-gray-200 text-[#1c2e68]
                                        font-semibold hover:bg-gray-50 transition-colors"
                         >
                             Go home
