@@ -143,14 +143,19 @@ try {
         export const CHANNEL_LABELS={email:'Email',whatsapp:'WhatsApp',push:'Push notifications',in_app:'In-app notifications'};
         export const statusLabel=r=>({read:'Read on WhatsApp',failed:'Failed',accepted:'Provider accepted',delivered:'Delivered',sent:'Sent to handset',marked_read:'Marked as read',queued:'Queued'}[r.status]||r.status);
         const fixture=${JSON.stringify(fixture)};
+        window.useLargeFailureFixture=()=>{fixture.rows=Array.from({length:105},(_,index)=>({
+          _id:'failure-'+index,channel:index<100?'push':'email',status:'failed',recipientName:'Failed recipient '+index,
+          recipient:'fixture@example.test',title:'Regional association update',campaignKey:'automation:fixture',createdAt:'2026-10-16T10:00:00Z'
+        }))};
         window.retryPreviewCalls=[];window.retryCalls=[];window.reportReads=0;
         export const getDeliveryRetryStatus=async()=>({found:false,processing:false});
         export const previewDeliveryRetry=async selection=>{
           window.retryPreviewCalls.push(selection);
           const filters=selection.filters||{};
           const rows=fixture.rows.filter(r=>r.status==='failed'&&(!selection.ids||selection.ids.includes(r._id))&&(!filters.channel||r.channel===filters.channel));
-          const eligible=rows.filter(r=>r.channel!=='push');
-          return {matched:rows.length,eligible:eligible.length,skipped:rows.length-eligible.length,ids:eligible.map(r=>r._id),token:'review-fixture',truncated:false,reasons:rows.length>eligible.length?[{reason:'Device registration expired',count:rows.length-eligible.length}]:[]};
+          const reviewed=selection.ids?rows:rows.slice(0,100);
+          const eligible=reviewed.filter(r=>r.channel!=='push');
+          return {matched:rows.length,reviewed:reviewed.length,remaining:rows.length-reviewed.length,eligible:eligible.length,skipped:reviewed.length-eligible.length,ids:eligible.map(r=>r._id),token:eligible.length?'review-fixture':'',truncated:rows.length>reviewed.length,reasons:reviewed.length>eligible.length?[{reason:'Device registration expired',count:reviewed.length-eligible.length}]:[]};
         };
         export const retryDeliveryReport=async confirmation=>{
           window.retryCalls.push(confirmation);
@@ -406,9 +411,31 @@ try {
   await until('document.body.textContent.includes("1 attempted · 1 sent · 0 queued · 0 failed · 0 skipped")');
   await until(`window.reportReads>${readsBeforeRetry}`);
   assert.equal(await evaluate('window.retryCalls.length'), 1);
+  await evaluate('window.useLargeFailureFixture();document.querySelector("[aria-label=\\"Report activity\\"]").value="";document.querySelector("[aria-label=\\"Report activity\\"]").dispatchEvent(new Event("change",{bubbles:true}));document.querySelector("[aria-label=\\"Report channel\\"]").value="";document.querySelector("[aria-label=\\"Report channel\\"]").dispatchEvent(new Event("change",{bubbles:true}));document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="failed";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
+  await until('window.lastReport.pagination.total===105 && !document.querySelector("[aria-busy=\\"true\\"]")');
+  await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Review failed deliveries").click()');
+  await until('document.body.textContent.includes("100 skipped")');
+  assert(await evaluate('document.body.textContent.includes("Batch review starts with the newest 100 failures") && document.body.textContent.includes("use the recipient pages")'), 'capped review explains how to reach later failures');
+  assert(await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (0)").disabled'));
+  assert.equal(await evaluate('window.retryCalls.length'), 1, 'initial ineligible batch does not send');
+  for (let page = 2; page <= 5; page++) {
+    await evaluate('document.querySelector("[aria-label=\\"Next recipients\\"]").click()');
+    await until(`window.lastFilters.page===${page} && !document.querySelector('[aria-busy="true"]')`);
+  }
+  await evaluate('document.querySelector("[aria-label=\\"Review failed deliveries on this page\\"]").click()');
+  await until('document.body.textContent.includes("5 eligible")');
+  const laterIds = Array.from({ length: 5 }, (_, index) => `failure-${index + 100}`);
+  assert.deepEqual(await evaluate('window.retryPreviewCalls.at(-1)'), { ids: laterIds }, 'page five reviews its exact visible failures instead of restarting at the first 100');
+  assert(await evaluate('document.body.textContent.includes("Failed deliveries on recipient page 5")'));
+  assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), 'page-review actions and guidance fit 320px');
+  await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Confirm resend (5)").click()');
+  await until('window.retryCalls.length===2');
+  assert.deepEqual(await evaluate('window.retryCalls.at(-1)'), { ids: laterIds, token: 'review-fixture' });
+  await evaluate('window.finishRetry()');
+  await until('document.body.textContent.includes("5 attempted · 5 sent")');
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
-    "PASS: report filters/layout and failed-delivery review, per-recipient eligibility, cancel, automation filter scope, frozen confirmation IDs/token, duplicate-click protection, resend counts and refreshed report. All deliveries are mocked; no external requests."
+    "PASS: report filters/layout and failed-delivery review, per-recipient eligibility, cancel, automation filters, frozen confirmation, duplicate-click protection, status refresh and later-page retries beyond 100 ineligible failures. All deliveries are mocked; no external requests."
   );
 } finally {
   ws?.close();

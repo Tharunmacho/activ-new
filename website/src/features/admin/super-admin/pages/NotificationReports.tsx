@@ -258,19 +258,24 @@ export default function NotificationReports({
     mounted.current = true;
     return () => { mounted.current = false; retrySeq.current++; };
   }, []);
-  const reviewRetry = async (row?: ReportRow) => {
+  const reviewRetry = async (row?: ReportRow, pageOnly = false) => {
     if (retryLock.current || busy) return;
+    const pageIds = (data?.rows || []).filter(item => item?.status === "failed" && item?._id).map(item => item._id);
+    if (pageOnly && !pageIds.length) return;
     retryLock.current = true;
     const request = ++retrySeq.current;
     setRetryBusy("review");
     setRetryPreview(null);
     setRetryResult(null);
     setRetryError("");
-    setRetryLabel(row ? `${row.recipientName || "This recipient"} · ${CHANNEL_LABELS[row.channel]}` : "Failed deliveries for the current activity, channel, date and search filters");
+    setRetryLabel(row ? `${row.recipientName || "This recipient"} · ${CHANNEL_LABELS[row.channel]}` : pageOnly
+      ? `Failed deliveries on recipient page ${data?.pagination?.page || 1}`
+      : "Failed deliveries for the current activity, channel, date and search filters");
     recipientHeading.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     try {
       const preview = await previewDeliveryRetry(row
         ? { ids: [row._id] }
+        : pageOnly ? { ids: pageIds }
         : { filters: { ...filters, status: "failed" } });
       if (mounted.current && request === retrySeq.current) setRetryPreview(preview);
     } catch (err) {
@@ -286,13 +291,13 @@ export default function NotificationReports({
     retryLock.current = true;
     setRetryBusy("send");
     setRetryError("");
-    const token = retryPreview.token;
+    const statusToken = retryPreview.statusToken || retryPreview.token;
     const recover = async () => {
-      let status = await getDeliveryRetryStatus(token);
+      let status = await getDeliveryRetryStatus(statusToken);
       for (let attempt = 1; status?.processing && attempt < 5 && mounted.current; attempt++) {
         await new Promise<void>(resolve => setTimeout(resolve, 2000));
         if (!mounted.current) break;
-        status = await getDeliveryRetryStatus(token);
+        status = await getDeliveryRetryStatus(statusToken);
       }
       return status;
     };
@@ -689,6 +694,12 @@ export default function NotificationReports({
               onClick={() => void reviewRetry()}>
               {retryBusy === "review" ? "Reviewing failures…" : "Review failed deliveries"}
             </button>
+            <button type="button" className={`${ADMIN_SECONDARY_BTN} ml-0 sm:ml-2`}
+              aria-label="Review failed deliveries on this page"
+              disabled={busy || !!retryBusy || !(data?.rows || []).some(row => row?.status === "failed")}
+              onClick={() => void reviewRetry(undefined, true)}>
+              Review failures on this page
+            </button>
             <p className="text-ui-caption text-slate-500">
               Review failed messages and automations before resending. Only eligible failed deliveries are included; a missing open confirmation does not mean delivery failed.
             </p>
@@ -700,7 +711,7 @@ export default function NotificationReports({
                 <p className="break-words text-slate-700">{retryLabel}</p>
                 <p>{fmt(retryPreview.matched)} matched · {fmt(retryPreview.eligible)} eligible · {fmt(retryPreview.skipped)} skipped</p>
                 {(retryPreview.reasons || []).map((reason, index) => <p key={index} className="text-slate-600">{fmt(reason.count)} skipped: {reason.reason}</p>)}
-                {retryPreview.truncated && <p>{fmt(retryPreview.reviewed ?? (retryPreview.eligible + retryPreview.skipped))} reviewed, {fmt(retryPreview.remaining ?? Math.max(0, retryPreview.matched - retryPreview.eligible - retryPreview.skipped))} still to review. Each batch reviews up to 100 deliveries. Review the remaining failures after this batch finishes.</p>}
+                {retryPreview.truncated && <p>{fmt(retryPreview.reviewed ?? (retryPreview.eligible + retryPreview.skipped))} reviewed, {fmt(retryPreview.remaining ?? Math.max(0, retryPreview.matched - retryPreview.eligible - retryPreview.skipped))} still to review. Batch review starts with the newest 100 failures. Select Failed, use the recipient pages, then choose “Review failures on this page” for later deliveries.</p>}
                 <p>Confirmation resends only this reviewed selection. Delivery eligibility is checked again before sending.</p>
                 <div className="flex flex-wrap gap-2">
                   <button type="button" className={ADMIN_SECONDARY_BTN} disabled={!!retryBusy || !retryPreview.eligible || !retryPreview.ids?.length || !retryPreview.token} onClick={() => void confirmRetry()}>

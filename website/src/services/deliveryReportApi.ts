@@ -85,6 +85,7 @@ export interface DeliveryRetryPreview {
   reasons: DeliveryRetryReason[];
   ids: string[];
   token: string;
+  statusToken?: string;
   truncated: boolean;
 }
 export interface DeliveryRetryResult {
