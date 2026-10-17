@@ -87,7 +87,7 @@ export default function AssociationUpdates() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search updates"
-                            className="w-full h-11 pl-9 pr-3 rounded-xl border border-slate-200 text-ui-small
+                            className="w-full h-11 pl-9 pr-3 rounded-xl border border-slate-200 text-[16px]
                                        focus:outline-none focus:ring-2 focus:ring-blue-500/30
                                        focus:border-blue-400"
                         />
@@ -106,7 +106,7 @@ export default function AssociationUpdates() {
                                         key={key}
                                         type="button"
                                         onClick={() => setCategory(key)}
-                                        className={`px-3 py-1.5 rounded-full text-ui-caption font-semibold
+                                        className={`px-3 py-1.5 rounded-full text-[16px] font-semibold
                                                     transition-colors ${
                                             active
                                                 ? 'bg-blue-600 text-white'

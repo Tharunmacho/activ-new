@@ -39,7 +39,7 @@
     content: attr(data-label);
     grid-column: 1;
     color: #64748b;
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: 600;
     text-transform: none;
     letter-spacing: normal;

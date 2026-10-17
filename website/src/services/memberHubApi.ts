@@ -41,6 +41,9 @@ export interface Announcement {
     block: string;
     targets?: { state: string; district: string; block: string }[];
     includeVisitors?: boolean;
+    recipientMode?: 'audience' | 'selected';
+    memberIds?: string[];
+    variables?: UpdateVariable[];
     /** "Tamil Nadu › Ariyalur", or empty when it went to every member. */
     targetLabel: string;
     audience: import('@/lib/memberAudience').UpdateAudience;
@@ -55,6 +58,23 @@ export interface Announcement {
     expiresAt: string | null;
     createdBy: string;
 }
+
+export interface UpdateVariable { key: string; defaultValue: string; overrides: { memberId: string; value: string }[] }
+export interface UpdateRecipient { id: string; fullName: string; email: string; membershipNumber: string; region: string }
+export interface UpdateVariableOption { key: string; label: string; detail: string }
+export interface UpdatePreview { announcement: Announcement; eligible: boolean; missing: string[]; values: Record<string, string>; recipient: { id: string; fullName: string } | null }
+export const findUpdateRecipients = async (params: { search?: string; ids?: string } = {}): Promise<{ members: UpdateRecipient[]; variables: UpdateVariableOption[] }> => {
+    const ids = params.ids?.split(',') || [];
+    // Keep saved selections below common proxy URL/header limits.
+    if (ids.length > 100) {
+        const pages = await Promise.all(Array.from({ length: Math.ceil(ids.length / 100) }, (_, index) =>
+            findUpdateRecipients({ ids: ids.slice(index * 100, index * 100 + 100).join(',') })));
+        return { members: pages.flatMap(page => page.members), variables: pages[0]?.variables || [] };
+    }
+    return unwrap(await api.get(`${ENDPOINTS.ANNOUNCEMENTS.ADMIN_LIST}/recipients`, { params }), { members: [], variables: [] });
+};
+export const previewUpdate = async (fields: Record<string, unknown>) =>
+    unwrap<UpdatePreview | null>(await api.post(`${ENDPOINTS.ANNOUNCEMENTS.ADMIN_LIST}/preview`, fields), null);
 
 const EMPTY_FEED = { announcements: [] as Announcement[], total: 0 };
 
