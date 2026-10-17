@@ -2,11 +2,14 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdtemp, mkdir, rm, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'esbuild';
+import { build, stop } from 'esbuild';
+import postcss from 'postcss';
+import tailwind from 'tailwindcss';
+import loadConfig from 'tailwindcss/loadConfig.js';
 import { createRequire } from 'node:module';
 import { localTypographyFonts } from './browserTypographyFixtures.mjs';
 
@@ -41,6 +44,8 @@ const original = {
   pinned: true, expiresAt: '2099-12-31T18:29:59.000Z', status: 'published',
 };
 let bundle = '', css = '', chrome, ws, pendingPoster, pendingDocument;
+let failNextSave = false, holdNextSave = false, pendingSave, storedAnnouncement = { ...original }, saveAttempts = 0;
+const statusChanges = [];
 const saves = [], exceptions = [];
 const reply = (res, data) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ success: true, data })); };
 const server = http.createServer(async (req, res) => {
@@ -69,8 +74,17 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname.startsWith('/api/v1/announcements') && ['POST', 'PUT'].includes(req.method)) {
     let raw = ''; for await (const chunk of req) raw += chunk;
-    const payload = JSON.parse(raw); saves.push({ method: req.method, payload });
-    return reply(res, { id: 'update-fixture', ...payload });
+    const payload = JSON.parse(raw); saveAttempts++;
+    if (failNextSave) { failNextSave = false; res.statusCode = 500; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({ message: 'Fixture save failed' })); }
+    const persist = () => { saves.push({ method: req.method, payload }); storedAnnouncement = { id: 'update-fixture', ...payload }; reply(res, storedAnnouncement); };
+    if (holdNextSave) { holdNextSave = false; pendingSave = { res, persist }; return; }
+    return persist();
+  }
+  if (url.pathname === '/api/v1/announcements/admin' && req.method === 'GET') return reply(res, { announcements: [storedAnnouncement] });
+  if (url.pathname.endsWith('/status') && req.method === 'PATCH') {
+    let raw = ''; for await (const chunk of req) raw += chunk;
+    const payload = JSON.parse(raw); statusChanges.push(payload); storedAnnouncement = { ...storedAnnouncement, ...payload };
+    return reply(res, storedAnnouncement);
   }
   if (req.method === 'POST' && ['/api/v1/cms/media', '/api/v1/cms/attachments'].includes(url.pathname)) {
     for await (const chunk of req) { /* Drain the multipart upload before holding its response. */ }
@@ -85,17 +99,28 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const base = `http://127.0.0.1:${server.address().port}`;
 
 try {
-  const assets = await readdir(path.join(root, 'dist/assets'));
-  css = await readFile(process.env.TEST_CSS || path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
+  if (process.env.TEST_CSS) css = await readFile(process.env.TEST_CSS, 'utf8');
+  else {
+    let source = await readFile(path.join(root, 'src/index.css'), 'utf8');
+    for (const match of [...source.matchAll(/@import ['"](.+?)['"];?/g)]) source = source.replace(match[0], await readFile(path.resolve(root, 'src', match[1]), 'utf8'));
+    const config = loadConfig(path.join(root, 'tailwind.config.ts')); config.content = [path.join(root, 'src/**/*.{ts,tsx}')];
+    css = (await postcss([tailwind(config)]).process(source, { from: path.join(root, 'src/index.css') })).css;
+  }
+  css += '\n' + await readFile(path.join(root, 'src/features/admin/super-admin/pages/updates-list.css'), 'utf8');
   css += '\n' + fonts.css;
   const result = await build({ absWorkingDir: root, bundle: true, write: false, format: 'iife', platform: 'browser', jsx: 'automatic',
+    plugins: [{name:'fixture-sidebar',setup(build){build.onResolve({filter:/\/AdminSidebar$/},args=>({path:args.path,namespace:'fixture-sidebar'}));build.onLoad({filter:/.*/,namespace:'fixture-sidebar'},()=>({loader:'tsx',contents:'export default function Sidebar(){return null}'}));build.onLoad({filter:/\.css$/},()=>({loader:'js',contents:'export default {}'}));}}],
     define: { 'import.meta.env': JSON.stringify({ DEV: true, VITE_API_URL: `${base}/api/v1` }), 'process.env.NODE_ENV': '"test"' },
     stdin: { resolveDir: root, loader: 'tsx', contents: `
-      import React from 'react'; import {createRoot} from 'react-dom/client';
+      import React from 'react'; import {createRoot} from 'react-dom/client'; import {MemoryRouter} from 'react-router-dom';
       import UpdateComposer from './src/features/admin/super-admin/components/UpdateComposer';
+      import Updates from './src/features/admin/super-admin/pages/Updates';
+      import {resolveUpdateDeliveryChannels} from './src/lib/updateDeliveryChannels';
       const root=createRoot(document.getElementById('root')); let version=0; window.savedCount=0;
       window.renderComposer=(initial=null)=>root.render(<main style={{maxWidth:1400,margin:'0 auto',padding:16}}>
         <UpdateComposer key={++version} initial={initial} onClose={()=>{window.closed=true}} onSaved={()=>{window.savedCount++}}/></main>);
+      window.renderList=()=>root.render(<MemoryRouter key={++version}><Updates/></MemoryRouter>);
+      window.deliveryChannelPolicy=resolveUpdateDeliveryChannels;
       window.renderComposer();` } });
   bundle = result.outputFiles[0].text;
   chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -126,7 +151,7 @@ try {
     for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(50); }
     throw Error(`${expression}: ${exceptions.join('\n')}`);
   };
-  const click = label => evaluate(`[...document.querySelectorAll('button')].find(button => button.getAttribute('aria-label') === ${JSON.stringify(label)} || button.textContent.trim() === ${JSON.stringify(label)}).click()`);
+  const click = label => evaluate(`[...document.querySelectorAll('button')].find(button => button.getAttribute('aria-label') === ${JSON.stringify(label)} || button.textContent.trim() === ${JSON.stringify(label)} || (${JSON.stringify(label)}==='Publish update'&&button.value==='published')).click()`);
   const fill = (name, value) => evaluate(`{
     const input=document.querySelector('[name="${name}"]');
     const proto=input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:input.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;
@@ -165,6 +190,7 @@ try {
   assert.equal(saves.length, 0, 'Title alone cannot be published');
   await click('Save as draft'); await waitSaved(1);
   assert.equal(saves[0].payload.status, 'draft'); assert.equal(saves[0].payload.body, '');
+  assert.deepEqual(saves[0].payload.deliveryChannels, { email: false, whatsapp: false, push: false }, 'New drafts require explicit channel choices');
 
   await remount(); await fill('title', 'New business membership benefits'); await fill('body', 'Dear members, please explore your benefits. Thank you.');
   await fill('audience', 'plans'); await until(`document.querySelectorAll('[name="planKeys"]').length===5`);
@@ -185,6 +211,7 @@ try {
   for (const key of ['title', 'summary', 'body', 'category', 'audience', 'bannerUrl', 'bannerAlt', 'attachmentUrl', 'attachmentLabel', 'pinned']) assert.deepEqual(saves[3].payload[key], original[key], `${key} survives edit/save`);
   assert.deepEqual(saves[3].payload.targets, [{ state: original.state, district: original.district, block: original.block }], 'Legacy region preserved as a complete target');
   assert.deepEqual(saves[3].payload.planKeys, original.planKeys);
+  assert.deepEqual(saves[3].payload.deliveryChannels, { email: true, whatsapp: true, push: true }, 'Legacy records preserve all enabled channels');
 
   await upload('image', 'replacement.png'); await waitUpload('image');
   assert(await evaluate(`[...document.querySelectorAll('button[type="submit"],input[type="file"]')].every(control=>control.disabled)`), 'Save, publish and upload controls lock during upload');
@@ -273,6 +300,62 @@ try {
   await until(`document.querySelector('[aria-label="Member value for meeting_place"]').value==='Updated hall'`);
   assert.equal(await evaluate(`document.querySelector('[aria-label="General value for company_name"]').value`), 'your company');
   console.log('PASS: explicit member selection, custom shared/default/member values, stored-data precedence, unavailable-field warnings, private general preview and editable persisted overrides.');
+  const channels = () => evaluate(`Object.fromEntries([...document.querySelectorAll('input[name^="deliveryChannels."]')].map(input=>[input.name.split('.')[1],input.checked]))`);
+  const setChannels = async selected => {
+    for (const key of ['email', 'whatsapp', 'push']) await evaluate(`{const input=document.querySelector('[name="deliveryChannels.${key}"]');if(input.checked!==${selected.includes(key)})input.click();}`);
+  };
+  await remount();
+  assert.deepEqual(await channels(), { email: false, whatsapp: false, push: false });
+  for (const malformed of [null, [], 'true', { email: true }, { email: true, whatsapp: true, push: true, other: true }]) {
+    assert.deepEqual(await evaluate(`window.deliveryChannelPolicy({deliveryChannels:${JSON.stringify(malformed)}})`), { email: false, whatsapp: false, push: false }, 'Malformed policies never enable channels');
+  }
+  await remount({ ...original, deliveryChannels: null });
+  assert.deepEqual(await channels(), { email: false, whatsapp: false, push: false }, 'Explicit null is not legacy opt-in');
+  await remount();
+  assert.equal(await evaluate(`document.querySelector('button[value="published"]').textContent.trim()`), 'Publish without notifications');
+  const combos = [[], ['email'], ['whatsapp'], ['push'], ['email', 'whatsapp'], ['email', 'push'], ['whatsapp', 'push'], ['email', 'whatsapp', 'push']];
+  for (const selected of combos) {
+    await remount(); await fill('title', `Channel choice: ${selected.join(', ') || 'feed only'}`); await fill('body', 'This update is a local fixture.');
+    await setChannels(selected);
+    const expected = Object.fromEntries(['email', 'whatsapp', 'push'].map(key => [key, selected.includes(key)]));
+    const count = saves.length + 1;
+    await click('Save as draft'); await waitSaved(count);
+    assert.deepEqual(saves.at(-1).payload.deliveryChannels, expected, `Draft saves exact ${selected.join(', ') || 'no'} channels`);
+    await remount({ ...saves.at(-1).payload, id: 'update-fixture' });
+    assert.deepEqual(await channels(), expected, 'Saved choices reopen');
+    assert.equal(await evaluate(`document.querySelector('button[value="published"]').textContent.trim()`), selected.length ? 'Publish update' : 'Publish without notifications');
+    await click('Publish update'); await waitSaved(count + 1);
+    assert.deepEqual(saves.at(-1).payload.deliveryChannels, expected, 'Publish preserves reviewed channel choices');
+  }
+  await remount({ ...original, deliveryChannels: { email: false, whatsapp: true, push: false } });
+  assert.equal(await evaluate(`document.querySelector('[data-testid="delivery-channel-summary"]').textContent`), 'WhatsApp');
+  const beforeFailure = saves.length;
+  failNextSave = true; await click('Save published update');
+  await until(`document.querySelector('[role="alert"]')?.textContent.includes('Fixture save failed')`);
+  assert.equal(saves.length, beforeFailure); assert.deepEqual(await channels(), { email: false, whatsapp: true, push: false }, 'Failed save retains choices');
+  holdNextSave = true; await click('Save published update');
+  for (let i = 0; i < 100 && !pendingSave; i++) await pause(50);
+  assert(pendingSave, 'Save can be held by the mock server');
+  assert(await evaluate(`[...document.querySelectorAll('input[name^="deliveryChannels."],button[type="submit"]')].every(input=>input.disabled)`), 'Saving locks channel controls and both save actions');
+  const attemptsBeforeDuplicate = saveAttempts;
+  await evaluate(`document.querySelector('form').dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true,submitter:document.querySelector('button[value="published"]')}))`);
+  assert.equal(saveAttempts, attemptsBeforeDuplicate, 'Duplicate submit cannot broadcast again while saving');
+  pendingSave.persist(); pendingSave = null; await waitSaved(beforeFailure + 1);
+  assert.deepEqual(saves.at(-1).payload.deliveryChannels, { email: false, whatsapp: true, push: false });
+  storedAnnouncement = { ...original, deliveryChannels: { email: false, whatsapp: true, push: false } };
+  await evaluate('window.renderList()'); await until(`document.body.textContent.includes('Notifications: WhatsApp')`);
+  await click('Move to draft'); await until(`document.querySelector('[aria-label="Review and publish"]')`);
+  assert.deepEqual(statusChanges.at(-1), { status: 'draft' }, 'Status-only action preserves server channel choices without overwriting them');
+  assert.deepEqual(storedAnnouncement.deliveryChannels, { email: false, whatsapp: true, push: false });
+  await click('Review and publish'); await until(`document.querySelector('form[aria-label="Update composer"]')`);
+  assert.deepEqual(await channels(), { email: false, whatsapp: true, push: false }, 'List review action reopens persisted choices');
+  const beforeListPublish = saves.length; await click('Publish update'); await until(`document.body.textContent.includes('Your updates')`);
+  assert.equal(saves.length, beforeListPublish + 1); assert.deepEqual(saves.at(-1).payload.deliveryChannels, { email: false, whatsapp: true, push: false });
+  for (const width of [320, 1440]) {
+    await send('Emulation.setDeviceMetricsOverride', { width, height: width < 500 ? 844 : 1100, deviceScaleFactor: 1, mobile: width < 500 });
+    assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), `Update list with channel summary fits ${width}px`);
+  }
+  console.log('PASS: each single channel, all channels, feed-only, draft/reopen/publish, legacy defaults, failed-save retention, locked controls, duplicate guard, list summary and status preservation. No real broadcasts.');
   await remount(original); await mkdir(artifacts, { recursive: true });
   for (const width of [320, 390, 1440]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: width < 500 ? 844 : 1100, deviceScaleFactor: 1, mobile: width < 500 });
@@ -297,12 +380,20 @@ try {
     assert.deepEqual(measured.overflow,[],`${width}: controls stay inside the viewport`);
     const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
     await writeFile(path.join(artifacts, `update-composer-${width}.png`), Buffer.from(shot.result.data, 'base64'));
+    await evaluate(`document.querySelector('[aria-label="Notification channels"]').closest('section').scrollIntoView()`);
+    const channelsShot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    await writeFile(path.join(artifacts, `update-channels-${width}.png`), Buffer.from(channelsShot.result.data, 'base64'));
   }
   assert.deepEqual(exceptions, []);
   console.log('PASS: responsive 320/390/1440 layouts, shared Poppins scale, at least 16px form inputs and no browser exceptions. Screenshots saved in artifacts/update-composer-*.png.');
-  await send('Browser.close');
 } finally {
-  pendingPoster?.destroy(); pendingDocument?.destroy(); ws?.close(); chrome?.kill();
+  pendingPoster?.destroy(); pendingDocument?.destroy(); pendingSave?.res.destroy();
+  if (ws?.readyState === WebSocket.OPEN) await new Promise(resolve => {
+    const timer = setTimeout(resolve, 2000);
+    ws.addEventListener('close', () => { clearTimeout(timer); resolve(); }, { once: true });
+    try { ws.send(JSON.stringify({ id: 1000000, method: 'Browser.close' })); } catch { clearTimeout(timer); resolve(); }
+  });
+  ws?.close(); if (chrome?.exitCode == null) chrome?.kill(); chrome?.unref(); stop();
   server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
   const resolved = path.resolve(profile);
   if (resolved.startsWith(path.resolve(tmpdir()) + path.sep + 'activ-update-composer-')) await rm(resolved, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }).catch(() => {});

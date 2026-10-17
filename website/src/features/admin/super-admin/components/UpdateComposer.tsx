@@ -6,6 +6,7 @@ import { errorMessage, listMembershipPlans, type MembershipPlanRow } from '@/ser
 import { uploadMedia, uploadEventAttachment } from '@/services/cmsApi';
 import { createAnnouncement, updateAnnouncement, previewUpdate, type UpdatePreview, type UpdateVariable, type Announcement, type AnnouncementCategory } from '@/services/memberHubApi';
 import { UPDATE_AUDIENCES, type UpdateAudience } from '@/lib/memberAudience';
+import { UPDATE_DELIVERY_CHANNELS, resolveUpdateDeliveryChannels, updateDeliverySummary, type UpdateDeliveryChannels } from '@/lib/updateDeliveryChannels';
 import RegionTargetPicker, { type RegionTarget } from '@/pages/cms/components/RegionTargetPicker';
 import UpdatePersonalizationEditor from './UpdatePersonalizationEditor';
 
@@ -22,6 +23,7 @@ type Form = {
     recipientMode: 'audience' | 'selected'; memberIds: string[]; variables: UpdateVariable[];
     bannerUrl: string; bannerAlt: string; attachmentUrl: string; attachmentLabel: string;
     pinned: boolean; expiresAt: string;
+    deliveryChannels: UpdateDeliveryChannels;
 };
 const dateInput = (value?: string | null) => {
     if (!value) return '';
@@ -52,6 +54,7 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
         bannerUrl: initial?.bannerUrl || '', bannerAlt: initial?.bannerAlt || '',
         attachmentUrl: initial?.attachmentUrl || '', attachmentLabel: initial?.attachmentLabel || '',
         pinned: !!initial?.pinned, expiresAt: dateInput(initial?.expiresAt),
+        deliveryChannels: resolveUpdateDeliveryChannels(initial),
     }));
     const [regional, setRegional] = useState(!!(initial?.targets?.length || initial?.state));
     const [previewMemberId, setPreviewMemberId] = useState('');
@@ -71,11 +74,14 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
     const [dirty, setDirty] = useState(false);
     const mounted = useRef(true);
     const uploadingRef = useRef(false);
+    const savingRef = useRef(false);
     const busy = saving || !!uploading.poster || !!uploading.document;
     const selectedAudience = UPDATE_AUDIENCES.find(option => option.value === form.audience);
     const planNames = form.planKeys.map(key => plans.find(plan => plan.key === key)?.name || key);
     const recipients = form.audience === 'plans' ? (planNames.join(', ') || 'Choose at least one plan') : selectedAudience?.title;
     const region = regional ? form.targets.map(target => [target.state, target.district, target.block].filter(Boolean).join(' / ')).join(', ') || 'Choose at least one region' : 'All regions';
+    const channelSummary = updateDeliverySummary(form.deliveryChannels);
+    const sendsNotifications = Object.values(form.deliveryChannels).some(Boolean);
     const previewText = (field: 'title' | 'summary' | 'body') => field === 'body' ? plainText(preview?.announcement.body || '') : preview?.announcement[field] || '';
     const insertVariable = (key: string) => {
         const token = `{${key}}`;
@@ -132,7 +138,7 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
         finally { uploadingRef.current = false; if (mounted.current) setUploading(current => ({ ...current, [kind]: '' })); }
     };
     const submit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault(); if (busy || uploadingRef.current) return;
+        event.preventDefault(); if (busy || uploadingRef.current || savingRef.current) return;
         const status = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'published' ? 'published' : 'draft';
         setError('');
         if (!form.title.trim()) { setError('Add a title so members know what the update is about.'); return; }
@@ -146,14 +152,14 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
         }
         const expiry = form.expiresAt ? new Date(`${form.expiresAt}T23:59:59`) : null;
         if (expiry && (!Number.isFinite(expiry.getTime()) || dateInput(expiry.toISOString()) !== form.expiresAt)) { setError('Choose a valid end date.'); return; }
-        setSaving(true);
+        savingRef.current = true; setSaving(true);
         try {
             const payload = { ...form, targets: regional ? form.targets : [], includeVisitors: form.includeVisitors && form.audience === 'all' && !regional && form.recipientMode !== 'selected', title: form.title.trim(), status, planKeys: form.audience === 'plans' ? form.planKeys : [], expiresAt: expiry?.toISOString() || '' };
             if (initial) await updateAnnouncement(initial.id, payload); else await createAnnouncement(payload);
             toast.success(status === 'draft' ? 'Draft saved' : initial?.status === 'published' ? 'Update saved' : 'Update published');
             onSaved();
         } catch (err) { setError(errorMessage(err, 'Could not save your update. Please try again.')); }
-        finally { if (mounted.current) setSaving(false); }
+        finally { savingRef.current = false; if (mounted.current) setSaving(false); }
     };
 
     return <form aria-label="Update composer" onSubmit={submit} className="space-y-6 text-[18px] leading-7">
@@ -203,7 +209,17 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
                     </fieldset>}
                     <RegionTargetPicker multipleSelection targets={form.targets} onChange={value => change('targets', value)} reachEveryone={!regional} onReachEveryoneChange={value => { setDirty(true); setRegional(!value); }} title="Regions" contentLabel="update" audienceLabel="Selected audience in all regions" hint="Select multiple states, districts or blocks. Members must match the audience above and at least one chosen region." />
                     <UpdatePersonalizationEditor variables={form.variables} onVariables={value => change('variables', value)} mode={form.recipientMode} onMode={value => change('recipientMode', value)} memberIds={form.memberIds} onMembers={value => change('memberIds', value)} previewMemberId={previewMemberId} onPreviewMember={setPreviewMemberId} onInsert={insertVariable} disabled={busy} />
-                    <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-4"><input type="checkbox" checked={form.includeVisitors && form.audience === 'all' && !regional && form.recipientMode !== 'selected'} disabled={busy || form.audience !== 'all' || regional || form.recipientMode === 'selected'} onChange={event => change('includeVisitors', event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" /><span><span className="block text-[18px] font-semibold text-slate-800">Also show to visitors</span><span className="mt-1 block text-[18px] leading-7 text-slate-500">Makes this update public and notifies visitors who enabled app notifications. Available for all eligible members in all regions, without a specific member selection. Visitors see general values.</span></span></label>
+                    <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-4"><input type="checkbox" checked={form.includeVisitors && form.audience === 'all' && !regional && form.recipientMode !== 'selected'} disabled={busy || form.audience !== 'all' || regional || form.recipientMode === 'selected'} onChange={event => change('includeVisitors', event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" /><span><span className="block text-[18px] font-semibold text-slate-800">Also show to visitors</span><span className="mt-1 block text-[18px] leading-7 text-slate-500">Makes this update public. Visitors who allow notifications are notified only when Push notifications is selected below. Available for all eligible members in all regions, without a specific member selection. Visitors see general values.</span></span></label>
+                </Section>
+                <Section title="Send notifications" detail="Choose how to notify recipients about this update. Leave all channels off to publish in the feed without notifications.">
+                    <fieldset aria-label="Notification channels" disabled={busy} className="space-y-3">
+                        {UPDATE_DELIVERY_CHANNELS.map(channel => <label key={channel.key} className={`flex min-h-[48px] items-start gap-3 rounded-xl border p-4 ${form.deliveryChannels[channel.key] ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white'} ${busy ? 'opacity-50' : 'cursor-pointer'}`}>
+                            <input type="checkbox" name={`deliveryChannels.${channel.key}`} aria-label={`Notify by ${channel.label}`} checked={form.deliveryChannels[channel.key]} disabled={busy}
+                                onChange={event => change('deliveryChannels', { ...form.deliveryChannels, [channel.key]: event.target.checked })} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" />
+                            <span className="min-w-0"><span className="block text-[18px] font-semibold text-slate-800">{channel.label}</span><span className="mt-1 block text-[18px] leading-7 text-slate-500">{channel.detail}</span></span>
+                        </label>)}
+                    </fieldset>
+                    <p className="text-[18px] leading-7 text-slate-600">Audience rules, member preferences and consent still apply. Publishing always makes the update available in eligible recipients’ feeds and in-app updates.</p>
                 </Section>
             </div>
             <aside className="min-w-0 space-y-5 xl:sticky xl:top-5">
@@ -214,11 +230,11 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
                 </section>
                 <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
                     <h3 className="text-[18px] font-semibold text-slate-900">Review & publish</h3>
-                    <dl className="space-y-3 text-[18px]"><div><dt className="text-slate-500">Audience</dt><dd data-testid="recipient-summary" className="mt-1 break-words font-medium text-slate-800">{recipients}</dd></div><div><dt className="text-slate-500">Region</dt><dd className="mt-1 break-words font-medium text-slate-800">{region}</dd></div>{form.expiresAt && <div><dt className="text-slate-500">Visible through</dt><dd className="mt-1 font-medium text-slate-800">{form.expiresAt}</dd></div>}</dl>
+                    <dl className="space-y-3 text-[18px]"><div><dt className="text-slate-500">Audience</dt><dd data-testid="recipient-summary" className="mt-1 break-words font-medium text-slate-800">{recipients}</dd></div><div><dt className="text-slate-500">Region</dt><dd className="mt-1 break-words font-medium text-slate-800">{region}</dd></div><div><dt className="text-slate-500">Notification channels</dt><dd data-testid="delivery-channel-summary" className="mt-1 break-words font-medium text-slate-800">{channelSummary}</dd></div>{form.expiresAt && <div><dt className="text-slate-500">Visible through</dt><dd className="mt-1 font-medium text-slate-800">{form.expiresAt}</dd></div>}</dl>
                     <label className="flex cursor-pointer items-start gap-3 border-t border-blue-100 pt-4"><input type="checkbox" name="pinned" checked={form.pinned} onChange={e => change('pinned', e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" /><span className="text-[18px] leading-7 text-slate-700">Pin this update at the top of eligible members’ feeds</span></label>
-                    <p className="text-[18px] leading-7 text-slate-500">{form.recipientMode === 'selected' ? `${form.memberIds.length} specific members selected; each must also match the audience and region.` : 'All members matching the audience and region.'} Drafts stay private. Publishing makes the update visible to eligible recipients; messages follow their delivery settings. Push notifications use a general notice to keep personal details off lock screens.</p>
+                    <p className="text-[18px] leading-7 text-slate-500">{form.recipientMode === 'selected' ? `${form.memberIds.length} specific members selected; each must also match the audience and region.` : 'All members matching the audience and region.'} Drafts stay private. {sendsNotifications ? 'Only the selected channels are used, subject to recipient preferences and consent.' : 'No email, WhatsApp or push notifications will be sent. The published update remains available in the feed and in-app updates.'} {form.deliveryChannels.push && 'Push notifications use a general notice to keep personal details off lock screens.'}</p>
                     {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-[18px] leading-7 text-red-700">{error}</p>}
-                    <button type="submit" name="intent" value="published" disabled={busy} className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-[18px] font-semibold text-white hover:bg-blue-800 disabled:opacity-50">{saving ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}{initial?.status === 'published' ? 'Save published update' : 'Publish update'}</button>
+                    <button type="submit" name="intent" value="published" disabled={busy} className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-[18px] font-semibold text-white hover:bg-blue-800 disabled:opacity-50">{saving ? <Loader2 size={18} className="shrink-0 animate-spin" /> : <Send size={18} className="shrink-0" />}{initial?.status === 'published' ? 'Save published update' : sendsNotifications ? 'Publish update' : 'Publish without notifications'}</button>
                     <button type="submit" name="intent" value="draft" disabled={busy} className={`${SECONDARY} w-full`}>Save as draft</button>
                     {initial?.status === 'published' && <p className="text-[18px] text-slate-500">Saving as a draft removes it from members’ feeds.</p>}
                 </section>

@@ -17,6 +17,7 @@
  */
 import api, { unwrap } from './api';
 import { ENDPOINTS } from '@/config/api.config';
+import type { UpdateDeliveryChannels } from '@/lib/updateDeliveryChannels';
 
 // ============================================================ shared shapes
 
@@ -41,6 +42,8 @@ export interface Announcement {
     block: string;
     targets?: { state: string; district: string; block: string }[];
     includeVisitors?: boolean;
+    /** Admin policy; omitted from member/public responses and legacy records. */
+    deliveryChannels?: UpdateDeliveryChannels;
     recipientMode?: 'audience' | 'selected';
     memberIds?: string[];
     variables?: UpdateVariable[];
@@ -109,7 +112,7 @@ const announcementForm = (fields: Record<string, any>, banner?: File | null) => 
 
     const form = new FormData();
     Object.entries(fields).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) form.append(key, Array.isArray(value) ? JSON.stringify(value) : String(value));
+        if (value !== undefined && value !== null) form.append(key, Array.isArray(value) || key === 'deliveryChannels' ? JSON.stringify(value) : String(value));
     });
     form.append('banner', banner);
     return form;
