@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { completeSocialLogin, errorMessage, getMyProfile, getPaymentStatus, socialStartUrl } from '@/services/activApi';
+import { completeSocialLogin, errorMessage, getMyProfile, getPaymentStatus, socialStartUrl, type LoginResult } from '@/services/activApi';
 import AuthSplitLayout from '@/shared/components/AuthSplitLayout';
+import SocialEmailVerification from './SocialEmailVerification';
 
 /**
  * Where Google / Facebook / LinkedIn send a member back to.
  *
- * The server has already verified the email with the provider; it hands over a
- * 60-second, single-use code in the URL FRAGMENT (never sent to any server log),
- * which this page trades for a normal member session. No email or password is
- * typed. Admins cannot sign in this way — the server refuses them.
+ * The server authenticates the provider subject and returns a 10-minute,
+ * single-use handoff in the URL fragment. A first association may require an
+ * email code; linked identities directly reopen their existing member session.
+ * New accounts open the dashboard with application completion still required.
  */
 
 const REASONS: Record<string, string> = {
@@ -34,9 +35,23 @@ const PROVIDER_NAME: Record<string, string> = { google: 'Google', facebook: 'Fac
 export default function SocialSignIn() {
     const navigate = useNavigate();
     const started = useRef(false);
+    const mounted = useRef(true);
     const [error, setError] = useState('');
     const [facebookRecovery, setFacebookRecovery] = useState(false);
     const [noAccount, setNoAccount] = useState<{ email: string; name: string; provider: string } | null>(null);
+    const [verification, setVerification] = useState<{ code: string; email: string } | null>(null);
+    useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+
+    const openDashboard = useCallback(async (result: LoginResult) => {
+        if (!mounted.current) return;
+        toast.success(`Welcome ${result.user?.fullName || 'back'}!`);
+        const profile = await getMyProfile().catch(() => result.memberDetails);
+        const status = String(profile?.membershipStatus || result.memberDetails?.membershipStatus || '').toLowerCase();
+        const paid = profile?.renewal?.state !== 'expired' && (status === 'active' || status === 'completed'
+            || (!status && (await getPaymentStatus().catch(() => 'pending')) === 'completed'));
+        if (!mounted.current) return;
+        navigate(paid ? '/payment/member-dashboard' : '/member/unpaid-dashboard', { replace: true });
+    }, [navigate]);
 
     useEffect(() => {
         if (started.current) return;
@@ -65,18 +80,15 @@ export default function SocialSignIn() {
 
         (async () => {
             try {
-                const result = await completeSocialLogin(code);
-                toast.success(`Welcome ${result.user?.fullName || 'back'}!`);
-                const profile = await getMyProfile().catch(() => result.memberDetails);
-                const status = String(profile?.membershipStatus || result.memberDetails?.membershipStatus || '').toLowerCase();
-                const paid = profile?.renewal?.state !== 'expired' && (status === 'active' || status === 'completed'
-                    || (!status && (await getPaymentStatus().catch(() => 'pending')) === 'completed'));
-                navigate(paid ? '/payment/member-dashboard' : '/member/unpaid-dashboard', { replace: true });
+                const result = await completeSocialLogin(code, undefined, () => mounted.current);
+                if (!mounted.current) return;
+                if ('requiresEmailVerification' in result) { setVerification({ code, email: result.email || '' }); return; }
+                await openDashboard(result);
             } catch (err) {
-                setError(errorMessage(err, REASONS.failed));
+                if (mounted.current) setError(errorMessage(err, REASONS.failed));
             }
         })();
-    }, [navigate]);
+    }, [navigate, openDashboard]);
 
     const registerHref = noAccount
         ? `/register?${new URLSearchParams({ email: noAccount.email, name: noAccount.name }).toString()}`
@@ -87,14 +99,17 @@ export default function SocialSignIn() {
             eyebrow="ACTIV member portal"
             headline={<>Welcome to<br />ACTIVian Platform!</>}
             quote='"Empowering Communities, Simplifying Lives"'
-            lede="Signing in with Google, Facebook or LinkedIn opens the ACTIV member account registered with the same email address — no password to type."
+            lede="Use Google, Facebook or LinkedIn to open your ACTIV dashboard. New members complete their application after signing in."
             formEyebrow="Sign in"
-            title={noAccount ? 'No account yet' : error ? 'Could not sign in' : 'Signing you in'}
+            title={verification ? 'Confirm your email' : noAccount ? 'No account yet' : error ? 'Could not sign in' : 'Signing you in'}
             subtitle=""
             surface="card"
             assurance=""
         >
-            {noAccount ? (
+            {verification ? <>
+                <SocialEmailVerification code={verification.code} initialEmail={verification.email} onComplete={openDashboard} />
+                <Link to="/login" className="mt-5 block text-center text-base font-semibold text-slate-600">Back to sign in</Link>
+            </> : noAccount ? (
                 <div className="text-center">
                     <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                         <UserPlus className="h-8 w-8" />

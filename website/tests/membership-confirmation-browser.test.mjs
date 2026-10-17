@@ -10,6 +10,7 @@ import { build } from 'esbuild';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-membership-confirm-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const screenshots = !process.argv.includes('--no-screenshots');
 let bundle = '', css = '', chrome, ws;
 const server = http.createServer((req, res) => {
   if (req.url === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
@@ -37,11 +38,12 @@ try {
     '@/services/activApi': 'export const errorMessage=(e,f)=>e.message||f;',
     '@/features/admin/components/tierConfig': 'export const adminBasePath=()=>"/super-admin";',
     '@/services/membershipDashboardApi': `
-      const member={id:'member-one',name:'Fixture Member',email:'fixture@example.test',phone:'9000000000',kind:'business',status:'pending',applicationStatus:'Pending',canConfirm:true,registeredAt:'2026-10-12',collected:0};
+      const unsubmitted=location.search.includes('unsubmitted=1');
+      const member={id:'member-one',name:'Fixture Member',email:'fixture@example.test',phone:'9000000000',kind:'business',status:'pending',applicationStatus:unsubmitted?'Not submitted':'Pending',canConfirm:!unsubmitted,blockedReason:unsubmitted?'The member must submit their application first.':'',registeredAt:'2026-10-12',collected:0};
       export const loadMembershipDashboard=async()=>({rows:[member],payments:[],plans:[{id:'ideal',name:'Ideal',price:1000,membershipType:'annual'}],summary:{registered:1,submitted:1,active:0,awaiting:0,pendingReview:1,expired:0,collected:0,waived:0,openOrders:0}});
       export const loadMembershipDetail=async()=>({member,payments:[],confirmation:{kind:'business',commencementYear:'2012',plans:[{id:'ideal',key:'ideal',name:'Ideal',price:1000,audience:'business',commencementYears:['2016','2015','2014','2013','2012'],commencementYearLabel:'2016 or earlier'}]}});
       export const confirmMembership=async(id,body)=>{window.fixtureConfirmation={id,body};return{member:{...member,status:'active',memberNumber:body.membershipNumber,assignedMemberNumber:body.membershipNumber,canConfirm:false,expiresAt:'2027-10-11T18:30:00Z'},payments:[]}};
-      export const deleteMembershipRegistration=async()=>{};export const exportMembershipReport=async()=>{};
+      export const deleteMembershipRegistration=async()=>{};export const deleteArchivedMembershipPayment=async()=>{};export const exportMembershipReport=async()=>{};
     `,
   };
   const result = await build({ absWorkingDir: root, bundle: true, write: false, format: 'iife', platform: 'browser', jsx: 'automatic',
@@ -87,12 +89,19 @@ try {
     await evaluate(`document.querySelector('input[aria-label="Membership ID"]').scrollIntoView({block:"center"})`);
     const bounds=await evaluate(`(()=>{const r=document.querySelector('input[aria-label="Membership ID"]').getBoundingClientRect();return{left:r.left,right:r.right}})()`);
     assert(bounds.left>=0&&bounds.right<=width,'ID field fits viewport');
-    const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.resolve(root,'../artifacts/membership-confirm-'+width+'.png'),Buffer.from(shot.result.data,'base64'));
+    if (screenshots) { const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.resolve(root,'../artifacts/membership-confirm-'+width+'.png'),Buffer.from(shot.result.data,'base64')); }
     await click('Confirm membership');await until('window.fixtureConfirmation');
     const body=await evaluate('window.fixtureConfirmation.body');
+    assert.equal(Object.hasOwn(body,'manualAdmission'),false,'office payment never sends a form-completion bypass');
     assert.equal(body.commencementYear,'2013');assert.equal(body.membershipNumber,'ACTIV-20261012-099');assert.equal(body.mode,'cash');assert.equal(body.amount,1000);
     await until('document.body.innerText.includes("11 Oct 2027")');
   }
+  await send('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/super-admin/membership/registrations?unsubmitted=1'});
+  await until('document.body.innerText.includes("Fixture Member")');
+  await click('Details'); await until('document.body.innerText.includes("submit their application first")');
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(b=>b.textContent.includes("Confirm membership / record payment"))'),false);
+  assert.equal(await evaluate('document.body.innerText.includes("authorise office admission")'),false);
+  assert.equal(await evaluate('!!window.fixtureConfirmation'),false);
   for (const width of [390,1440]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<600});
     await send('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/member/membership-plans?upgrade=1'});
@@ -110,7 +119,7 @@ try {
     assert.equal(await evaluate('document.body.innerText.includes("Beginner")'),false);
     assert.equal(await evaluate('document.body.innerText.includes("Fee at your next renewal")'),true);
     assert.equal(await evaluate('!!document.querySelector("select")'),false);
-    const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.resolve(root,'../artifacts/membership-progression-'+width+'.png'),Buffer.from(shot.result.data,'base64'));
+    if (screenshots) { const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.resolve(root,'../artifacts/membership-progression-'+width+'.png'),Buffer.from(shot.result.data,'base64')); }
   }
   assert.equal(errors.length,0,errors.join(';'));
   console.log('PASS office confirmation at 320/390/1440px; Student entry-only upgrade, bounded years, checkout payload and automatic progression without a payment button at 390/1440px.');

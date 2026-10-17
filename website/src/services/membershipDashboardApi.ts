@@ -21,7 +21,7 @@ export interface MembershipDashboard {
 }
 export interface ConfirmationPlan { id: string; key: string; name: string; price: number; audience: string; commencementYears: string[]; commencementYearLabel: string }
 export interface MembershipDetail { member: MembershipRegistration; payments: MembershipPayment[]; confirmation?: { kind: string; commencementYear: string; plans: ConfirmationPlan[]; requiresCommencementYear: boolean } }
-export interface MembershipConfirmation { planId: string; mode: string; amount: number; note: string; receiptNumber: string; membershipNumber?: string; commencementYear?: string; manualAdmission?: boolean }
+export interface MembershipConfirmation { planId: string; mode: string; amount: number; note: string; receiptNumber: string; membershipNumber?: string; commencementYear?: string }
 const base = '/admin/super/membership/registrations';
 export const exportMembershipReport = (tab: 'members' | 'payments' | 'archived', filter: string) =>
     downloadSpreadsheet(base + '/export', 'membership-' + tab + '.xlsx', { tab, filter });

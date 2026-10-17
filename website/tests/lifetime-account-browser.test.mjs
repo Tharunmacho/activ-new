@@ -9,6 +9,8 @@ import { build } from 'esbuild';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-lifetime-browser-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const diagnostic = process.argv.includes('--diagnostic');
+const directInput = process.argv.includes('--direct-input');
 let bundle = '', css = '', chrome, ws;
 const requests = [];
 let member = { id: 'account-test', fullName: 'Test Lifetime Member', email: 'member@example.test', phoneNumber: '9123456780', whatsappNumber: '9234567801', membershipTier: 'platinum', membershipType: 'lifetime', membershipStatus: 'active', platinumGrant: null };
@@ -21,6 +23,7 @@ const server = http.createServer(async (req, res) => {
   let data = {};
   if (url.pathname.endsWith('/platinum')) data = { plan: { name: 'Lifetime membership', price: 200000 }, members: [member] };
   if (url.pathname.endsWith('/requests')) data = { requests: [], counts: { new: 0, contacted: 0, all: 0 } };
+  if (url.pathname.endsWith('/search')) data = [{ id: 'unsubmitted', fullName: 'Unsubmitted Applicant', email: 'unsubmitted@example.test', phoneNumber: '9123456781', membershipTier: 'standard', blockedReason: 'Complete and submit all required forms first.', canAdmitManually: true }];
   if (url.pathname.endsWith('/account') && req.method === 'PATCH') {
     let raw = ''; for await (const chunk of req) raw += chunk;
     const body = JSON.parse(raw); requests.push(body);
@@ -44,20 +47,46 @@ try {
   const tabs = await fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json());
   ws = new WebSocket(tabs.find(t => t.type === 'page').webSocketDebuggerUrl);
   await new Promise(resolve => ws.addEventListener('open', resolve));
-  let seq = 0; const pending = new Map(), exceptions = [];
-  ws.addEventListener('message', event => { const msg = JSON.parse(event.data); if (msg.method === 'Runtime.exceptionThrown') exceptions.push(msg.params.exceptionDetails.text); pending.get(msg.id)?.(msg); pending.delete(msg.id); });
-  const send = (method, params = {}) => new Promise((resolve, reject) => { const id = ++seq; const timer = setTimeout(() => reject(Error(method)), 15000); pending.set(id, r => { clearTimeout(timer); resolve(r); }); ws.send(JSON.stringify({ id, method, params })); });
+  let seq = 0; const pending = new Map(), exceptions = [], browserEvents = [];
+  ws.addEventListener('message', event => {
+    const msg = JSON.parse(event.data);
+    if (msg.method === 'Runtime.exceptionThrown') exceptions.push(msg.params.exceptionDetails.exception?.description || msg.params.exceptionDetails.text);
+    if (['Runtime.exceptionThrown', 'Debugger.paused', 'Page.javascriptDialogOpening', 'Inspector.targetCrashed'].includes(msg.method)) {
+      const detail = { method: msg.method, reason: msg.params?.reason, message: msg.params?.message,
+        exception: msg.params?.exceptionDetails?.exception?.description,
+        frames: msg.params?.callFrames?.slice(0, 5).map(frame => ({ name: frame.functionName, location: frame.location })) };
+      browserEvents.push(detail); if (diagnostic) console.log('BROWSER', JSON.stringify(detail));
+    }
+    pending.get(msg.id)?.(msg); pending.delete(msg.id);
+  });
+  const send = (method, params = {}) => new Promise((resolve, reject) => {
+    const id = ++seq, label = method + (params.expression ? ': ' + params.expression : '');
+    if (diagnostic) console.log('CDP', id, label);
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(Error(`${label} timed out after 15000ms; mock account writes=${requests.length}; browser events=${JSON.stringify(browserEvents)}`));
+    }, 15000);
+    pending.set(id, r => { clearTimeout(timer); if (r.error) reject(Error(`${label}: ${r.error.message}`)); else resolve(r); });
+    ws.send(JSON.stringify({ id, method, params }));
+  });
   const evaluate = async expression => { const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (r.result?.exceptionDetails) throw Error(r.result.exceptionDetails.exception?.description); return r.result?.result?.value; };
   const until = async expression => { for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(100); } throw Error(expression); };
   const click = label => evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent === ${JSON.stringify(label)}).click()`);
   await send('Runtime.enable');
+  await send('Page.enable');
+  if (diagnostic) await send('Debugger.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await send('Page.navigate', { url: base });
   await until('document.body.innerText.includes("Test Lifetime Member")');
   assert(!(await evaluate('document.body.innerText')).includes('Platinum'));
   await click('Edit login and contact details');
   await until('document.querySelector("input[type=password]")');
-  const fill = async (label, value) => evaluate(`{ const label = [...document.querySelectorAll('label')].find(l => l.textContent.trim() === ${JSON.stringify(label)}); const input = label.querySelector('input'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, ${JSON.stringify(value)}); input.dispatchEvent(new Event('input', {bubbles:true})); }`);
+  const fill = async (label, value) => {
+    if (directInput) {
+      await evaluate(`{ const label = [...document.querySelectorAll('label')].find(l => l.textContent.trim() === ${JSON.stringify(label)}); const input = label.querySelector('input'); input.focus(); input.select(); }`);
+      await send('Input.insertText', { text: value });
+    } else await evaluate(`{ const label = [...document.querySelectorAll('label')].find(l => l.textContent.trim() === ${JSON.stringify(label)}); const input = label.querySelector('input'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, ${JSON.stringify(value)}); input.dispatchEvent(new Event('input', {bubbles:true})); }`);
+  };
   await fill('Login email', 'updated@example.test'); await fill('Mobile number', '9345678012'); await fill('WhatsApp number', '9456780123'); await fill('New password', 'Browser-test-2026');
   await click('Save account details');
   await until('document.body.innerText.includes("Login and contact details saved")');
@@ -67,8 +96,17 @@ try {
   assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'No mobile overflow');
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'No desktop overflow');
-  await click('Save account details'); await pause(350);
+  await click('Save account details');
+  await until('!document.querySelector("input[type=password]")');
   assert.equal(requests[1].password, undefined, 'Blank password preserves the existing password');
+  if (directInput) {
+    await evaluate(`document.querySelector('input[placeholder="Start typing a name, email or number…"]').focus()`);
+    await send('Input.insertText', { text: 'Unsubmitted' });
+  } else await evaluate(`{ const input = document.querySelector('input[placeholder="Start typing a name, email or number…"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Unsubmitted'); input.dispatchEvent(new Event('input', {bubbles:true})); }`);
+  await until('document.body.innerText.includes("Unsubmitted Applicant")');
+  assert(await evaluate('document.body.innerText.includes("Complete and submit all required forms first.")'));
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(b=>b.textContent.includes("Make Lifetime"))'),false,'legacy manual-admission flag cannot enable a grant');
+  assert.equal(await evaluate('document.body.innerText.includes("I admit this member directly")'),false);
   assert.deepEqual(exceptions, []);
   console.log('PASS: lifetime labels, account editor, email/mobile/WhatsApp/password request, saved state, password clearing, blank-password preservation, mobile and desktop layout.');
   await send('Browser.close');

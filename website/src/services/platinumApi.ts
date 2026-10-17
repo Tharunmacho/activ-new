@@ -130,7 +130,7 @@ export const searchPlatinumCandidates = async (q: string): Promise<PlatinumCandi
     unwrap<PlatinumCandidate[]>(await api.get(`${BASE}/search`, { params: { q } }), []);
 
 export const grantPlatinum = async (memberId: string, body: {
-    amount: number; paymentMode: PlatinumPaymentMode; receiptNumber?: string; receivedOn?: string; note?: string; manualAdmission?: boolean;
+    amount: number; paymentMode: PlatinumPaymentMode; receiptNumber?: string; receivedOn?: string; note?: string;
 }): Promise<PlatinumCandidate> =>
     unwrap<PlatinumCandidate>(await api.post(`${BASE}/${encodeURIComponent(memberId)}`, body), null as unknown as PlatinumCandidate);
 

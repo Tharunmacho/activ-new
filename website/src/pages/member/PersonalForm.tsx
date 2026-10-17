@@ -20,6 +20,8 @@ import {
   normalizeReligion,
 } from "@/lib/memberFormOptions";
 import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
+import { validateMobile } from "@/lib/phoneNumber";
+import { countryByIso2 } from "@/lib/countryCodes";
 
 interface PersonalFormData {
   /** `fullName`, not `name` — this is the field name the backend stores. */
@@ -60,8 +62,13 @@ const PersonalInformationForm = () => {
    * profile, set from their phone number) and read here only to decide what
    * the form asks. They have no state, district or block; they give a place.
    */
-  const [isAbroad, setIsAbroad] = useState(false);
-  const [abroadCountry, setAbroadCountry] = useState("");
+  const [storedAbroad, setStoredAbroad] = useState(false);
+  const [storedCountry, setStoredCountry] = useState("");
+  const [needsFirstPhone, setNeedsFirstPhone] = useState(false);
+  const firstPhone = needsFirstPhone ? validateMobile(formData.phoneNumber) : null;
+  const firstPhoneAbroad = firstPhone?.ok === true && firstPhone.country !== "IN";
+  const isAbroad = storedAbroad || firstPhoneAbroad;
+  const abroadCountry = storedCountry || (firstPhoneAbroad ? countryByIso2(firstPhone?.country)?.name || "" : "");
   const [blocks, setBlocks] = useState<string[]>([]);
   /**
    * False when the platform has no staffed region at all. That is a different
@@ -70,6 +77,8 @@ const PersonalInformationForm = () => {
   const [coverageAvailable, setCoverageAvailable] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     loadFormData();
@@ -141,6 +150,8 @@ const PersonalInformationForm = () => {
    * edited and then silently rejected.
    */
   const loadFormData = async () => {
+    setLoading(true);
+    setLoadError("");
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -172,12 +183,15 @@ const PersonalInformationForm = () => {
 
         setIsLocked(profile.isLocked === true && profile.personalDetailsComplete !== false
           && Object.keys(personalDetailsErrors(profile)).length === 0);
-        setIsAbroad(profile.isInternational === true);
-        setAbroadCountry(profile.country || "");
-      }
+        setStoredAbroad(profile.isInternational === true);
+        setStoredCountry(profile.country || "");
+        setNeedsFirstPhone(!String(profile.phoneNumber || "").trim());
+      } else throw new Error("Could not load your saved details. Please try again.");
     } catch (error) {
       console.warn("Could not load personal details:", error);
-      toast.error(errorMessage(error, "Could not load your details"));
+      setLoadError(errorMessage(error, "Could not load your details"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,9 +244,10 @@ const PersonalInformationForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || loadError || submitting) return;
 
     if (isLocked) {
-      toast.error("Form is locked and cannot be edited");
+      navigate("/member/forms/business");
       return;
     }
 
@@ -275,11 +290,20 @@ const PersonalInformationForm = () => {
       step={1}
       title="Complete Your Profile"
       description="Personal Details — Step 1 of 3"
-      submitLabel="Next"
+      submitLabel={isLocked ? "Continue" : "Next"}
       submitting={submitting}
-      disabled={isLocked}
+      disabled={loading || !!loadError}
       onSubmit={handleSubmit}
     >
+      {loading && <p role="status">Loading your saved details...</p>}
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+          <p>{loadError}</p>
+          <button type="button" className="mt-3 rounded-lg border border-red-300 px-4 py-2 font-semibold" onClick={loadFormData}>Try again</button>
+        </div>
+      )}
+      {isLocked && <p className="rounded-xl bg-blue-50 p-4 text-blue-900">Your personal details are saved. Continue to the business step.</p>}
+      <fieldset disabled={loading || !!loadError || isLocked || submitting} className="min-w-0 space-y-5">
       {!isAbroad && !coverageAvailable && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-ui-small text-amber-800">
           Location data is unavailable. Reload the page to try again.
@@ -386,11 +410,11 @@ const PersonalInformationForm = () => {
           <FormField label="Phone Number" required>
             <Input
               type="tel"
-              inputMode="numeric"
-              maxLength={isAbroad ? 20 : 16}
+              inputMode="tel"
+              maxLength={20}
               value={formData.phoneNumber}
               onChange={(e) => setField("phoneNumber", e.target.value)}
-              placeholder="Enter Phone Number"
+              placeholder={needsFirstPhone ? "Mobile number with country code" : "Enter Phone Number"}
               className="h-11 border-slate-200 focus-visible:ring-blue-500"
             />
           </FormField>
@@ -489,6 +513,7 @@ const PersonalInformationForm = () => {
           </FormField>
         </FormGrid>
       </FormCard>
+      </fieldset>
     </RegistrationFormShell>
   );
 };

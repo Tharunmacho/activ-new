@@ -62,7 +62,7 @@ function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) =>
             const matches = await searchPlatinumCandidates(email || phone);
             const member = matches.find(m => email ? m.email.toLowerCase() === email : m.phoneNumber.replace(/\D/g, '').slice(-10) === phone);
             if (!member) { toast.info('No account matches. Use the new account fields below if this member has never registered.'); return; }
-            if (member.blockedReason && !member.canAdmitManually) { toast.error(member.blockedReason); return; }
+            if (member.blockedReason) { toast.error(member.blockedReason); return; }
             setForm(f => ({ ...f, password: '' }));
             onCreated(member); toast.success('Existing account selected. Its login and contact details are retained.');
         } catch (err) { toast.error(errorMessage(err, 'Could not find the existing member.')); }
@@ -74,7 +74,7 @@ function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) =>
         try {
             const member = await createPlatinumAccount(form);
             setForm({ fullName: '', email: '', password: '', phoneNumber: '', whatsappNumber: '', state: '', district: '', block: '' });
-            onCreated(member); toast.success(member.existingAccount ? 'Existing account selected. Record payment to upgrade; login details are retained.' : 'Account created. Record payment to activate Lifetime.');
+            onCreated(member); toast.success(member.existingAccount ? 'Existing account selected. Record payment to upgrade; login details are retained.' : 'Account created. The member must sign in, complete all required forms and submit them for approval.');
         } catch (e) { toast.error(errorMessage(e, 'Could not create account.')); }
         finally { setBusy(false); }
     };
@@ -87,7 +87,7 @@ function OfficeAccountForm({ onCreated }: { onCreated: (m: PlatinumCandidate) =>
             <label className={`min-w-0 ${FIELD_LABEL}`}>State<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="State" value={form.state} disabled={regionsLoading || busy || !states.length} onChange={e => setForm(f => ({ ...f, state: e.target.value, district: '', block: '' }))}><option value="">{regionsLoading ? 'Loading regions…' : 'Choose state'}</option>{states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}</select></label>
             <label className={`min-w-0 ${FIELD_LABEL}`}>District<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="District" value={form.district} disabled={!form.state || busy || !districts.length} onChange={e => setForm(f => ({ ...f, district: e.target.value, block: '' }))}><option value="">Choose district</option>{districts.map((d: any) => <option key={d.name} value={d.name}>{d.name}</option>)}</select></label>
             <label className={`min-w-0 ${FIELD_LABEL}`}>Block<select className={`mt-2 ${ADMIN_INPUT} font-normal`} aria-label="Block" value={form.block} disabled={!form.district || busy || !blocks.length} onChange={e => setForm(f => ({ ...f, block: e.target.value }))}><option value="">{form.district && !blocks.length ? 'No development blocks — district only' : 'Choose block'}</option>{blocks.map((b: any) => <option key={b.name} value={b.name}>{b.name}</option>)}</select></label>
-        </div><button type="button" disabled={busy || (!form.email.trim() && !form.phoneNumber.trim())} onClick={() => void submit()} className={`mt-5 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 w-full sm:w-auto !whitespace-normal`}>{busy ? 'Creating…' : 'Continue to Lifetime payment'}</button></div>;
+        </div><button type="button" disabled={busy || (!form.email.trim() && !form.phoneNumber.trim())} onClick={() => void submit()} className={`mt-5 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 w-full sm:w-auto !whitespace-normal`}>{busy ? 'Creating…' : 'Create or select account'}</button></div>;
 }
 
 function AccountEditor({ member, onSaved }: { member: PlatinumCandidate; onSaved: (m: PlatinumCandidate) => void }) {
@@ -127,18 +127,17 @@ function GrantForm({ member, price, onDone, onCancel }: {
     const [note, setNote] = useState('');
     const [confirmed, setConfirmed] = useState(false);
     const [busy, setBusy] = useState(false);
-    const [manualAdmission, setManualAdmission] = useState(false);
 
     const submit = async () => {
         const value = Number(amount);
         if (!Number.isFinite(value) || value <= 0) { toast.error('Enter the actual positive amount received'); return; }
-        if (member.blockedReason && (!manualAdmission || !note.trim())) { toast.error('Confirm office admission and enter its reason.'); return; }
+        if (member.blockedReason) { toast.error(member.blockedReason); return; }
         if (value !== price && !note.trim()) { toast.error('Explain the difference from the Lifetime fee.'); return; }
         if (!confirmed) { toast.error('Tick the box to confirm the payment was received'); return; }
         setBusy(true);
         try {
             const updated = await grantPlatinum(member.id, {
-                amount: value, paymentMode: mode, receiptNumber: receipt.trim(), receivedOn, note: note.trim(), manualAdmission,
+                amount: value, paymentMode: mode, receiptNumber: receipt.trim(), receivedOn, note: note.trim(),
             });
             toast.success(`${member.fullName || 'The member'} is now a Lifetime Member`);
             onDone(updated);
@@ -157,7 +156,7 @@ function GrantForm({ member, price, onDone, onCancel }: {
                 <Receipt className="h-4 w-4 text-blue-700" /> Record the payment received at the office
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {member.blockedReason && <label className="sm:col-span-2 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-slate-700"><input type="checkbox" checked={manualAdmission} onChange={e => setManualAdmission(e.target.checked)} className="mt-1" /><span>I admit this member directly as Super Admin after office payment. Their application is not marked approved; my admission reason must be recorded below.</span></label>}
+                <p className="sm:col-span-2 text-slate-600">First-time members must complete and submit all required forms and receive approval before Lifetime can be granted.</p>
                 <label className={`min-w-0 ${FIELD_LABEL}`}>Amount received (₹)
                     <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} className={field} />
                 </label>
@@ -347,7 +346,7 @@ function PlatinumRequests({ price, onGranted }: { price: number; onGranted: () =
                                                     {busy === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Mark contacted
                                                 </button>
                                             ) : null}
-                                            <button type="button" onClick={() => setGranting(r.id)} disabled={!!r.blockedReason && !r.canAdmitManually}
+                                            <button type="button" onClick={() => setGranting(r.id)} disabled={!!r.blockedReason}
                                                 title={r.blockedReason || undefined}
                                                 className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 font-semibold text-white disabled:opacity-50">
                                                 <Crown className="h-4 w-4" /> Grant Lifetime
@@ -455,7 +454,7 @@ export default function PlatinumMembers() {
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
             <button type="button" className={`mb-4 ${ADMIN_PRIMARY_BTN} h-auto min-h-12 py-3 max-w-full !whitespace-normal`} onClick={() => setCreating(v => !v)}>Create an office member account</button>
             {creating && <OfficeAccountForm onCreated={m => { setCreated(m); setCreating(false); }} />}
-            {created && <div className="mb-6 rounded-xl border border-blue-200 p-4"><h3 className="font-bold">Selected account: {created.fullName}</h3><p className="text-slate-600">Sign-in email: {created.email}. Edit the login or contact details below if needed, then record payment to activate lifetime membership.</p><AccountEditor key={created.id} member={created} onSaved={accountSaved} /><GrantForm member={created} price={price} onDone={m => { setCreated(null); onGranted(m); }} onCancel={() => setCreated(null)} /></div>}
+            {created && <div className="mb-6 rounded-xl border border-blue-200 p-4"><h3 className="font-bold">Selected account: {created.fullName}</h3><p className="text-slate-600">Sign-in email: {created.email}. Edit the login or contact details below if needed, then complete the required registration and approval before initial membership.</p><AccountEditor key={created.id} member={created} onSaved={accountSaved} /><p className="mt-2 text-slate-600">New members must sign in, complete Personal, Business and Declaration, and submit the application for approval.</p>{created.blockedReason ? <p role="status" className="mt-3 text-amber-700">{created.blockedReason}</p> : <GrantForm member={created} price={price} onDone={m => { setCreated(null); onGranted(m); }} onCancel={() => setCreated(null)} />}</div>}
             {/* ---- the offer ---- */}
             <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b1f5c] via-[#1e3a8a] to-[#2563eb] p-4 sm:p-5 text-white">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -515,7 +514,7 @@ export default function PlatinumMembers() {
                                 </div>
                                 {m.membershipTier === 'platinum' ? (
                                     <span className="inline-flex items-center gap-1 text-ui-caption font-semibold text-emerald-700"><Check className="h-4 w-4" /> Lifetime</span>
-                                ) : m.blockedReason && !m.canAdmitManually ? (
+                                ) : m.blockedReason ? (
                                     <span className="text-ui-caption text-amber-700 sm:max-w-[16rem] sm:text-right">{m.blockedReason}</span>
                                 ) : granting === m.id ? null : (
                                     <button type="button" onClick={() => setGranting(m.id)}

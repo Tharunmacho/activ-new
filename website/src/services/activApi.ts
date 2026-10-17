@@ -492,11 +492,18 @@ export const socialStartUrl = (provider: string) =>
     `${API_BASE_URL}${ENDPOINTS.AUTH.OAUTH_START(provider)}`;
 
 /** Trade the one-time hand-off code for a member session, stored like a password sign-in. */
-export const completeSocialLogin = async (code: string): Promise<LoginResult> => {
+export interface SocialEmailRequired { requiresEmailVerification: true; email: string; provider: string }
+export const completeSocialLogin = async (code: string, verificationCode?: string, shouldCommit: () => boolean = () => true): Promise<LoginResult | SocialEmailRequired> => {
+    if (!shouldCommit()) throw new Error('Sign-in was cancelled.');
     clearSession();
-    const res = await api.post(ENDPOINTS.AUTH.OAUTH_EXCHANGE, { code });
-    return persistSession(unwrap<any>(res, {}), res.data?.message);
+    const res = await api.post(ENDPOINTS.AUTH.OAUTH_EXCHANGE, { code, ...(verificationCode ? { verificationCode } : {}) });
+    if (!shouldCommit()) throw new Error('Sign-in was cancelled.');
+    const payload = unwrap<any>(res, {});
+    if (payload.requiresEmailVerification === true) return payload as SocialEmailRequired;
+    return persistSession(payload, res.data?.message);
 };
+export const requestSocialEmailCode = async (code: string, email: string) =>
+    unwrap<{ sent: boolean; email: string }>(await api.post('/auth/oauth/verify-email', { code, email }), { sent: false, email });
 
 /** The stored role, for route guards. Client-side only — the server re-checks. */
 export const getStoredRole = (): UserRole | null => {

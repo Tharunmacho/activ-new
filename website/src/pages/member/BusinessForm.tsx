@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import RegistrationFormShell, { FormCard, FormField, FormGrid } from "./RegistrationFormShell";
 import { getBusinessInfo, updateProfile, errorMessage } from "@/services/activApi";
 import { commencementYears } from "@/lib/memberFormOptions";
+import { businessFormError } from '@/lib/applicationFormValidation';
 
 /**
  * Step 2 asks two questions and no more.
@@ -56,7 +57,7 @@ interface BusinessFormData {
 /** The stored answer as the second question's choice. */
 const toKind = (saved: any): string => {
   if (String(saved?.registrationType || '').toLowerCase() === 'student') return 'student';
-  if (saved?.doingBusiness === false || saved?.doingBusiness === 'no') return 'aspirant';
+  if (String(saved?.registrationType || '').toLowerCase() === 'aspirant') return 'aspirant';
   return '';
 };
 
@@ -84,6 +85,8 @@ const BusinessInformationForm = () => {
     nonBusinessKind: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   /** 1950 to this year, newest first. Fixed for the life of the screen. */
   const years = useMemo(() => commencementYears(), []);
@@ -94,6 +97,8 @@ const BusinessInformationForm = () => {
   }, []);
 
   const loadFormData = async () => {
+    setLoading(true);
+    setLoadError('');
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -120,6 +125,9 @@ const BusinessInformationForm = () => {
     } catch (error) {
       console.warn("Could not load business details:", error);
       toast.error(errorMessage(error, "Failed to load form data"));
+      setLoadError(errorMessage(error, 'Failed to load form data'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,6 +147,9 @@ const BusinessInformationForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || loadError || submitting) return;
+    const error = businessFormError({ ...formData });
+    if (error) { toast.error(error); return; }
 
     if (!formData.doingBusiness) {
       toast.error("Please select whether you are currently doing business");
@@ -208,11 +219,14 @@ const BusinessInformationForm = () => {
       previousTo="/member/forms/personal"
       submitLabel="Next"
       submitting={submitting}
+      disabled={loading || !!loadError}
       onSubmit={handleSubmit}
       /* Platinum, for anyone joining as a business — at the foot of the screen,
          below the step and its buttons, never inside the business card. */
       after={formData.doingBusiness !== "no" ? <PlatinumNotice /> : null}
     >
+      {loading && <p role="status">Loading your saved business information…</p>}
+      {loadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-base"><p>{loadError}</p><button type="button" className="mt-2 underline" onClick={loadFormData}>Try again</button></div>}
       <FormCard
         icon={Briefcase}
         title="Business Status"

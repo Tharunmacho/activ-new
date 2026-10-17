@@ -8,6 +8,7 @@ import { Building2, FileCheck } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationFormShell, { FormCard, FormField } from "./RegistrationFormShell";
 import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
+import { businessFormError, declarationFormError } from "@/lib/applicationFormValidation";
 import {
   getMyProfile,
   getBusinessInfo,
@@ -33,6 +34,8 @@ const DeclarationForm = () => {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [companyInputs, setCompanyInputs] = useState<string[]>([""]);
 
   /*
@@ -50,6 +53,8 @@ const DeclarationForm = () => {
   }, []);
 
   const loadFormData = async () => {
+    setLoading(true);
+    setLoadError('');
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -60,13 +65,10 @@ const DeclarationForm = () => {
       const saved = await getDeclarationInfo();
 
       // Same three spellings the submit path already reconciles.
-      const business = await getBusinessInfo().catch(() => ({} as any));
-      setIsBusinessApplicant(
-        !(business?.doingBusiness === false
-          || business?.doingBusiness === "no"
-          || business?.registrationType === "aspirant"
-          || business?.registrationType === "student"),
-      );
+      const business = await getBusinessInfo();
+      const businessError = businessFormError(business);
+      if (businessError) { setLoadError(businessError); return; }
+      setIsBusinessApplicant(business.doingBusiness === true || business.doingBusiness === 'yes');
 
       if (saved && Object.keys(saved).length > 0) {
         setFormData((current) => ({
@@ -85,6 +87,9 @@ const DeclarationForm = () => {
     } catch (error) {
       console.error("Error loading form:", error);
       toast.error("Failed to load form data");
+      setLoadError(errorMessage(error, 'Failed to load form data'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -123,6 +128,10 @@ const DeclarationForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (loading || loadError || submitting) return;
+    const declarationError = declarationFormError({ ...formData }, isBusinessApplicant === true);
+    if (declarationError) { toast.error(declarationError); return; }
+
     if (!formData.agreeToDeclaration) {
       toast.error("Please accept the declaration to proceed");
       return;
@@ -139,9 +148,6 @@ const DeclarationForm = () => {
         companyNames: isBusinessApplicant === true ? formData.companyNames : [],
       });
 
-      toast.success("Declaration submitted successfully!");
-      window.dispatchEvent(new Event("formSubmitted"));
-
       // Gather every section the applicant has filled in. Read back from the
       // server rather than from local state so the application carries what was
       // actually stored, not what this page happens to remember.
@@ -157,11 +163,13 @@ const DeclarationForm = () => {
         a panel that stops rendering.
       */
       const [profile, business, financial, declaration] = await Promise.all([
-        getMyProfile().catch(() => ({} as any)),
-        getBusinessInfo().catch(() => ({} as any)),
+        getMyProfile(),
+        getBusinessInfo(),
         getFinancialInfo().catch(() => ({} as any)),
-        getDeclarationInfo().catch(() => ({} as any)),
+        getDeclarationInfo(),
       ]);
+      const sectionError = businessFormError(business) || declarationFormError(declaration, business.doingBusiness === true || business.doingBusiness === 'yes');
+      if (sectionError) { toast.error(sectionError); return; }
 
       // The region gate refuses an application whose block has no active admin,
       // so an incomplete personal form has to be caught here with a message that
@@ -216,6 +224,9 @@ const DeclarationForm = () => {
       const applicationId = application?._id || application?.id || "";
       if (applicationId) localStorage.setItem("applicationId", String(applicationId));
 
+      toast.success('Application submitted successfully!');
+      window.dispatchEvent(new Event('formSubmitted'));
+
       navigate("/member/application-submitted");
     } catch (error) {
       toast.error(errorMessage(error, "Failed to submit your application"));
@@ -232,9 +243,15 @@ const DeclarationForm = () => {
       previousTo="/member/forms/business"
       submitLabel="Submit Application"
       submitting={submitting}
-      disabled={!formData.agreeToDeclaration}
+      disabled={loading || !!loadError || !formData.agreeToDeclaration}
       onSubmit={handleSubmit}
     >
+      {loading && <p role="status">Loading your saved forms…</p>}
+      {loadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-base">
+        <p>{loadError}</p>
+        <Button type="button" variant="outline" onClick={loadFormData}>Try again</Button>
+        <Button type="button" variant="link" onClick={() => navigate('/member/forms/business')}>Open Business information</Button>
+      </div>}
       {/*
         Mirrors mobile's "Sister Concerns & Firms" card.
 
@@ -275,13 +292,15 @@ const DeclarationForm = () => {
                   {/* Company Names */}
                   {Number(formData.sisterConcerns || 0) > 0 && (
                     <div className="space-y-3">
-                      <Label>Company Names</Label>
+                      <Label>Company Names <span className="text-red-500">*</span></Label>
                       {companyInputs.map((value, index) => (
                         <div key={index} className="flex gap-2">
                           <Input
                             value={value}
                             onChange={(e) => handleCompanyNameChange(index, e.target.value)}
                             placeholder={`Company ${index + 1}`}
+                            aria-label={`Company ${index + 1}`}
+                            required
                             className="flex-1"
                           />
                           {companyInputs.length > 1 && (
