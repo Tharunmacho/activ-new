@@ -15,7 +15,7 @@ const profile = await mkdtemp(path.join(tmpdir(), 'activ-push-test-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const env = Object.fromEntries(['API_KEY', 'PROJECT_ID', 'MESSAGING_SENDER_ID', 'APP_ID', 'VAPID_KEY'].map(k => ['VITE_FIREBASE_' + k, 'fixture']));
 const calls = [];
-let bundle = '', css = '', chrome, ws;
+let bundle = '', css = '', chrome, ws, rejectRegistration = false;
 const server = http.createServer(async (req, res) => {
   if (req.url === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
   if (req.url === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
@@ -26,6 +26,7 @@ const server = http.createServer(async (req, res) => {
   if (req.url === '/api/v1/notifications/push/devices') {
     let body = ''; for await (const chunk of req) body += chunk;
     calls.push({ method: req.method, auth: req.headers.authorization, body: JSON.parse(body) });
+    if (req.method === 'POST' && rejectRegistration) { res.statusCode = 503; return res.end('{}'); }
     res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ data: { configured: true } }));
   }
   if (req.url === '/api/v1/auth/logout') {
@@ -93,9 +94,28 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await send('Page.navigate', { url: origin });
   await until('window.push && document.querySelector("button")');
+  rejectRegistration = true;
+  await evaluate('document.querySelector("button").click();document.querySelector("button").click()');
+  await until('document.body.textContent.includes("Could not register this browser") && !document.querySelector("button").disabled');
+  assert.equal(calls.length, 1, 'Rapid enable clicks make one registration request');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'Permission and opt-in cannot claim a failed registration succeeded');
+  assert.equal(await evaluate('push.pushEnabled()'), true, 'The opt-in remains available for a later retry');
+  assert.equal(await evaluate('document.querySelector("button").textContent'), 'Enable notifications');
+  assert.equal(await evaluate('document.body.textContent.includes("Turn off for this browser")'), false);
+  assert.match(await evaluate('push.browserPushStatus()'), /not connected yet/);
+  rejectRegistration = false;
   await evaluate('document.querySelector("button").click()');
   await until('document.body.textContent.includes("enabled for this account")');
   assert.equal((await evaluate('identity.readPushIdentity()')).userId, 'member-a');
+  assert.equal(await evaluate('push.browserPushRegistered()'), true);
+  await evaluate('window.savedIdentity=identity.readPushIdentity();');
+  await evaluate('(async()=>identity.writePushIdentity({...await window.savedIdentity,expiresAt:Date.now()-1}))()');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'Expired registration is not shown as enabled');
+  await evaluate('(async()=>identity.writePushIdentity(await window.savedIdentity))()');
+  await evaluate('signIn("different-member");window.dispatchEvent(new Event("focus"))');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'A different account cannot inherit the enabled badge');
+  await until('document.querySelector("button").textContent === "Enable notifications" && !document.body.textContent.includes("Turn off for this browser")');
+  await evaluate('signIn("member-a");push.syncBrowserPush()');
   assert.equal(calls[0].body.platform, 'web');
   const workerRegistration = await evaluate(`(async()=>{const registration=await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');return {scope:registration.scope,scriptURL:registration.active.scriptURL,updateViaCache:registration.updateViaCache}})()`);
   assert.deepEqual(workerRegistration, {scope:origin+'/',scriptURL:origin+'/firebase-messaging-sw.js',updateViaCache:'none'}, 'Worker controls the site root and bypasses cached update scripts');
@@ -147,6 +167,13 @@ try {
   await evaluate('window.permission="denied";document.querySelector("button").click()');
   await until('document.body.textContent.includes("not allowed")');
   assert.equal(calls.length, count, 'denied permission does not register a device');
+  await evaluate('window.permission="granted";localStorage.removeItem("token");window.dispatchEvent(new Event("focus"))');
+  await until('document.body.textContent.includes("Sign in again to connect notifications to your account")');
+  await evaluate('document.querySelector("button").click()');
+  await until('!document.querySelector("button").disabled');
+  assert.equal(calls.length, count, 'An expired settings session cannot silently register public visitor notifications');
+  assert.equal(await evaluate('push.browserPushRegistered(true)'), false);
+  await evaluate('signIn("member-b")');
   // Logout while FCM is obtaining a token must not register the previous account.
   await evaluate('window.permission="granted";window.holdToken=true;window.enabling=push.enableBrowserPush();void 0');
   await until('window.releaseToken');

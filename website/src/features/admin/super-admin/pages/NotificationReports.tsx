@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import HistoryDeleteButton from '@/features/admin/components/HistoryDeleteButton';
 import {
   BarChart3,
   Users,
@@ -170,7 +171,7 @@ function Detail({ row }: { row: ReportRow }) {
         <p>Created: {when(row.createdAt)}</p>
         {row.history?.map((event, i) => (
           <p key={i}>
-            {statusLabel({ channel: row.channel, status: event.status })}: {when(event.at)}
+            {event.status === "marked_read" ? "Marked read" : statusLabel({ channel: row.channel, status: event.status })}: {when(event.at)}
             {event.detail ? ` · ${notificationReason(event.detail)}` : ""}
           </p>
         ))}
@@ -181,7 +182,7 @@ function Detail({ row }: { row: ReportRow }) {
           <p>Next try: {when(row.nextAttemptAt)}</p>
         )}
         <p className="text-slate-500">
-          Sent means the sending service received the message. It does not confirm arrival.
+          Sent means the sending service accepted the message, or an in-app update was saved in the account. It does not confirm arrival or reading.
           Seen means an open or tap was recorded. Email opens are not tracked.
         </p>
       </div>
@@ -416,7 +417,7 @@ export default function NotificationReports({
         </div>
         <p className="text-ui-caption text-slate-500">
           Each message is counted separately for email, WhatsApp, push and app notifications.
-          Sent means it was passed to the sending service. Delivered means arrival was confirmed.
+          Sent means the sending service accepted it, or an in-app update was saved in the account. Delivered means arrival was confirmed.
           Seen means an open or tap was recorded. No recorded open does not mean the message was unread.
         </p>
       </section>
@@ -448,7 +449,7 @@ export default function NotificationReports({
         />
         <SummaryCard
           icon={<Send className="w-5 h-5" />}
-          label="Sent / in ACTIV"
+          label="Sent"
           value={fmt(summary?.accepted)}
           hint={`${fmt(summary?.records)} delivery records`}
           tone="emerald"
@@ -497,7 +498,7 @@ export default function NotificationReports({
                 {label}
               </h3>
               <Ratio
-                label={key === "in_app" ? "In the app" : "Sent"}
+                label="Sent"
                 value={channel?.accepted || 0}
                 total={channel?.records || 0}
               />
@@ -664,10 +665,14 @@ export default function NotificationReports({
       </section>
       <section id="delivery-report-recipients" aria-labelledby="delivery-report-recipient-heading" className={`${ADMIN_CARD} overflow-hidden`}>
         <div className="p-4 sm:p-6 space-y-3">
-          <h2 id="delivery-report-recipient-heading" ref={recipientHeading} tabIndex={-1} className={`${CARD_TITLE} scroll-mt-6 focus:outline-none`}>People and messages</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="delivery-report-recipient-heading" ref={recipientHeading} tabIndex={-1} className={`${CARD_TITLE} scroll-mt-6 focus:outline-none`}>People and messages</h2>
+            <HistoryDeleteButton label="Clear logs" context="Messages matching the current report filters" disabled={busy || !data?.rows.length}
+              selection={{ view: 'reports', filters: { channel: filters.channel, status: filters.status, from: filters.from, to: filters.to, group: filters.group, campaignKey: filters.campaignKey, search: filters.search } }} onRemoved={() => { change({ page: 1, campaignPage: 1 }); setRetryRefresh(value => value + 1); }} />
+          </div>
           <p className="text-ui-small text-slate-600" aria-live="polite">
             {filters.channel ? CHANNEL_LABELS[filters.channel as keyof typeof CHANNEL_LABELS] : "All channels"}
-            {" · "}{filters.status === "accepted_any" ? "All sent messages, including delivered, seen and marked read" : filters.status === "read" ? "Seen" : filters.status === "unconfirmed" ? "No recorded open" : filters.status === "accepted" ? "Sent / in ACTIV" : filters.status ? statusLabel({ channel: "email", status: filters.status }) : "Every outcome"}
+            {" · "}{filters.status === "accepted_any" ? "All sent messages, including delivered, seen and marked read" : filters.status === "read" ? "Seen" : filters.status === "unconfirmed" ? "No recorded open" : filters.status === "marked_read" ? "Marked read" : filters.status ? statusLabel({ channel: "email", status: filters.status }) : "Every outcome"}
             {busy ? " · Updating records…" : ""}
           </p>
           <p className="text-ui-caption text-slate-500">
@@ -696,10 +701,10 @@ export default function NotificationReports({
               <option value="read">Seen</option>
               <option value="accepted_any">All sent messages (including delivered / seen)</option>
               <option value="delivered">Delivered</option>
-              <option value="accepted">Sent / in ACTIV</option>
+              <option value="accepted">Sent</option>
               <option value="marked_read">Marked as read</option>
               <option value="failed">Failed</option>
-              <option value="queued">Waiting to send</option>
+              <option value="queued">Waiting</option>
               <option value="skipped">Not sent</option>
               <option value="mock">Not sent — setup needed</option>
             </select>
@@ -803,14 +808,18 @@ export default function NotificationReports({
                     )}
                   </span>
                 </button>
-                {row.status === "failed" && <div className="flex flex-wrap items-center justify-between gap-3 px-4 pb-4 sm:px-6">
-                  <p className="min-w-0 flex-1 basis-48 text-ui-small text-rose-700 [overflow-wrap:anywhere]">
-                    {row.channel === "in_app" ? "In-app entries cannot be resent." : notificationReason(row.error) || "This message could not be sent or delivered."}
+                {["failed", "skipped", "mock"].includes(row.status) && <div className="flex flex-wrap items-center justify-between gap-3 px-4 pb-4 sm:px-6">
+                  <p className={`min-w-0 flex-1 basis-48 text-ui-small [overflow-wrap:anywhere] ${row.status === "failed" ? "text-rose-700" : "text-slate-600"}`}>
+                    {notificationReason(row.error) || (row.status === "failed" ? "This message could not be sent or delivered." : "No reason was recorded for this earlier message.")}
                   </p>
                   {canReviewResend(row) && <button type="button" className={`${ADMIN_SECONDARY_BTN} min-h-11 shrink-0`} disabled={busy || !!retryBusy}
                     aria-label={`Resend ${CHANNEL_LABELS[row.channel]} message to ${row.recipientName || row.recipient || "this person"}`}
                     onClick={() => void reviewRetry(row)}><RotateCcw aria-hidden="true" className="h-4 w-4" />Resend</button>}
                 </div>}
+                <div className="flex justify-end px-4 pb-3 sm:px-6">
+                  <HistoryDeleteButton selection={{ view: 'reports', ids: [row._id] }} context={`${CHANNEL_LABELS[row.channel]} message to ${row.recipientName || 'this person'}`}
+                    disabled={busy || row.status === 'queued'} onRemoved={() => { change({ page: 1, campaignPage: 1 }); setRetryRefresh(value => value + 1); }} />
+                </div>
                 {expanded === row._id && <Detail row={row} />}
               </div>
             ))

@@ -4,7 +4,8 @@ import { ArrowLeft, Bell, ChevronRight, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { resolveMediaUrl } from '@/config/api.config';
 import { pushConfigured } from '@/lib/firebasePushConfig';
-import { disableBrowserPush, enableBrowserPush, PUSH_EVENT, pushEnabled } from '@/services/browserPush';
+import { SESSION_EVENT } from '@/services/api';
+import { browserPushRegistered, disableBrowserPush, enableBrowserPush, PUSH_EVENT } from '@/services/browserPush';
 import { getPublicNotice, getPublicNotices, recordVisitorOpen, type PublicNotice } from '@/services/visitorBrowserPush';
 
 const ASKED = 'activ:browser-permission-requested';
@@ -29,6 +30,8 @@ export default function PublicNotificationsBell() {
   const [pushError, setPushError] = useState('');
   const openedFromList = useRef<string | null>(null);
   const asked = useRef(false);
+  const pushWorking = useRef(false);
+  const pushStateVersion = useRef(0);
   const supportsPush = pushConfigured() && window.isSecureContext && 'Notification' in window
     && 'serviceWorker' in navigator && 'PushManager' in window;
 
@@ -40,13 +43,16 @@ export default function PublicNotificationsBell() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    const refresh = () => {
+    const refresh = async () => {
+      const version = ++pushStateVersion.current;
       const current = 'Notification' in window ? Notification.permission : 'default';
       setPermission(current);
-      try { setEnabled(current === 'granted' && pushEnabled()); } catch { setEnabled(false); }
+      const registered = await browserPushRegistered().catch(() => false);
+      if (version === pushStateVersion.current) setEnabled(registered);
     };
-    refresh(); window.addEventListener(PUSH_EVENT, refresh); window.addEventListener('focus', refresh);
-    return () => { window.removeEventListener(PUSH_EVENT, refresh); window.removeEventListener('focus', refresh); };
+    const events = [PUSH_EVENT, SESSION_EVENT, 'storage', 'focus'];
+    void refresh(); events.forEach(event => window.addEventListener(event, refresh));
+    return () => { pushStateVersion.current++; events.forEach(event => window.removeEventListener(event, refresh)); };
   }, []);
 
   useEffect(() => {
@@ -78,15 +84,20 @@ export default function PublicNotificationsBell() {
   }, [open, noticeId, revision]);
 
   const changePush = async (enable: boolean) => {
-    if (busy) return;
+    if (pushWorking.current) return;
+    pushWorking.current = true;
     setBusy(true); setPushError('');
     try {
       // Request native permission during this click, before any asynchronous SDK work.
       if (enable) await enableBrowserPush(); else await disableBrowserPush();
+      if (enable && !await browserPushRegistered()) throw new Error('This browser is not connected yet. Try connecting again.');
     } catch (cause) { setPushError(cause instanceof Error ? cause.message : 'Please try again.'); }
     finally {
       setPermission('Notification' in window ? Notification.permission : 'default');
-      try { setEnabled(Notification.permission === 'granted' && pushEnabled()); } catch { setEnabled(false); }
+      const version = ++pushStateVersion.current;
+      const registered = await browserPushRegistered().catch(() => false);
+      if (version === pushStateVersion.current) setEnabled(registered);
+      pushWorking.current = false;
       setBusy(false);
     }
   };
@@ -143,7 +154,7 @@ export default function PublicNotificationsBell() {
       {supportsPush && <div className="shrink-0 border-t border-slate-100 bg-slate-50 px-4 py-3">
         {permission === 'denied' ? <p className="text-[15px] leading-6 text-slate-500">Notifications are blocked. You can allow them in your browser's site settings.</p>
           : <button type="button" disabled={busy} aria-label={enabled ? 'Disable browser notifications' : 'Enable browser notifications'} onClick={() => void changePush(!enabled)} className="inline-flex min-h-[44px] items-center gap-2 text-[16px] font-semibold text-blue-700 disabled:opacity-60">
-            {busy ? 'Updating…' : enabled ? 'Notifications on · Turn off' : 'Turn on browser notifications'}
+            {busy ? 'Connecting…' : enabled ? 'Notifications on · Turn off' : pushError ? 'Try connecting again' : 'Turn on browser notifications'}
           </button>}
         {pushError && permission !== 'denied' && <p role="status" className="mt-1 text-[15px] leading-6 text-amber-700">{pushError}</p>}
       </div>}

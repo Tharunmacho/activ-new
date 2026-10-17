@@ -6,7 +6,7 @@ import { mkdtemp, rm, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'esbuild';
+import { build, stop } from 'esbuild';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-event-editor-'));
@@ -57,10 +57,11 @@ const base = `http://127.0.0.1:${server.address().port}`;
 try {
   const assets = await readdir(path.join(root, 'dist/assets'));
   css = await readFile(path.join(root, 'dist/assets', assets.find(file => /^index-.*\.css$/.test(file))), 'utf8');
-  const result = await build({ absWorkingDir: root, bundle: true, write: false, format: 'iife', platform: 'browser', jsx: 'automatic',
+  const result = await build({ absWorkingDir: root, bundle: true, write: false, outfile: 'fixture.js', format: 'iife', platform: 'browser', jsx: 'automatic',
     define: { 'import.meta.env': JSON.stringify({ DEV: true, VITE_API_URL: `${base}/api/v1` }), 'process.env.NODE_ENV': '"test"' },
-    stdin: { resolveDir: root, loader: 'tsx', contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter,Routes,Route} from 'react-router-dom'; import {Toaster} from 'sonner'; import EventsManager from './src/pages/cms/EventsManager'; import EventDetailPage from './src/pages/onboarding/EventDetailPage'; createRoot(document.getElementById('root')).render(<BrowserRouter><Routes><Route path='/cms/events' element={<EventsManager/>}/><Route path='/events/:id' element={<EventDetailPage/>}/></Routes><Toaster/></BrowserRouter>);` } });
-  bundle = result.outputFiles[0].text;
+    stdin: { resolveDir: root, loader: 'tsx', contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter,Routes,Route} from 'react-router-dom'; import {Toaster} from 'sonner'; import EventsManager from './src/pages/cms/EventsManager'; import SuperAdminEvents from './src/features/admin/super-admin/pages/Events'; import RouteRecovery from './src/components/RouteRecovery'; import EventDetailPage from './src/pages/onboarding/EventDetailPage'; localStorage.setItem('role','super_admin'); createRoot(document.getElementById('root')).render(<BrowserRouter><RouteRecovery><Routes><Route path='/super-admin/events' element={<SuperAdminEvents/>}/><Route path='/cms/events' element={<EventsManager/>}/><Route path='/events/:id' element={<EventDetailPage/>}/></Routes></RouteRecovery><Toaster/></BrowserRouter>);` } });
+  bundle = result.outputFiles.find(file => file.path.endsWith('.js')).text;
+  css += result.outputFiles.find(file => file.path.endsWith('.css'))?.text || '';
   chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe',
     ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', 'about:blank'], { windowsHide: true, stdio: 'ignore' });
   let port;
@@ -84,6 +85,10 @@ try {
   const openEditor = async () => { await send('Page.navigate', { url: `${base}/cms/events?event=event-fixture` }); await until(`document.querySelector('#event-form') && document.querySelector('input[name="whatsappChannelUrl"]')`); };
   await send('Page.enable'); await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
+  await send('Page.navigate', { url: `${base}/super-admin/events` });
+  await until(`document.querySelector('table tbody')?.textContent.includes('Event editor fixture') || document.querySelector('[role="alert"]')`);
+  assert(!(await evaluate(`document.body.innerText.includes('Something went wrong on this page')`)), `Admin event list loads: ${exceptions.join('\n')}`);
+  assert(await evaluate(`document.querySelector('table tbody')?.textContent.includes('Event editor fixture')`), 'The real super-admin wrapper renders the event list');
   await openEditor();
   assert.deepEqual(await names(), ['Guest A', 'Guest B', 'Guest C']);
   assert(await evaluate(`document.querySelector('button[aria-label="Move Guest A up"]').disabled`));
@@ -157,6 +162,7 @@ try {
   console.log('PASS: mobile guest controls fit the screen, public event cards follow saved order, and no browser exceptions.');
   await send('Browser.close');
 } finally {
+  stop();
   pendingDocument?.destroy(); pendingPhoto?.destroy(); ws?.close(); chrome?.kill();
   server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
   const resolved = path.resolve(profile);

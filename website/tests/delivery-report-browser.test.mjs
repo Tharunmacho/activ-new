@@ -136,7 +136,20 @@ try {
           b.onResolve({filter:/^(?:@\/services\/api|\.\/api)$/},()=>({path:'api',namespace:'isolated-api'}));
           b.onLoad({filter:/.*/,namespace:'isolated-api'},()=>({contents:`
             const unexpected=()=>{throw Error('Unexpected live API request in local fixture')};
-            export default {get:unexpected,post:unexpected,put:unexpected,patch:unexpected};
+            export default {get:unexpected,post:async(url,body)=>{
+              if(url==='/notifications/history/delete-preview'){
+                window.historyPreviews.push(JSON.parse(JSON.stringify(body)));
+                const ids=body.ids||window.historyFixture.rows.filter(row=>row.status!=='queued').map(row=>row._id).slice(0,500);
+                return window.historyPreviewResponse||{matched:ids.length,reviewed:ids.length,eligible:ids.length,retained:0,remaining:0,truncated:false,ids,token:'history-snapshot',reasons:[]};
+              }
+              if(url==='/notifications/history/delete'){
+                window.historyDeletes.push(body);await new Promise(resolve=>window.finishHistoryDelete=resolve);
+                if(window.historyProcessing)return {removed:0,retained:0,processing:true,alreadySubmitted:true,reasons:[]};
+                window.historyFixture.rows=window.historyFixture.rows.filter(row=>!body.ids.includes(row._id));
+                return {removed:body.ids.length,retained:0,reasons:[]};
+              }
+              return unexpected();
+            },put:unexpected,patch:unexpected};
             export const unwrap=(value)=>value;
             export const errorMessage=(e,f)=>e.message||f;
           `}));
@@ -159,6 +172,7 @@ try {
         import {CHANNEL_LABELS,statusLabel} from ${JSON.stringify(path.join(root,'src/services/deliveryReportApi.ts'))};
         export {CHANNEL_LABELS,statusLabel};
         const fixture=${JSON.stringify(fixture)};
+        window.historyFixture=fixture;window.historyPreviews=[];window.historyDeletes=[];
         window.useLargeFailureFixture=()=>{fixture.rows=Array.from({length:105},(_,index)=>({
           _id:'failure-'+index,channel:index<100?'push':'email',status:'failed',recipientName:'Failed recipient '+index,
           recipient:'fixture@example.test',title:'Regional association update',campaignKey:'automation:fixture',createdAt:'2026-10-16T10:00:00Z'
@@ -167,7 +181,9 @@ try {
           ...['email','whatsapp','push','visitor-push'].map(channel=>({_id:channel+':resend',channel:channel==='visitor-push'?'push':channel,status:'failed',recipientName:channel+' recipient',recipient:'fixture@example.test',title:channel==='whatsapp'?'event_reminder_photo_v4':'Fixture message',templateId:channel==='whatsapp'?'event_reminder_photo_v4':undefined,event:'EVENT_BOOKING_REMINDER',createdAt:'2026-10-16T10:00:00Z',error:channel==='whatsapp'?'Media upload error: Downloading media from weblink failed with http code503, status message Service Unavailable (code131053)':''})),
           ...['accepted','sent','delivered','read','queued','skipped','unknown'].map(status=>({_id:'email:'+status,channel:'email',status,recipientName:status+' recipient',title:'Fixture message'})),
           {_id:'in_app:failed',channel:'in_app',status:'failed',recipientName:'In-app recipient',title:'Fixture message'},
-          {_id:'in_app:accepted',channel:'in_app',status:'accepted',recipientName:'In-app accepted',title:'Fixture message'}
+          {_id:'in_app:accepted',channel:'in_app',status:'accepted',recipientName:'In-app accepted',title:'Fixture message'},
+          {_id:'in_app:marked_read',channel:'in_app',status:'marked_read',recipientName:'Manually marked read',title:'Fixture message',readAt:'2026-10-16T10:04:00Z',history:[{status:'marked_read',at:'2026-10-16T10:04:00Z'}]},
+          {_id:'push:skipped',channel:'push',status:'skipped',recipientName:'Not connected',title:'Fixture message',error:'No phone or browser is currently set up to receive push notifications for this account.'}
         ]};
         window.retryPreviewCalls=[];window.retryCalls=[];window.reportReads=0;
         export const getDeliveryRetryStatus=async()=>({found:false,processing:false});
@@ -300,6 +316,17 @@ try {
     assert.equal(await evaluate(`window.notificationCopy.notificationReason(${JSON.stringify(reason)})`), reason, 'unknown/provider diagnostic text is preserved');
   }
   assert.equal(await evaluate('window.notificationCopy.notificationReason("(#132005) Translated text too long")'), 'The message was too long for WhatsApp.');
+  for (const [code, wording] of [
+    ['131048','WhatsApp has temporarily limited messages from ACTIV. Try again later.'],
+    ['131049','WhatsApp did not allow this promotional message to this number.'],
+    ['131053','WhatsApp could not use the image or document. Check that the file opens, then try Resend.'],
+  ]) {
+    assert.equal(await evaluate(`window.notificationCopy.notificationReason(${JSON.stringify('WhatsApp could not deliver: Provider detail (code '+code+')')})`), wording);
+    assert.equal(await evaluate(`window.notificationCopy.notificationReason(${JSON.stringify('(#'+code+') Provider detail')})`), wording);
+    const unrelated='Email reference '+code+' is unknown';
+    assert.equal(await evaluate(`window.notificationCopy.notificationReason(${JSON.stringify(unrelated)})`), unrelated);
+  }
+  assert.equal(await evaluate('window.notificationCopy.notificationReason("app/invalid-credential")'), 'The push notification service could not sign in. Its settings need checking.');
   assert.equal(await evaluate('window.notificationCopy.notificationTemplatePath("photo template skipped: no image | sent on backup")'), 'photo template not used: no image | sent using backup');
   for (const width of [320, 390, 768, 1440]) {
     await send("Emulation.setDeviceMetricsOverride", {
@@ -352,13 +379,13 @@ try {
   const campaignKey = await evaluate("window.lastFilters.campaignKey");
   await evaluate('document.querySelector("[aria-label=\\"Next people and messages\\"]").click()');
   await until("window.lastFilters.page === 2");
-  await evaluate('document.querySelector("[aria-label=\\"Show sent / in activ\\"]").click()');
+  await evaluate('document.querySelector("[aria-label=\\"Show sent\\"]").click()');
   await until('window.lastFilters.status === "accepted_any" && window.lastFilters.page === 1');
   await until('document.body.textContent.includes("Read-inbox Member")');
   assert(await evaluate('document.body.textContent.includes("Delivered Member") && document.body.textContent.includes("Handset Member")'));
   assert(await evaluate('window.lastReport.pagination.total === window.lastReport.summary.accepted'));
   assert.equal(await evaluate('document.activeElement.id'), "delivery-report-recipient-heading", "summary card reveals and focuses details");
-  assert.equal(await evaluate('document.querySelector("[aria-label=\\"Show sent / in activ\\"]").getAttribute("aria-pressed")'), "true");
+  assert.equal(await evaluate('document.querySelector("[aria-label=\\"Show sent\\"]").getAttribute("aria-pressed")'), "true");
   await evaluate('document.querySelector("[aria-label=\\"Report delivery outcome\\"]").value="accepted";document.querySelector("[aria-label=\\"Report delivery outcome\\"]").dispatchEvent(new Event("change",{bubbles:true}))');
   await until('window.lastFilters.status === "accepted"');
   await until('!document.body.textContent.includes("Delivered Member")');
@@ -472,7 +499,7 @@ try {
   await until('document.body.textContent.includes("5 tried · 5 sent")');
   // Failed rows expose their own action even while history is collapsed.
   await evaluate('window.useRowActionsFixture();document.querySelector("[aria-label=\\"Show people and contacts\\"]").click()');
-  await until('window.lastReport.pagination.total===13 && !document.querySelector("[aria-busy=\\"true\\"]")');
+  await until('window.lastReport.pagination.total===15 && !document.querySelector("[aria-busy=\\"true\\"]")');
   assert.equal(await evaluate('document.querySelectorAll("[data-delivery-id] button[aria-label^=Resend]").length'),4);
   for(const id of ['email:resend','whatsapp:resend','push:resend','visitor-push:resend']) {
     const wrapper=`document.querySelector('[data-delivery-id="${id}"]')`;
@@ -488,7 +515,12 @@ try {
   for(const status of ['accepted','sent','delivered','read','queued','skipped','unknown']) assert.equal(await evaluate(`document.querySelector('[data-delivery-id="email:${status}"] button[aria-label^=Resend]')===null`),true,`${status} is not retryable`);
   assert.equal(await evaluate(`document.querySelector('[data-delivery-id="in_app:failed"] button[aria-label^=Resend]')===null`),true);
   assert(await evaluate(`document.querySelector('[data-delivery-id="email:read"] [data-report-column="outcome"]').textContent.trim()==='Seen'`),'Actual status helper says Seen only for recorded read');
-  assert(await evaluate(`document.querySelector('[data-delivery-id="in_app:accepted"]').textContent.includes('In the app')`));
+  for(const id of ['in_app:accepted','in_app:marked_read']) assert.equal(await evaluate(`document.querySelector('[data-delivery-id="${id}"] [data-report-column="outcome"]').textContent.trim()`),'Sent','A stored or manually marked update does not claim a recorded open');
+  assert(await evaluate(`document.querySelector('[data-delivery-id="email:skipped"]').textContent.includes('No reason was recorded for this earlier message.')`),'Blank historical reasons are not invented');
+  assert(await evaluate(`document.querySelector('[data-delivery-id="push:skipped"]').textContent.includes('No phone or browser is currently set up')`),'Known unsent reason is visible without expanding the row');
+  assert.equal(await evaluate(`document.querySelector('[data-delivery-id="push:skipped"] button[aria-label^=Resend]')===null`),true,'Not sent remains ineligible for resend');
+  await evaluate(`document.querySelector('[data-delivery-id="in_app:marked_read"] [data-report-row]').click()`);
+  await until(`document.querySelector('[data-delivery-id="in_app:marked_read"]').textContent.includes('Marked read:')`);
   assert(await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"]').textContent.includes('WhatsApp could not download the image or document. Check that the file opens, then try Resend.')`));
   assert(await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] [data-report-column="notification"]').textContent.includes('Booking reminder')`),'Message type replaces technical template name in the main row');
   await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] [data-report-row]').click()`);
@@ -504,6 +536,42 @@ try {
     const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await mkdir(artifacts,{recursive:true});await writeFile(path.join(artifacts,`row-resend-${width}.png`),Buffer.from(shot.result.data,'base64'));
   }
+  // Real history API/component: no writes during review/cancel; exact snapshot
+  // confirmation, rapid double clicks, pending preservation and same-token polling.
+  const waDelete = `document.querySelector('[data-delivery-id="whatsapp:resend"] button[aria-label^="Delete:"]')`;
+  assert(await evaluate(`document.querySelector('[data-delivery-id="email:queued"] button[aria-label^="Delete:"]').disabled`),'Waiting message cannot be removed from the row action');
+  await evaluate(`${waDelete}.click()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("1 log ready")');
+  assert.deepEqual(await evaluate('window.historyPreviews.at(-1)'),{view:'reports',ids:['whatsapp:resend']});
+  assert.equal(await evaluate('window.historyDeletes.length'),0,'Review does not delete');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Cancel').click()`);
+  assert.equal(await evaluate('window.historyDeletes.length'),0,'Cancel does not delete');
+  await evaluate(`${waDelete}.click()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("1 log ready")');
+  for(const width of [320,390,1440]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<600});
+    assert(await evaluate('document.querySelector("[role=alertdialog]").getBoundingClientRect().width<=innerWidth'),'Cleanup confirmation fits narrow screens');
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await mkdir(artifacts,{recursive:true});await writeFile(path.join(artifacts,`history-delete-confirm-${width}.png`),Buffer.from(shot.result.data,'base64'));
+  }
+  await evaluate(`{const button=[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Delete 1 log');button.click();button.click()}`);
+  assert.equal(await evaluate('window.historyDeletes.length'),1,'Duplicate confirmation sends one request');
+  assert.deepEqual(await evaluate('window.historyDeletes[0]'),{ids:['whatsapp:resend'],token:'history-snapshot'});
+  await evaluate(`window.historyProcessing=true;window.finishHistoryDelete()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("still being cleared")');
+  assert(await evaluate(`${waDelete}!==null`),'Processing is not treated as completed deletion');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Delete 1 log').click()`);
+  assert.deepEqual(await evaluate('window.historyDeletes[1]'),{ids:['whatsapp:resend'],token:'history-snapshot'},'Check again reuses the same reviewed token');
+  await evaluate(`window.historyProcessing=false;window.historyFixture.rows.push({_id:'new-arrival',channel:'email',status:'accepted',recipientName:'New arrival',title:'New message'});window.finishHistoryDelete()`);
+  await until(`${waDelete}===null && document.querySelector('[data-delivery-id="new-arrival"]')`);
+  assert.equal(await evaluate('window.lastFilters.page'),1,'Cleanup returns to first page');
+  await evaluate(`document.querySelector('button[aria-label^="Clear logs:"]').click()`);
+  await until('document.querySelector("[role=alertdialog]")?.textContent.includes("ready to delete")');
+  const clearSelection=await evaluate('window.historyPreviews.at(-1)');
+  assert.equal(clearSelection.view,'reports');assert(!('page' in clearSelection.filters));assert(!('limit' in clearSelection.filters));assert(!('campaignPage' in clearSelection.filters));
+  assert.equal(await evaluate('window.historyDeletes.length'),2,'Clear logs still needs explicit confirmation');
+  await evaluate(`[...document.querySelectorAll('[role=alertdialog] button')].find(b=>b.textContent==='Cancel').click()`);
+  console.log('PASS: history exact-ID review/cancel/confirm, duplicate protection, processing check, new arrivals, page reset, filter-only clear and mobile dialog layout. No real deletions.');
   await evaluate('window.renderLegacyRows()');
   await until('document.querySelector("[data-legacy-state=failed] button")');
   assert.equal(await evaluate('document.querySelectorAll("#legacy-fixture button").length'),1,'Legacy resend appears only for a confirmed failed external message');

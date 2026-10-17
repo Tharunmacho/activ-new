@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import HistoryDeleteButton from './HistoryDeleteButton';
 import { Mail, MessageSquare, Loader2, RotateCcw, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { errorMessage } from '@/services/api';
@@ -536,6 +537,10 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                         })}
                     </div>
 
+                    <div className="flex justify-end">
+                        <HistoryDeleteButton label="Clear logs" context={`Messages for booking ${bookingRef}${rows.length > 500 ? ` · Up to 500 finished logs at a time; clear the next batch afterwards` : ''}`} disabled={loading || !rows.some(row => stateOf(row) !== 'queued')}
+                            selection={{ view: 'logs', ids: rows.filter(row => stateOf(row) !== 'queued').slice(0, 500).map(row => row._id) }} onRemoved={async () => { setOpenId(''); await load(); onChanged?.(); }} />
+                    </div>
                     <ul className="space-y-2">
                         {rows.map((row) => {
                             const open = openId === row._id;
@@ -562,6 +567,10 @@ export function BookingDeliveryPanel({ bookingRef, title, onClose, onChanged }: 
                                         </div>
                                         <DeliveryBadge state={stateOf(row)} compact />
                                     </button>
+                                    <div className="flex justify-end px-4 pb-3">
+                                        <HistoryDeleteButton selection={{ view: 'logs', ids: [row._id] }} context={messageLabel(row.event)} disabled={loading || stateOf(row) === 'queued'}
+                                            onRemoved={async () => { setOpenId(''); await load(); onChanged?.(); }} />
+                                    </div>
                                     {open ? (
                                         <div className="border-t border-slate-100 px-4 py-3 space-y-3">
                                             <DeliveryDetail row={row} />

@@ -144,8 +144,7 @@ export const CHANNEL_LABELS: Record<ReportChannel, string> = {
   in_app: "In-app notifications",
 };
 export const statusLabel = (row: Pick<ReportRow, "channel" | "status">) => {
-  if (row.status === "accepted")
-    return row.channel === "in_app" ? "In the app" : "Sent";
+  if (row.status === "accepted") return "Sent";
   if (row.status === "read") return "Seen";
   return (
     (
@@ -156,7 +155,7 @@ export const statusLabel = (row: Pick<ReportRow, "channel" | "status">) => {
         failed: "Failed",
         skipped: "Not sent",
         mock: "Not sent",
-        marked_read: "Marked as read",
+        marked_read: "Sent",
       } as Record<string, string>
     )[row.status] || row.status
   );

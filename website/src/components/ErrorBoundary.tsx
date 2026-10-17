@@ -1,5 +1,24 @@
 import React from 'react';
 
+const CHUNK_RELOAD_KEY = 'activ:page-module-reload';
+const CHUNK_RELOAD_WINDOW_MS = 10 * 60 * 1000;
+
+/** A rejected lazy import stays rejected until a new document loads. */
+function recoverPageModule(error: Error): boolean {
+    const isModuleFailure = error.name === 'ChunkLoadError'
+        || /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk [\w-]+ failed|Unable to preload CSS/i.test(error.message);
+    if (!isModuleFailure) return false;
+    try {
+        const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY));
+        const now = Date.now();
+        if (last && now - last < CHUNK_RELOAD_WINDOW_MS) return false;
+        // Write before reloading; persistent failures cannot form a reload loop.
+        sessionStorage.setItem(CHUNK_RELOAD_KEY, String(now));
+        window.location.reload();
+        return true;
+    } catch { return false; }
+}
+
 /**
  * The last line of defence between a render-time throw and a white screen.
  *
@@ -30,6 +49,8 @@ interface Props {
 
 interface State {
     error: Error | null;
+    details?: string;
+    copied?: boolean;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
@@ -42,15 +63,34 @@ export class ErrorBoundary extends React.Component<Props, State> {
     componentDidCatch(error: Error, info: React.ErrorInfo) {
         // eslint-disable-next-line no-console
         console.error(`[ErrorBoundary${this.props.label ? `: ${this.props.label}` : ''}]`, error, info.componentStack);
+        recoverPageModule(error);
     }
 
     componentDidUpdate(previous: Props) {
         if (this.state.error && previous.resetKey !== this.props.resetKey) this.reset();
     }
 
-    private reset = () => this.setState({ error: null });
+    private reset = () => this.setState({ error: null, details: '', copied: false });
 
     private reload = () => window.location.reload();
+
+    private copyDetails = async () => {
+        const error = this.state.error;
+        if (!error) return;
+        const message = String(error.message || 'Unknown error')
+            .replace(/https?:\/\/[^\s"'<>]+/gi, value => {
+                try { const url = new URL(value); return url.origin + url.pathname; } catch { return '[URL]'; }
+            })
+            .replace(/(\/[^\s?#"'<>]*)\?[^\s"'<>]*/g, '$1')
+            .replace(/\bBearer\s+\S+/gi, 'Bearer [removed]')
+            .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email removed]')
+            .slice(0, 600);
+        const details = `${String(error.name || 'Error').slice(0, 60)}: ${message}\nPage: ${window.location.pathname}`;
+        try {
+            await navigator.clipboard.writeText(details);
+            this.setState({ copied: true, details: '' });
+        } catch { this.setState({ copied: false, details }); }
+    };
 
     render() {
         const { error } = this.state;
@@ -105,7 +145,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
                         >
                             Go home
                         </a>
+                        <button type="button" onClick={() => void this.copyDetails()}
+                            className="min-h-[44px] px-6 py-2.5 rounded-full border border-gray-200 text-[#1c2e68] font-semibold hover:bg-gray-50">
+                            Copy error details
+                        </button>
                     </div>
+                    {this.state.copied && <p role="status" className="mt-4 text-sm text-gray-600">Error details copied. Share them with ACTIV support.</p>}
+                    {this.state.details && <div className="mt-4 text-left">
+                        <p className="text-sm text-gray-600">Copy this text and share it with ACTIV support.</p>
+                        <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-3 text-sm">{this.state.details}</pre>
+                    </div>}
                 </div>
             </div>
         );

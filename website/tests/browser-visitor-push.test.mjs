@@ -18,7 +18,7 @@ const env = Object.fromEntries(['API_KEY', 'PROJECT_ID', 'MESSAGING_SENDER_ID', 
 const calls = [];
 const noticeId = 'd'.repeat(24), eventNoticeId = 'e'.repeat(24), eventId = 'f'.repeat(24);
 const receipts = new Set();
-let bundle = '', css = '', chrome, ws, installations = 0, rejectDelete = false, expireNext = false;
+let bundle = '', css = '', chrome, ws, installations = 0, rejectDelete = false, expireNext = false, rejectRegistration = false;
 let feedMode = 'normal', rejectDetail = false;
 const server = http.createServer(async (req, res) => {
   if (fonts.serve(new URL(req.url, 'http://localhost'), res)) return;
@@ -53,6 +53,7 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify({ data: { id: installations.toString(16).padStart(24, '0'), key: String(installations).padStart(64, '0') } }));
     }
     if (req.url.endsWith('/public-notifications/devices')) {
+      if (req.method === 'PUT' && rejectRegistration) { res.statusCode = 503; return res.end('{}'); }
       if (req.method === 'DELETE' && rejectDelete) { res.statusCode = 503; return res.end('{}'); }
       if (req.method === 'PUT' && expireNext) { expireNext = false; res.statusCode = 401; return res.end('{}'); }
     }
@@ -348,8 +349,18 @@ try {
   const afterOptOut = visitorPuts().length;
   await closeBell(); await openBell(); await pause(200);
   assert.equal(visitorPuts().length, afterOptOut, 'viewing the card does not undo explicit browser opt-out');
+  rejectRegistration = true;
   await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.getAttribute('aria-label')==='Enable browser notifications'||button.textContent.trim()==='Enable browser notifications').click()`);
+  await until(`${dialog}.textContent.includes('Try connecting again')`);
+  assert.equal(await evaluate('push.pushEnabled()'), true);
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'Granted permission alone cannot show a connected public bell');
+  assert.equal(await evaluate(`${dialog}.textContent.includes('Notifications on')`), false);
+  assert.equal(await evaluate(`${dialog}.querySelector('[aria-label="Enable browser notifications"]') !== null`), true);
+  rejectRegistration = false;
+  await evaluate(`${dialog}.querySelector('[aria-label="Enable browser notifications"]').click()`);
   await until('(await identity.readPushIdentity())?.visitorId');
+  await until(`${dialog}.textContent.includes('Notifications on')`);
+  assert.equal(await evaluate('push.browserPushRegistered()'), true);
   await closeBell();
 
   feedMode = 'empty';

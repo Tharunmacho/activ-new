@@ -7,7 +7,7 @@ import { mkdtemp, rm, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'esbuild';
+import { build, stop } from 'esbuild';
 import postcss from 'postcss';
 import tailwind from 'tailwindcss';
 import loadConfig from 'tailwindcss/loadConfig.js';
@@ -17,7 +17,8 @@ const output = path.resolve(process.env.TEST_ARTIFACTS || path.join(root, '../ar
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-page-recovery-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const checks = [], layouts = [], externalRequests = [], apiRequests = [], expectedErrors = [];
-let bundle, css, chrome, ws, apiCrash = false, lazyFailure = false;
+let bundle, css, chrome, ws, apiCrash = false, lazyFailure = false, failModuleOnce = false;
+let lazyRequests = 0;
 const pendingModules = new Set();
 const pendingFonts = new Set();
 const entryHtml = await readFile(path.join(root, 'index.html'), 'utf8');
@@ -46,6 +47,8 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ crash: apiCrash }));
   }
   if (url.pathname === '/fixture-page.js') {
+    lazyRequests++;
+    if (failModuleOnce) { failModuleOnce = false; res.statusCode = 503; return res.end('Unavailable fixture module'); }
     if (lazyFailure) { res.statusCode = 503; return res.end('Unavailable fixture chunk'); }
     const finish = () => {
       res.setHeader('Content-Type', 'text/javascript');
@@ -98,7 +101,7 @@ try {
       const [data,setData]=useState(null);const cart=useCart();const profile=useProfile();
       const [query,setQuery]=useState('');const navigate=useNavigate();
       useEffect(()=>{const controller=new AbortController();fetch('/api/fixture',{signal:controller.signal}).then(r=>r.json()).then(setData).catch(()=>{});return()=>controller.abort()},[]);
-      if(data?.crash)throw new Error('PRIVATE_FIXTURE_DIAGNOSTIC');
+      if(data?.crash)throw new Error('PRIVATE_FIXTURE_DIAGNOSTIC https://fixture.invalid/page.js?token=hidden-secret#private contact@example.test');
       return <><h1>{data?'Super Admin fixture dashboard':'Loading fixture data'}</h1><p>Cart: {cart.getCartCount()}</p><p>Unread: {profile.unreadHelpMessages}</p>
         <input aria-label='Search fixture' value={query} onChange={event=>{setQuery(event.target.value);navigate('?q='+encodeURIComponent(event.target.value),{replace:true})}}/>
       </>;
@@ -198,6 +201,17 @@ try {
   apiCrash = true;
   await visit('/super-admin/dashboard'); await until(textHas('Something went wrong on this page'));
   assert.equal(await evaluate(textHas('PRIVATE_FIXTURE_DIAGNOSTIC')), false); await sessionPreserved();
+  assert.equal(await evaluate("sessionStorage.getItem('activ:page-module-reload')"), null, 'Ordinary component errors do not refresh automatically');
+  await evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>{window.copiedError=value}}})");
+  await click('Copy error details'); await until(textHas('Error details copied'));
+  const copied = await evaluate('window.copiedError');
+  assert(copied.includes('Error: PRIVATE_FIXTURE_DIAGNOSTIC') && copied.includes('Page: /super-admin/dashboard'));
+  assert(!/hidden-secret|contact@example.test|isolated-test-session|adminToken|cartItems/.test(copied));
+  assert(copied.includes('https://fixture.invalid/page.js') && copied.includes('[email removed]'));
+  await evaluate("navigator.clipboard.writeText=async()=>{throw new Error('Clipboard unavailable')}");
+  await click('Copy error details'); await until(textHas('Copy this text and share it'));
+  assert(await evaluate("document.querySelector('pre').textContent===window.copiedError"), 'Clipboard fallback shows only the same sanitized details');
+  checks.push('Explicit Copy error details removes URL query/fragment/email values and exposes no session/storage; clipboard fallback is selectable');
   await recoveryLayout('runtime-recovery-320');
   apiCrash = false; await click('Try again'); await until(textHas('Super Admin fixture dashboard')); await sessionPreserved();
   checks.push('Forced API-backed render failure is contained; Try again refetches and recovers without session loss/private diagnostics');
@@ -209,12 +223,25 @@ try {
   checks.push('Actual main.tsx root boundary catches a failure outside route providers and remounts');
   await visit('/super-admin/lazy'); await until(textHas('Loading your page')); await until(textHas('Loaded lazy page'));
   checks.push('Pending route imports show readable loading and resolve normally');
+  failModuleOnce = true;
+  const beforeRecovery = lazyRequests;
+  await visit('/super-admin/lazy?mode=recover-once'); await until(textHas('Loaded lazy page'));
+  assert.equal(lazyRequests, beforeRecovery + 2, 'One failed module causes one document reload and a fresh module request');
+  await sessionPreserved();
+  checks.push('Failed lazy download automatically reloads once, resolves the fresh module and preserves the admin session');
+  await evaluate("sessionStorage.removeItem('activ:page-module-reload')");
   lazyFailure = true;
+  const beforePersistent = lazyRequests;
   await visit('/super-admin/lazy?mode=rejected'); await until(textHas('Something went wrong on this page'));
+  await until("sessionStorage.getItem('activ:page-module-reload') && performance.getEntriesByType('navigation')[0]?.type==='reload'");
+  await until(textHas('Something went wrong on this page'));
   const sameDocument = await evaluate('performance.timeOrigin');
-  await pause(300); assert.equal(await evaluate('performance.timeOrigin'), sameDocument, 'Rejected chunk never auto-reloads');
+  await pause(700); assert.equal(await evaluate('performance.timeOrigin'), sameDocument, 'Persistent module failure stops after one automatic refresh');
+  assert.equal(lazyRequests, beforePersistent + 2);
+  await click('Try again'); await pause(300);
+  assert.equal(await evaluate('performance.timeOrigin'), sameDocument, 'Retrying the cached rejected module cannot start a refresh loop');
   lazyFailure = false; await click('Reload page'); await until(textHas('Loaded lazy page')); await sessionPreserved();
-  checks.push('Rejected route import shows recovery; explicit Reload fetches a fresh module without automatic reload loops');
+  checks.push('Persistent module failure stops after one automatic refresh; manual Reload can recover later without session loss');
   await visit('/super-admin/lazy?mode=waiting'); await until(textHas('This is taking longer than usual'));
   await recoveryLayout('slow-route-320');
   await evaluate("window.fixtureNavigate('/')"); await until(textHas('Public home'));
@@ -255,6 +282,7 @@ try {
   console.log(`PASS page recovery: ${checks.length} checks, three 320px Poppins recovery captures, loopback only.`);
   await send('Browser.close');
 } finally {
+  stop();
   for (const response of pendingModules) response.destroy();
   for (const response of pendingFonts) response.destroy();
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

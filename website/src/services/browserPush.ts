@@ -88,16 +88,27 @@ async function client() {
   const firebase = app.getApps().find(item => item.name === 'activ-web-push') || app.initializeApp(firebasePushConfig, 'activ-web-push');
   return { sdk, messaging: sdk.getMessaging(firebase) };
 }
-export async function browserPushStatus(): Promise<string> {
+/** True only after the device API succeeded for the current account/visitor. */
+export async function browserPushRegistered(accountOnly = false): Promise<boolean> {
+  if (!pushConfigured() || !pushEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return false;
+  const identity = await readPushIdentity();
+  const account = session();
+  if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) return false;
+  if (!identity?.token || !Number.isFinite(identity.expiresAt) || identity.expiresAt <= Date.now()) return false;
+  return account.auth
+    ? Boolean(account.userId && account.expiresAt > Date.now() && identity.userId === account.userId)
+    : Boolean(!identity.userId && identity.visitorId && identity.visitorId === visitorIdentity()?.id);
+}
+export async function browserPushStatus(accountOnly = false): Promise<string> {
   if (!pushConfigured()) return 'Notifications are being prepared. Please check again after the next website update.';
   if (!window.isSecureContext || !('serviceWorker' in navigator) || !('Notification' in window) || !('PushManager' in window))
     return 'This browser does not support notifications here. On iPhone, add ACTIV to your Home Screen and open it there.';
   if (Notification.permission === 'denied') return 'Notifications are blocked. Allow notifications in your browser’s site settings, then try again.';
-  const identity = await readPushIdentity().catch(() => null);
   const account = session();
-  const belongs = account.userId ? identity?.userId === account.userId : identity?.visitorId === visitorIdentity()?.id;
-  return pushEnabled() && identity && belongs && identity.expiresAt > Date.now()
-    ? account.userId ? 'Notifications are enabled for this account on this browser.' : 'Public notifications are enabled on this browser.'
+  if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) return 'Sign in again to connect notifications to your account.';
+  if (await browserPushRegistered(accountOnly)) return account.userId ? 'Notifications are enabled for this account on this browser.' : 'Public notifications are enabled on this browser.';
+  return pushEnabled() && Notification.permission === 'granted'
+    ? 'Permission is allowed, but this browser is not connected yet. Choose Enable notifications to try again.'
     : 'Enable notifications to receive ACTIV updates on this browser.';
 }
 export function clearBrowserPushSession(auth = session().auth): Promise<void> {
@@ -142,14 +153,17 @@ export async function disableBrowserPush() {
   });
   changed();
 }
-export async function enableBrowserPush() {
+export async function enableBrowserPush(accountOnly = false) {
   if (!pushConfigured()) throw new Error('Website notifications are not configured yet.');
   if (!window.isSecureContext || !('Notification' in window) || !('serviceWorker' in navigator))
     throw new Error('Notifications need a supported browser over HTTPS. On iPhone, open ACTIV from your Home Screen.');
   // Request directly from the button gesture, before loading the SDK.
+  const account = session();
+  if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) throw new Error('Sign in again to connect notifications to your account.');
   const revision = generation;
   const permission = await Notification.requestPermission();
   if (revision !== generation) return;
+  if (accountOnly && (session().auth !== account.auth || account.expiresAt <= Date.now())) throw new Error('Your sign-in changed. Sign in again to connect notifications to your account.');
   if (permission !== 'granted') throw new Error('Notifications were not allowed. You can enable them in your browser’s site settings.');
   localStorage.setItem(PREFERENCE, 'true');
   await syncBrowserPush();
@@ -214,5 +228,5 @@ export function syncBrowserPush(): Promise<void> {
     foregroundMessages(sdk, messaging, current);
     changed();
     if (!result.data?.configured) throw new Error('This browser is registered. Notification delivery is still being configured on the server.');
-  }).catch(error => { if (!(error instanceof RegistrationCancelled)) throw error; });
+  }).catch(error => { changed(); if (!(error instanceof RegistrationCancelled)) throw error; });
 }

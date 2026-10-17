@@ -3,7 +3,8 @@ import {
     Mail, MessageSquare, Bell, RefreshCw, Loader2, Send, AlertTriangle,
     CheckCircle2, XCircle, Search, RotateCcw, Webhook, Info,
 } from 'lucide-react';
-import { canResend, MESSAGE_TYPES, messageLabel } from '@/features/admin/components/DeliveryUI';
+import { ResendButton, DeliveryBadge, stateOf, MESSAGE_TYPES, messageLabel } from '@/features/admin/components/DeliveryUI';
+import HistoryDeleteButton from '@/features/admin/components/HistoryDeleteButton';
 import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
 import { AdminPageHeader, AdminStat, ADMIN_PAGE, ADMIN_BG, ADMIN_SECONDARY_BTN } from '@/features/admin/components/AdminUI';
@@ -87,7 +88,6 @@ export default function Notifications() {
     const [event, setEvent] = useState('');
     const [search, setSearch] = useState('');
 
-    const [retrying, setRetrying] = useState<string | null>(null);
     const [testChannel, setTestChannel] = useState<'email' | 'whatsapp'>('email');
     const [testTo, setTestTo] = useState('');
     const [testing, setTesting] = useState(false);
@@ -135,18 +135,6 @@ export default function Notifications() {
         return () => clearTimeout(timer);
     }, [load]);
 
-    const retry = async (id: string) => {
-        setRetrying(id);
-        try {
-            const row = await retryNotification(id);
-            toast.success(row?.status === 'sent' ? 'Sent again' : `Could not send again: ${notificationReason(row?.lastError) || 'reason not recorded'}`);
-            await load();
-        } catch (err) {
-            toast.error(errorMessage(err, 'Could not re-send that message'));
-        } finally {
-            setRetrying(null);
-        }
-    };
 
     const runTest = async () => {
         const target = testTo.trim();
@@ -393,13 +381,17 @@ export default function Notifications() {
                             ['email', 'Email'], ['whatsapp', 'WhatsApp'], ['in_app', 'In-app'],
                         ]} />
                         <Select value={rowStatus} onChange={setRowStatus} label="Every status" options={[
-                            ['sent', 'Sent'], ['failed', 'Failed'], ['queued', 'Waiting to send'],
+                            ['sent', 'Sent'], ['failed', 'Failed'], ['queued', 'Waiting'],
                         ]} />
                         <Select value={event} onChange={setEvent} label="All messages"
                             options={EVENT_OPTIONS} />
                     </div>
 
                     {/* ==================================================== log */}
+                    <div className="flex justify-end">
+                        <HistoryDeleteButton label="Clear logs" context="Logs matching the current filters" disabled={loading || failed || !logs.length}
+                            selection={{ view: 'logs', filters: { channel, status: rowStatus, event, search: search.trim().length >= 2 ? search.trim() : '' } }} onRemoved={load} />
+                    </div>
                     {loading && !logs.length ? (
                         <Busy />
                     ) : failed ? (
@@ -442,23 +434,9 @@ export default function Notifications() {
                                             <span className="text-ui-small text-slate-400 tabular-nums whitespace-nowrap">
                                                 {when(row.createdAt)}
                                             </span>
-                                            <StatePill state={state} />
-                                            {state === 'failed' && row.channel !== 'in_app' && canResend(row) ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => retry(row._id)}
-                                                    disabled={retrying === row._id}
-                                                    title="Send again"
-                                                    aria-label="Send again"
-                                                    className="w-10 h-10 sm:w-9 sm:h-9 rounded-lg border border-slate-200 flex items-center
-                                                               justify-center text-slate-600 hover:bg-slate-50
-                                                               transition-colors disabled:opacity-60"
-                                                >
-                                                    {retrying === row._id
-                                                        ? <Loader2 className="w-4 h-4 animate-spin" />
-                                                        : <RotateCcw className="w-4 h-4" />}
-                                                </button>
-                                            ) : null}
+                                            <DeliveryBadge state={stateOf(row)} />
+                                            <ResendButton row={row} onDone={load} />
+                                            <HistoryDeleteButton selection={{ view: 'logs', ids: [row._id] }} context={row.subject || messageLabel(row.event)} disabled={loading || state === 'queued'} onRemoved={load} />
                                         </div>
                                     </div>
                                 );
