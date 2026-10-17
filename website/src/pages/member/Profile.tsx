@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { PlatinumNotice } from '@/components/shared/Platinum';
 import { resizeCompanyNames, toCount } from "@/lib/sisterConcerns";
 import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
+import { accountPasswordStatus } from '@/lib/authCapabilities';
+import SocialAccountSecurity from '@/features/member/components/SocialAccountSecurity';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -247,6 +249,10 @@ export default function Profile() {
   const [isLocked, setIsLocked] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
+  const [authCapabilities, setAuthCapabilities] = useState<any>(null);
+  const [useExistingPassword, setUseExistingPassword] = useState(false);
+  const passwordStatus = accountPasswordStatus(authCapabilities);
+  const showPasswordForm = passwordStatus === 'set' || passwordStatus === 'legacy_unknown' && useExistingPassword;
   /**
    * True when the signed-in account has no row in "web users" at all — an admin
    * account reaching the member profile page. See the 404 branch in
@@ -539,6 +545,8 @@ export default function Profile() {
         // ------------------------------------------------- step 1: personal
         if (personal.data) {
           const d = personal.data;
+          setAuthCapabilities(d);
+          setUseExistingPassword(false);
           answered.personal = true;
           setHasExistingProfile(true);
           setIsLocked(d.isLocked === true && d.personalDetailsComplete !== false
@@ -854,7 +862,7 @@ export default function Profile() {
       const token = localStorage.getItem("token");
 
       // Check if user wants to change password
-      const wantsToChangePassword = data.password && data.password.trim() !== "";
+      const wantsToChangePassword = showPasswordForm && data.password && data.password.trim() !== "";
 
       if (wantsToChangePassword && token) {
         // Validate password fields
@@ -894,6 +902,7 @@ export default function Profile() {
         }
 
         toast.success("Password updated successfully");
+        setAuthCapabilities((previous: any) => ({ ...previous, hasPassword: true, passwordStatus: 'set' }));
       }
 
       if (token) {
@@ -1735,16 +1744,10 @@ export default function Profile() {
                   </Fields>
                 </Section>
 
-                {/*
-                  Password fields are their own block now.
-
-                  They used to sit in the middle of the personal-details grid,
-                  between "Email" and "Religion", where they read as three more
-                  required fields on a form that had not mentioned passwords.
-                  Every member filling this in already has a password; almost
-                  nobody wants to change it here. Saying that once, above the
-                  three inputs, is the whole fix.
-                */}
+                {passwordStatus !== 'set' && <Section icon={KeyRound} title="Sign-in methods" subtitle="Continue with your linked sign-in provider.">
+                  <SocialAccountSecurity account={authCapabilities} onUsePassword={passwordStatus === 'legacy_unknown' && !useExistingPassword ? () => setUseExistingPassword(true) : undefined} />
+                </Section>}
+                {showPasswordForm &&
                 <Section
                   icon={KeyRound}
                   title="Change your password"
@@ -1789,7 +1792,7 @@ export default function Profile() {
                       />
                     </div>
                   </Fields>
-                </Section>
+                </Section>}
 
                 {/*
                   THREE fields, and the order is the point.

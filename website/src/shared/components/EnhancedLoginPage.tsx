@@ -380,7 +380,7 @@ export default function EnhancedLoginPage({ audience = 'member' }: { audience?: 
           </button>
         ))}
       </div>
-
+      <p className="mt-4 text-center text-[1rem] leading-relaxed text-slate-600">Signed up with Google, LinkedIn or Facebook? Use the same sign-in option. No ACTIV password is needed.</p>
       </>
       )}
 

@@ -83,7 +83,7 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
                 ? 'A reset reaches only the administrator accounts the Super Admin has set up. The link goes to the email address on that account, and nobody else can use it.'
                 : 'We will email you a secure link to choose a new password. Nobody at ACTIV can see your password, and a reset never shows it — you simply choose a new one.'}
             formEyebrow={forAdmins ? 'Admin account recovery' : 'Account recovery'}
-            title={sent ? 'Check your email' : 'Reset your password'}
+            title={sent ? 'Check your email' : forAdmins ? 'Reset your password' : 'Set or reset your ACTIV password'}
             subtitle={sent ? '' : forAdmins
                 ? 'Only for administrator accounts created by the ACTIV Super Admin.'
                 : 'Enter the email address you registered with.'}
@@ -110,6 +110,7 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
                 </div>
             ) : (
                 <>
+                    {!forAdmins && <p className="mb-5 text-[1.125rem] leading-relaxed text-slate-600">Signed up with Google, LinkedIn or Facebook? Keep using that sign-in option. An ACTIV password is optional; use this email verification flow only if you want to set or reset one.</p>}
                     <form onSubmit={handleSubmit} noValidate>
                         <label htmlFor="fp-email" className="mb-2 block text-[1rem] font-semibold text-slate-800">
                             Email address

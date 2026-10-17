@@ -10,6 +10,10 @@ import { Reveal } from '@/components/shared/Reveal';
 import { NewsImage } from '@/components/shared/NewsImage';
 import { CARD_BODY, META_TEXT } from '@/components/layout/appTypography';
 import { getArticle, type NewsArticle } from '@/services/cmsNewsApi';
+import { NewsResources } from '@/components/shared/NewsResources';
+import { newsLinkHref } from '@/lib/newsContent';
+import { resolveMediaUrl } from '@/config/api.config';
+import { NewsBody } from '@/components/shared/NewsBody';
 
 /**
  * ============================================================================
@@ -30,35 +34,9 @@ import { getArticle, type NewsArticle } from '@/services/cmsNewsApi';
  *
  * ------------------------------------------------- an article that is a link
  *
- * An article with an `externalUrl` has no page here at all — the card opened
- * somebody else's site. Reaching this URL for one means a link was shared
- * before the editor added the URL, or somebody typed the slug, so the page
- * says where it went and offers the link rather than rendering a blank
- * article.
+ * Source links stay available alongside the article's own photos, documents
+ * and related links. A shared article URL always opens this page.
  */
-
-const PARAGRAPH = 'text-ui-small sm:text-ui-body leading-[1.75] text-gray-700';
-
-/** The body, as paragraphs. Blank lines are the editor's own breaks. */
-function Body({ text }: { text: string }) {
-    const paragraphs = String(text || '')
-        .split(/\n{2,}/)
-        .map((p) => p.trim())
-        .filter(Boolean);
-
-    if (!paragraphs.length) return null;
-
-    return (
-        <div className="space-y-5">
-            {paragraphs.map((p, i) => (
-                /* `whitespace-pre-line`: a single newline inside a paragraph is
-                   a line break the editor typed — an address, a list of names —
-                   and collapsing it would run them together. */
-                <p key={i} className={`${PARAGRAPH} whitespace-pre-line`}>{p}</p>
-            ))}
-        </div>
-    );
-}
 
 export default function NewsDetailPage() {
     const { slug } = useParams();
@@ -92,9 +70,7 @@ export default function NewsDetailPage() {
 
     /* A pasted link without a scheme ("thehindu.com/…") would resolve
        relative to this site; the host is printed under the button. */
-    const sourceHref = article?.externalUrl
-        ? (/^https?:\/\//i.test(article.externalUrl) ? article.externalUrl : `https://${article.externalUrl}`)
-        : '';
+    const sourceHref = newsLinkHref(article?.externalUrl, true);
     const sourceHost = (() => {
         try { return sourceHref ? new URL(sourceHref).hostname.replace(/^www\./, '') : ''; } catch { return ''; }
     })();
@@ -195,6 +171,9 @@ export default function NewsDetailPage() {
                                             </span>
                                         )}
                                     </div>
+                                    <div className="mt-5">
+                                        <ShareMenu title={article.title || 'ACTIV news'} url={publicUrl(`/news/${article.slug || slug || ''}`)} />
+                                    </div>
                                 </Reveal>
 
                                 {article.image?.url && (
@@ -216,12 +195,14 @@ export default function NewsDetailPage() {
                                 )}
 
                                 <div className="mt-8">
-                                    <Body text={article.body} />
+                                    <NewsBody text={article.body} />
                                 </div>
+
+                                <NewsResources article={article} />
 
                                 {/* The same button as the side card, at the foot of the
                                     story — where a reader who has just finished it is. */}
-                                {article.externalUrl && (
+                                {sourceHref && (
                                     <div className="mt-10 flex flex-col items-start gap-4 rounded-2xl border border-gray-200
                                                     bg-gray-50 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
                                         <p className={`${CARD_BODY} text-gray-700`}>
@@ -251,13 +232,14 @@ export default function NewsDetailPage() {
 
                                 {article.photos?.length > 0 && (
                                     <div className="mt-8 sm:mt-12 grid gap-4 sm:gap-5">
-                                        {article.photos.map((photo, i) => (
+                                        {article.photos.filter(photo => photo?.url).map((photo, i) => (
                                             <Reveal key={i} delay={Math.min(i, 4) * 60}>
-                                                <NewsImage
+                                                {photo.type === 'video' ? <video controls preload="metadata" src={resolveMediaUrl(photo.url)} className="w-full rounded-2xl" aria-label={photo.alt || `Article video ${i + 1}`} /> : <NewsImage
                                                     url={photo.url}
                                                     alt={photo.alt || `${article.title} — ${i + 1}`}
                                                     lazy
-                                                />
+                                                />}
+                                                {photo.alt && <p className="mt-2 break-words text-sm text-gray-600">{photo.alt}</p>}
                                             </Reveal>
                                         ))}
                                     </div>
@@ -267,7 +249,7 @@ export default function NewsDetailPage() {
                             {/* ------------------------------------ side card */}
                             <aside className="lg:col-span-4">
                                 <div className="space-y-5 lg:sticky lg:top-28">
-                                    {article.externalUrl && (
+                                    {sourceHref && (
                                         <div className="rounded-2xl bg-brand-900 p-4 sm:p-6 text-white">
                                             <p className="text-[0.9375rem] font-bold uppercase tracking-[0.14em] text-brand-300">
                                                 Original source

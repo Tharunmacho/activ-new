@@ -20,6 +20,19 @@ export interface NewsMedia {
     position: string;
 }
 
+export interface NewsAttachment {
+    url: string;
+    label: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+}
+
+export interface NewsLink {
+    url: string;
+    label: string;
+}
+
 export interface NewsArticle {
     id: string;
     /** The URL segment. Derived from the title on the server. */
@@ -30,12 +43,13 @@ export interface NewsArticle {
     body: string;
     image: NewsMedia;
     photos: NewsMedia[];
+    attachments?: NewsAttachment[];
+    links?: NewsLink[];
     /**
      * A link off the site.
      *
-     * An article that has one OPENS IT, in a new tab, and has no detail page of
-     * its own — see the note on the schema. `sourceName` is printed on the card
-     * so the reader knows where they are about to land.
+     * A bare source link opens in a new tab. Articles with their own text,
+     * photos, documents or links open the detail page and retain this source.
      */
     externalUrl: string;
     sourceName: string;

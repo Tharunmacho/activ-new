@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Newspaper, Trash2, ExternalLink, Pencil, ArrowLeft } from 'lucide-react';
 import {
     CmsPage, CmsCard, CmsField, CmsInput, CmsTextarea, CmsButton,
@@ -6,6 +6,9 @@ import {
     CmsSteps, CmsStep, SaveNowProvider, SectionToolsProvider,
 } from './components/CmsUI';
 import { UploadField } from './components/UploadField';
+import { NewsAssetsEditor } from './components/NewsAssetsEditor';
+import { NewsBodyEditor } from './components/NewsBodyEditor';
+import { newsAssetsError } from '@/lib/newsContent';
 import { LineList, ExtraFieldsEditor } from './components/CmsEditors';
 import { errorMessage } from '@/services/api';
 import { CmsScopeBrowser, useRegionOptions, type Scope } from './components/CmsScopeBrowser';
@@ -57,6 +60,8 @@ const blankArticle = (): Partial<NewsArticle> => ({
     body: '',
     image: { url: '', type: 'image', alt: '', fit: 'cover', position: 'center' },
     photos: [],
+    attachments: [],
+    links: [],
     externalUrl: '',
     sourceName: '',
     displayDate: '',
@@ -160,6 +165,10 @@ export default function NewsManager() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const uploadingRef = useRef(false);
+    const onUploadBusy = useCallback((busy: boolean) => { uploadingRef.current = busy; setUploading(busy); }, []);
+    const [articleError, setArticleError] = useState('');
 
     /** The row being edited. `null` is the list; an object is the form. */
     const [article, setArticle] = useState<Partial<NewsArticle> | null>(null);
@@ -192,7 +201,10 @@ export default function NewsManager() {
     const setA = (patch: Partial<NewsArticle>) => setArticle((a) => ({ ...(a || {}), ...patch }));
 
     const submitArticle = async () => {
-        if (!article) return;
+        if (!article || saving || uploadingRef.current) return;
+        const validation = newsAssetsError(article);
+        if (validation) { setArticleError(validation); cmsFailed('Article', validation); return; }
+        setArticleError('');
         setSaving(true);
         try {
             await saveArticle(article.id || null, article);
@@ -200,6 +212,7 @@ export default function NewsManager() {
             setArticle(null);
             await load({ quiet: true });
         } catch (err) {
+            setArticleError(errorMessage(err, 'The article could not be saved. Your changes are still here; please try again.'));
             cmsFailed('Article', errorMessage(err, ''));
         } finally {
             setSaving(false);
@@ -243,11 +256,12 @@ export default function NewsManager() {
             <CmsPage>
                 <CmsCard
                     title={article.id ? 'Edit article' : 'New article'}
-                    description="A headline, a photograph and the story. Nothing here is required — an article is written over several sittings, and Draft is what says it is not ready."
+                    description="Write the story, upload photos and documents, and add useful links. Save as Draft until it is ready to publish."
                 >
                     <button
                         type="button"
-                        onClick={() => setArticle(null)}
+                        disabled={saving || uploading}
+                        onClick={() => { setArticle(null); setArticleError(''); }}
                         className="mb-6 inline-flex items-center gap-2 rounded-lg border
                                    border-slate-300 px-3.5 py-2 text-ui-caption font-semibold
                                    text-slate-600 transition-colors hover:border-[#2563EB]
@@ -273,7 +287,9 @@ export default function NewsManager() {
                         `dirty: true` because this form has no change flag of
                         its own and a save that is sometimes absent is a
                         control nobody learns to look for. */}
-                    <SaveNowProvider value={{ save: submitArticle, saving, dirty: true, label: 'Save article' }}>
+                    {articleError && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800">{articleError}</p>}
+                    {uploading && <p role="status" className="mb-4 rounded-lg bg-blue-50 p-3 text-blue-800">Files are uploading. Save article will be available when they finish.</p>}
+                    <SaveNowProvider value={{ save: submitArticle, saving: saving || uploading, dirty: true, label: 'Save article' }}>
                     <CmsSteps>
                     <CmsStep step="Section 1" title="The story" hint="What a reader sees on the card and at the top of the article.">
                         <CmsField label="Headline">
@@ -295,23 +311,13 @@ export default function NewsManager() {
                             />
                         </CmsField>
 
-                        <CmsField label="The article" hint="The news in your own words — for a newspaper story, describe what it reports and why it matters to members. Leave a blank line between paragraphs.">
-                            <CmsTextarea
-                                rows={12}
-                                value={article.body || ''}
-                                onChange={(e) => setA({ body: e.target.value })}
-                            />
+                        <CmsField label="The article" hint="Write the story in your own words. Use the toolbar to format selected text and add links.">
+                            <NewsBodyEditor value={article.body || ''} onChange={body => setA({ body })} disabled={saving} />
                         </CmsField>
                     </CmsStep>
 
-                    <CmsStep step="Section 2" title="Photograph" hint="Shown across the top of the article and on its card.">
-                        <UploadField
-                            label="Main picture"
-                            url={article.image?.url || ''}
-                            onChange={(url) => setA({
-                                image: { ...(article.image || blankArticle().image!), url },
-                            })}
-                        />
+                    <CmsStep step="Section 2" title="Photos, documents and links" hint="Choose a cover, add several article photos, and attach public documents or WhatsApp and YouTube links.">
+                        <NewsAssetsEditor article={article} onChange={setA} onBusyChange={onUploadBusy} disabled={saving} />
                     </CmsStep>
 
                     <CmsStep
@@ -433,7 +439,7 @@ export default function NewsManager() {
 
                     {/* Cancel only — the Save is in every card's footer. */}
                     <div className="mt-6 sm:mt-8 flex flex-wrap gap-3">
-                        <CmsButton variant="ghost" onClick={() => setArticle(null)}>Cancel</CmsButton>
+                        <CmsButton variant="ghost" disabled={saving || uploading} onClick={() => { setArticle(null); setArticleError(''); }}>Cancel</CmsButton>
                     </div>
                 </CmsCard>
             </CmsPage>

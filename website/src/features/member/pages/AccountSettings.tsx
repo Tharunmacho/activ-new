@@ -13,6 +13,8 @@ import {
 import { MemberAvatar, uploadMemberPhoto } from '@/features/member/memberPhoto';
 import AssociationUpdatePreferences from '../components/AssociationUpdatePreferences';
 import BrowserPushSettings from '@/components/BrowserPushSettings';
+import SocialAccountSecurity from '../components/SocialAccountSecurity';
+import { accountPasswordStatus } from '@/lib/authCapabilities';
 
 /**
  * SETTINGS — THE ACCOUNT, NOT THE APPLICATION.
@@ -121,10 +123,14 @@ export default function AccountSettings() {
 
     const [pw, setPw] = useState({ old: '', next: '', confirm: '' });
     const [pwBusy, setPwBusy] = useState(false);
+    const [useExistingPassword, setUseExistingPassword] = useState(false);
+    const passwordStatus = accountPasswordStatus(profile);
+    const showPasswordForm = passwordStatus === 'set' || passwordStatus === 'legacy_unknown' && useExistingPassword;
 
     const load = useCallback(async () => {
         const [p, a] = await Promise.allSettled([getMyProfile(), getMyApplication()]);
         setProfile(p.status === 'fulfilled' ? (p.value || {}) : {});
+        setUseExistingPassword(false);
         const app: any = a.status === 'fulfilled' ? a.value : null;
         setAppStatus(String(app?.status || ''));
         setLoading(false);
@@ -164,6 +170,7 @@ export default function AccountSettings() {
 
     const onChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!showPasswordForm) return;
         if (!pw.old) { toast.error('Enter your current password'); return; }
         if (pw.next.length < 6) { toast.error('The new password needs at least 6 characters'); return; }
         if (pw.next !== pw.confirm) { toast.error('The two new passwords do not match'); return; }
@@ -171,6 +178,7 @@ export default function AccountSettings() {
         setPwBusy(true);
         try {
             await changePassword(pw.old, pw.next);
+            setProfile((previous) => ({ ...previous, hasPassword: true, passwordStatus: 'set' }));
             setPw({ old: '', next: '', confirm: '' });
             toast.success('Your password has been changed');
         } catch (err) {
@@ -268,8 +276,9 @@ export default function AccountSettings() {
                     </Section>
 
                     {/* ---- password ---- */}
-                    <Section icon={<KeyRound className="h-4 w-4" />} title="Password" hint="Use at least 6 characters">
-                        <form onSubmit={onChangePassword} className="grid gap-3">
+                    <Section icon={<KeyRound className="h-4 w-4" />} title={passwordStatus === 'set' ? 'Password' : 'Sign-in methods'} hint={passwordStatus === 'set' ? 'Use at least 6 characters' : undefined}>
+                        {passwordStatus !== 'set' && <SocialAccountSecurity account={profile} onUsePassword={passwordStatus === 'legacy_unknown' && !useExistingPassword ? () => setUseExistingPassword(true) : undefined} />}
+                        {showPasswordForm && <form onSubmit={onChangePassword} className="grid gap-3">
                             <PasswordInput label="Current password" value={pw.old} autoComplete="current-password"
                                 onChange={(v) => setPw((p) => ({ ...p, old: v }))} />
                             <PasswordInput label="New password" value={pw.next} autoComplete="new-password"
@@ -288,7 +297,7 @@ export default function AccountSettings() {
                                     Update password
                                 </button>
                             </div>
-                        </form>
+                        </form>}
                     </Section>
 
                     <AssociationUpdatePreferences />

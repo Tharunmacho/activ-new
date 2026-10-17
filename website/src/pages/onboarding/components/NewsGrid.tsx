@@ -4,6 +4,9 @@ import { Reveal } from '@/components/shared/Reveal';
 import { sizedMediaUrl } from '@/config/api.config';
 import { CARD_TITLE, CARD_BODY, META_TEXT } from '@/components/layout/appTypography';
 import type { NewsArticle } from '@/services/cmsNewsApi';
+import { hasNewsContent, newsLinkHref } from '@/lib/newsContent';
+import { ShareMenu } from '@/components/shared/ShareMenu';
+import { publicUrl } from '@/lib/share';
 
 /**
  * ============================================================================
@@ -51,9 +54,9 @@ const dateOf = (article: NewsArticle) => {
  * with nothing on it but a button is a click wasted.
  */
 const destinationOf = (article: NewsArticle) => {
-    const written = !!(String(article.summary || '').trim() || String(article.body || '').trim());
-    return article.externalUrl && !written
-        ? { external: true as const, href: article.externalUrl }
+    const source = newsLinkHref(article.externalUrl, true);
+    return source && !hasNewsContent(article)
+        ? { external: true as const, href: source }
         : { external: false as const, href: `/news/${article.slug}` };
 };
 
@@ -63,27 +66,20 @@ function CardShell({ article, className = '', children }: {
     children: React.ReactNode;
 }) {
     const to = destinationOf(article);
-    const shell = 'group flex h-full flex-col overflow-hidden rounded-2xl border '
+    const shell = 'group flex h-full min-w-0 flex-col rounded-2xl border '
         + 'border-gray-200/80 bg-white transition-all duration-300 '
         + 'hover:-translate-y-1 hover:border-brand-200 '
         + 'hover:shadow-[0_18px_40px_-20px_rgba(28,46,104,0.35)] '
-        + `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${className}`;
-
-    if (to.external) {
-        return (
-            <a
-                href={to.href}
-                target="_blank"
-                /* `noreferrer` as well as `noopener`: these are somebody else's
-                   pages and the association's traffic is not theirs to read. */
-                rel="noopener noreferrer"
-                className={shell}
-            >
-                {children}
-            </a>
-        );
-    }
-    return <Link to={to.href} className={shell}>{children}</Link>;
+        + 'focus-within:ring-2 focus-within:ring-brand-500';
+    const content = `flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-2xl focus-visible:outline-none ${className}`;
+    return <div className={shell}>
+        {to.external
+            ? <a href={to.href} target="_blank" rel="noopener noreferrer" className={content}>{children}</a>
+            : <Link to={to.href} className={content}>{children}</Link>}
+        <div className="flex justify-end border-t border-gray-100 p-3">
+            <ShareMenu title={article.title || 'ACTIV news'} url={publicUrl(`/news/${article.slug || article.id}`)} align="right" />
+        </div>
+    </div>;
 }
 
 /** The picture, or the brand block when an editor has not supplied one. */
