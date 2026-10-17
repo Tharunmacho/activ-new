@@ -20,5 +20,5 @@ export function resolveUpdateDeliveryChannels(announcement?: { deliveryChannels?
 }
 
 export function updateDeliverySummary(channels: UpdateDeliveryChannels): string {
-    return UPDATE_DELIVERY_CHANNELS.filter(channel => channels[channel.key]).map(channel => channel.label).join(', ') || 'None — feed only';
+    return UPDATE_DELIVERY_CHANNELS.filter(channel => channels[channel.key]).map(channel => channel.label).join(', ') || 'In ACTIV only';
 }

@@ -313,6 +313,11 @@ try {
   assert.deepEqual(await channels(), { email: false, whatsapp: false, push: false }, 'Explicit null is not legacy opt-in');
   await remount();
   assert.equal(await evaluate(`document.querySelector('button[value="published"]').textContent.trim()`), 'Publish without notifications');
+  assert.equal(await evaluate(`document.querySelector('[aria-label="Notification channels"] [role="status"]').textContent`),'In ACTIV only');
+  await evaluate(`document.querySelector('[name="deliveryChannels.whatsapp"]').focus()`);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  assert.deepEqual(await channels(),{email:false,whatsapp:true,push:false},'Keyboard toggles one channel independently');
   const combos = [[], ['email'], ['whatsapp'], ['push'], ['email', 'whatsapp'], ['email', 'push'], ['whatsapp', 'push'], ['email', 'whatsapp', 'push']];
   for (const selected of combos) {
     await remount(); await fill('title', `Channel choice: ${selected.join(', ') || 'feed only'}`); await fill('body', 'This update is a local fixture.');
@@ -361,6 +366,7 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width, height: width < 500 ? 844 : 1100, deviceScaleFactor: 1, mobile: width < 500 });
     await evaluate('window.scrollTo(0,0)'); await pause(100);
     assert(await evaluate(`document.documentElement.scrollWidth<=innerWidth`), `No horizontal overflow at ${width}px`);
+    assert(await evaluate(`(() => {const fieldset=document.querySelector('[aria-label="Notification channels"]');const choices=[...fieldset.querySelectorAll('label')];return fieldset.getBoundingClientRect().bottom<=document.querySelector('[name="title"]').getBoundingClientRect().top&&choices.every(label=>{const box=label.getBoundingClientRect();return box.top>=0&&box.bottom<innerHeight&&box.height>=44&&box.height<=48;})})()`),`Compact channel choices appear above writing and within the initial viewport at ${width}px`);
     const textFields = await evaluate(`[...document.querySelectorAll('input:not([type="file"]):not([type="checkbox"]),textarea,select')].map(input=>({name:input.name,size:getComputedStyle(input).fontSize}))`);
     const measured = await evaluate(`(() => {
       const visible=e=>e.getBoundingClientRect().width>0;
@@ -380,7 +386,7 @@ try {
     assert.deepEqual(measured.overflow,[],`${width}: controls stay inside the viewport`);
     const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
     await writeFile(path.join(artifacts, `update-composer-${width}.png`), Buffer.from(shot.result.data, 'base64'));
-    await evaluate(`document.querySelector('[aria-label="Notification channels"]').closest('section').scrollIntoView()`);
+    await evaluate(`document.querySelector('[aria-label="Notification channels"]').scrollIntoView()`);
     const channelsShot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     await writeFile(path.join(artifacts, `update-channels-${width}.png`), Buffer.from(channelsShot.result.data, 'base64'));
   }

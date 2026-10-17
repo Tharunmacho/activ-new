@@ -3,6 +3,8 @@ export function notificationReason(value: unknown): string {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text) return '';
   const rules: [RegExp, string][] = [
+    [/^Media download error\b|^Media upload error:.*Downloading media from weblink failed/i, 'WhatsApp could not download the image or document. Check that the file opens, then try Resend.'],
+    [/^Not sent: this is ACTIV['’]s own WhatsApp number\b/i, 'WhatsApp cannot send to its own sending number. Use a different recipient number.'],
     [/Current delivery or recipient eligibility could not be verified/i, 'We could not check whether this message can be sent again. Please try again.'],
     [/Worker interrupted.*provider outcome unknown/i, 'Sending stopped before we could confirm the result. Check the delivery history before sending again.'],
     [/(?:provider acceptance.*(?:uncertain|could not be confirmed))|(?:outcome.*(?:unknown|unconfirmed))/i, 'We could not confirm whether the message was sent. Check its delivery history before sending again.'],

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Mail, MessageSquare, Loader2, RotateCcw, X, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { errorMessage } from '@/services/api';
@@ -30,7 +30,7 @@ export const STATE_META: Record<string, { label: string; className: string; hint
         hint: 'The message could not be sent or delivered. The reason is shown below.',
     },
     read: {
-        label: 'Opened',
+        label: 'Seen',
         className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
         hint: 'WhatsApp confirms the person opened it.',
     },
@@ -55,7 +55,7 @@ export const STATE_META: Record<string, { label: string; className: string; hint
         hint: 'The sending service needs to be set up. No message was sent.',
     },
     queued: {
-        label: 'Waiting to send',
+        label: 'Waiting',
         className: 'bg-slate-100 text-slate-600 border-slate-200',
         hint: 'The message is waiting to send or is currently being sent.',
     },
@@ -186,22 +186,33 @@ export function ResendButton({ row, onDone, size = 'sm' }: {
 }) {
     const [asking, setAsking] = useState(false);
     const [busy, setBusy] = useState(false);
+    const sending = useRef(false);
     // A re-sent row's newer entry carries its own Resend; one button per message.
-    if (!row?._id || row.channel === 'in_app' || !canResend(row) || stateOf(row) === 'resent') return null;
+    if (!row?._id || row.channel === 'in_app' || !canResend(row) || stateOf(row) !== 'failed') return null;
 
     const h = size === 'md' ? 'h-10 px-4' : 'h-9 px-3';
 
     const send = async () => {
+        if (sending.current) return;
+        sending.current = true;
         setBusy(true);
         try {
             const { row: next, message } = await resendNotification(row._id);
-            const failed = /still failing|fail/i.test(message) || stateOf(next) === 'failed';
-            if (failed) toast.error(message || 'Could not send again');
-            else toast.success(message || 'Sent again');
+            const state = next ? stateOf(next) : '';
+            // A no-op can return the old accepted row. Only the explicit retry
+            // success response plus a confirmed sent state describes a new send.
+            const sent = message === 'Re-sent' && ['accepted', 'sent', 'delivered', 'read'].includes(state);
+            const description = notificationReason(message === 'Re-sent'
+                ? '' : message.replace(/^Still failing:\s*/i, ''))
+                || notificationReason(reasonOf(next)) || 'Refresh this message to check the result.';
+            if (sent) toast.success(STATE_META[state].label, { description: STATE_META[state].hint });
+            else if (state === 'failed') toast.error('Failed', { description });
+            else toast.info('Resend result', { description });
             onDone?.();
         } catch (err) {
-            toast.error(errorMessage(err, 'Could not resend that message'));
+            toast.error(notificationReason(errorMessage(err, 'Could not resend that message')));
         } finally {
+            sending.current = false;
             setBusy(false);
             setAsking(false);
         }

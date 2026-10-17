@@ -167,6 +167,18 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
             <div><h2 className="text-[26px] font-semibold text-slate-900">{initial ? 'Edit update' : 'Create an update'}</h2><p className="mt-1 text-[18px] leading-7 text-slate-500">Write your message, choose its audience and check the preview.</p></div>
             <button type="button" aria-label="Close update editor" disabled={busy} onClick={close} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200 disabled:opacity-50"><X size={20} /></button>
         </div>
+        <fieldset aria-label="Notification channels" aria-describedby="update-channel-help" disabled={busy} className="space-y-3 border-b border-slate-200 pb-5">
+            <legend className="mb-2 text-[18px] font-semibold text-slate-900">Send notifications</legend>
+            <div className="flex flex-wrap gap-2">
+                {UPDATE_DELIVERY_CHANNELS.map(channel => <label key={channel.key} title={channel.detail} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-3 py-2 text-[16px] font-semibold transition-colors focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 ${form.deliveryChannels[channel.key] ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-slate-300 bg-white text-slate-700'} ${busy ? 'opacity-50' : 'cursor-pointer hover:border-blue-500'}`}>
+                    <input type="checkbox" name={`deliveryChannels.${channel.key}`} aria-label={`Notify by ${channel.label}`} checked={form.deliveryChannels[channel.key]} disabled={busy}
+                        onChange={event => change('deliveryChannels', { ...form.deliveryChannels, [channel.key]: event.target.checked })} className="h-4 w-4 shrink-0 accent-blue-700" />
+                    {channel.key === 'push' ? 'Push' : channel.label}
+                </label>)}
+            </div>
+            <p role="status" className="text-[16px] font-medium text-slate-800">{sendsNotifications ? `Notify by ${channelSummary}` : 'In ACTIV only'}</p>
+            <p id="update-channel-help" className="text-[16px] leading-6 text-slate-500">Choose one or more. With all off, the update appears in ACTIV without email, WhatsApp or push notifications. Your audience choices and members’ notification settings and permission still apply.</p>
+        </fieldset>
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,1fr)]">
             <div className="min-w-0 space-y-6">
                 <Section title="Write your update" detail="A clear title and a short message are enough. Media is optional.">
@@ -209,17 +221,7 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
                     </fieldset>}
                     <RegionTargetPicker multipleSelection targets={form.targets} onChange={value => change('targets', value)} reachEveryone={!regional} onReachEveryoneChange={value => { setDirty(true); setRegional(!value); }} title="Regions" contentLabel="update" audienceLabel="Selected audience in all regions" hint="Select multiple states, districts or blocks. Members must match the audience above and at least one chosen region." />
                     <UpdatePersonalizationEditor variables={form.variables} onVariables={value => change('variables', value)} mode={form.recipientMode} onMode={value => change('recipientMode', value)} memberIds={form.memberIds} onMembers={value => change('memberIds', value)} previewMemberId={previewMemberId} onPreviewMember={setPreviewMemberId} onInsert={insertVariable} disabled={busy} />
-                    <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-4"><input type="checkbox" checked={form.includeVisitors && form.audience === 'all' && !regional && form.recipientMode !== 'selected'} disabled={busy || form.audience !== 'all' || regional || form.recipientMode === 'selected'} onChange={event => change('includeVisitors', event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" /><span><span className="block text-[18px] font-semibold text-slate-800">Also show to visitors</span><span className="mt-1 block text-[18px] leading-7 text-slate-500">Makes this update public. Visitors who allow notifications are notified only when Push notifications is selected below. Choose all members in all regions, without selecting specific members, to use this option. Visitors see general values.</span></span></label>
-                </Section>
-                <Section title="Send notifications" detail="Choose how to tell people about this update. Leave all options off to publish in the feed without sending notifications.">
-                    <fieldset aria-label="Notification channels" disabled={busy} className="space-y-3">
-                        {UPDATE_DELIVERY_CHANNELS.map(channel => <label key={channel.key} className={`flex min-h-[48px] items-start gap-3 rounded-xl border p-4 ${form.deliveryChannels[channel.key] ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white'} ${busy ? 'opacity-50' : 'cursor-pointer'}`}>
-                            <input type="checkbox" name={`deliveryChannels.${channel.key}`} aria-label={`Notify by ${channel.label}`} checked={form.deliveryChannels[channel.key]} disabled={busy}
-                                onChange={event => change('deliveryChannels', { ...form.deliveryChannels, [channel.key]: event.target.checked })} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" />
-                            <span className="min-w-0"><span className="block text-[18px] font-semibold text-slate-800">{channel.label}</span><span className="mt-1 block text-[18px] leading-7 text-slate-500">{channel.detail}</span></span>
-                        </label>)}
-                    </fieldset>
-                    <p className="text-[18px] leading-7 text-slate-600">Your audience choices and members’ notification settings and permission still apply. Members who match your choices can see the published update in their feed and app updates.</p>
+                    <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-4"><input type="checkbox" checked={form.includeVisitors && form.audience === 'all' && !regional && form.recipientMode !== 'selected'} disabled={busy || form.audience !== 'all' || regional || form.recipientMode === 'selected'} onChange={event => change('includeVisitors', event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-blue-700" /><span><span className="block text-[18px] font-semibold text-slate-800">Also show to visitors</span><span className="mt-1 block text-[18px] leading-7 text-slate-500">Makes this update public. Visitors who allow notifications are notified only when Push is selected above. Choose all members in all regions, without selecting specific members, to use this option. Visitors see general values.</span></span></label>
                 </Section>
             </div>
             <aside className="min-w-0 space-y-5 xl:sticky xl:top-5">

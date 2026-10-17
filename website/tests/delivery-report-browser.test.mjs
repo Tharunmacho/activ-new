@@ -11,6 +11,7 @@ import postcss from "postcss";
 import tailwind from "tailwindcss";
 import loadConfig from "tailwindcss/loadConfig.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
+const artifacts = process.env.TEST_ARTIFACTS ? path.resolve(process.env.TEST_ARTIFACTS) : path.join(root, "../artifacts/delivery-report");
 const profile = await mkdtemp(path.join(tmpdir(), "activ-delivery-report-"));
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let bundle = "",
@@ -132,21 +133,42 @@ try {
       {
         name: "isolated-report",
         setup(b) {
+          b.onResolve({filter:/^(?:@\/services\/api|\.\/api)$/},()=>({path:'api',namespace:'isolated-api'}));
+          b.onLoad({filter:/.*/,namespace:'isolated-api'},()=>({contents:`
+            const unexpected=()=>{throw Error('Unexpected live API request in local fixture')};
+            export default {get:unexpected,post:unexpected,put:unexpected,patch:unexpected};
+            export const unwrap=(value)=>value;
+            export const errorMessage=(e,f)=>e.message||f;
+          `}));
+          b.onResolve({filter:/^sonner$/},()=>({path:'toast',namespace:'isolated-toast'}));
+          b.onLoad({filter:/.*/,namespace:'isolated-toast'},()=>({contents:`export const toast=Object.fromEntries(['success','error','info'].map(kind=>[kind,(title,options)=>window.legacyToasts.push({kind,title,...options})]));`}));
+          b.onResolve({filter:/^@\/services\/notificationDeliveryApi$/},()=>({path:'legacy',namespace:'isolated-legacy'}));
+          b.onLoad({filter:/.*/,namespace:'isolated-legacy'},()=>({contents:`
+            export const getBookingDelivery=async()=>({});
+            export const resendNotification=async id=>{window.legacyRetryCalls.push(id);await new Promise(resolve=>window.finishLegacyRetry=resolve);if(window.legacyRetryError)throw Error(window.legacyRetryError);return window.legacyRetryResult};
+          `}));
           b.onResolve(
             { filter: /^@\/services\/(deliveryReportApi|activApi)$/ },
             (args) => ({ path: args.path, namespace: "fixture" })
           );
           b.onLoad({ filter: /.*/, namespace: "fixture" }, (args) => ({
+            resolveDir: root,
             contents: args.path.endsWith("activApi")
               ? "export const errorMessage=(e,f)=>e.message || f;"
               : `
-        export const CHANNEL_LABELS={email:'Email',whatsapp:'WhatsApp',push:'Push notifications',in_app:'In-app notifications'};
-        export const statusLabel=r=>({read:'Opened',failed:'Failed',accepted:r.channel==='in_app'?'In the app':'Sent',delivered:'Delivered',sent:'Sent',marked_read:'Marked as read',queued:'Waiting to send',skipped:'Not sent'}[r.status]||r.status);
+        import {CHANNEL_LABELS,statusLabel} from ${JSON.stringify(path.join(root,'src/services/deliveryReportApi.ts'))};
+        export {CHANNEL_LABELS,statusLabel};
         const fixture=${JSON.stringify(fixture)};
         window.useLargeFailureFixture=()=>{fixture.rows=Array.from({length:105},(_,index)=>({
           _id:'failure-'+index,channel:index<100?'push':'email',status:'failed',recipientName:'Failed recipient '+index,
           recipient:'fixture@example.test',title:'Regional association update',campaignKey:'automation:fixture',createdAt:'2026-10-16T10:00:00Z'
         }))};
+        window.useRowActionsFixture=()=>{fixture.rows=[
+          ...['email','whatsapp','push','visitor-push'].map(channel=>({_id:channel+':resend',channel:channel==='visitor-push'?'push':channel,status:'failed',recipientName:channel+' recipient',recipient:'fixture@example.test',title:channel==='whatsapp'?'event_reminder_photo_v4':'Fixture message',templateId:channel==='whatsapp'?'event_reminder_photo_v4':undefined,event:'EVENT_BOOKING_REMINDER',createdAt:'2026-10-16T10:00:00Z',error:channel==='whatsapp'?'Media upload error: Downloading media from weblink failed with http code503, status message Service Unavailable (code131053)':''})),
+          ...['accepted','sent','delivered','read','queued','skipped','unknown'].map(status=>({_id:'email:'+status,channel:'email',status,recipientName:status+' recipient',title:'Fixture message'})),
+          {_id:'in_app:failed',channel:'in_app',status:'failed',recipientName:'In-app recipient',title:'Fixture message'},
+          {_id:'in_app:accepted',channel:'in_app',status:'accepted',recipientName:'In-app accepted',title:'Fixture message'}
+        ]};
         window.retryPreviewCalls=[];window.retryCalls=[];window.reportReads=0;
         export const getDeliveryRetryStatus=async()=>({found:false,processing:false});
         export const previewDeliveryRetry=async selection=>{
@@ -188,7 +210,7 @@ try {
     stdin: {
       resolveDir: root,
       loader: "tsx",
-      contents: `import React from 'react';import{createRoot}from'react-dom/client';import Report from './src/features/admin/super-admin/pages/NotificationReports';import{notificationReason,notificationTemplatePath}from'./src/utils/notificationCopy';window.notificationCopy={notificationReason,notificationTemplatePath};createRoot(document.getElementById('root')).render(<Report/>);`,
+      contents: `import React from 'react';import{createRoot}from'react-dom/client';import Report from './src/features/admin/super-admin/pages/NotificationReports';import{notificationReason,notificationTemplatePath}from'./src/utils/notificationCopy';window.notificationCopy={notificationReason,notificationTemplatePath};import{ResendButton,DeliveryBadge}from'./src/features/admin/components/DeliveryUI';window.legacyRetryCalls=[];window.legacyToasts=[];window.legacyRetryResult={row:{effectiveStatus:'accepted'},message:'Re-sent'};window.renderLegacyRows=()=>{const node=document.createElement('section');node.id='legacy-fixture';document.body.append(node);createRoot(node).render(<>{['accepted','sent','delivered','read','queued','resent','mock','failed'].map(state=><div data-legacy-state={state} key={state}><DeliveryBadge state={state}/><ResendButton row={{_id:state,event:'EVENT_BOOKING_REMINDER',channel:'whatsapp',status:'failed',effectiveStatus:state,recipient:'fixture@example.test'}}/></div>)}{['PASSWORD_RESET','ADMIN_WELCOME'].map(event=><div data-legacy-state={event} key={event}><ResendButton row={{_id:event,event,channel:'email',status:'failed',effectiveStatus:'failed',recipient:'fixture@example.test'}}/></div>)}<div data-legacy-state="in_app"><ResendButton row={{_id:'in_app',event:'ASSOCIATION_UPDATE',channel:'in_app',status:'failed',effectiveStatus:'failed'}}/></div></>)};createRoot(document.getElementById('root')).render(<Report/>);`,
     },
   });
   bundle = built.outputFiles[0].text;
@@ -271,6 +293,7 @@ try {
     'Email address is too long', 'Email marketing policy refused this message',
     'Email was undeliverable', 'Email message reference 132005 and batch 535 failed',
     'SMTP configuration has an invalid port number.',
+    'Media upload error: Unsupported media format (code131053)', 'Email reference 131053 is unknown',
     'Unknown sending service response: route Q7', 'Sent on "backup" after "original": (#132005) too long',
   ];
   for (const reason of unknownReasons) {
@@ -311,7 +334,7 @@ try {
       format: "png",
       captureBeyondViewport: false,
     });
-    const dir = path.join(root, "../artifacts/delivery-report");
+    const dir = artifacts;
     await mkdir(dir, { recursive: true });
     await writeFile(
       path.join(dir, `report-${width}.png`),
@@ -343,8 +366,8 @@ try {
 
   await send("Page.bringToFront");
   await send("Emulation.setFocusEmulationEnabled", { enabled: true });
-  await evaluate('document.querySelector("[aria-label=\\"Show opened\\"]").focus()');
-  assert.equal(await evaluate('document.activeElement.getAttribute("aria-label")'), "Show opened");
+  await evaluate('document.querySelector("[aria-label=\\"Show seen\\"]").focus()');
+  assert.equal(await evaluate('document.activeElement.getAttribute("aria-label")'), "Show seen");
   await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", text: "\r", windowsVirtualKeyCode: 13 });
   await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
   await until('window.lastFilters.status === "read"');
@@ -392,7 +415,7 @@ try {
   await send("Emulation.setDeviceMetricsOverride", { width: 320, height: 1000, deviceScaleFactor: 1, mobile: true });
   await pause(200);
   assert(await evaluate("document.documentElement.scrollWidth <= innerWidth"), "expanded recipient contact, error and timeline fit a narrow screen");
-  await evaluate('document.querySelector("[aria-label=\\"Review resend for Very Long Member Name For A Narrow Screen\\"]").click()');
+  await evaluate('document.querySelector("[aria-label=\\"Resend Push notifications message to Very Long Member Name For A Narrow Screen\\"]").click()');
   await until('document.body.textContent.includes("0 ready to resend")');
   assert(await evaluate('document.body.textContent.includes("We could not check whether this message can be sent again. Please try again.")'), 'stored/API retry reason is explained in plain words');
   assert.equal(await evaluate('window.lastReport.rows.find(r=>r._id==="push:fixture").error'), 'This recipient has no enabled push device.', 'display wording leaves the raw stored reason unchanged');
@@ -447,6 +470,73 @@ try {
   assert.deepEqual(await evaluate('window.retryCalls.at(-1)'), { ids: laterIds, token: 'review-fixture' });
   await evaluate('window.finishRetry()');
   await until('document.body.textContent.includes("5 tried · 5 sent")');
+  // Failed rows expose their own action even while history is collapsed.
+  await evaluate('window.useRowActionsFixture();document.querySelector("[aria-label=\\"Show people and contacts\\"]").click()');
+  await until('window.lastReport.pagination.total===13 && !document.querySelector("[aria-busy=\\"true\\"]")');
+  assert.equal(await evaluate('document.querySelectorAll("[data-delivery-id] button[aria-label^=Resend]").length'),4);
+  for(const id of ['email:resend','whatsapp:resend','push:resend','visitor-push:resend']) {
+    const wrapper=`document.querySelector('[data-delivery-id="${id}"]')`;
+    assert.equal(await evaluate(`${wrapper}.querySelector('[data-report-row]').getAttribute('aria-expanded')`),'false');
+    assert(await evaluate(`${wrapper}.querySelector('button[aria-label^=Resend]').getBoundingClientRect().height>=44`),'Resend has a usable target');
+    const sendsBefore=await evaluate('window.retryCalls.length');
+    await evaluate(`${wrapper}.querySelector('button[aria-label^=Resend]').click()`);
+    await until('document.querySelector("[aria-label=\\"Review failed delivery resend\\"]")');
+    assert.deepEqual(await evaluate('window.retryPreviewCalls.at(-1)'),{ids:[id]});
+    assert.equal(await evaluate('window.retryCalls.length'),sendsBefore,'A row action reviews only and cannot send without confirmation');
+    await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent==="Cancel resend").click()');
+  }
+  for(const status of ['accepted','sent','delivered','read','queued','skipped','unknown']) assert.equal(await evaluate(`document.querySelector('[data-delivery-id="email:${status}"] button[aria-label^=Resend]')===null`),true,`${status} is not retryable`);
+  assert.equal(await evaluate(`document.querySelector('[data-delivery-id="in_app:failed"] button[aria-label^=Resend]')===null`),true);
+  assert(await evaluate(`document.querySelector('[data-delivery-id="email:read"] [data-report-column="outcome"]').textContent.trim()==='Seen'`),'Actual status helper says Seen only for recorded read');
+  assert(await evaluate(`document.querySelector('[data-delivery-id="in_app:accepted"]').textContent.includes('In the app')`));
+  assert(await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"]').textContent.includes('WhatsApp could not download the image or document. Check that the file opens, then try Resend.')`));
+  assert(await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] [data-report-column="notification"]').textContent.includes('Booking reminder')`),'Message type replaces technical template name in the main row');
+  await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] [data-report-row]').click()`);
+  await until(`document.querySelector('[data-delivery-id="whatsapp:resend"] details')`);
+  assert.equal(await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] details').open`),false,'Raw provider details start collapsed');
+  await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] details summary').click()`);
+  assert(await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"] details').innerText.includes('http code503')`),'Original provider error is still available');
+  assert.equal(await evaluate(`window.notificationCopy.notificationReason("Not sent: this is ACTIV's own WhatsApp number ? save the person's own mobile number on their record")`),'WhatsApp cannot send to its own sending number. Use a different recipient number.');
+  for(const width of [320,390,1440]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<600});
+    assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'),`Visible row actions and raw details fit ${width}px`);
+    await evaluate(`document.querySelector('[data-delivery-id="whatsapp:resend"]').scrollIntoView()`);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await mkdir(artifacts,{recursive:true});await writeFile(path.join(artifacts,`row-resend-${width}.png`),Buffer.from(shot.result.data,'base64'));
+  }
+  await evaluate('window.renderLegacyRows()');
+  await until('document.querySelector("[data-legacy-state=failed] button")');
+  assert.equal(await evaluate('document.querySelectorAll("#legacy-fixture button").length'),1,'Legacy resend appears only for a confirmed failed external message');
+  assert.equal(await evaluate('document.querySelector("[data-legacy-state=read]").textContent'),'Seen');
+  await evaluate('document.querySelector("[data-legacy-state=failed] button").click()');
+  assert.equal(await evaluate('window.legacyRetryCalls.length'),0,'Legacy row also requires explicit confirmation');
+  await evaluate(`[...document.querySelectorAll('[data-legacy-state=failed] button')].find(button=>button.textContent==='Cancel').click()`);
+  assert.equal(await evaluate('window.legacyRetryCalls.length'),0,'Cancel performs no legacy request');
+  const legacyCases=[
+    {response:{row:{effectiveStatus:'accepted'},message:'Re-sent'},kind:'success',title:'Sent'},
+    {response:{row:{effectiveStatus:'accepted'},message:'This message is already accepted; no new message was sent.'},kind:'info',title:'Resend result'},
+    {response:{row:{effectiveStatus:'skipped'},message:'This message cannot be sent again.'},kind:'info',title:'Resend result'},
+    {response:{row:null,message:''},kind:'info',title:'Resend result'},
+    {response:{row:{effectiveStatus:'unknown'},message:'Re-sent'},kind:'info',title:'Resend result'},
+    {response:{row:{effectiveStatus:'failed'},message:'Still failing: Media upload error: Downloading media from weblink failed with http code503'},kind:'error',title:'Failed',description:'WhatsApp could not download the image or document. Check that the file opens, then try Resend.'},
+    {error:'This report row cannot be retried.',kind:'error',title:'This message cannot be sent again.'},
+  ];
+  for(const testCase of legacyCases) {
+    await evaluate(`window.legacyRetryResult=${JSON.stringify(testCase.response||null)};window.legacyRetryError=${JSON.stringify(testCase.error||'')};document.querySelector('[data-legacy-state=failed] button').click()`);
+    await until(`document.querySelector('[data-legacy-state=failed]').textContent.includes('Confirm resend')`);
+    const before=await evaluate('window.legacyRetryCalls.length');
+    await evaluate(`{const confirm=[...document.querySelectorAll('[data-legacy-state=failed] button')].find(button=>button.textContent==='Confirm resend');confirm.click();confirm.click();}`);
+    assert.equal(await evaluate('window.legacyRetryCalls.length'),before+1,'Immediate ref lock prevents two same-tick requests');
+    assert(await evaluate(`[...document.querySelectorAll('[data-legacy-state=failed] button')].every(button=>button.disabled)`),'Confirm and cancel lock during a request');
+    await evaluate('window.finishLegacyRetry()');
+    await until(`document.querySelector('[data-legacy-state=failed] button')?.textContent.trim()==='Resend'`);
+    const toast=await evaluate('window.legacyToasts.at(-1)');
+    assert.equal(toast.kind,testCase.kind);assert.equal(toast.title,testCase.title);
+    if(testCase.description)assert.equal(toast.description,testCase.description);
+    if(testCase.kind==='info')assert(!/^(?:sent again|re-sent)\b/i.test(toast.title) && !/^(?:sent again|re-sent)\b/i.test(toast.description),'Skipped or unknown results never claim a new send');
+  }
+  console.log('PASS: legacy rapid-double-confirm lock, cancel, accepted retry vs accepted no-op, skipped/unknown outcomes and known failure/error copy.');
+  console.log('PASS: collapsed-row Resend for email/WhatsApp/member and visitor push; confirmed statuses and in-app cannot resend; raw details retained; legacy safety and 320/390/1440 layouts.');
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
     "PASS: report filters/layout and failed-delivery review, per-recipient eligibility, cancel, automation filters, frozen confirmation, duplicate-click protection, status refresh and later-page retries beyond 100 ineligible failures. All deliveries are mocked; no external requests."

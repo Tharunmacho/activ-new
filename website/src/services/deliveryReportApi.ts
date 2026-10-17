@@ -30,6 +30,7 @@ export interface ReportRow {
   recipientName: string;
   recipient?: string;
   title: string;
+  event?: string;
   campaignKey: string;
   status: string;
   error?: string;
@@ -145,16 +146,11 @@ export const CHANNEL_LABELS: Record<ReportChannel, string> = {
 export const statusLabel = (row: Pick<ReportRow, "channel" | "status">) => {
   if (row.status === "accepted")
     return row.channel === "in_app" ? "In the app" : "Sent";
-  if (row.status === "read")
-    return row.channel === "push"
-      ? "Opened"
-      : row.channel === "whatsapp"
-      ? "Opened"
-      : "Opened";
+  if (row.status === "read") return "Seen";
   return (
     (
       {
-        queued: "Waiting to send",
+        queued: "Waiting",
         sent: "Sent",
         delivered: "Delivered",
         failed: "Failed",

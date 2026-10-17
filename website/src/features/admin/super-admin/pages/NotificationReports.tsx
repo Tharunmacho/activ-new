@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowRight,
+  RotateCcw,
 } from "lucide-react";
 import {
   ADMIN_CARD,
@@ -39,6 +40,7 @@ import {
 } from "@/services/deliveryReportApi";
 import { errorMessage } from "@/services/activApi";
 import { notificationReason } from "@/utils/notificationCopy";
+import { messageLabel } from "@/features/admin/components/DeliveryUI";
 
 const input =
   "h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-ui-small focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none";
@@ -75,6 +77,11 @@ const startDate = () =>
   new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
 const recipientColumns =
   "grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_14rem]";
+const canReviewResend = (row: ReportRow) =>
+  row.status === "failed" && ["email", "whatsapp", "push"].includes(row.channel);
+const reportTitle = (row: ReportRow) => row.event && (!row.title || row.title === row.templateId || row.title === row.event)
+  ? messageLabel(row.event)
+  : row.title || "Notification";
 
 function SummaryCard({
   active,
@@ -168,16 +175,25 @@ function Detail({ row }: { row: ReportRow }) {
           </p>
         ))}
         {row.deliveredAt && <p>Delivered: {when(row.deliveredAt)}</p>}
-        {row.openedAt && <p>Opened: {when(row.openedAt)}</p>}
+        {row.openedAt && <p>Seen: {when(row.openedAt)}</p>}
         {row.readAt && <p>Marked read: {when(row.readAt)}</p>}
         {row.status === "queued" && row.nextAttemptAt && (
           <p>Next try: {when(row.nextAttemptAt)}</p>
         )}
         <p className="text-slate-500">
           Sent means the sending service received the message. It does not confirm arrival.
-          Opened means an open or tap was recorded. Email opens are not tracked.
+          Seen means an open or tap was recorded. Email opens are not tracked.
         </p>
       </div>
+      {(row.error || row.history?.some(event => event.detail)) && (
+        <details className="text-slate-600 sm:col-span-2">
+          <summary className="cursor-pointer py-2 font-medium">Technical details</summary>
+          {row.error && <p className="whitespace-pre-wrap">{row.error}</p>}
+          {row.history?.filter(event => event.detail).map((event, index) => (
+            <p key={index} className="mt-2 whitespace-pre-wrap">{when(event.at)} · {event.detail}</p>
+          ))}
+        </details>
+      )}
     </div>
   );
 }
@@ -261,7 +277,7 @@ export default function NotificationReports({
   }, []);
   const reviewRetry = async (row?: ReportRow, pageOnly = false) => {
     if (retryLock.current || busy) return;
-    const pageIds = (data?.rows || []).filter(item => item?.status === "failed" && item?._id).map(item => item._id);
+    const pageIds = (data?.rows || []).filter(item => canReviewResend(item) && item._id).map(item => item._id);
     if (pageOnly && !pageIds.length) return;
     retryLock.current = true;
     const request = ++retrySeq.current;
@@ -401,7 +417,7 @@ export default function NotificationReports({
         <p className="text-ui-caption text-slate-500">
           Each message is counted separately for email, WhatsApp, push and app notifications.
           Sent means it was passed to the sending service. Delivered means arrival was confirmed.
-          Opened means an open or tap was recorded. No recorded open does not mean the message was unread.
+          Seen means an open or tap was recorded. No recorded open does not mean the message was unread.
         </p>
       </section>
       {error && (
@@ -441,7 +457,7 @@ export default function NotificationReports({
         />
         <SummaryCard
           icon={<Eye className="w-5 h-5" />}
-          label="Opened"
+          label="Seen"
           value={fmt(summary?.opened)}
           hint="Recorded opens and notification taps"
           tone="blue"
@@ -497,10 +513,10 @@ export default function NotificationReports({
                 <Ratio
                   label={
                     key === "push"
-                      ? "Opened / sent"
+                      ? "Seen / sent"
                       : key === "whatsapp"
-                      ? "Opened / delivered"
-                      : "Opened"
+                      ? "Seen / delivered"
+                      : "Seen"
                   }
                   value={channel?.opened || 0}
                   total={
@@ -651,7 +667,7 @@ export default function NotificationReports({
           <h2 id="delivery-report-recipient-heading" ref={recipientHeading} tabIndex={-1} className={`${CARD_TITLE} scroll-mt-6 focus:outline-none`}>People and messages</h2>
           <p className="text-ui-small text-slate-600" aria-live="polite">
             {filters.channel ? CHANNEL_LABELS[filters.channel as keyof typeof CHANNEL_LABELS] : "All channels"}
-            {" · "}{filters.status === "accepted_any" ? "All sent messages, including delivered, opened and marked read" : filters.status === "read" ? "Opened" : filters.status === "unconfirmed" ? "No recorded open" : filters.status === "accepted" ? "Sent / in ACTIV" : filters.status ? statusLabel({ channel: "email", status: filters.status }) : "Every outcome"}
+            {" · "}{filters.status === "accepted_any" ? "All sent messages, including delivered, seen and marked read" : filters.status === "read" ? "Seen" : filters.status === "unconfirmed" ? "No recorded open" : filters.status === "accepted" ? "Sent / in ACTIV" : filters.status ? statusLabel({ channel: "email", status: filters.status }) : "Every outcome"}
             {busy ? " · Updating records…" : ""}
           </p>
           <p className="text-ui-caption text-slate-500">
@@ -677,8 +693,8 @@ export default function NotificationReports({
             >
               <option value="">Every outcome</option>
               <option value="unconfirmed">No recorded open</option>
-              <option value="read">Opened</option>
-              <option value="accepted_any">All sent messages (including delivered / opened)</option>
+              <option value="read">Seen</option>
+              <option value="accepted_any">All sent messages (including delivered / seen)</option>
               <option value="delivered">Delivered</option>
               <option value="accepted">Sent / in ACTIV</option>
               <option value="marked_read">Marked as read</option>
@@ -696,12 +712,12 @@ export default function NotificationReports({
             </button>
             <button type="button" className={`${ADMIN_SECONDARY_BTN} ml-0 sm:ml-2`}
               aria-label="Review failed deliveries on this page"
-              disabled={busy || !!retryBusy || !(data?.rows || []).some(row => row?.status === "failed")}
+              disabled={busy || !!retryBusy || !(data?.rows || []).some(canReviewResend)}
               onClick={() => void reviewRetry(undefined, true)}>
               Review failures on this page
             </button>
             <p className="text-ui-caption text-slate-500">
-              Review failed messages before sending again. We check that each message can still be sent. No recorded open does not mean the message failed.
+              Use Resend beside a failed message to review it before sending again. We check that it can still be sent. No recorded open does not mean the message failed.
             </p>
             {retryBusy === "send" && <p role="status" className="text-ui-small text-blue-700">Resending the reviewed deliveries…</p>}
             {retryError && <p role="alert" className="text-ui-small text-rose-700">{retryError}</p>}
@@ -743,7 +759,7 @@ export default function NotificationReports({
             </div>
           ) : (
             data?.rows.map((row) => (
-              <div key={row._id}>
+              <div key={row._id} data-delivery-id={row._id}>
                 <button
                   type="button"
                   data-report-row
@@ -766,7 +782,7 @@ export default function NotificationReports({
                       {CHANNEL_LABELS[row.channel]}
                     </span>
                     <span className="block text-ui-caption text-slate-500 [overflow-wrap:anywhere]">
-                      {row.title}
+                      {reportTitle(row)}
                     </span>
                     <span className="text-ui-caption text-slate-400">
                       {when(row.createdAt)}
@@ -787,14 +803,15 @@ export default function NotificationReports({
                     )}
                   </span>
                 </button>
-                {expanded === row._id && <>
-                  <Detail row={row} />
-                  {row.status === "failed" && <div className="px-4 sm:px-5 pb-4 bg-slate-50/70">
-                    <button type="button" className={ADMIN_SECONDARY_BTN} disabled={busy || !!retryBusy}
-                      aria-label={`Review resend for ${row.recipientName || "person"}`}
-                      onClick={() => void reviewRetry(row)}>Review resend</button>
-                  </div>}
-                </>}
+                {row.status === "failed" && <div className="flex flex-wrap items-center justify-between gap-3 px-4 pb-4 sm:px-6">
+                  <p className="min-w-0 flex-1 basis-48 text-ui-small text-rose-700 [overflow-wrap:anywhere]">
+                    {row.channel === "in_app" ? "In-app entries cannot be resent." : notificationReason(row.error) || "This message could not be sent or delivered."}
+                  </p>
+                  {canReviewResend(row) && <button type="button" className={`${ADMIN_SECONDARY_BTN} min-h-11 shrink-0`} disabled={busy || !!retryBusy}
+                    aria-label={`Resend ${CHANNEL_LABELS[row.channel]} message to ${row.recipientName || row.recipient || "this person"}`}
+                    onClick={() => void reviewRetry(row)}><RotateCcw aria-hidden="true" className="h-4 w-4" />Resend</button>}
+                </div>}
+                {expanded === row._id && <Detail row={row} />}
               </div>
             ))
           )}
