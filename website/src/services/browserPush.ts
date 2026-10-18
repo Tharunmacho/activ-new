@@ -128,7 +128,7 @@ export async function browserPushStatus(accountOnly = false): Promise<string> {
     ? identity.userId === account.userId : !identity.userId && identity.visitorId === visitorIdentity()?.id);
   if (currentIdentity && identity.configured === false) return 'Permission is allowed and this browser is registered. Notification delivery is not ready on the server yet.';
   return pushEnabled() && Notification.permission === 'granted'
-    ? 'Permission is allowed, but this browser is not connected yet. Choose Enable notifications to try again.'
+    ? 'Permission is allowed, but this browser is not connected yet. Turn notifications on to try again.'
     : 'Enable notifications to receive ACTIV updates on this browser.';
 }
 export function clearBrowserPushSession(auth = session().auth): Promise<void> {
