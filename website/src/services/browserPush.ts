@@ -2,6 +2,7 @@ import { API_BASE_URL, STORAGE_KEYS } from '@/config/api.config';
 import { firebasePushConfig, pushConfigured, vapidKey } from '@/lib/firebasePushConfig';
 import { readPushIdentity, writePushIdentity, ownsPush } from '@/lib/pushIdentity';
 import { notificationPath } from '@/lib/notificationPath';
+import { pushNotificationDisplay } from '@/lib/pushNotificationDisplay';
 import { visitorIdentity, visitorRegistration, queueVisitorRevocation, drainVisitorRevocation } from './visitorBrowserPush';
 
 const PREFERENCE = 'activ:browser-push-enabled';
@@ -53,13 +54,20 @@ async function registeredToken(current: () => boolean) {
   const token = await registrationDeadline(sdk.getToken(messaging, { vapidKey, serviceWorkerRegistration: registration }), 'Connecting to Firebase notifications', 30000);
   if (!current()) throw new RegistrationCancelled();
   if (!token) throw new Error('The browser did not return a notification registration. Please try again.');
-  return { sdk, messaging, token };
+  return { sdk, messaging, token, registration };
 }
-function foregroundMessages(sdk: any, messaging: any, current: () => boolean) {
+function foregroundMessages(sdk: any, messaging: any, registration: ServiceWorkerRegistration, current: () => boolean) {
   stopMessages?.();
   stopMessages = sdk.onMessage(messaging, async (message: any) => {
     if (!current() || document.visibilityState !== 'visible') return;
     if (!ownsPush(await readPushIdentity(), message.data)) return;
+    if (!current()) return;
+    const notice = pushNotificationDisplay(message);
+    try {
+      // Firebase calls onMessage while a page is visible; it does not create
+      // a system notification for that foreground message itself.
+      await registration.showNotification(notice.title, notice.options);
+    } catch { /* The in-page Open action remains available if the OS refuses display. */ }
     const { toast } = await import('sonner');
     if (!current()) return;
     toast('You have an update from ACTIV.', { id: message.data?.notificationId || message.data?.publicNotificationId || message.messageId,
@@ -88,16 +96,24 @@ async function client() {
   const firebase = app.getApps().find(item => item.name === 'activ-web-push') || app.initializeApp(firebasePushConfig, 'activ-web-push');
   return { sdk, messaging: sdk.getMessaging(firebase) };
 }
-/** True only after the device API succeeded for the current account/visitor. */
-export async function browserPushRegistered(accountOnly = false): Promise<boolean> {
-  if (!pushConfigured() || !pushEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return false;
+async function currentPushIdentity(accountOnly = false) {
+  if (!pushConfigured() || !pushEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return null;
   const identity = await readPushIdentity();
   const account = session();
-  if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) return false;
-  if (!identity?.token || !Number.isFinite(identity.expiresAt) || identity.expiresAt <= Date.now()) return false;
-  return account.auth
+  if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) return null;
+  if (!identity?.token || !Number.isFinite(identity.expiresAt) || identity.expiresAt <= Date.now()) return null;
+  const owned = account.auth
     ? Boolean(account.userId && account.expiresAt > Date.now() && identity.userId === account.userId)
     : Boolean(!identity.userId && identity.visitorId && identity.visitorId === visitorIdentity()?.id);
+  return owned ? identity : null;
+}
+/** Saved consent can be revoked even when server delivery is unavailable. */
+export async function browserPushSubscribed(accountOnly = false): Promise<boolean> {
+  return Boolean(await currentPushIdentity(accountOnly));
+}
+/** Registration plus the latest known server readiness for this owner. */
+export async function browserPushRegistered(accountOnly = false): Promise<boolean> {
+  return (await currentPushIdentity(accountOnly))?.configured === true;
 }
 export async function browserPushStatus(accountOnly = false): Promise<string> {
   if (!pushConfigured()) return 'Notifications are being prepared. Please check again after the next website update.';
@@ -107,6 +123,10 @@ export async function browserPushStatus(accountOnly = false): Promise<string> {
   const account = session();
   if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) return 'Sign in again to connect notifications to your account.';
   if (await browserPushRegistered(accountOnly)) return account.userId ? 'Notifications are enabled for this account on this browser.' : 'Public notifications are enabled on this browser.';
+  const identity = await readPushIdentity();
+  const currentIdentity = identity && identity.expiresAt > Date.now() && (account.userId
+    ? identity.userId === account.userId : !identity.userId && identity.visitorId === visitorIdentity()?.id);
+  if (currentIdentity && identity.configured === false) return 'Permission is allowed and this browser is registered. Notification delivery is not ready on the server yet.';
   return pushEnabled() && Notification.permission === 'granted'
     ? 'Permission is allowed, but this browser is not connected yet. Choose Enable notifications to try again.'
     : 'Enable notifications to receive ACTIV updates on this browser.';
@@ -186,13 +206,14 @@ export function syncBrowserPush(): Promise<void> {
         return;
       }
       await writePushIdentity(null);
-      const { sdk, messaging, token } = await registeredToken(current);
+      const { sdk, messaging, token, registration } = await registeredToken(current);
       if (!current()) return;
       const visitor = await visitorRegistration(token);
       if (!current()) { queueVisitorRevocation(); await drainVisitorRevocation(); return; }
-      await writePushIdentity({ visitorId: visitor.id, token, expiresAt: Date.now() + 90 * 86400000 });
-      foregroundMessages(sdk, messaging, current);
+      await writePushIdentity({ visitorId: visitor.id, token, expiresAt: Date.now() + 90 * 86400000, configured: visitor.configured });
+      foregroundMessages(sdk, messaging, registration, current);
       changed();
+      if (!visitor.configured) throw new Error('This browser is registered. Notification delivery is still being configured on the server.');
       return;
     }
     // Account changes and browser permission revocation also happen outside our controls.
@@ -214,7 +235,7 @@ export function syncBrowserPush(): Promise<void> {
     }
     const current = () => revision === generation && session().auth === snapshot.auth && snapshot.expiresAt > Date.now()
       && pushEnabled() && Notification.permission === 'granted';
-    const { sdk, messaging, token } = await registeredToken(current);
+    const { sdk, messaging, token, registration } = await registeredToken(current);
     if (!current()) return;
     const previous = await readPushIdentity();
     await writePushIdentity(null);
@@ -223,10 +244,11 @@ export function syncBrowserPush(): Promise<void> {
     if (!current()) {
       await deviceRequest('DELETE', token, snapshot.auth).catch(() => undefined); return;
     }
-    await writePushIdentity({ userId: snapshot.userId, token, expiresAt: snapshot.expiresAt });
+    const ready = result.data?.configured === true && result.data?.ready !== false;
+    await writePushIdentity({ userId: snapshot.userId, token, expiresAt: snapshot.expiresAt, configured: ready });
     stopMessages?.();
-    foregroundMessages(sdk, messaging, current);
+    foregroundMessages(sdk, messaging, registration, current);
     changed();
-    if (!result.data?.configured) throw new Error('This browser is registered. Notification delivery is still being configured on the server.');
+    if (!ready) throw new Error('This browser is registered. Notification delivery is still being configured on the server.');
   }).catch(error => { changed(); if (!(error instanceof RegistrationCancelled)) throw error; });
 }

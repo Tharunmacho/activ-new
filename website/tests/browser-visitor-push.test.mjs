@@ -19,7 +19,7 @@ const calls = [];
 const noticeId = 'd'.repeat(24), eventNoticeId = 'e'.repeat(24), eventId = 'f'.repeat(24);
 const receipts = new Set();
 let bundle = '', css = '', chrome, ws, installations = 0, rejectDelete = false, expireNext = false, rejectRegistration = false;
-let feedMode = 'normal', rejectDetail = false;
+let feedMode = 'normal', rejectDetail = false, providerReady = true, workerReady = true;
 const server = http.createServer(async (req, res) => {
   if (fonts.serve(new URL(req.url, 'http://localhost'), res)) return;
   if (req.url === '/logo_ACTIVian-removebg-preview.png') { res.setHeader('Content-Type', 'image/png'); return res.end(await readFile(path.join(root, 'public/logo_ACTIVian-removebg-preview.png'))); }
@@ -57,7 +57,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'DELETE' && rejectDelete) { res.statusCode = 503; return res.end('{}'); }
       if (req.method === 'PUT' && expireNext) { expireNext = false; res.statusCode = 401; return res.end('{}'); }
     }
-    return res.end(JSON.stringify({ data: { configured: true } }));
+    return res.end(JSON.stringify({ data: { configured: providerReady, ready: providerReady && workerReady } }));
   }
   res.end('<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>');
 });
@@ -113,7 +113,7 @@ try {
   let seq = 0; const pending = new Map(), errors = [];
   ws.addEventListener('message', event => { const m = JSON.parse(event.data); if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text); pending.get(m.id)?.(m); pending.delete(m.id); });
   const send = (method, params = {}) => new Promise((resolve, reject) => {
-    const id = ++seq, timer = setTimeout(() => { pending.delete(id); reject(Error(method)); }, 15000);
+    const id = ++seq, timer = setTimeout(() => { pending.delete(id); reject(Error(method + ': ' + String(params.expression || '').slice(0,180))); }, 30000);
     pending.set(id, r => { clearTimeout(timer); resolve(r); }); ws.send(JSON.stringify({ id, method, params }));
   });
   const evaluate = async expression => {
@@ -156,6 +156,23 @@ try {
   assert.equal(await evaluate('!!document.querySelector(\'aside[aria-label="Enable ACTIV notifications"]\')'), false, 'no floating ACTIV permission prompt appears');
   assert.equal(await evaluate(`!!${dialog}`), false, 'notifications stay closed until requested');
   await evaluate('document.fonts.ready');
+  const invitation = 'document.querySelector(\'aside[aria-label="Enable ACTIV notifications"]\')';
+  const beforeInvitationPermission = await evaluate('window.permissionRequests');
+  await evaluate('window.mountPublic("/events?view=upcoming",true)');
+  await until(invitation);
+  assert.equal(await evaluate('window.permissionRequests'), beforeInvitationPermission, 'First visit invitation waits for an Enable click before the browser permission dialog');
+  await screenshot('visitor-first-visit-invitation');
+  await evaluate(`[...${invitation}.querySelectorAll('button')].find(button=>button.textContent==='Not now').click()`);
+  assert.equal(await evaluate(`!!${invitation}`), false, 'The invitation can be dismissed without granting permission');
+  await evaluate('window.mountPublic("/news",true)'); await pause(1400);
+  assert.equal(await evaluate(`!!${invitation}`), false, 'Not now is respected across navigation');
+  await reset();
+  await evaluate('window.mountPublic("/events",true)'); await until(invitation);
+  await evaluate(`[...${invitation}.querySelectorAll('button')].find(button=>button.textContent==='Enable notifications').click()`);
+  await until('(await identity.readPushIdentity())?.visitorId && !(document.querySelector(\'aside[aria-label="Enable ACTIV notifications"]\'))');
+  assert.equal(await evaluate('window.permissionRequests'), beforeInvitationPermission + 1, 'Enable requests permission once and registers the visitor');
+  assert.equal(await evaluate('push.browserPushRegistered()'), true);
+  await reset();
   const originalLocation = await evaluate('location.pathname+location.search+location.hash');
   const beforePermission = await evaluate('window.permissionRequests');
   await openBell();
@@ -204,6 +221,26 @@ try {
   await evaluate('window.permission="granted";push.syncBrowserPush()');
   assert((await evaluate('identity.readPushIdentity()')).visitorId, 'previously granted OS permission syncs on return');
   assert.equal(await evaluate('window.permissionRequests'), permissionCount);
+
+  providerReady = false;
+  await evaluate('push.syncBrowserPush().catch(error=>window.lastError=error.message)');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'A visitor registration is not ready while server credentials fail');
+  assert.equal((await evaluate('identity.readPushIdentity()')).configured, false);
+  assert.match(await evaluate('push.browserPushStatus()'), /not ready on the server/);
+  assert.equal(await evaluate('push.browserPushSubscribed()'), true);
+  await openBell();
+  await until(`${dialog}.querySelector('button[aria-label="Disable browser notifications"]')`);
+  await evaluate(`${dialog}.querySelector('button[aria-label="Disable browser notifications"]').click()`);
+  await until('!(await identity.readPushIdentity())');
+  assert.equal(await evaluate('push.pushEnabled()'), false, 'Visitor can revoke saved consent during provider outage');
+  await closeBell();
+  providerReady = true;
+  workerReady = false;
+  await evaluate('push.enableBrowserPush().catch(()=>{})');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'Visitor status reflects a stopped delivery worker');
+  workerReady = true;
+  await evaluate('push.syncBrowserPush()');
+  assert.equal(await evaluate('push.browserPushRegistered()'), true, 'Server recovery reconnects a consenting visitor without another permission prompt');
 
   await reset();
   await evaluate('window.tokenFailure=true;push.enableBrowserPush().catch(error=>window.lastError=error.message)');
@@ -423,7 +460,7 @@ try {
   await until(`location.pathname === '/' && ${dialog}?.textContent.includes('Dear ACTIVian, discover')`);
   assert.equal(opens().length, beforeLegacyFeed, 'legacy feed redirect alone does not record any read');
   assert.equal(errors.length, 0, errors.join('\n'));
-  console.log('PASS: no floating prompt or passive permission request; native permission on explicit bell; same-page accessible responsive notification card/detail, block/dismiss/opt-out, empty/error/retry, Escape/outside close; existing ownership/race/offline registration coverage; new and legacy worker/deep-link routes with owned, one-time push attribution and no false in-app receipts. No external delivery.');
+  console.log('PASS: first-visit invitation, explicit Enable consent, dismissal persistence; native permission on explicit bell; same-page accessible responsive notification card/detail, block/dismiss/opt-out, empty/error/retry, Escape/outside close; ownership/race/offline registration and backend readiness; new and legacy worker/deep-link routes with owned, one-time push attribution and no false in-app receipts. No external delivery.');
 } finally {
   if(ws?.readyState===WebSocket.OPEN)await new Promise(resolve=>{const timer=setTimeout(resolve,2000);ws.addEventListener('close',()=>{clearTimeout(timer);resolve();},{once:true});try{ws.send(JSON.stringify({id:1000000,method:'Browser.close'}));}catch{clearTimeout(timer);resolve();}});
   ws?.close(); if(chrome?.exitCode==null)chrome?.kill();chrome?.unref();stop();server.closeAllConnections();

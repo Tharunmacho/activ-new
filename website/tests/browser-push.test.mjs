@@ -15,7 +15,7 @@ const profile = await mkdtemp(path.join(tmpdir(), 'activ-push-test-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const env = Object.fromEntries(['API_KEY', 'PROJECT_ID', 'MESSAGING_SENDER_ID', 'APP_ID', 'VAPID_KEY'].map(k => ['VITE_FIREBASE_' + k, 'fixture']));
 const calls = [];
-let bundle = '', css = '', chrome, ws, rejectRegistration = false;
+let bundle = '', css = '', chrome, ws, rejectRegistration = false, providerReady = true, workerReady = true;
 const server = http.createServer(async (req, res) => {
   if (req.url === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
   if (req.url === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
@@ -27,7 +27,7 @@ const server = http.createServer(async (req, res) => {
     let body = ''; for await (const chunk of req) body += chunk;
     calls.push({ method: req.method, auth: req.headers.authorization, body: JSON.parse(body) });
     if (req.method === 'POST' && rejectRegistration) { res.statusCode = 503; return res.end('{}'); }
-    res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ data: { configured: true } }));
+    res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ data: { configured: providerReady, ready: providerReady && workerReady } }));
   }
   if (req.url === '/api/v1/auth/logout') {
     res.setHeader('Content-Type', 'application/json'); return res.end(JSON.stringify({ data: {} }));
@@ -63,6 +63,11 @@ try {
       window.permission='granted';
       Object.defineProperty(Notification,'permission',{get:()=>window.permission});
       Notification.requestPermission=async()=>window.permission;
+      window.trayNotifications=[];
+      ServiceWorkerRegistration.prototype.showNotification=async function(title,options){
+        if(window.rejectTray)throw Error('OS display unavailable');
+        window.trayNotifications.push({title,options});
+      };
       window.signIn=id=>localStorage.setItem('token','x.'+btoa(JSON.stringify({userId:id,exp:Math.floor(Date.now()/1000)+3600}))+'.x');
       window.signIn('member-a');
       createRoot(document.getElementById('root')).render(<><Settings/><Toaster/></>);
@@ -104,6 +109,22 @@ try {
   assert.equal(await evaluate('document.body.textContent.includes("Turn off for this browser")'), false);
   assert.match(await evaluate('push.browserPushStatus()'), /not connected yet/);
   rejectRegistration = false;
+  providerReady = false;
+  await evaluate('document.querySelector("button").click()');
+  await until('document.body.textContent.includes("still being configured") && !document.querySelector("button").disabled');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'Saved device cannot claim enabled while server authentication is unavailable');
+  assert.equal((await evaluate('identity.readPushIdentity()')).configured, false);
+  assert.match(await evaluate('push.browserPushStatus()'), /not ready on the server/);
+  assert.equal(await evaluate('push.browserPushSubscribed()'), true, 'Saved consent remains separate from delivery readiness');
+  assert.equal(await evaluate('document.body.textContent.includes("Turn off for this browser")'), true, 'An outage never hides the saved-registration revoke control');
+  await evaluate('[...document.querySelectorAll("button")].find(button=>button.textContent==="Turn off for this browser").click()');
+  await until('!(await identity.readPushIdentity()) && !document.querySelector("button").disabled');
+  assert.equal(await evaluate('push.browserPushSubscribed()'), false, 'Turn off revokes consent while the provider is unavailable');
+  providerReady = true;
+  workerReady = false;
+  await evaluate('push.enableBrowserPush().catch(()=>{})');
+  assert.equal(await evaluate('push.browserPushRegistered()'), false, 'A paused delivery worker cannot be shown as enabled');
+  workerReady = true;
   await evaluate('document.querySelector("button").click()');
   await until('document.body.textContent.includes("enabled for this account")');
   assert.equal((await evaluate('identity.readPushIdentity()')).userId, 'member-a');
@@ -123,10 +144,18 @@ try {
   await until('document.querySelector("[data-sonner-toast]")');
   assert(await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("You have an update from ACTIV.")'));
   assert(!await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("Private member title")'), 'Foreground push uses a generic notice');
+  const tray = await evaluate('window.trayNotifications');
+  assert.equal(tray.length, 1, 'An enabled foreground page also posts a system-tray notification');
+  assert.equal(tray[0].title, 'ACTIV');
+  assert.equal(tray[0].options.data.activPush, true, 'Tray click uses the same ownership-checked worker route');
+  assert.equal(tray[0].options.tag, 'abcdef0123456789abcdef01');
+  assert(!(tray[0].title + tray[0].options.body).includes('Private member title'), 'Private title must not appear in system notification text');
   await evaluate(`window.receivePush({data:{userId:'member-other',notificationId:'wrong-account'}})`);
   assert.equal(await evaluate('document.querySelectorAll("[data-sonner-toast]").length'), 1, 'Foreground ignores another account');
+  assert.equal(await evaluate('window.trayNotifications.length'), 1, 'Another account cannot create a tray notification');
   await evaluate(`Object.defineProperty(document,'visibilityState',{value:'hidden',configurable:true});window.receivePush({data:{userId:'member-a',notificationId:'hidden-window'}})`);
   assert.equal(await evaluate('document.querySelectorAll("[data-sonner-toast]").length'), 1, 'Hidden pages do not duplicate background notifications');
+  assert.equal(await evaluate('window.trayNotifications.length'), 1, 'Hidden page leaves background display to the worker');
   await evaluate(`Object.defineProperty(document,'visibilityState',{value:'visible',configurable:true});toast.dismiss()`);
   assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'settings fit a narrow phone');
   for (const width of [320, 1440]) {

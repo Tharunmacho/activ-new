@@ -149,7 +149,7 @@ try {
   };
   const until = async expression => {
     for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(50); }
-    throw Error(`${expression}: ${exceptions.join('\n')}`);
+    throw Error(`${expression}: ${exceptions.join('\n')} ${JSON.stringify(await evaluate(`({focused:document.hasFocus(),active:document.activeElement?.getAttribute('name'),variableField:document.querySelector('[aria-label="Variable insertion field"]')?.value})`))}`);
   };
   const click = label => evaluate(`[...document.querySelectorAll('button')].find(button => button.getAttribute('aria-label') === ${JSON.stringify(label)} || button.textContent.trim() === ${JSON.stringify(label)} || (${JSON.stringify(label)}==='Publish update'&&button.value==='published')).click()`);
   const fill = (name, value) => evaluate(`{
@@ -178,12 +178,31 @@ try {
   const waitSaved = async count => { await until(`window.savedCount===${count}`); assert.equal(saves.length, count); };
 
   await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+  await send('Emulation.setFocusEmulationEnabled', { enabled: true });
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: base });
   await until(`document.querySelector('form[aria-label="Update composer"]')`);
   await evaluate('document.fonts.ready');
   assert.equal(await evaluate(`document.querySelectorAll('input[type="url"], input[name="bannerUrl"], input[name="attachmentUrl"]').length`), 0, 'No raw URL inputs');
+
+  await fill('title', 'Dear person');
+  await evaluate(`{const input=document.querySelector('[name="title"]');input.focus();input.setSelectionRange(5,11);}`);
+  await until(`document.querySelector('[aria-label="Variable insertion field"]').value==='title'`);
+  await click('Insert member name');
+  assert.equal(await evaluate(`document.querySelector('[name="title"]').value`), 'Dear {name}', 'focused title receives the token at its selected range');
+  assert.equal(await evaluate(`document.querySelector('[name="body"]').value`), '', 'title insertion never changes the message');
+  await fillAria('Variable insertion field', 'summary');
+  await fill('summary', 'Hello person');
+  await evaluate(`{const input=document.querySelector('[name="summary"]');input.focus();input.setSelectionRange(6,12);}`);
+  await click('Insert member name');
+  assert.equal(await evaluate(`document.querySelector('[name="summary"]').value`), 'Hello {name}', 'summary receives the selected variable');
+  await fill('body', 'Message person');
+  await evaluate(`{const input=document.querySelector('[name="body"]');input.focus();input.setSelectionRange(8,14);}`);
+  await until(`document.querySelector('[aria-label="Variable insertion field"]').value==='body'`);
+  await click('Insert member name');
+  assert.equal(await evaluate(`document.querySelector('[name="body"]').value`), 'Message {name}', 'message cursor insertion still works');
+  await remount();
 
   await fill('title', 'Draft membership notice'); await click('Publish update');
   await until(`document.querySelector('[role="alert"]')?.textContent.includes('Write a message')`);

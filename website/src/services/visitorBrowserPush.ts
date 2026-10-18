@@ -17,7 +17,10 @@ export async function visitorRegistration(token: string) {
   for (let attempt = 0; attempt < 2; attempt++) {
     let row = visitorIdentity();
     if (!row) { row = await request('/installations', 'POST', {}); localStorage.setItem(KEY, JSON.stringify(row)); }
-    try { await request('/devices', 'PUT', { token, platform: 'web' }, row!.key); return row!; }
+    try {
+      const result = await request('/devices', 'PUT', { token, platform: 'web' }, row!.key);
+      return { ...row!, configured: result?.configured === true && result?.ready !== false };
+    }
     catch (error: any) { if (error.status === 401) { localStorage.removeItem(KEY); if (!attempt) continue; } throw error; }
   }
   throw new Error('Could not renew notification registration.');

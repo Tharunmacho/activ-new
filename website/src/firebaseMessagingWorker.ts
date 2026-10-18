@@ -4,6 +4,7 @@ import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
 import { firebasePushConfig } from './lib/firebasePushConfig';
 import { readPushIdentity, ownsPush } from './lib/pushIdentity';
 import { notificationPath } from './lib/notificationPath';
+import { pushNotificationDisplay } from './lib/pushNotificationDisplay';
 
 declare const self: ServiceWorkerGlobalScope;
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
@@ -30,10 +31,7 @@ self.addEventListener('notificationclick', event => {
 onBackgroundMessage(getMessaging(initializeApp(firebasePushConfig)), async message => {
   try {
     if (!ownsPush(await readPushIdentity(), message.data)) return;
-    await self.registration.showNotification('ACTIV', {
-      body: 'You have an update from ACTIV. Open to view it.',
-      tag: message.data?.notificationId || message.data?.publicNotificationId || message.messageId,
-      data: { activPush: true, payload: message.data },
-    });
+    const notice = pushNotificationDisplay(message);
+    await self.registration.showNotification(notice.title, notice.options);
   } catch { /* Storage unavailable: fail closed rather than display another account's alert. */ }
 });

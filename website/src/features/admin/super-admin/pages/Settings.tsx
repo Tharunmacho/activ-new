@@ -23,7 +23,6 @@ import AdminSidebar from "./AdminSidebar";
 import { toast } from "sonner";
 import ProfileEditModal from "../components/ProfileEditModal";
 import AuditLog from "../components/AuditLog";
-import AppUpdateSettings from '../components/AppUpdateSettings';
 import { apiFetch, dashboardPathForRole, logout } from "@/services/activApi";
 import { AdminPageHeader, ADMIN_BG, ADMIN_PAGE } from "@/features/admin/components/AdminUI";
 
@@ -344,7 +343,6 @@ const Settings = () => {
                       * behind it, which is the wrong way round — the heading
                       * promised oversight and the thing providing it was missing.
                       */}
-                    <AppUpdateSettings />
                     <AuditLog />
                 </div>
             </div>

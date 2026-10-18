@@ -25,6 +25,7 @@ type Form = {
     pinned: boolean; expiresAt: string;
     deliveryChannels: UpdateDeliveryChannels;
 };
+type VariableField = 'title' | 'summary' | 'body';
 const dateInput = (value?: string | null) => {
     if (!value) return '';
     const date = new Date(value);
@@ -62,7 +63,8 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
     const [previewError, setPreviewError] = useState('');
     const [previewLoading, setPreviewLoading] = useState(false);
     const [previewAttempt, setPreviewAttempt] = useState(0);
-    const messageInput = useRef<HTMLTextAreaElement>(null);
+    const writingInputs = useRef<Partial<Record<VariableField, HTMLInputElement | HTMLTextAreaElement>>>({});
+    const [variableField, setVariableField] = useState<VariableField>('body');
     const [plans, setPlans] = useState<MembershipPlanRow[]>([]);
     const [plansLoading, setPlansLoading] = useState(true);
     const [plansError, setPlansError] = useState('');
@@ -85,10 +87,11 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
     const previewText = (field: 'title' | 'summary' | 'body') => field === 'body' ? plainText(preview?.announcement.body || '') : preview?.announcement[field] || '';
     const insertVariable = (key: string) => {
         const token = `{${key}}`;
-        const input = messageInput.current;
-        const start = input?.selectionStart ?? form.body.length;
+        const input = writingInputs.current[variableField];
+        const value = form[variableField];
+        const start = Math.min(input?.selectionStart ?? value.length, value.length);
         const end = input?.selectionEnd ?? start;
-        change('body', form.body.slice(0, start) + token + form.body.slice(end));
+        change(variableField, value.slice(0, start) + token + value.slice(end));
         requestAnimationFrame(() => { input?.focus(); input?.setSelectionRange(start + token.length, start + token.length); });
     };
     const change = <K extends keyof Form>(key: K, value: Form[K]) => { setDirty(true); setForm(current => ({ ...current, [key]: value })); };
@@ -182,12 +185,13 @@ export default function UpdateComposer({ initial, onClose, onSaved }: {
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,1fr)]">
             <div className="min-w-0 space-y-6">
                 <Section title="Write your update" detail="A clear title and a short message are enough. Media is optional.">
-                    <Field label="Title" required><input name="title" required maxLength={200} value={form.title} onChange={e => change('title', e.target.value)} placeholder="For example: New membership benefits" className={INPUT} /></Field>
-                    <Field label="Message"><textarea ref={messageInput} name="body" value={form.body} onChange={e => change('body', e.target.value)} rows={7} placeholder={'Dear {Name},\n\nShare the details of your update here.\n\nThank you for being part of ACTIV.'} className={`${INPUT} resize-y`} /></Field>
+                    <Field label="Title" required><input ref={input => { writingInputs.current.title = input || undefined; }} onFocus={() => setVariableField('title')} name="title" required maxLength={200} value={form.title} onChange={e => change('title', e.target.value)} placeholder="For example: New membership benefits" className={INPUT} /></Field>
+                    <Field label="Message"><textarea ref={input => { writingInputs.current.body = input || undefined; }} onFocus={() => setVariableField('body')} name="body" value={form.body} onChange={e => change('body', e.target.value)} rows={7} placeholder={'Dear {Name},\n\nShare the details of your update here.\n\nThank you for being part of ACTIV.'} className={`${INPUT} resize-y`} /></Field>
                     <div className="rounded-xl bg-blue-50 p-3"><button type="button" onClick={() => insertVariable('name')} disabled={busy} className="inline-flex min-h-10 items-center gap-2 text-[20px] font-semibold text-blue-700"><UserRound size={17} />Insert member name</button><p className="text-[20px] leading-8 text-slate-600">Use variables in the title, message or summary. Add company, dates, fees and your own variables under “Variables and general values” below. You can set a general fallback and different values for individual members.</p></div>
-                    <details className="rounded-xl border border-slate-200 px-4 py-3" open={!!form.summary || undefined}>
+                    <Field label="Insert variables into"><select aria-label="Variable insertion field" value={variableField} onChange={event => setVariableField(event.target.value as VariableField)} className={INPUT}><option value="title">Title</option><option value="body">Message</option><option value="summary">Summary</option></select></Field>
+                    <details className="rounded-xl border border-slate-200 px-4 py-3" open={!!form.summary || variableField === 'summary' || undefined}>
                         <summary className="cursor-pointer text-[20px] font-medium text-slate-600">Short summary (optional)</summary>
-                        <div className="mt-3"><Field label="Summary" hint="Shown on the update card. If blank, we use the start of your message."><input name="summary" value={form.summary} maxLength={300} onChange={e => change('summary', e.target.value)} className={INPUT} /></Field></div>
+                        <div className="mt-3"><Field label="Summary" hint="Shown on the update card. If blank, we use the start of your message."><input ref={input => { writingInputs.current.summary = input || undefined; }} onFocus={() => setVariableField('summary')} name="summary" value={form.summary} maxLength={300} onChange={e => change('summary', e.target.value)} className={INPUT} /></Field></div>
                     </details>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <Field label="Category"><select name="category" value={form.category} onChange={e => change('category', e.target.value as AnnouncementCategory)} className={INPUT}>{CATEGORIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>

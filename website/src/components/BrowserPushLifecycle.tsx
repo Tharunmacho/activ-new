@@ -4,6 +4,7 @@ import { SESSION_EVENT, getAuthToken } from '@/services/api';
 import { recordNotificationOpen } from '@/services/deliveryReportApi';
 import { syncBrowserPush } from '@/services/browserPush';
 import { recordVisitorOpen } from '@/services/visitorBrowserPush';
+import BrowserPushInvitation from './BrowserPushInvitation';
 
 export default function BrowserPushLifecycle() {
   const location = useLocation();
@@ -56,5 +57,5 @@ export default function BrowserPushLifecycle() {
       window.removeEventListener('online', sync);
     };
   }, [location.pathname, location.search]);
-  return null;
+  return <BrowserPushInvitation />;
 }
