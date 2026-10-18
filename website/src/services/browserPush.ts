@@ -13,6 +13,11 @@ let cancelSdkWork: (() => void) | undefined;
 let deletingToken: Promise<boolean> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
 let stopMessages: (() => void) | undefined;
+let activeSync: { key: string; promise: Promise<void> } | undefined;
+let backgroundConnection: { key: string; attempts: number; timer?: ReturnType<typeof setTimeout> } | undefined;
+let connectionFailure: { key: string; message: string } | undefined;
+let consentOwner: string | undefined;
+let pendingToken: { revision: number; promise: Promise<string> } | undefined;
 export const pushEnabled = () => {
   try { return localStorage.getItem(PREFERENCE) === 'true'; } catch { return false; }
 };
@@ -24,6 +29,13 @@ function session() {
     return { auth, userId: String(claims.userId || ''), expiresAt: Number(claims.exp) * 1000 };
   } catch { return { auth: null, userId: '', expiresAt: 0 }; }
 }
+const connectionKey = () => JSON.stringify([generation, session().auth, pushEnabled(), 'Notification' in window ? Notification.permission : 'unsupported']);
+export function browserPushAllowed(accountOnly = false): boolean {
+  const account = session();
+  return pushEnabled() && 'Notification' in window && Notification.permission === 'granted'
+    && (!accountOnly || Boolean(account.auth && account.userId && account.expiresAt > Date.now()));
+}
+export const browserPushConnecting = () => browserPushAllowed() && (activeSync?.key === connectionKey() || backgroundConnection?.key === connectionKey());
 function serial<T>(run: () => Promise<T>): Promise<T> {
   const locked = async (): Promise<T> => navigator.locks ? await navigator.locks.request('activ-browser-push', run) : await run();
   const result = queue.then(locked, locked);
@@ -37,7 +49,7 @@ async function registrationDeadline<T>(work: Promise<T>, stage = 'Notification r
   cancelSdkWork = cancel;
   try {
     return await Promise.race([work, cancelled, new Promise<never>((_resolve, reject) => {
-      timer = setTimeout(() => reject(new Error(`${stage} timed out. Check your connection, then try again.`)), milliseconds);
+      timer = setTimeout(() => reject(new Error('Notification setup is taking longer than usual. Please try again.')), milliseconds);
     })]);
   } finally { clearTimeout(timer); if (cancelSdkWork === cancel) cancelSdkWork = undefined; }
 }
@@ -51,7 +63,16 @@ async function registeredToken(current: () => boolean) {
   // installation. Give that network step time without holding sign-out hostage.
   if (deletingToken) await registrationDeadline(deletingToken, 'Finishing notification settings');
   if (!current()) throw new RegistrationCancelled();
-  const token = await registrationDeadline(sdk.getToken(messaging, { vapidKey, serviceWorkerRegistration: registration }), 'Connecting to Firebase notifications', 30000);
+  // A deadline cannot cancel PushManager.subscribe inside Firebase. Reuse that
+  // pending operation on retry instead of starting competing subscriptions.
+  if (!pendingToken || pendingToken.revision !== generation) {
+    const operation = sdk.getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
+    const request = { revision: generation, promise: operation };
+    pendingToken = request;
+    const done = () => { if (pendingToken === request) pendingToken = undefined; };
+    void operation.then(done, done);
+  }
+  const token = await registrationDeadline(pendingToken.promise, 'Connecting notifications', 120000);
   if (!current()) throw new RegistrationCancelled();
   if (!token) throw new Error('The browser did not return a notification registration. Please try again.');
   return { sdk, messaging, token, registration };
@@ -109,7 +130,8 @@ async function currentPushIdentity(accountOnly = false) {
 }
 /** Saved consent can be revoked even when server delivery is unavailable. */
 export async function browserPushSubscribed(accountOnly = false): Promise<boolean> {
-  return Boolean(await currentPushIdentity(accountOnly));
+  if (await currentPushIdentity(accountOnly)) return true;
+  return browserPushAllowed(accountOnly) && consentOwner === (session().userId || 'visitor');
 }
 /** Registration plus the latest known server readiness for this owner. */
 export async function browserPushRegistered(accountOnly = false): Promise<boolean> {
@@ -127,12 +149,18 @@ export async function browserPushStatus(accountOnly = false): Promise<string> {
   const currentIdentity = identity && identity.expiresAt > Date.now() && (account.userId
     ? identity.userId === account.userId : !identity.userId && identity.visitorId === visitorIdentity()?.id);
   if (currentIdentity && identity.configured === false) return 'Permission is allowed and this browser is registered. Notification delivery is not ready on the server yet.';
+  if (browserPushConnecting()) return 'Notifications allowed. Finishing setup in the background.';
+  if (connectionFailure?.key === connectionKey()) return connectionFailure.message;
   return pushEnabled() && Notification.permission === 'granted'
     ? 'Permission is allowed, but this browser is not connected yet. Turn notifications on to try again.'
     : 'Enable notifications to receive ACTIV updates on this browser.';
 }
 export function clearBrowserPushSession(auth = session().auth): Promise<void> {
   generation++;
+  clearTimeout(backgroundConnection?.timer);
+  backgroundConnection = undefined;
+  connectionFailure = undefined;
+  consentOwner = undefined;
   cancelSdkWork?.();
   stopMessages?.(); stopMessages = undefined;
   // Revoke local display immediately, even while a Firebase request owns the lock.
@@ -173,7 +201,7 @@ export async function disableBrowserPush() {
   });
   changed();
 }
-export async function enableBrowserPush(accountOnly = false) {
+export async function enableBrowserPush(accountOnly = false, options: { background?: boolean } = {}) {
   if (!pushConfigured()) throw new Error('Website notifications are not configured yet.');
   if (!window.isSecureContext || !('Notification' in window) || !('serviceWorker' in navigator))
     throw new Error('Notifications need a supported browser over HTTPS. On iPhone, open ACTIV from your Home Screen.');
@@ -181,14 +209,64 @@ export async function enableBrowserPush(accountOnly = false) {
   const account = session();
   if (accountOnly && (!account.auth || !account.userId || account.expiresAt <= Date.now())) throw new Error('Sign in again to connect notifications to your account.');
   const revision = generation;
-  const permission = await Notification.requestPermission();
+  const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
   if (revision !== generation) return;
   if (accountOnly && (session().auth !== account.auth || account.expiresAt <= Date.now())) throw new Error('Your sign-in changed. Sign in again to connect notifications to your account.');
   if (permission !== 'granted') throw new Error('Notifications were not allowed. You can enable them in your browser’s site settings.');
   localStorage.setItem(PREFERENCE, 'true');
-  await syncBrowserPush();
+  consentOwner = session().userId || 'visitor';
+  if (options.background) connectBrowserPushInBackground();
+  else await syncBrowserPush();
 }
+/** One connection per current session. Focus/navigation must not queue duplicate SDK requests. */
 export function syncBrowserPush(): Promise<void> {
+  if ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem(PREFERENCE) === null) localStorage.setItem(PREFERENCE, 'true');
+  const key = connectionKey();
+  if (activeSync?.key === key) return activeSync.promise;
+  const promise = syncBrowserPushOnce().then(() => {
+    if (connectionKey() === key) {
+      connectionFailure = undefined;
+      if (backgroundConnection?.key === key) {
+        clearTimeout(backgroundConnection.timer);
+        backgroundConnection = undefined;
+      }
+    }
+  }).catch(error => {
+    if (connectionKey() === key && browserPushAllowed()) connectionFailure = { key, message: navigator.onLine === false
+      ? 'You are offline. Notifications will reconnect when you are back online.'
+      : 'Could not connect notifications. Check your connection and try again.' };
+    throw error;
+  }).finally(() => {
+    if (activeSync?.promise === promise) activeSync = undefined;
+    changed();
+  });
+  activeSync = { key, promise };
+  changed();
+  return promise;
+}
+/** Permission returns immediately; slow setup and bounded retries do not block browsing. */
+export function connectBrowserPushInBackground() {
+  if ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem(PREFERENCE) === null) localStorage.setItem(PREFERENCE, 'true');
+  const key = connectionKey();
+  if (backgroundConnection?.key === key) return;
+  clearTimeout(backgroundConnection?.timer);
+  const job = { key, attempts: 0, timer: undefined as ReturnType<typeof setTimeout> | undefined };
+  backgroundConnection = job;
+  const current = () => backgroundConnection === job && connectionKey() === key;
+  const finish = () => { if (backgroundConnection === job) backgroundConnection = undefined; changed(); };
+  const run = () => {
+    if (!current()) { finish(); return; }
+    job.attempts++;
+    void syncBrowserPush().then(finish).catch(() => {
+      if (current() && browserPushAllowed() && navigator.onLine !== false && job.attempts < 3) {
+        job.timer = setTimeout(run, job.attempts === 1 ? 5000 : 30000);
+        changed();
+      } else finish();
+    });
+  };
+  run();
+}
+function syncBrowserPushOnce(): Promise<void> {
   const snapshot = session();
   const revision = generation;
   return serial(async () => {
@@ -205,7 +283,11 @@ export function syncBrowserPush(): Promise<void> {
         }
         return;
       }
-      await writePushIdentity(null);
+      // Keep a working visitor subscription usable while refreshing it. Clear
+      // only a different/expired identity, so a slow SDK request cannot silence it.
+      const existingVisitor = visitorIdentity();
+      if (!previousIdentity?.visitorId || previousIdentity.userId || previousIdentity.visitorId !== existingVisitor?.id
+          || previousIdentity.expiresAt <= Date.now()) await writePushIdentity(null);
       const { sdk, messaging, token, registration } = await registeredToken(current);
       if (!current()) return;
       const visitor = await visitorRegistration(token);

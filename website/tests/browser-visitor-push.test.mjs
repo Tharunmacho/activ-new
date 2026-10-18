@@ -90,6 +90,8 @@ try {
       import * as push from './src/services/browserPush';import * as identity from './src/lib/pushIdentity';
       import * as visitor from './src/services/visitorBrowserPush';import {clearSession} from './src/services/api';
       Object.assign(window,{push,identity,visitor,clearSession});
+      const originalSetTimeout=window.setTimeout.bind(window);
+      window.setTimeout=(fn,delay,...args)=>{if(window.fastTokenTimeout&&delay===120000){window.tokenWaits=(window.tokenWaits||0)+1;delay=500;}return originalSetTimeout(fn,window.fastPushRetry&&(delay===5000||delay===30000)?25:delay,...args);};
       window.permission='default';window.nextPermission='granted';window.permissionRequests=0;window.tokenRequests=0;
       Object.defineProperty(Notification,'permission',{get:()=>window.permission});
       Notification.requestPermission=async()=>{window.permissionRequests++;if(window.holdPermission)await new Promise(r=>window.releasePermission=r);window.permission=window.nextPermission;return window.permission;};
@@ -121,7 +123,7 @@ try {
     if (r.result?.exceptionDetails) throw Error(r.result.exceptionDetails.exception?.description);
     return r.result?.result?.value;
   };
-  const until = async expression => { for (let i = 0; i < 80; i++) { if (await evaluate(`(async()=>Boolean(${expression}))()`)) return; await pause(100); } throw Error(expression + '\n' + errors.join('\n')); };
+  const until = async (expression, attempts = 80) => { for (let i = 0; i < attempts; i++) { if (await evaluate(`(async()=>Boolean(${expression}))()`)) return; await pause(100); } throw Error(expression + '\n' + errors.join('\n')); };
   const screenshots = process.env.TEST_ARTIFACTS ? path.resolve(process.env.TEST_ARTIFACTS) : path.join(root, '..', 'artifacts', 'browser-visitor-push');
   await mkdir(screenshots, { recursive: true });
   const screenshot = async name => { const result = await send('Page.captureScreenshot', { format: 'png' }); await writeFile(path.join(screenshots, name + '.png'), Buffer.from(result.result.data, 'base64')); };
@@ -136,6 +138,10 @@ try {
     await evaluate('document.querySelector(\'button[aria-label="Close notifications"]\').click()');
     await until(`!${dialog}`);
   };
+  const allowBell = async () => {
+    await until(`${dialog}.querySelector('button[aria-label="Enable browser notifications"]')`);
+    await evaluate(`${dialog}.querySelector('button[aria-label="Enable browser notifications"]').click()`);
+  };
   const chooseNotice = async title => {
     await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.textContent.includes(${JSON.stringify(title)})).click()`);
   };
@@ -147,7 +153,7 @@ try {
   await send('Runtime.enable'); await send('Network.enable');
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
-  await send('Page.navigate', { url: origin }); await until('window.push');
+  await send('Page.navigate', { url: origin }); await until('window.push', 300);
   await evaluate('push.syncBrowserPush()');
   assert.equal(installations, 0, 'first visit does not silently create an installation');
   assert.equal(await evaluate('window.permissionRequests'), 0, 'passive sync never prompts the browser');
@@ -168,15 +174,63 @@ try {
   assert.equal(await evaluate(`!!${invitation}`), false, 'Not now is respected across navigation');
   await reset();
   await evaluate('window.mountPublic("/events",true)'); await until(invitation);
-  await evaluate(`[...${invitation}.querySelectorAll('button')].find(button=>button.textContent==='Enable notifications').click()`);
+  await evaluate(`[...${invitation}.querySelectorAll('button')].find(button=>button.textContent==='Allow notifications').click()`);
   await until('(await identity.readPushIdentity())?.visitorId && !(document.querySelector(\'aside[aria-label="Enable ACTIV notifications"]\'))');
   assert.equal(await evaluate('window.permissionRequests'), beforeInvitationPermission + 1, 'Enable requests permission once and registers the visitor');
   assert.equal(await evaluate('push.browserPushRegistered()'), true);
+  // Slow Firebase setup must not keep the permission popup open or enroll twice.
+  await reset();
+  const beforeSlowTokens = await evaluate('window.tokenRequests');
+  const beforeSlowRegistrations = visitorPuts().length;
+  await evaluate('window.holdToken=true;window.mountPublic("/events",true)');
+  await until(invitation);
+  await evaluate(`[...${invitation}.querySelectorAll('button')].find(button=>button.textContent==='Allow notifications').click()`);
+  await until(`!${invitation} && window.releaseToken`);
+  assert.equal(await evaluate('identity.readPushIdentity()'), null, 'Permission alone does not claim a working registration');
+  assert.equal(await evaluate('push.browserPushConnecting()'), true);
+  await evaluate('window.slowSyncs=Promise.all([push.syncBrowserPush(),push.syncBrowserPush(),push.syncBrowserPush()]);window.dispatchEvent(new Event("focus"));void 0');
+  await pause(250);
+  assert.equal(await evaluate('window.tokenRequests'), beforeSlowTokens + 1, 'Focus and concurrent syncs share one pending Firebase request');
+  await openBell();
+  await until(`${dialog}.textContent.includes('Finishing setup in the background')`);
+  assert.equal(await evaluate(`${dialog}.querySelector('[role="switch"]').disabled`), false, 'The visitor can turn off while the connection is pending');
+  await screenshot('visitor-background-setup');
+  await evaluate('window.holdToken=false;window.releaseToken();window.slowSyncs');
+  await until('(await identity.readPushIdentity())?.visitorId');
+  assert.equal(visitorPuts().length, beforeSlowRegistrations + 1, 'A late successful token is registered exactly once');
+  await evaluate('window.holdToken=true;window.releaseToken=null;window.refreshing=push.syncBrowserPush();void 0');
+  await until('window.releaseToken');
+  assert.equal(await evaluate('push.browserPushRegistered()'), true, 'A working visitor subscription remains available during a slow refresh');
+  await evaluate('window.holdToken=false;window.releaseToken();window.refreshing');
+  await closeBell();
+  await reset();
+  const beforeTimedTokens = await evaluate('window.tokenRequests');
+  const beforeTimedRegistrations = visitorPuts().length;
+  await evaluate('window.holdToken=true;window.fastPushRetry=true;window.fastTokenTimeout=true;window.tokenWaits=0;push.enableBrowserPush(false,{background:true})');
+  await until('window.tokenWaits >= 2');
+  assert.equal(await evaluate('window.tokenRequests'), beforeTimedTokens + 1, 'A timeout retry reuses the still-running browser subscription');
+  await evaluate('window.holdToken=false;window.releaseToken()');
+  await until('(await identity.readPushIdentity())?.visitorId && !push.browserPushConnecting()');
+  assert.equal(visitorPuts().length, beforeTimedRegistrations + 1, 'A token finishing after the first deadline still registers once');
+  await evaluate('window.fastPushRetry=false;window.fastTokenTimeout=false');
+  await reset();
+  const beforePendingOptOut = visitorPuts().length;
+  await evaluate('window.holdToken=true;push.enableBrowserPush(false,{background:true})');
+  await until('window.releaseToken');
+  await openBell();
+  await evaluate(`${dialog}.querySelector('[aria-label="Disable browser notifications"]').click()`);
+  await until('!push.pushEnabled() && !push.browserPushConnecting()');
+  await evaluate('window.holdToken=false;window.releaseToken()');
+  await pause(150);
+  assert.equal(visitorPuts().length, beforePendingOptOut, 'Turning off cancels pending setup and prevents late enrollment');
+  await closeBell();
   await reset();
   const originalLocation = await evaluate('location.pathname+location.search+location.hash');
   const beforePermission = await evaluate('window.permissionRequests');
   await openBell();
-  assert.equal(await evaluate('window.permissionRequests'), beforePermission + 1, 'explicit bell opening invokes the native permission request once');
+  assert.equal(await evaluate('window.permissionRequests'), beforePermission, 'Reading public notices does not request notification permission');
+  await allowBell();
+  assert.equal(await evaluate('window.permissionRequests'), beforePermission + 1, 'The notification switch requests permission once');
   assert.equal(await evaluate('location.pathname+location.search+location.hash'), originalLocation, 'bell opens a card without navigating away');
   await until('(await identity.readPushIdentity())?.visitorId');
   const firstIdentity = await evaluate('identity.readPushIdentity()');
@@ -194,7 +248,7 @@ try {
 
   await reset(); const deniedCount = visitorPuts().length;
   const beforeDeniedPrompt = await evaluate('window.permissionRequests');
-  await evaluate('window.nextPermission="denied"'); await openBell();
+  await evaluate('window.nextPermission="denied"'); await openBell(); await allowBell();
   await until('window.permission === "denied"');
   assert.equal(visitorPuts().length, deniedCount, 'denying permission cannot enroll a guest');
   assert.equal(await evaluate('visitor.visitorIdentity()'), null);
@@ -207,7 +261,7 @@ try {
 
   await reset(); await evaluate('window.nextPermission="default"');
   const beforeDismissedPrompt = await evaluate('window.permissionRequests');
-  await openBell(); await pause(200);
+  await openBell(); await allowBell(); await pause(200);
   assert.equal(await evaluate('window.permissionRequests'), beforeDismissedPrompt + 1);
   await evaluate('window.dispatchEvent(new Event("focus"))'); await pause(200);
   assert.equal(await evaluate('window.permissionRequests'), beforeDismissedPrompt + 1, 'dismissed native permission does not reappear from rerenders or focus');
@@ -387,16 +441,18 @@ try {
   await closeBell(); await openBell(); await pause(200);
   assert.equal(visitorPuts().length, afterOptOut, 'viewing the card does not undo explicit browser opt-out');
   rejectRegistration = true;
+  await evaluate('window.fastPushRetry=true');
   await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.getAttribute('aria-label')==='Enable browser notifications'||button.textContent.trim()==='Enable browser notifications').click()`);
-  await until(`${dialog}.textContent.includes('Try connecting again')`);
+  await until(`${dialog}.textContent.includes('Could not connect notifications')`);
   assert.equal(await evaluate('push.pushEnabled()'), true);
   assert.equal(await evaluate('push.browserPushRegistered()'), false, 'Granted permission alone cannot show a connected public bell');
-  assert.equal(await evaluate(`${dialog}.textContent.includes('Notifications on')`), false);
-  assert.equal(await evaluate(`${dialog}.querySelector('[aria-label="Enable browser notifications"]') !== null`), true);
+  assert.equal(await evaluate(`${dialog}.textContent.includes('Public updates are on')`), false);
+  assert.equal(await evaluate(`${dialog}.querySelector('[aria-label="Disable browser notifications"]') !== null`), true, 'Saved permission can be turned off even when setup fails');
   rejectRegistration = false;
-  await evaluate(`${dialog}.querySelector('[aria-label="Enable browser notifications"]').click()`);
+  await evaluate('window.fastPushRetry=false');
+  await evaluate(`[...${dialog}.querySelectorAll('button')].find(button=>button.textContent==='Try again').click()`);
   await until('(await identity.readPushIdentity())?.visitorId');
-  await until(`${dialog}.textContent.includes('Notifications on')`);
+  await until(`${dialog}.textContent.includes('Public updates are on')`);
   assert.equal(await evaluate('push.browserPushRegistered()'), true);
   await closeBell();
 
@@ -460,7 +516,7 @@ try {
   await until(`location.pathname === '/' && ${dialog}?.textContent.includes('Dear ACTIVian, discover')`);
   assert.equal(opens().length, beforeLegacyFeed, 'legacy feed redirect alone does not record any read');
   assert.equal(errors.length, 0, errors.join('\n'));
-  console.log('PASS: first-visit invitation, explicit Enable consent, dismissal persistence; native permission on explicit bell; same-page accessible responsive notification card/detail, block/dismiss/opt-out, empty/error/retry, Escape/outside close; ownership/race/offline registration and backend readiness; new and legacy worker/deep-link routes with owned, one-time push attribution and no false in-app receipts. No external delivery.');
+  console.log('PASS: first-visit invitation, explicit Allow consent, session dismissal; accessible notification toggle; nonblocking slow setup, shared retries and late-token opt-out; same-page responsive notification card/detail, block/dismiss/opt-out, empty/error/retry, Escape/outside close; ownership/race/offline registration and backend readiness; new and legacy worker/deep-link routes with owned, one-time push attribution and no false in-app receipts. No external delivery.');
 } finally {
   if(ws?.readyState===WebSocket.OPEN)await new Promise(resolve=>{const timer=setTimeout(resolve,2000);ws.addEventListener('close',()=>{clearTimeout(timer);resolve();},{once:true});try{ws.send(JSON.stringify({id:1000000,method:'Browser.close'}));}catch{clearTimeout(timer);resolve();}});
   ws?.close(); if(chrome?.exitCode==null)chrome?.kill();chrome?.unref();stop();server.closeAllConnections();

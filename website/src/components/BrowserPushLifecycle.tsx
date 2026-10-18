@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SESSION_EVENT, getAuthToken } from '@/services/api';
 import { recordNotificationOpen } from '@/services/deliveryReportApi';
-import { syncBrowserPush } from '@/services/browserPush';
+import { connectBrowserPushInBackground } from '@/services/browserPush';
 import { recordVisitorOpen } from '@/services/visitorBrowserPush';
 import BrowserPushInvitation from './BrowserPushInvitation';
 
@@ -41,7 +41,7 @@ export default function BrowserPushLifecycle() {
     const sync = () => {
       clearTimeout(timer);
       // Login writes the token before the remaining account fields.
-      timer = setTimeout(() => { void syncBrowserPush().catch(() => undefined); void acknowledge(); }, 150);
+      timer = setTimeout(() => { connectBrowserPushInBackground(); void acknowledge(); }, 150);
     };
     sync();
     window.addEventListener(SESSION_EVENT, sync);

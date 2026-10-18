@@ -5,7 +5,7 @@ import { pushConfigured } from '@/lib/firebasePushConfig';
 import { isNativePublicApp } from '@/lib/nativePublicApp';
 import { enableBrowserPush, PUSH_EVENT } from '@/services/browserPush';
 
-const LATER = 'activ:push-invitation-later';
+const LATER = 'activ:push-invitation-dismissed';
 const ASKED = 'activ:browser-permission-requested';
 const PREFERENCE = 'activ:browser-push-enabled';
 
@@ -25,7 +25,7 @@ export default function BrowserPushInvitation() {
           /^\/(?:admin|super-admin|state-admin|district-admin|block-admin|events-admin|cms|payment|checkout|auth)(?:\/|$)/.test(pathname)) return false;
       try {
         return localStorage.getItem(PREFERENCE) !== 'false' && !sessionStorage.getItem(ASKED) &&
-          Number(localStorage.getItem(LATER) || 0) <= Date.now();
+          !sessionStorage.getItem(LATER);
       } catch { return true; }
     };
     setVisible(false);
@@ -36,7 +36,7 @@ export default function BrowserPushInvitation() {
     return () => { active = false; clearTimeout(timer); events.forEach(event => window.removeEventListener(event, refresh)); };
   }, [pathname]);
   const later = () => {
-    try { localStorage.setItem(LATER, String(Date.now() + 7 * 86400000)); } catch { /* Current visit still dismisses. */ }
+    try { sessionStorage.setItem(LATER, 'true'); } catch { /* Current visit still dismisses. */ }
     setVisible(false);
   };
   const enable = async () => {
@@ -44,7 +44,7 @@ export default function BrowserPushInvitation() {
     working.current = true; setBusy(true); setError('');
     try {
       try { sessionStorage.setItem(ASKED, 'true'); } catch { /* Click guard still applies. */ }
-      await enableBrowserPush();
+      await enableBrowserPush(false, { background: true });
       setVisible(false);
     } catch (cause) {
       if (Notification.permission !== 'granted') setVisible(false);
@@ -56,12 +56,12 @@ export default function BrowserPushInvitation() {
     <div className="flex items-start gap-3">
       <Bell className="mt-1 shrink-0 text-blue-700" size={24} aria-hidden="true" />
       <div className="min-w-0"><h2 className="text-lg font-bold leading-6">Get ACTIV notifications</h2>
-        <p className="mt-1 text-base leading-6 text-slate-600">Get event and community updates on your phone or computer, even when this website is closed.</p></div>
+        <p className="mt-1 text-base leading-6 text-slate-600">Allow event and community updates. No sign-in needed.</p></div>
     </div>
     {error && <p role="status" className="mt-3 break-words text-sm leading-5 text-amber-800">{error}</p>}
     <div className="mt-4 flex flex-wrap justify-end gap-2">
       <button type="button" disabled={busy} onClick={later} className="min-h-11 rounded-xl px-4 py-2 font-semibold text-slate-600 disabled:opacity-60">Not now</button>
-      <button type="button" disabled={busy} onClick={() => void enable()} className="min-h-11 rounded-xl bg-blue-700 px-4 py-2 font-semibold text-white disabled:opacity-60">{busy ? 'Connecting…' : error ? 'Try again' : 'Enable notifications'}</button>
+      <button type="button" disabled={busy} onClick={() => void enable()} className="min-h-11 rounded-xl bg-blue-700 px-4 py-2 font-semibold text-white disabled:opacity-60">{busy ? 'Allow in your browser…' : error ? 'Try again' : 'Allow notifications'}</button>
     </div>
   </aside>;
 }

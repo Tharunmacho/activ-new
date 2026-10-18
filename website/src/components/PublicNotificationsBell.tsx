@@ -5,10 +5,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { resolveMediaUrl } from '@/config/api.config';
 import { pushConfigured } from '@/lib/firebasePushConfig';
 import { SESSION_EVENT } from '@/services/api';
-import { browserPushRegistered, browserPushSubscribed, disableBrowserPush, enableBrowserPush, PUSH_EVENT } from '@/services/browserPush';
+import { browserPushAllowed, browserPushConnecting, browserPushRegistered, browserPushStatus, disableBrowserPush, enableBrowserPush, PUSH_EVENT } from '@/services/browserPush';
 import { getPublicNotice, getPublicNotices, recordVisitorOpen, type PublicNotice } from '@/services/visitorBrowserPush';
 
-const ASKED = 'activ:browser-permission-requested';
 const noticeDate = (value: string) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
@@ -29,8 +28,9 @@ export default function PublicNotificationsBell() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [busy, setBusy] = useState(false);
   const [pushError, setPushError] = useState('');
+  const [pushStatus, setPushStatus] = useState('');
+  const [connecting, setConnecting] = useState(false);
   const openedFromList = useRef<string | null>(null);
-  const asked = useRef(false);
   const pushWorking = useRef(false);
   const pushStateVersion = useRef(0);
   const supportsPush = pushConfigured() && window.isSecureContext && 'Notification' in window
@@ -48,8 +48,10 @@ export default function PublicNotificationsBell() {
       const version = ++pushStateVersion.current;
       const current = 'Notification' in window ? Notification.permission : 'default';
       setPermission(current);
-      const [registered, saved] = await Promise.all([browserPushRegistered().catch(() => false), browserPushSubscribed().catch(() => false)]);
-      if (version === pushStateVersion.current) { setEnabled(registered); setSubscribed(saved); }
+      const [registered, status] = await Promise.all([browserPushRegistered().catch(() => false), browserPushStatus().catch(() => 'Please try again.')]);
+      if (version === pushStateVersion.current) {
+        setEnabled(registered); setSubscribed(browserPushAllowed()); setConnecting(browserPushConnecting()); setPushStatus(status);
+      }
     };
     const events = [PUSH_EVENT, SESSION_EVENT, 'storage', 'focus'];
     void refresh(); events.forEach(event => window.addEventListener(event, refresh));
@@ -90,22 +92,18 @@ export default function PublicNotificationsBell() {
     setBusy(true); setPushError('');
     try {
       // Request native permission during this click, before any asynchronous SDK work.
-      if (enable) await enableBrowserPush(); else await disableBrowserPush();
-      if (enable && !await browserPushRegistered()) throw new Error('This browser is not connected yet. Try connecting again.');
+      if (enable) await enableBrowserPush(false, { background: true }); else await disableBrowserPush();
     } catch (cause) { setPushError(cause instanceof Error ? cause.message : 'Please try again.'); }
     finally {
       setPermission('Notification' in window ? Notification.permission : 'default');
       const version = ++pushStateVersion.current;
-      const [registered, saved] = await Promise.all([browserPushRegistered().catch(() => false), browserPushSubscribed().catch(() => false)]);
-      if (version === pushStateVersion.current) { setEnabled(registered); setSubscribed(saved); }
+      const [registered, status] = await Promise.all([browserPushRegistered().catch(() => false), browserPushStatus().catch(() => 'Please try again.')]);
+      if (version === pushStateVersion.current) {
+        setEnabled(registered); setSubscribed(browserPushAllowed()); setConnecting(browserPushConnecting()); setPushStatus(status);
+      }
       pushWorking.current = false;
       setBusy(false);
     }
-  };
-  const onBellClick = () => {
-    if (open || !supportsPush || Notification.permission !== 'default' || asked.current) return;
-    try { if (sessionStorage.getItem(ASKED)) return; sessionStorage.setItem(ASKED, 'true'); } catch { /* In-memory guard still applies. */ }
-    asked.current = true; void changePush(true);
   };
   const changeOpen = (value: boolean) => {
     setOpen(value);
@@ -128,7 +126,7 @@ export default function PublicNotificationsBell() {
 
   return <Popover open={open} onOpenChange={changeOpen}>
     <PopoverTrigger asChild>
-      <button type="button" aria-label="Notifications" onClick={onBellClick} className="inline-flex h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 items-center justify-center rounded-full border border-blue-100 text-blue-700 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 data-[state=open]:bg-blue-50"><Bell size={21} /></button>
+      <button type="button" aria-label="Notifications" className="inline-flex h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 items-center justify-center rounded-full border border-blue-100 text-blue-700 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 data-[state=open]:bg-blue-50"><Bell size={21} /></button>
     </PopoverTrigger>
     <PopoverContent align="end" sideOffset={12} collisionPadding={12} aria-label="Notifications"
       className="z-[75] flex w-[min(24rem,calc(100vw-24px))] flex-col overflow-hidden rounded-2xl border-slate-200 bg-white p-0 font-sans text-slate-900 shadow-xl"
@@ -154,13 +152,17 @@ export default function PublicNotificationsBell() {
       </div>
       {supportsPush && <div className="shrink-0 border-t border-slate-100 bg-slate-50 px-4 py-3">
         {permission === 'denied' ? <p className="text-[15px] leading-6 text-slate-500">Notifications are blocked. You can allow them in your browser's site settings.</p>
-          : <button type="button" disabled={busy} aria-label={subscribed ? 'Disable browser notifications' : 'Enable browser notifications'} onClick={() => void changePush(!subscribed)} className="inline-flex min-h-[44px] items-center gap-2 text-[16px] font-semibold text-blue-700 disabled:opacity-60">
-            {busy ? 'Connecting…' : enabled ? 'Notifications on · Turn off' : subscribed ? 'Turn off browser notifications' : pushError ? 'Try connecting again' : 'Turn on browser notifications'}
-          </button>}
+          : <div className="flex items-center justify-between gap-3">
+            <span className="text-[16px] font-semibold text-slate-800">Notifications</span>
+            <button type="button" role="switch" aria-checked={subscribed} disabled={busy} aria-label={subscribed ? 'Disable browser notifications' : 'Enable browser notifications'} onClick={() => void changePush(!subscribed)} className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 disabled:opacity-60">
+              <span aria-hidden="true" className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${subscribed ? 'bg-blue-700' : 'bg-slate-300'}`}><span className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform motion-reduce:transition-none ${subscribed ? 'translate-x-5' : 'translate-x-0'}`} /></span>
+            </button>
+          </div>}
         {pushError && permission !== 'denied' && <p role="status" className="mt-1 text-[15px] leading-6 text-amber-700">{pushError}</p>}
-        {subscribed && !enabled && <div className="mt-1 text-[15px] leading-6 text-amber-800">
-          {!pushError && <p role="status">This browser is registered. Notification delivery is temporarily unavailable.</p>}
-          <button type="button" disabled={busy} onClick={() => void changePush(true)} className="min-h-[44px] font-semibold text-blue-700 disabled:opacity-60">Retry connection</button>
+        {subscribed && enabled && <p role="status" className="mt-1 text-[15px] leading-6 text-slate-600">Public updates are on.</p>}
+        {subscribed && !enabled && <div className="mt-1 text-[15px] leading-6 text-slate-600">
+          {!pushError && <p role="status">{pushStatus.includes('server') ? 'Notifications are temporarily unavailable. Please try again later.' : pushStatus}</p>}
+          {!connecting && <button type="button" disabled={busy} onClick={() => void changePush(true)} className="min-h-[44px] font-semibold text-blue-700 disabled:opacity-60">Try again</button>}
         </div>}
       </div>}
     </PopoverContent>

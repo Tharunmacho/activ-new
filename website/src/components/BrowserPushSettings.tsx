@@ -31,7 +31,7 @@ export default function BrowserPushSettings({ administrator = false }: { adminis
     working.current = true;
     setBusy(true);
     try {
-      if (enable) await enableBrowserPush(true); else await disableBrowserPush();
+      if (enable) await enableBrowserPush(true, { background: true }); else await disableBrowserPush();
       setMessage(await browserPushStatus(true));
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not update notifications. Please try again.'); }
     finally { refreshVersion.current++; setSubscribed(await browserPushSubscribed(true).catch(() => false)); working.current = false; setBusy(false); }
