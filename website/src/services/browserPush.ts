@@ -91,7 +91,7 @@ function foregroundMessages(sdk: any, messaging: any, registration: ServiceWorke
     } catch { /* The in-page Open action remains available if the OS refuses display. */ }
     const { toast } = await import('sonner');
     if (!current()) return;
-    toast('You have an update from ACTIV.', { id: message.data?.notificationId || message.data?.publicNotificationId || message.messageId,
+    toast(notice.title, { description: notice.options.body, id: message.data?.notificationId || message.data?.publicNotificationId || message.messageId,
       action: { label: 'Open', onClick: () => {
         if (!current()) return;
         const target = new URL(notificationPath({ data: message.data }), window.location.origin);

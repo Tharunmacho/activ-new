@@ -152,16 +152,16 @@ try {
   assert.equal(calls[0].body.platform, 'web');
   const workerRegistration = await evaluate(`(async()=>{const registration=await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');return {scope:registration.scope,scriptURL:registration.active.scriptURL,updateViaCache:registration.updateViaCache}})()`);
   assert.deepEqual(workerRegistration, {scope:origin+'/',scriptURL:origin+'/firebase-messaging-sw.js',updateViaCache:'none'}, 'Worker controls the site root and bypasses cached update scripts');
-  await evaluate(`window.receivePush({data:{userId:'member-a',kind:'announcement',sourceId:'foreground-notice',notificationId:'abcdef0123456789abcdef01',title:'Private member title'}})`);
+  await evaluate(`window.receivePush({data:{userId:'member-a',kind:'announcement',sourceId:'foreground-notice',notificationId:'abcdef0123456789abcdef01',title:'Your booking is confirmed',body:'ACTIV-123: join the meeting at 10 AM.'}})`);
   await until('document.querySelector("[data-sonner-toast]")');
-  assert(await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("You have an update from ACTIV.")'));
-  assert(!await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("Private member title")'), 'Foreground push uses a generic notice');
+  assert(await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("Your booking is confirmed")'));
+  assert(await evaluate('document.querySelector("[data-sonner-toast]").textContent.includes("ACTIV-123: join the meeting at 10 AM.")'), 'Foreground toast shows the actual message');
   const tray = await evaluate('window.trayNotifications');
   assert.equal(tray.length, 1, 'An enabled foreground page also posts a system-tray notification');
-  assert.equal(tray[0].title, 'ACTIV');
+  assert.equal(tray[0].title, 'Your booking is confirmed');
   assert.equal(tray[0].options.data.activPush, true, 'Tray click uses the same ownership-checked worker route');
   assert.equal(tray[0].options.tag, 'abcdef0123456789abcdef01');
-  assert(!(tray[0].title + tray[0].options.body).includes('Private member title'), 'Private title must not appear in system notification text');
+  assert.equal(tray[0].options.body, 'ACTIV-123: join the meeting at 10 AM.', 'System notification shows the actual message');
   await evaluate(`window.receivePush({data:{userId:'member-other',notificationId:'wrong-account'}})`);
   assert.equal(await evaluate('document.querySelectorAll("[data-sonner-toast]").length'), 1, 'Foreground ignores another account');
   assert.equal(await evaluate('window.trayNotifications.length'), 1, 'Another account cannot create a tray notification');
@@ -266,8 +266,10 @@ try {
   assert.equal(installed,1); assert.equal(activated,1,'Updated worker activates and claims clients');
   await context.background({ data: { userId: 'member-a', notificationId: 'old' } });
   assert.equal(displayed.length, 0, 'worker ignores a previous account');
-  await context.background({ data: { userId: 'member-b', kind: 'announcement', sourceId: 'notice-1' } });
+  await context.background({ data: { userId: 'member-b', kind: 'announcement', sourceId: 'notice-1', title: 'Membership renewed', body: 'Your membership is active until 18 October 2027.' } });
   assert.equal(displayed.length, 1);
+  assert.equal(displayed[0].title, 'Membership renewed');
+  assert.equal(displayed[0].body, 'Your membership is active until 18 October 2027.');
   let clicked;
   handlers.notificationclick({ notification: { ...displayed[0], close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p });
   await clicked;
@@ -316,7 +318,7 @@ try {
   await evaluate(`document.querySelector('[data-sonner-toast] button').click()`);
   await until(`location.pathname==='/member/updates/foreground-notice'`);
   assert.equal(await evaluate(`new URL(location.href).searchParams.get('notificationSource')`),'push','Foreground Open carries click attribution');
-  console.log('PASS: browser opt-in/denial/revocation including late permission changes, token refresh, root worker scope/update lifecycle and IndexedDB, foreground generic display/ownership/visibility/Open navigation, shared logout, account switching, late-token race and deadline, responsive controls, background ownership, existing-tab focus and all notification destinations. No external delivery.');
+  console.log('PASS: browser opt-in/denial/revocation including late permission changes, token refresh, root worker scope/update lifecycle and IndexedDB, foreground actual title/message, ownership/visibility/Open navigation, shared logout, account switching, late-token race and deadline, responsive controls, background ownership, existing-tab focus and all notification destinations. No external delivery.');
 } finally {
   if(ws?.readyState===WebSocket.OPEN)await new Promise(resolve=>{const timer=setTimeout(resolve,2000);ws.addEventListener('close',()=>{clearTimeout(timer);resolve();},{once:true});try{ws.send(JSON.stringify({id:1000000,method:'Browser.close'}));}catch{clearTimeout(timer);resolve();}});
   ws?.close(); if(chrome?.exitCode==null)chrome?.kill();chrome?.unref();stop();

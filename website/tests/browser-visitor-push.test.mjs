@@ -354,7 +354,7 @@ try {
     } }] });
   const handlers = {}, displayed = [], opened = [];
   const guest = { visitorId: 'a'.repeat(24), expiresAt: Date.now() + 60000 };
-  const data = { audience: 'visitor', visitorId: guest.visitorId, publicNotificationId: 'b'.repeat(24), url: 'https://untrusted.example' };
+  const data = { audience: 'visitor', visitorId: guest.visitorId, publicNotificationId: 'b'.repeat(24), title: 'Community meeting', body: 'Join us at 10 AM on Sunday.', url: 'https://untrusted.example' };
   const context = vm.createContext({ URL, Date, identity: guest,
     self: { addEventListener: (name, fn) => handlers[name] = fn, location: { origin },
       registration: { showNotification: async (title, options) => displayed.push({ title, ...options }) },
@@ -362,6 +362,8 @@ try {
   vm.runInContext(worker.outputFiles[0].text, context);
   await context.background({ data });
   assert.equal(displayed.length, 1, 'matching visitor may receive public push');
+  assert.equal(displayed[0].title, data.title);
+  assert.equal(displayed[0].body, data.body);
   assert.equal(displayed[0].tag, data.publicNotificationId);
   let clicked;
   const click = async notification => { handlers.notificationclick({ notification: { ...notification, close() {} }, stopImmediatePropagation() {}, waitUntil: p => clicked = p }); await clicked; };
