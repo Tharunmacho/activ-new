@@ -415,10 +415,10 @@ export default function CmsLayout() {
     );
 
     return (
-        // `h-screen overflow-hidden`, not `min-h-screen`. The rail and the working
-        // area are two independent scroll regions; with a growing page height they
-        // scrolled together, which carried the rail's footer off the bottom.
-        <div className={`h-[100dvh] overflow-hidden flex font-sans ${dark ? 'dark ' : ''}${t.shell}`}>
+        // Contain absolutely positioned controls (including hidden file inputs)
+        // inside the viewport shell. Otherwise they can enlarge the document and
+        // let focus/scrollIntoView move the whole CMS above a blank background.
+        <div className={`relative h-[100dvh] overflow-hidden flex font-sans ${dark ? 'dark ' : ''}${t.shell}`}>
             {drawer && (
                 <div className="fixed inset-0 bg-black/70 z-30 lg:hidden" onClick={() => setDrawer(false)} />
             )}
@@ -702,7 +702,7 @@ export default function CmsLayout() {
                     </div>
                 </header>
 
-                <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 lg:p-8">
+                <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 lg:p-8">
                     <Outlet context={{ dark }} />
                 </main>
             </div>

@@ -10,8 +10,10 @@ import { build, stop } from 'esbuild';
 import postcss from 'postcss';
 import tailwind from 'tailwindcss';
 import loadConfig from 'tailwindcss/loadConfig.js';
+import { localTypographyFonts } from './browserTypographyFixtures.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
+const fonts = await localTypographyFonts(root);
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-news-assets-'));
 const artifacts = path.resolve(process.env.TEST_ARTIFACTS || path.join(root, '../artifacts/news-assets-browser'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -24,6 +26,7 @@ let bundle = '', css = '', failSave = false, writes = [], uploadRequests = [];
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4XcAAAAASUVORK5CYII=', 'base64');
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    if (fonts.serve(url, res)) return;
     if (url.pathname === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
     if (url.pathname === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
     if (url.pathname.startsWith('/uploads/')) { res.setHeader('Content-Type', 'image/png'); return res.end(png); }
@@ -56,7 +59,7 @@ try {
     let inputCss = await readFile(path.join(root, 'src/index.css'), 'utf8');
     for (const match of [...inputCss.matchAll(/@import ['"](.+?)['"];?/g)]) inputCss = inputCss.replace(match[0], await readFile(path.resolve(root, 'src', match[1]), 'utf8'));
     const config = loadConfig(path.join(root, 'tailwind.config.ts')); config.content = [path.join(root, 'src/**/*.{ts,tsx}')];
-    css = (await postcss([tailwind(config)]).process(inputCss, { from: path.join(root, 'src/index.css') })).css;
+    css = (await postcss([tailwind(config)]).process(inputCss, { from: path.join(root, 'src/index.css') })).css + '\n' + fonts.css;
     const chromeOnly = { name: 'local-layout', setup(b) {
         b.onResolve({ filter: /(?:HeaderSection|FooterSection|AdminSidebar)$/ }, args => ({ path: args.path, namespace: 'fixture-layout' }));
         b.onLoad({ filter: /.*/, namespace: 'fixture-layout' }, args => ({ loader: 'tsx', resolveDir: root, contents: args.path.endsWith('AdminSidebar')
@@ -68,6 +71,8 @@ try {
         stdin: { resolveDir: root, loader: 'tsx', contents: `
             import React from 'react'; import {createRoot} from 'react-dom/client'; import {MemoryRouter, Routes, Route} from 'react-router-dom';
             import NewsManager from './src/pages/cms/NewsManager';
+            import CmsLayout from './src/pages/cms/CmsLayout';
+            import {STORAGE_KEYS} from './src/config/api.config';
             import AdminNews from './src/features/admin/events-admin/pages/News';
             import NewsDetail from './src/pages/onboarding/NewsDetailPage';
             import {NewsGrid} from './src/pages/onboarding/components/NewsGrid';
@@ -75,9 +80,11 @@ try {
             import {hasNewsContent,newsDocumentHref,newsLinkHref,newsAssetsError} from './src/lib/newsContent';
             import {newsBodyHtml,newsTextNodes} from './src/lib/newsRichText';
             const root=createRoot(document.getElementById('root'));
+            localStorage.setItem(STORAGE_KEYS.USER_ROLE,'cms_admin');
+            localStorage.setItem(STORAGE_KEYS.USER_NAME,'CMS Admin');
             window.rules={hasNewsContent,newsDocumentHref,newsLinkHref,newsAssetsError,newsBodyHtml,newsTextNodes};
-            window.mount=(kind, rows=[])=>root.render(<MemoryRouter key={kind} initialEntries={['/news/community-news']}>
-                {kind==='cms'?<div className="mx-auto max-w-6xl p-4"><NewsManager/></div>:kind==='admin'?<AdminNews/>:kind==='grid'?<div className="mx-auto max-w-6xl p-4"><NewsGrid articles={rows}/></div>:kind==='body'?<NewsBody text={rows}/>:<Routes><Route path="/news/:slug" element={<NewsDetail/>}/></Routes>}
+            window.mount=(kind, rows=[])=>root.render(<MemoryRouter key={kind} initialEntries={[kind==='cms'?'/cms/news':'/news/community-news']}>
+                {kind==='cms'?<Routes><Route path="/cms" element={<CmsLayout/>}><Route path="news" element={<NewsManager/>}/></Route></Routes>:kind==='admin'?<AdminNews/>:kind==='grid'?<div className="mx-auto max-w-6xl p-4"><NewsGrid articles={rows}/></div>:kind==='body'?<NewsBody text={rows}/>:<Routes><Route path="/news/:slug" element={<NewsDetail/>}/></Routes>}
             </MemoryRouter>); window.mount('cms'); window.ready=true;
         ` } });
     bundle = built.outputFiles[0].text;
@@ -117,6 +124,10 @@ try {
     await send('Runtime.enable'); await send('Network.enable'); await send('Network.setBlockedURLs', { urls: ['https://*'] });
     await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await send('Page.navigate', { url: base }); await until('document.body.innerText.includes("Community news")'); await click('Edit');
+    await evaluate('document.fonts.ready');
+    const shellMetrics = () => evaluate(`(()=>{const main=document.querySelector('main');return {windowScroll:window.scrollY,documentHeight:document.documentElement.scrollHeight,viewport:innerHeight,mainBottom:main.getBoundingClientRect().bottom,mainHeight:main.clientHeight,mainScrollHeight:main.scrollHeight}})()`);
+    const initialShell = await shellMetrics();
+    assert.ok(initialShell.documentHeight <= initialShell.viewport + 1, 'CMS opens without a second document scrollbar');
     console.log('Checking editor formatting and selection preservation');
     await until('document.querySelector("[contenteditable=true]")');
     await evaluate(`{const box=document.querySelector('[aria-label="Article body"]');box.focus();const transfer=new DataTransfer();transfer.setData('text/html','<p style="font-size:22px" onclick="alert(1)">Pasted <strong>safe</strong><img src=x onerror="alert(2)"><script>alert(3)</script><a href="javascript:alert(4)">unsafe</a></p>');box.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer}));}`);
@@ -155,11 +166,25 @@ try {
     await input('Link 1 URL', 'https://chat.whatsapp.com/FixtureInvite?mode=join');
     await click('Add related link'); await input('Link 2 label', 'Watch the announcement'); await input('Link 2 URL', 'https://youtu.be/fixture?si=abc&feature=shared');
     await evaluate('document.querySelector("input[aria-label=\\\"Add article photos\\\"]").closest("fieldset").scrollIntoView()'); await screenshot('editor-desktop');
+    const scrolledShell = await shellMetrics();
+    assert.equal(scrolledShell.windowScroll, 0, 'editing and scrollIntoView keep the CMS header on screen');
+    assert.ok(scrolledShell.documentHeight <= scrolledShell.viewport + 1, 'uploads do not enlarge the document behind the CMS');
+    assert.ok(scrolledShell.mainScrollHeight > scrolledShell.mainHeight, 'the editor remains independently scrollable');
+    await evaluate('window.scrollTo(0,document.documentElement.scrollHeight)');
+    assert.equal(await evaluate('window.scrollY'), 0, 'the page cannot scroll down into a blank background');
+    await evaluate('document.querySelector("input[aria-label=\\\"Add news documents\\\"]").focus()');
+    assert.equal(await evaluate('window.scrollY'), 0, 'focusing a hidden upload input stays inside the CMS');
+    await screenshot('documents-desktop');
+    await ariaClick('Switch to dark theme'); await screenshot('documents-dark'); await ariaClick('Switch to light theme');
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+    await pause(250); // Let the responsive sidebar's transform finish before capturing.
     await screenshot('editor-mobile');
     assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'mobile editor has no horizontal overflow');
     await send('Emulation.setDeviceMetricsOverride', { width: 320, height: 760, deviceScaleFactor: 1, mobile: true });
+    await pause(250);
     assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'), '320px editor has no horizontal overflow');
+    assert.equal(await evaluate('window.scrollY'), 0, 'mobile CMS stays in the viewport');
+    assert.ok((await shellMetrics()).documentHeight <= 761, 'mobile CMS has no extra document scrollbar');
     await screenshot('editor-small-mobile');
     failSave = true; await click('Save article'); await until('document.body.innerText.includes("Fixture save failure")');
     assert.equal(await evaluate('document.querySelector("input[aria-label=\\\"Document 2 label\\\"]").value'), 'Meeting agenda', 'failed save retains edited assets');

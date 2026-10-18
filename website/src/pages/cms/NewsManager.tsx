@@ -292,6 +292,7 @@ export default function NewsManager() {
                     <SaveNowProvider value={{ save: submitArticle, saving: saving || uploading, dirty: true, label: 'Save article' }}>
                     <CmsSteps>
                     <CmsStep step="Section 1" title="The story" hint="What a reader sees on the card and at the top of the article.">
+                        <div className="space-y-6">
                         <CmsField label="Headline">
                             <CmsInput
                                 value={article.title || ''}
@@ -314,6 +315,7 @@ export default function NewsManager() {
                         <CmsField label="The article" hint="Write the story in your own words. Use the toolbar to format selected text and add links.">
                             <NewsBodyEditor value={article.body || ''} onChange={body => setA({ body })} disabled={saving} />
                         </CmsField>
+                        </div>
                     </CmsStep>
 
                     <CmsStep step="Section 2" title="Photos, documents and links" hint="Choose a cover, add several article photos, and attach public documents or WhatsApp and YouTube links.">

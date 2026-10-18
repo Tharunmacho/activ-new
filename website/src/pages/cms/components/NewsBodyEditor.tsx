@@ -54,7 +54,7 @@ export function NewsBodyEditor({ value, onChange, disabled = false }: { value: s
         else document.execCommand('createLink', false, href);
         commit(); setLinkOpen(false); setLinkUrl(''); setError('');
     };
-    const toolbarButton = 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-slate-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white disabled:opacity-50';
+    const toolbarButton = 'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-ui-small text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white disabled:opacity-50';
     return <div className="min-w-0 space-y-3">
         <div role="toolbar" aria-label="Article formatting" className="flex flex-wrap items-center gap-2">
             {[['bold', 'Bold', Bold], ['italic', 'Italic', Italic], ['underline', 'Underline', Underline]].map(([name, label, Glyph]) => {
@@ -62,24 +62,24 @@ export function NewsBodyEditor({ value, onChange, disabled = false }: { value: s
                 return <button key={String(name)} type="button" aria-label={String(label)} title={String(label)} disabled={disabled} className={toolbarButton}
                     onMouseDown={event => event.preventDefault()} onClick={() => command(String(name))}><Icon size={18} /></button>;
             })}
-            <label className="flex min-h-11 items-center gap-2 text-sm font-semibold">Text size
-                <select aria-label="Article text size" value={size} disabled={disabled} onPointerDown={remember} onChange={event => changeSize(event.target.value)} className="min-h-11 rounded-lg border border-slate-300 bg-white px-2 text-[18px] text-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
+            <label className="flex min-h-12 max-w-full flex-wrap items-center gap-2 text-ui-small font-semibold">Text size
+                <select aria-label="Article text size" value={size} disabled={disabled} onPointerDown={remember} onChange={event => changeSize(event.target.value)} className="min-h-12 min-w-0 max-w-full rounded-lg border border-slate-300 bg-white px-2 text-ui-small text-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
                     {NEWS_TEXT_SIZES.map(value => <option key={value} value={value}>{value}px{value === 18 ? ' · Normal' : value === 22 ? ' · Large' : ' · Extra large'}</option>)}
                 </select>
             </label>
             <button type="button" className={toolbarButton} disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => { remember(); setLinkOpen(open => !open); setError(''); }}><Link2 size={18} /><span className="ml-2">Link</span></button>
         </div>
         {linkOpen && <div className="flex flex-wrap items-end gap-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
-            <label className="min-w-0 flex-1 basis-52 text-sm font-semibold">Link address<input aria-label="Article link URL" value={linkUrl} onChange={event => setLinkUrl(event.target.value)} type="url" placeholder="https://example.org" className="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-[18px] text-slate-900" /></label>
+            <label className="min-w-0 flex-1 basis-52 text-ui-small font-semibold">Link address<input aria-label="Article link URL" value={linkUrl} onChange={event => setLinkUrl(event.target.value)} type="url" placeholder="https://example.org" className="mt-1 block min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-ui-small text-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white" /></label>
             <button type="button" className={toolbarButton} disabled={disabled} onClick={addLink}>Insert link</button>
             <button type="button" className={toolbarButton} onClick={() => { setLinkOpen(false); setError(''); }}>Cancel link</button>
         </div>}
-        {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="text-ui-small text-red-700 dark:text-red-300">{error}</p>}
         <div ref={editor} role="textbox" aria-label="Article body" aria-multiline="true" aria-disabled={disabled} contentEditable={!disabled} suppressContentEditableWarning
             onInput={commit} onMouseUp={remember} onKeyUp={remember} onBlur={remember}
             onPaste={event => { event.preventDefault(); const html = event.clipboardData.getData('text/html'); const plain = event.clipboardData.getData('text/plain'); document.execCommand('insertHTML', false, newsBodyHtml(html || plain)); commit(); }}
             onDrop={event => event.preventDefault()}
             className="min-h-80 max-h-[36rem] overflow-y-auto break-words rounded-lg border border-slate-300 bg-white p-4 text-[18px] leading-[1.7] text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:border-neutral-700 dark:bg-black dark:text-white [&_p]:mb-4 [&_a]:text-blue-700 [&_a]:underline" />
-        <p className="text-sm text-slate-500">Select text to make it bold, italic, underlined, larger, or a link. With no text selected, text size applies to the whole article. Upload documents in the next section.</p>
+        <p className="text-ui-small leading-relaxed text-slate-600 dark:text-neutral-300">Select text to make it bold, italic, underlined, larger, or a link. With no text selected, text size applies to the whole article. Upload documents in the next section.</p>
     </div>;
 }

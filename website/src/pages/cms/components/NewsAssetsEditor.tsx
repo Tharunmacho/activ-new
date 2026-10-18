@@ -8,7 +8,11 @@ import { NEWS_ATTACHMENT_LIMIT, NEWS_DOCUMENT_ACCEPT, NEWS_LINK_LIMIT, NEWS_PHOT
 import { CmsButton, CmsField, CmsInput } from './CmsUI';
 
 const image = (url: string, alt = ''): NewsMedia => ({ url, alt, type: 'image', fit: 'contain', position: 'center' });
-const actionClass = 'inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-slate-700 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-200';
+const actionClass = 'inline-flex min-h-12 min-w-12 max-w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-ui-small font-semibold leading-snug text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800';
+const groupClass = 'min-w-0 space-y-5 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-6 dark:border-neutral-700 dark:bg-neutral-950/40';
+const legendClass = 'px-2 text-[1.375rem] font-bold leading-snug text-slate-900 dark:text-white';
+const hintClass = 'text-ui-small leading-relaxed text-slate-600 dark:text-neutral-300';
+const itemClass = 'min-w-0 space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900';
 
 /** Files upload first; Save article commits their ordered URLs and labels. */
 export function NewsAssetsEditor({ article, onChange, onBusyChange, disabled = false }: {
@@ -92,32 +96,33 @@ export function NewsAssetsEditor({ article, onChange, onBusyChange, disabled = f
         onChange({ photos: next });
     };
     const filePicker = (kind: 'cover' | 'photos' | 'documents', title: string) => (
-        <label className={`${actionClass} cursor-pointer bg-blue-50 text-blue-700 ${locked ? 'opacity-50' : ''}`}>
-            <Upload size={16} /> {title}
+        <label className={`relative inline-flex min-h-12 max-w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-ui-small font-semibold leading-snug text-blue-800 transition-colors hover:bg-blue-100 focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-200 dark:hover:bg-blue-900/60 ${locked ? 'cursor-not-allowed opacity-50' : ''}`}>
+            <Upload size={20} className="shrink-0" /> {title}
             <input aria-label={title} className="sr-only" type="file" disabled={locked}
                 accept={kind === 'documents' ? NEWS_DOCUMENT_ACCEPT : 'image/*'} multiple={kind !== 'cover'}
                 onChange={event => { const files = Array.from(event.currentTarget.files || []); event.currentTarget.value = ''; void upload(files, kind); }} />
         </label>
     );
 
-    return <div className="min-w-0 space-y-8">
-        <p className="text-sm text-slate-600 dark:text-neutral-300">Photos, documents and links appear on the published news article. Upload files here, then save the article.</p>
-        {status && <p role="status" aria-live="polite" className="flex items-center gap-2 break-words text-sm text-blue-700">{busy && <Loader2 size={16} className="shrink-0 animate-spin" />}{status}</p>}
-        {errors.length > 0 && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"><p className="font-bold">Some files could not be added</p><ul className="mt-1 list-disc space-y-1 pl-5">{errors.map((error, index) => <li key={index} className="break-words">{error}</li>)}</ul></div>}
-        <fieldset disabled={locked} className="min-w-0 space-y-4">
-            <legend className="mb-3 text-lg font-bold">Cover photo</legend>
-            {article.image?.url && <img src={sizedMediaUrl(article.image.url, 640)} alt={article.image.alt || 'Cover preview'} loading="lazy" className="max-h-56 max-w-full rounded-xl object-contain" />}
-            <div className="flex flex-wrap gap-2">{filePicker('cover', article.image?.url ? 'Replace cover photo' : 'Upload cover photo')}
-                {article.image?.url && <button type="button" className={actionClass} onClick={() => onChange({ image: image('') })}><Trash2 size={16} /> Remove cover</button>}
+    return <div className="min-w-0 space-y-7">
+        <p className={hintClass}>Add files and links below, then choose <strong className="font-semibold text-slate-900 dark:text-white">Save article</strong> to keep your changes. They will appear with the published article.</p>
+        {status && <p role="status" aria-live="polite" className="flex items-start gap-2 rounded-xl bg-blue-50 p-4 text-ui-small leading-relaxed text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">{busy && <Loader2 size={20} className="mt-1 shrink-0 animate-spin" />}<span className="min-w-0 break-words">{status}</span></p>}
+        {errors.length > 0 && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-ui-small leading-relaxed text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"><p className="font-bold">Some files could not be added</p><ul className="mt-2 list-disc space-y-2 pl-5">{errors.map((error, index) => <li key={index} className="break-words">{error}</li>)}</ul></div>}
+        <fieldset disabled={locked} className={groupClass}>
+            <legend className={legendClass}>Cover photo</legend>
+            <p className={hintClass}>The main picture shown on the news card and at the top of the article.</p>
+            {article.image?.url && <img src={sizedMediaUrl(article.image.url, 640)} alt={article.image.alt || 'Cover preview'} loading="lazy" className="max-h-64 max-w-full rounded-xl border border-slate-200 bg-white object-contain dark:border-neutral-700" />}
+            <div className="flex flex-wrap gap-3">{filePicker('cover', article.image?.url ? 'Replace cover photo' : 'Upload cover photo')}
+                {article.image?.url && <button type="button" className={actionClass} onClick={() => onChange({ image: image('') })}><Trash2 size={20} className="shrink-0" /> Remove cover</button>}
             </div>
             <CmsField label="Cover description" hint="Describes the picture for readers who use a screen reader."><CmsInput aria-label="Cover description" value={article.image?.alt || ''} onChange={event => onChange({ image: { ...image(article.image?.url || ''), ...(article.image || {}), alt: event.target.value } })} /></CmsField>
         </fieldset>
-        <fieldset disabled={locked} className="min-w-0 space-y-4">
-            <legend className="mb-3 text-lg font-bold">Article photos ({photos.length}/{NEWS_PHOTO_LIMIT})</legend>
+        <fieldset disabled={locked} className={groupClass}>
+            <legend className={legendClass}>Article photos <span className="whitespace-nowrap font-medium text-slate-500 dark:text-neutral-400">({photos.length}/{NEWS_PHOTO_LIMIT})</span></legend>
+            <p className={hintClass}>Select several photos together. Move them into reading order and add captions.</p>
             {filePicker('photos', 'Add article photos')}
-            <p className="text-sm text-slate-500">Select several photos together. Move them into reading order and add captions.</p>
             <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-                {photos.map((photo, index) => <div key={`${photo.url}-${index}`} className="min-w-0 space-y-3 rounded-xl border border-slate-200 p-3 dark:border-neutral-700">
+                {photos.map((photo, index) => <div key={`${photo.url}-${index}`} className={itemClass}>
                     {photo.type === 'video' ? <video src={resolveMediaUrl(photo.url)} controls preload="metadata" className="h-40 w-full rounded-lg object-contain" /> : <img src={sizedMediaUrl(photo.url, 480)} alt={photo.alt || `Photo ${index + 1}`} loading="lazy" className="h-40 w-full rounded-lg object-contain" />}
                     <CmsField label={`Photo ${index + 1} caption`}><CmsInput aria-label={`Photo ${index + 1} caption`} value={photo.alt || ''} onChange={event => onChange({ photos: photos.map((row, i) => i === index ? { ...row, alt: event.target.value } : row) })} /></CmsField>
                     <div className="flex flex-wrap gap-2">
@@ -128,25 +133,25 @@ export function NewsAssetsEditor({ article, onChange, onBusyChange, disabled = f
                 </div>)}
             </div>
         </fieldset>
-        <fieldset disabled={locked} className="min-w-0 space-y-4">
-            <legend className="mb-3 text-lg font-bold">Documents ({attachments.length}/{NEWS_ATTACHMENT_LIMIT})</legend>
+        <fieldset disabled={locked} className={groupClass}>
+            <legend className={legendClass}>Documents <span className="whitespace-nowrap font-medium text-slate-500 dark:text-neutral-400">({attachments.length}/{NEWS_ATTACHMENT_LIMIT})</span></legend>
+            <p className={hintClass}>PDF, Word, Excel, slides, OpenDocument, text, CSV, RTF or ZIP. Up to 20 MB each.</p>
             {filePicker('documents', 'Add news documents')}
-            <p className="text-sm text-slate-500">PDF, Word, Excel, slides, OpenDocument, text, CSV, RTF or ZIP. Up to 20 MB each.</p>
-            {attachments.map((file, index) => <div key={`${file.url}-${index}`} className="min-w-0 space-y-2 rounded-xl border border-slate-200 p-3 dark:border-neutral-700">
-                <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm"><FileText size={18} className="shrink-0" /><a href={newsDocumentHref(file.url) || undefined} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 break-all text-blue-700 underline">{file.filename || file.label || `Document ${index + 1}`}</a><span>{newsFileSize(file.size)}</span></div>
+            {attachments.map((file, index) => <div key={`${file.url}-${index}`} className={itemClass}>
+                <div className="flex min-w-0 flex-wrap items-center gap-3 text-ui-small"><FileText size={22} className="shrink-0 text-blue-600 dark:text-blue-300" /><a href={newsDocumentHref(file.url) || undefined} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 break-all font-medium text-blue-700 underline underline-offset-4 dark:text-blue-300">{file.filename || file.label || `Document ${index + 1}`}</a><span className="text-slate-500 dark:text-neutral-400">{newsFileSize(file.size)}</span></div>
                 <CmsField label={`Document ${index + 1} label`}><CmsInput aria-label={`Document ${index + 1} label`} value={file.label || ''} onChange={event => onChange({ attachments: attachments.map((row, i) => i === index ? { ...row, label: event.target.value } : row) })} /></CmsField>
                 <button type="button" className={actionClass} aria-label={`Remove document ${index + 1}`} onClick={() => onChange({ attachments: attachments.filter((_, i) => i !== index) })}><Trash2 size={16} /> Remove</button>
             </div>)}
         </fieldset>
-        <fieldset disabled={locked} className="min-w-0 space-y-4">
-            <legend className="mb-3 text-lg font-bold">Related links ({links.length}/{NEWS_LINK_LIMIT})</legend>
-            <p className="text-sm text-slate-500">Add a WhatsApp group or channel, YouTube video, or another useful webpage. Use a complete https:// link.</p>
-            {links.map((link, index) => <div key={index} className="min-w-0 space-y-3 rounded-xl border border-slate-200 p-3 dark:border-neutral-700">
+        <fieldset disabled={locked} className={groupClass}>
+            <legend className={legendClass}>Related links <span className="whitespace-nowrap font-medium text-slate-500 dark:text-neutral-400">({links.length}/{NEWS_LINK_LIMIT})</span></legend>
+            <p className={hintClass}>Add a WhatsApp group or channel, YouTube video, or another useful webpage. Use a complete https:// link.</p>
+            {links.map((link, index) => <div key={index} className={itemClass}>
                 <CmsField label={`Link ${index + 1} label`}><CmsInput aria-label={`Link ${index + 1} label`} value={link.label || ''} placeholder="Join our WhatsApp group" onChange={event => onChange({ links: links.map((row, i) => i === index ? { ...row, label: event.target.value } : row) })} /></CmsField>
                 <CmsField label={`Link ${index + 1} URL`}><CmsInput aria-label={`Link ${index + 1} URL`} type="url" value={link.url || ''} placeholder="https://chat.whatsapp.com/… or https://youtu.be/…" onChange={event => onChange({ links: links.map((row, i) => i === index ? { ...row, url: event.target.value } : row) })} /></CmsField>
                 <button type="button" className={actionClass} aria-label={`Remove link ${index + 1}`} onClick={() => onChange({ links: links.filter((_, i) => i !== index) })}><Trash2 size={16} /> Remove</button>
             </div>)}
-            <CmsButton variant="ghost" disabled={links.length >= NEWS_LINK_LIMIT} onClick={() => onChange({ links: [...links, { url: '', label: '' }] })}><Plus size={16} /> Add related link</CmsButton>
+            <CmsButton variant="ghost" disabled={links.length >= NEWS_LINK_LIMIT} onClick={() => onChange({ links: [...links, { url: '', label: '' }] })}><Plus size={20} className="shrink-0" /> Add related link</CmsButton>
         </fieldset>
     </div>;
 }
