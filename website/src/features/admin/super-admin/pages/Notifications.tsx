@@ -157,6 +157,9 @@ export default function Notifications() {
     };
 
     const emailOff = !!status && !status?.email?.configured;
+    const eventEmail = status?.email?.accounts?.find(account => account.category === 'events');
+    const membershipEmail = status?.email?.accounts?.find(account => account.category === 'membership');
+    const unconfiguredSenders = status?.email?.accounts?.filter(account => !account.configured).map(account => account.from).join(', ');
     const waOff = !!status && !status?.whatsapp?.configured;
 
     return (
@@ -207,16 +210,14 @@ export default function Notifications() {
                             <div className="min-w-0 text-ui-body text-amber-900 [overflow-wrap:anywhere]">
                                 <p className="font-semibold">
                                     {emailOff && waOff
-                                        ? 'Neither email nor WhatsApp is configured.'
-                                        : emailOff ? 'Email is not configured.' : 'WhatsApp is not configured.'}
+                                        ? 'Email and WhatsApp delivery setup needs attention.'
+                                        : emailOff ? 'One or more email senders need setup.' : 'WhatsApp is not configured.'}
                                 </p>
                                 <p className="mt-1">
-                                    Messages on {emailOff && waOff ? 'those channels' : 'that channel'} are recorded
-                                    below as <strong>not sent</strong> and nothing leaves the server. Add the
-                                    credentials to <code className="font-mono text-ui-small">backend/.env</code> and
-                                    restart — {emailOff ? <><code className="font-mono text-ui-small">EMAIL_USER</code> and <code className="font-mono text-ui-small">EMAIL_PASS</code></> : null}
-                                    {emailOff && waOff ? ', ' : null}
-                                    {waOff ? <><code className="font-mono text-ui-small">BOTBEE_API_TOKEN</code> and <code className="font-mono text-ui-small">BOTBEE_PHONE_NUMBER_ID</code></> : null}.
+                                    {emailOff ? `Email setup is missing for ${unconfiguredSenders || 'one or more senders'}. ` : ''}
+                                    {waOff ? 'WhatsApp has no configured sending service. ' : ''}
+                                    Messages using these unconfigured senders are recorded as <strong>not sent</strong>.
+                                    {' '}Review Delivery log &amp; setup for the affected service. Other configured senders can still operate.
                                 </p>
                             </div>
                         </div>
@@ -298,14 +299,14 @@ export default function Notifications() {
                             title="Email"
                             configured={!!status?.email?.configured}
                             rows={[
-                                ['Host', status?.email?.host || '—'],
-                                ['Account', status?.email?.user || '—'],
-                                ['From address', status?.email?.from || '—'],
-                                ['Event queries', 'events@activ.org.in'],
-                                ['Membership queries', 'member@activ.org.in'],
+                                ['Events sender', eventEmail?.from || 'events@activ.org.in'],
+                                ['Events delivery service', eventEmail ? (eventEmail.configured ? eventEmail.host : 'Not configured') : status?.email?.host || '—'],
+                                ['Membership sender', membershipEmail?.from || 'member@activ.org.in'],
+                                ['Membership delivery service', membershipEmail ? (membershipEmail.configured ? membershipEmail.host : 'Not configured') : 'Reload after updating the server'],
                             ]}
-                            note="Event messages use events@activ.org.in. Membership and business publishing
-                                  messages use member@activ.org.in. Replies go to the same relevant office."
+                            note="Your two addresses identify the sender and receive replies. The delivery service
+                                  sends automated emails on their behalf; both addresses can share one service.
+                                  Configured means setup is present, not that an email reached the inbox."
                         />
                         <ChannelCard
                             icon={<MessageSquare className="w-5 h-5" />}

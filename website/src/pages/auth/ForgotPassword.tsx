@@ -97,8 +97,8 @@ export default function ForgotPassword({ audience = 'member' }: { audience?: Aud
                     </div>
                     <p className="text-ui-caption leading-relaxed text-slate-600">
                         If <span className="break-all font-semibold text-slate-900">{(email || '').trim().toLowerCase()}</span>{' '}
-                        belongs to {forAdmins ? 'an administrator account' : 'a member account'}, a reset link is on its
-                        way. It expires in one hour and can be used once.
+                        matches {forAdmins ? 'an active administrator account' : 'an active member account'}, check the
+                        account recovery inbox for an email with a reset link. The link expires in one hour and can be used once.
                     </p>
                     <p className="mt-3 text-[0.9375rem] text-slate-500">
                         Nothing arrived? Check your spam folder, or{' '}

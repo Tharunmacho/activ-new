@@ -463,7 +463,7 @@ export const forgotPassword = async (email: string): Promise<string> => {
     const res = await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
     // Always the same message whether or not the address is registered — the
     // endpoint deliberately reveals nothing.
-    return res.data?.message || 'If that email is registered, a reset link is on its way.';
+    return res.data?.message || 'Your reset request has been received. If that email is registered, check the account recovery inbox for a reset link.';
 };
 
 export const verifyResetToken = async (token: string): Promise<boolean> => {
@@ -1627,6 +1627,11 @@ export interface DeliveryStatus {
         configured: boolean; host: string | null; user: string | null;
         from: string; regionalFrom: boolean; supportAddress: string;
         verification?: { ok: boolean; configured: boolean; error?: string };
+        accounts?: Array<{
+            category: 'events' | 'membership'; configured: boolean;
+            host: string | null; from: string; transport: 'shared' | 'separate';
+            verification?: { ok: boolean; configured: boolean; error?: string };
+        }>;
     };
     whatsapp: {
         provider?: 'meta' | 'botbee'; providerLabel?: string;
