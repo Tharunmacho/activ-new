@@ -98,10 +98,16 @@ necessary after deployment. No Firebase Authentication migration is required.
 
 ### Website Google Analytics
 
-1. In the GA4 property linked to Firebase, add a **Web data stream** for `https://activ.org.in`.
-2. Copy its measurement ID, starting with `G-`, into **`VITE_GA_MEASUREMENT_ID`** in the website build environment. `website/.env.analytics.example` is the template.
+**Verification on 19 October 2026:** the production website contains the analytics code but its built measurement ID is empty, so website collection is currently disabled. A read-only Firebase web-app configuration lookup returned the existing linked stream ID `G-SVTY6PH9ZX`. This confirms that the Firebase web app has an Analytics web stream; it does not prove that events are arriving. The separate project Analytics-details lookup returned `403 PERMISSION_DENIED`, so property settings and Realtime could not be inspected with the available service account. The sanitized audit is `artifacts/firebase-analytics-audit-20261019.json`.
+
+The local production build is configured through ignored `website/.env.production.local`. The website now also reads `VITE_GA_MEASUREMENT_ID` from its Node server's runtime environment. In Dokploy, set `VITE_GA_MEASUREMENT_ID=G-SVTY6PH9ZX` in the **website application (`activ-new`)**, save, and deploy this updated code. The backend application's environment does not configure the website. Once this release is running, subsequent ID changes require saving the website environment and redeploying/restarting with the new environment, without rebuilding JavaScript.
+
+The server places only the validated public ID in `<meta name="activ-ga-measurement-id">` in the initial HTML. This overrides the compiled value before Analytics starts. An explicitly blank or invalid runtime value disables collection; an unset value preserves the Vite build value. Static hosting and `vite preview` still require the ID at build time. This change does not confirm production configuration or Google ingestion: inspect the live HTML, allow analytics, and check Realtime.
+
+1. In the GA4 property linked to Firebase, open the existing **Web data stream** for `https://activ.org.in`. When configuring a different project, create its Web stream if one does not exist.
+2. Copy its measurement ID, starting with `G-`, into **`VITE_GA_MEASUREMENT_ID`** in the Dokploy website application's environment (or the build environment for static hosting). `website/.env.analytics.example` is the template.
 3. Turn off **Enhanced measurement** for this stream, including automatic history-based page views, form interactions and site-search collection. ACTIV emits its own sanitised page events; avoid collecting raw URLs containing booking references, return tokens or member information.
-4. Rebuild and deploy the website. Vite reads the ID at build time.
+4. Deploy the updated website. On the Node-hosted site, View Page Source should show `<meta name="activ-ga-measurement-id" content="G-SVTY6PH9ZX" />` when the runtime setting is present. If the tag is missing, check the running website release and its environment. Static deployments need a rebuild.
 5. On the website, allow usage analytics in the consent banner. Later use **Privacy preferences** to change the choice. In the app use **Share usage analytics** in Account settings (or Super Admin Notifications → Delivery).
 6. Check GA4 Realtime/DebugView for `page_view`, `screen_view` and `login` events, then normal reports after processing. Firebase's Analytics area and the linked GA4 property show the app streams; the Web stream reports the website.
 

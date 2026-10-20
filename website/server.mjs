@@ -19,6 +19,7 @@
  * Environment:
  *   API_URL / VITE_API_URL   the API base, e.g. https://api.example.com/api/v1
  *   SITE_URL                 the public origin, for og:url (default: request host)
+ *   VITE_GA_MEASUREMENT_ID    public Analytics ID; overrides the compiled value
  */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -51,7 +52,19 @@ const TYPES = {
 
 let indexHtml = '';
 const index = () => {
-    if (!indexHtml) indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    if (!indexHtml) {
+        indexHtml = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+        // Dokploy can supply this after Vite has built the assets. Expose only
+        // this validated public ID, before the browser executes its modules.
+        // An explicit blank/invalid value disables Analytics; an unset value
+        // preserves the build-time fallback used by static hosts and Vite.
+        if (process.env.VITE_GA_MEASUREMENT_ID !== undefined) {
+            const value = String(process.env.VITE_GA_MEASUREMENT_ID).trim();
+            const id = /^G-[A-Z0-9]+$/.test(value) ? value : '';
+            indexHtml = indexHtml.replace(/<head\b[^>]*>/i, head =>
+                `${head}\n    <meta name="activ-ga-measurement-id" content="${id}" />`);
+        }
+    }
     return indexHtml;
 };
 
@@ -255,6 +268,10 @@ const server = http.createServer(async(req, res) => {
         // A real file in dist: assets, images, robots.txt …
         const file = path.normalize(path.join(ROOT, pathname));
         if (file.startsWith(ROOT) && pathname !== '/' && fs.existsSync(file) && fs.statSync(file).isFile()) {
+            if (file === path.join(ROOT, 'index.html')) {
+                await send(req, res, 200, index(), TYPES['.html']);
+                return;
+            }
             const hashed = pathname.startsWith('/assets/');
             const type = TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream';
             const cacheControl = pathname === '/firebase-messaging-sw.js' ? 'no-cache' : hashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600';

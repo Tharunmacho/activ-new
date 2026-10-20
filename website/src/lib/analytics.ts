@@ -1,4 +1,9 @@
-const ID = String(import.meta.env.VITE_GA_MEASUREMENT_ID || '').trim();
+// The production server supplies Dokploy's runtime setting in the initial HTML.
+// Nullish fallback preserves an explicit blank override that disables collection.
+const runtimeId = typeof document === 'undefined'
+  ? null
+  : document.querySelector('meta[name="activ-ga-measurement-id"]')?.getAttribute('content');
+const ID = String(runtimeId ?? import.meta.env.VITE_GA_MEASUREMENT_ID ?? '').trim();
 const KEY = 'activ:analytics-consent';
 let loaded = false;
 export const analyticsConfigured = () => /^G-[A-Z0-9]+$/.test(ID);
