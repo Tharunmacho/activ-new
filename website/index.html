@@ -69,20 +69,10 @@
 </script>
 
 <!--
-  THIRD-PARTY SCRIPTS WAIT UNTIL THE PAGE IS UP.
-
-  Google Analytics (~200 KB) and the Meta Pixel (~190 KB) both downloaded in the same moment as the site's own code and fought it
-  for a phone's bandwidth — none of them is needed to draw a single pixel. They
-  now load once the page has finished loading and the browser is idle. Their
-  queues are created immediately, so anything the app reports before then is
-  kept and sent, and the page view is still counted.
+  The Meta Pixel loads after the page is ready.
+  Google Analytics is managed by src/lib/analytics.ts after usage consent.
 -->
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-KVR8RTT6G1');
-
   !function(f){if(f.fbq)return;var n=f.fbq=function(){n.callMethod?
   n.callMethod.apply(n,arguments):n.queue.push(arguments)};
   if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];}(window);
@@ -96,7 +86,6 @@
       document.head.appendChild(s);
     };
     var go = function () {
-      load('https://www.googletagmanager.com/gtag/js?id=G-KVR8RTT6G1');
       load('https://connect.facebook.net/en_US/fbevents.js');
     };
     var later = function () {
