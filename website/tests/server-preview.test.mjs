@@ -41,6 +41,7 @@ try {
         assert.ok(html.includes('Event description &amp; registration.'));
         assert.match(html,new RegExp(`/api/v1/share/events/${slug}/preview/[a-f0-9]{20}\\.jpg`));
         assert.ok(html.includes('property="og:image:type" content="image/jpeg"'));
+        assert.ok(html.indexOf('property="og:image"') < html.indexOf('<script'), 'Fallback event metadata precedes scripts');
         assert.ok(html.includes(`property="og:url" content="https://activ.org.in/events/${slug}"`));
         assert.equal((html.match(/rel="canonical"/g) || []).length, 1);
         assert.ok(!html.includes('property="og:image" content="https://activ.org.in/logo_'));

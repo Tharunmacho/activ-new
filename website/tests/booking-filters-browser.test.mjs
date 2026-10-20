@@ -36,6 +36,7 @@ try {
           districts:[{state:'Tamil Nadu',name:'Chennai'},{state:'Karnataka',name:'Bengaluru'}],cities:['Chennai','Madurai'],attendeeStates:['Tamil Nadu'],questions:[{key:'business-1',label:'Business activity'}]}}};
       export const listBookingPeople=async(search,filters)=>{window.fixtureRequests.push({kind:'people',filters});return {people:[],total:0}};
       export const getBookingPerson=async()=>({bookings:[]});
+      export const deleteArchivedEventHistory=async()=>{throw Error('Read-only fixture');};
     `,
   };
   const result = await build({ absWorkingDir: root, bundle: true, write: false, format: 'iife', platform: 'browser', jsx: 'automatic',
@@ -50,7 +51,7 @@ try {
       createRoot(document.getElementById('root')).render(<BrowserRouter><Routes><Route path='/super-admin/bookings' element={<Bookings/>}/><Route path='*' element={<Target/>}/></Routes></BrowserRouter>);
     ` } });
   bundle = result.outputFiles[0].text;
-  chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new','--remote-debugging-port=0','--user-data-dir='+profile,'--no-first-run','about:blank'], { windowsHide: true, stdio: 'ignore' });
+  chrome = spawn(process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new','--remote-debugging-port=0','--user-data-dir='+profile,'--no-first-run','about:blank'], { windowsHide: true, stdio: 'ignore' });
   let port;
   for (let n=0;n<100;n++){try{port=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0];if(port)break;}catch{}await pause(100);}
   const tabs=await fetch('http://127.0.0.1:'+port+'/json/list').then(r=>r.json());
@@ -70,8 +71,13 @@ try {
     await click('Past');await until('document.body.innerText.includes("past training")');
     assert(!(await evaluate('document.body.innerText.includes("current training")')));
     await evaluate('document.querySelector("summary").click()');
-    await select('Category','Training');await select('Event language','Tamil');await select('Attendance mode','offline');
-    await select('Event state / region','Tamil Nadu');await select('Event district','Chennai');await select('City / town (registration)','Chennai');
+    await select('Category','Training');await select('Event language','Tamil');await select('Event mode','offline');
+    assert.deepEqual(await evaluate('[...document.querySelector(\'select[aria-label="Event state / region"]\').options].map(o=>o.value)'),['','Tamil Nadu','Karnataka'],'all server-provided states are selectable');
+    await select('Event state / region','Tamil Nadu');await select('Event district','Chennai');
+    await select('Event state / region','Karnataka');
+    assert.equal(await evaluate('document.querySelector(\'select[aria-label="Event district"]\').value'),'','changing state clears the previous district');
+    assert.deepEqual(await evaluate('[...document.querySelector(\'select[aria-label="Event district"]\').options].map(o=>o.value)'),['','Bengaluru'],'districts belong to the selected state');
+    await select('Event district','Bengaluru');await select('Event state / region','Tamil Nadu');await select('Event district','Chennai');await select('City / town (registration)','Chennai');
     await click('Apply filters');
     await until('window.fixtureRequests.at(-1)?.filters.city==="Chennai"');
     const applied=await evaluate('window.fixtureRequests.at(-1).filters');
@@ -83,7 +89,7 @@ try {
     assert.deepEqual((await evaluate('window.fixtureExport')).filters,applied,'Excel uses the applied criteria');
     await click('People');await until('window.fixtureRequests.some(r=>r.kind==="people")');
     assert.deepEqual(await evaluate('window.fixtureRequests.filter(r=>r.kind==="people").at(-1).filters'),applied,'People respects history and filters');
-    await click('Old');await until('window.fixtureRequests.filter(r=>r.kind==="people").at(-1)?.filters.history==="deleted"');
+    await click('Deleted');await until('window.fixtureRequests.filter(r=>r.kind==="people").at(-1)?.filters.history==="deleted"');
     if(process.env.TEST_ARTIFACTS){const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.join(process.env.TEST_ARTIFACTS,'booking-filters-'+width+'.png'),Buffer.from(shot.result.data,'base64'));}
     await click('Clear filters');await until('Object.keys(window.fixtureRequests.filter(r=>r.kind==="people").at(-1)?.filters||{}).length===1');
   }

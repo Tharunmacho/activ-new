@@ -47,6 +47,7 @@ try {
             assert.ok(html.includes(`property="og:title" content="ACTIV ${canonical(path)}"`));
             assert.ok(html.includes(`property="og:url" content="https://activ.org.in${canonical(path)}"`));
             assert.equal((html.match(/property="og:image"/g) || []).length, 1);
+            assert.ok(html.indexOf('property="og:image"') < html.indexOf('<script'), 'Sharing metadata precedes scripts');
             assert.equal((html.match(/rel="canonical"/g) || []).length, 1);
             assert.ok(html.includes('id="root"') && html.includes('/assets/'), 'SPA remains intact');
             assert.ok(!html.includes("location.replace('https://configured.example')"), 'Only metadata is merged');
@@ -79,6 +80,17 @@ try {
     assert.equal(isPublicPreviewPath('/events/../login'), false);
     const merged = mergePagePreview('<html><head><meta content="old" property="og:image"><meta property="og:image" content="old"><meta name="description" content="old"><title>old</title></head><body id="root"></body></html>', preview('/about', aboutImage));
     assert.equal((merged.match(/property="og:image"/g) || []).length, 1, 'Duplicate old tags are removed');
+    const shell = '<html><head><meta name="activ-ga-measurement-id" content="G-EXAMPLE"><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><script>window.shell = true</script><noscript><link rel="stylesheet" href="/fonts.css"></noscript><title>old</title></head><body id="root"></body></html>';
+    const card = '<head><meta charset="utf-8"><meta name="viewport" content="API viewport"><script>window.card = true</script><title>Budget $&amp; $` $\'</title><meta property="og:image" content="https://example.com/event.jpg"><meta property="og:title" content="Budget $&amp; $` $\'"></head>';
+    const early = mergePagePreview(shell, card);
+    assert.equal((early.match(/<meta[^>]*charset=/gi) || []).length, 1, 'The API encoding declaration is not copied');
+    assert.equal((early.match(/name="viewport"/g) || []).length, 1, 'The shell viewport is preserved once');
+    assert.ok(early.indexOf('charset="UTF-8"') < early.indexOf('property="og:image"'), 'Encoding stays before sharing metadata');
+    assert.ok(early.indexOf('property="og:image"') < early.indexOf('<script'), 'Sharing metadata is early in the head');
+    assert.ok(early.includes('content="Budget $&amp; $` $\'"'), 'Dollar replacement sequences in CMS content remain literal');
+    assert.equal((early.match(/<\/head>/g) || []).length, 1, 'CMS content cannot inject a closing head through replacement tokens');
+    assert.ok(!early.includes('window.card'), 'API scripts are never copied');
+    assert.ok(early.includes('window.shell = true') && early.includes('G-EXAMPLE'), 'Shell integrations remain intact');
     console.log('PASS: every public page serves CMS metadata to browsers/crawlers; next fetch sees replacement; isolated routes, SPA, canonical and private exclusions preserved');
 } finally {
     child.kill();

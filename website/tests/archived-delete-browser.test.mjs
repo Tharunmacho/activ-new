@@ -268,12 +268,12 @@ try {
     assert.equal(await evaluate(`Boolean(${visibleButton('Delete permanently')})`), false, 'current events have no permanent delete');
     await click('Past'); await until('document.body.textContent.includes("Past workshop")');
     assert.equal(await evaluate(`Boolean(${visibleButton('Delete permanently')})`), false, 'past events have no permanent delete');
-    await click('Old'); await until('document.body.textContent.includes("Archived workshop")');
+    await click('Deleted'); await until('document.body.textContent.includes("Archived workshop")');
     await exerciseDelete('events', width);
 
     const beforeRole = deleteCount();
     await visit('/events-admin/bookings', width);
-    await click('Old'); await until('document.body.textContent.includes("Archived workshop")');
+    await click('Deleted'); await until('document.body.textContent.includes("Archived workshop")');
     assert.equal(await evaluate(`Boolean(${visibleButton('Delete permanently')})`), false, 'events admin has no history-delete action');
     assert.equal(deleteCount(), beforeRole);
     checks.push(`events_admin ${width}px: archived history visible; permanent delete absent`);

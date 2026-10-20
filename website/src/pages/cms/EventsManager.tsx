@@ -1551,10 +1551,10 @@ export default function EventsManager({
                               */}
                             <span className="block mb-2 text-ui-body font-semibold
                                              text-slate-800 dark:text-neutral-100">
-                                How this event is attended
+                                Event mode
                             </span>
                             <CmsChoice
-                                label="How this event is attended"
+                                label="Event mode"
                                 value={form.detail.mode}
                                 onChange={(mode) => setForm({
                                     ...form,

@@ -49,7 +49,7 @@ export default function BookingFilters({ value, options = {}, onChange }: {
                     {input('eventSearch', 'Event name or venue')}
                     {select('category', 'Category', options.categories || [])}
                     {select('language', 'Event language', options.languages || [])}
-                    {select('mode', 'Attendance mode', [{ value: 'online', label: 'Online' }, { value: 'offline', label: 'Offline' }])}
+                    {select('mode', 'Event mode', [{ value: 'online', label: 'Online' }, { value: 'offline', label: 'Offline' }])}
                     {select('state', 'Event state / region', options.states || [])}
                     {select('district', 'Event district', [...new Set((options.districts || []).filter(d => !draft.state || d.state === draft.state).map(d => d.name))].sort())}
                     {input('eventFrom', 'Event date from', 'date')}{input('eventTo', 'Event date to', 'date')}

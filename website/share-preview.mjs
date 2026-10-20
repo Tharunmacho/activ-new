@@ -28,17 +28,24 @@ export const mergePagePreview = (shell, preview, origin = '') => {
         origin = /^https?:$/.test(parsed.protocol) ? parsed.origin : '';
     } catch { origin = ''; }
     const head = preview.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] || '';
-    const tags = head.match(/<(?:title|meta|link)\b[^>]*(?:>[\s\S]*?<\/title>|>)/gi) || [];
+    // Keep title's closing tag separate from void tags. A combined pattern can
+    // accidentally swallow charset/viewport/scripts preceding the title.
+    const tags = head.match(/<title\b[^>]*>[\s\S]*?<\/title>|<(?:meta|link)\b[^>]*>/gi) || [];
     const metadata = tags.filter(tag => /<title|(?:og:|twitter:|fb:app_id)|name="description"|rel="canonical"/i.test(tag)).map(tag => {
         if (!origin || !/(?:og:url|twitter:url|rel="canonical")/.test(tag)) return tag;
         return tag.replace(/(content|href)="([^"]+)"/, (match, attr, url) => {
             try { return `${attr}="${origin}${new URL(url.replace(/&amp;/g, '&')).pathname}"`; } catch { return match; }
         });
     });
-    return shell
+    const cleaned = shell
         .replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '')
         .replace(/<meta\b[^>]*(?:property|name)=["'](?:og:|twitter:|fb:)[^"']*["'][^>]*>/gi, '')
         .replace(/<meta\b[^>]*name=["']description["'][^>]*>/gi, '')
-        .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi, '')
-        .replace(/<\/head>/i, `${metadata.join('\n')}\n</head>`);
+        .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi, '');
+    // Put the explicit image and other sharing tags before scripts/styles and
+    // noscript fallbacks, while keeping the shell's encoding declaration first.
+    const shellHead = cleaned.match(/<head\b[^>]*>[\s\S]*?<\/head>/i)?.[0] || '';
+    const anchor = shellHead.match(/<meta\b[^>]*\bcharset\s*=[^>]*>/i)?.[0]
+        || shellHead.match(/<head\b[^>]*>/i)?.[0];
+    return anchor ? cleaned.replace(anchor, () => `${anchor}\n${metadata.join('\n')}`) : cleaned;
 };

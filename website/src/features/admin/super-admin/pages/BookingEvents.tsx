@@ -140,15 +140,15 @@ export default function SuperAdminBookingEvents() {
         if (!canDeleteHistory || row.historyCategory !== 'deleted' || !row.id || deleteInFlight.current) return;
         deleteInFlight.current = true;
         try {
-            if (!window.confirm(`Permanently delete old event history?\n\n${row.title || 'Untitled event'}\n${formatDay(row.startAt)}\n\nThis removes this old event and all its bookings, booking contacts, attendance and payment records from the database and reports. Member accounts stay. This cannot be undone and does not refund payments. Download an Excel copy first if needed.`)) return;
+            if (!window.confirm(`Permanently delete event history?\n\n${row.title || 'Untitled event'}\n${formatDay(row.startAt)}\n\nThis removes this deleted event and all its bookings, booking contacts, attendance and payment records from the database and reports. Member accounts stay. This cannot be undone and does not refund payments. Download an Excel copy first if needed.`)) return;
             setDeletingEvent(row.id);
             await deleteArchivedEventHistory(row.id);
             ++sequence.current;
             setData(current => current.filter(event => event.id !== row.id));
             setPeopleRevision(value => value + 1);
-            toast.success('Old event and booking history permanently deleted.');
+            toast.success('Event and booking history permanently deleted.');
             await load(true);
-        } catch (err) { toast.error(errorMessage(err, 'Could not delete old event history.')); }
+        } catch (err) { toast.error(errorMessage(err, 'Could not delete event history.')); }
         finally { deleteInFlight.current = false; setDeletingEvent(''); }
     }, [canDeleteHistory, load]);
     const open = (row: BookingOverviewRow) => navigate(`${adminBasePath()}/bookings/${row.id}?${new URLSearchParams(criteria)}`);
@@ -196,7 +196,7 @@ export default function SuperAdminBookingEvents() {
                             </span>
                         )}
                         {!!row.category && <AdminChip tone="violet">{row.category}</AdminChip>}
-                        {row.historyCategory === 'deleted' ? <AdminChip tone="slate">Old event · bookings retained</AdminChip>
+                        {row.historyCategory === 'deleted' ? <AdminChip tone="slate">Deleted event · bookings retained</AdminChip>
                             : row.historyCategory === 'past' ? <AdminChip tone="slate">Completed</AdminChip>
                             : row.status !== 'published' && <AdminChip tone="slate">Draft</AdminChip>}
                         {!row.registrationEnabled && (
@@ -350,7 +350,7 @@ export default function SuperAdminBookingEvents() {
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto sm:overflow-hidden">
                 <AdminPageHeader
                     title="Booking Details"
-                    subtitle="View or download event bookings and contacts. Old event history stays here until a Super Admin permanently deletes it."
+                    subtitle="View or download event bookings and contacts. Deleted event history stays here until a Super Admin permanently deletes it."
                     onMenu={() => setSidebarOpen(true)}
                     actions={
                         <button
@@ -438,12 +438,12 @@ export default function SuperAdminBookingEvents() {
                                 onClick={() => setSearchParams({ ...filters, history: value }, { replace: true })}
                                 className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-base font-semibold ${history === value
                                     ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
-                                {value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Old'}
+                                {value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Deleted'}
                                 <span className="tabular-nums">{historyTotals?.[value]?.events || 0}</span>
                             </button>
                         ))}
                     </div>
-                    <p className="text-base text-slate-500">Current shows upcoming and ongoing events. Completed events appear in Past. Manually removed events appear in Old. Booking and contact details are retained in every view.</p>
+                    <p className="text-base text-slate-500">Current shows upcoming and ongoing events. Completed events appear in Past. Manually removed events appear in Deleted. Booking and contact details are retained in every view.</p>
                     <BookingFilters value={filters} options={options} onChange={setFilters} />
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm text-slate-500">Event totals show all bookings for matching events. People and Excel use the selected registration filters.</p>

@@ -483,12 +483,12 @@ export default function SuperAdminBookings() {
                             {eventsLoading && <option>Loading events…</option>}
                             {!eventsLoading && !events.length && <option>No events yet</option>}
                             {(['current', 'past', 'deleted'] as const).map(category => (
-                              <optgroup key={category} label={category === 'current' ? 'Current events' : category === 'past' ? 'Past events' : 'Old events'}>
+                              <optgroup key={category} label={category === 'current' ? 'Current events' : category === 'past' ? 'Past events' : 'Deleted events'}>
                               {events.filter(e => e.historyCategory === category).map((e) => (
                                 <option key={e.id} value={e.id}>
                                     {e.title}
                                     {e.startAt ? ` — ${formatDay(e.startAt)}` : ''}
-                                    {e.bookingHistoryOnly || e.archivedAt ? ' — Old event · bookings retained' : e.registrationFee > 0 ? ` — ${rupees(e.registrationFee)}` : ' — Free'}
+                                    {e.bookingHistoryOnly || e.archivedAt ? ' — Deleted event · bookings retained' : e.registrationFee > 0 ? ` — ${rupees(e.registrationFee)}` : ' — Free'}
                                 </option>
                               ))}
                               </optgroup>

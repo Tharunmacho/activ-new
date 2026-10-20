@@ -163,12 +163,11 @@ const eventPage = (event, pageUrl) => {
     ].filter(([, , v]) => v)
         .map(([a, k, v]) => `<meta ${a}="${k}" content="${esc(v)}" />`).join('\n    ');
 
-    return index()
-        .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)} | ACTIV</title>`)
-        .replace(/<meta\s+name="description"[^>]*>/i, '')
-        .replace(/<meta\s+(property|name)="(og|twitter):[^"]*"[^>]*>/gi, '')
-        .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi, '')
-        .replace('</head>', `    <link rel="canonical" href="${esc(pageUrl)}" />\n    ${tags}\n  </head>`);
+    return mergePagePreview(index(), `<head>
+        <title>${esc(title)} | ACTIV</title>
+        <link rel="canonical" href="${esc(pageUrl)}" />
+        ${tags}
+    </head>`);
 };
 
 const brotli = promisify(brotliCompress);
