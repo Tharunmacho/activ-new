@@ -251,20 +251,24 @@ export default function NotificationsAutomation({ refreshKey = 0 }: { refreshKey
             {health?.email?.ok === false ? (
                 <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3.5 text-rose-800">
                     <p className="flex items-center gap-2 text-[1.125rem] font-bold">
-                        <AlertTriangle className="w-5 h-5 shrink-0" /> Email is not being sent right now
+                        <AlertTriangle className="w-5 h-5 shrink-0" /> One or more email senders need attention
                     </p>
                     <p className="mt-1 text-[1rem] break-words">
-                        {health.email.configured === false
-                            ? 'The email service has not been set up.'
-                            : `The mail server refused the connection or login${health.email.error ? ` (${health.email.error})` : ''}.`}
-                        {' '}Correct EMAIL_HOST / EMAIL_USER / EMAIL_PASS in the server settings. Failed emails are sent again automatically once it works.
+                        {health.email.accounts?.length
+                            ? health.email.accounts.map(account => `${account.category === 'events' ? 'Events' : 'Membership'}: ${
+                                account.ok ? 'SMTP login succeeded' : account.configured === false ? 'SMTP settings are incomplete' : account.error || 'SMTP login failed'
+                            }`).join('. ')
+                            : health.email.error || 'The server could not confirm email login.'}
+                        {' '}Open Delivery log &amp; setup to check each sender. Separate transport uses EVENT_EMAIL_* or MEMBER_EMAIL_*; shared transport uses EMAIL_*.
+                        {' '}If EMAIL_CONFIG_FILE is set, update its mounted settings file. Otherwise update the backend environment and redeploy.
+                        {' '}Other working senders can continue. Only eligible confirmed failures are retried automatically when automatic retry is enabled; accepted or uncertain sends are not replayed.
                     </p>
                 </div>
             ) : health?.email?.ok ? (
                 <p className="flex items-center gap-2 text-[1rem] text-emerald-700">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    Email server connected
-                    {health.autoRetry?.enabled ? ` · failed messages are tried again automatically every ${health.autoRetry.everyMinutes} min` : ''}
+                    Both email senders authenticated; inbox delivery is not confirmed
+                    {health.autoRetry?.enabled ? ` · eligible confirmed failures are checked every ${health.autoRetry.everyMinutes} min` : ''}
                 </p>
             ) : null}
 

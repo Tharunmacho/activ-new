@@ -196,7 +196,10 @@ export const resendNotification = async (id: string): Promise<{ row: DeliveryLog
  * ========================================================================== */
 
 export interface DeliveryGuardHealth {
-    email: { ok: boolean | null; configured: boolean | null; checkedAt: string | null; error: string };
+    email: {
+        ok: boolean | null; configured: boolean | null; checkedAt: string | null; error: string;
+        accounts?: Array<{ category: 'events' | 'membership'; ok: boolean | null; configured: boolean | null; checkedAt: string | null; error: string }>;
+    };
     autoRetry: { enabled: boolean; everyMinutes: number; maxTries: number; windowHours: number };
 }
 
@@ -212,7 +215,7 @@ export interface RetryAllSummary {
 
 export const getDeliveryGuardHealth = async (refresh = false): Promise<DeliveryGuardHealth | null> =>
     unwrap<DeliveryGuardHealth | null>(
-        await api.get('/notifications/health', { params: refresh ? { refresh: 1 } : {} }),
+        await api.get('/notifications/health', { params: refresh ? { refresh: 1 } : {}, ...(refresh ? { timeout: 60000 } : {}) }),
         null,
     );
 

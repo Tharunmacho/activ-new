@@ -1629,7 +1629,8 @@ export interface DeliveryStatus {
         verification?: { ok: boolean; configured: boolean; error?: string };
         accounts?: Array<{
             category: 'events' | 'membership'; configured: boolean;
-            host: string | null; from: string; transport: 'shared' | 'separate';
+            host: string | null; port?: number; secure?: boolean; from: string; transport: 'shared' | 'separate';
+            error?: string;
             verification?: { ok: boolean; configured: boolean; error?: string };
         }>;
     };
@@ -1650,7 +1651,8 @@ export const getNotificationLogs = async (params: Record<string, any> = {}) =>
 export const getDeliveryStatus = async (verifyEmail = false) =>
     unwrap<DeliveryStatus>(
         await api.get(ENDPOINTS.NOTIFICATIONS.DELIVERY_STATUS, {
-            params: verifyEmail ? { verifyEmail: '1' } : {}
+            params: verifyEmail ? { verifyEmail: '1' } : {},
+            ...(verifyEmail ? { timeout: 60000 } : {}),
         }),
         null as any
     );
@@ -1661,8 +1663,10 @@ export const retryNotification = async (id: string) =>
 export const previewRegionRouting = async (region: Record<string, string>) =>
     unwrap<any>(await api.get(ENDPOINTS.NOTIFICATIONS.ROUTING_PREVIEW, { params: region }), null as any);
 
-export const sendTestNotification = async (channel: 'email' | 'whatsapp', to: string) =>
-    unwrap<any>(await api.post(ENDPOINTS.NOTIFICATIONS.TEST_SEND, { channel, to }), null as any);
+export const sendTestNotification = async (channel: 'email' | 'whatsapp', to: string, category: 'events' | 'membership' = 'membership') =>
+    unwrap<any>(await api.post(ENDPOINTS.NOTIFICATIONS.TEST_SEND,
+        { channel, to, ...(channel === 'email' ? { category } : {}) },
+        channel === 'email' ? { timeout: 60000 } : undefined), null as any);
 
 // ---- super admin -----------------------------------------------------------
 

@@ -89,8 +89,12 @@ export default function Notifications() {
     const [search, setSearch] = useState('');
 
     const [testChannel, setTestChannel] = useState<'email' | 'whatsapp'>('email');
+    const [testCategory, setTestCategory] = useState<'events' | 'membership'>('membership');
     const [testTo, setTestTo] = useState('');
     const [testing, setTesting] = useState(false);
+    const [checkingEmail, setCheckingEmail] = useState(false);
+    const [emailCheck, setEmailCheck] = useState<DeliveryStatus['email'] | null>(null);
+    const [emailCheckError, setEmailCheckError] = useState('');
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -136,6 +140,21 @@ export default function Notifications() {
     }, [load]);
 
 
+    const checkEmailLogin = async () => {
+        setCheckingEmail(true);
+        setEmailCheck(null);
+        setEmailCheckError('');
+        try {
+            const checked = await getDeliveryStatus(true);
+            setStatus(checked);
+            setEmailCheck(checked.email);
+        } catch (err) {
+            setEmailCheckError(errorMessage(err, 'SMTP login could not be checked. Try again.'));
+        } finally {
+            setCheckingEmail(false);
+        }
+    };
+
     const runTest = async () => {
         const target = testTo.trim();
         if (!target) {
@@ -144,9 +163,11 @@ export default function Notifications() {
         }
         setTesting(true);
         try {
-            const result = await sendTestNotification(testChannel, target);
+            const result = await sendTestNotification(testChannel, target, testCategory);
             if (result?.mock) toast.warning('Nothing was sent. The sending service needs setup.');
-            else if (result?.success) toast.success('Sent. Check your email or phone.');
+            else if (result?.success) toast.success(testChannel === 'email'
+                ? 'Accepted by SMTP. Check the recipient inbox and spam folder.'
+                : 'Sent. Check your phone.');
             else toast.error(notificationReason(result?.error) || 'Send failed');
             await load();
         } catch (err) {
@@ -325,6 +346,41 @@ export default function Notifications() {
                         />
                     </div>
 
+                    <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h2 className={`${CARD_TITLE} text-slate-900`}>Check email login</h2>
+                                <p className="text-ui-body text-slate-500 mt-1">Check both senders using this server's current settings. No email is sent.</p>
+                            </div>
+                            <button type="button" onClick={checkEmailLogin} disabled={checkingEmail}
+                                className={ADMIN_SECONDARY_BTN}>
+                                {checkingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                                Check SMTP login
+                            </button>
+                        </div>
+                        <div aria-live="polite" className="mt-3 space-y-3 text-ui-body">
+                            {emailCheckError && <p role="alert" className="text-rose-700">{emailCheckError}</p>}
+                            {emailCheck?.accounts?.map(account => {
+                                const verified = account.verification?.ok;
+                                const prefix = account.transport === 'separate'
+                                    ? (account.category === 'events' ? 'EVENT_EMAIL' : 'MEMBER_EMAIL') : 'EMAIL';
+                                return <div key={account.category} className="break-words">
+                                    <p className={verified ? 'text-emerald-700' : 'text-rose-700'}>
+                                        <strong>{account.category === 'events' ? 'Events' : 'Membership'} ({account.from})</strong>
+                                        {' — '}{verified ? 'SMTP login succeeded' : account.configured ? 'SMTP login failed' : 'SMTP settings are incomplete'}
+                                    </p>
+                                    {account.host && <p className="text-slate-600">{account.host}{account.port ? `:${account.port}` : ''} · {account.transport} transport</p>}
+                                    {!verified && <p className="text-slate-600">
+                                        {account.verification?.error || account.error || 'The server did not confirm a login.'}
+                                        {' '}Check {prefix}_HOST, {prefix}_PORT, {prefix}_SECURE, {prefix}_USER and {prefix}_PASS.
+                                        {' '}If EMAIL_CONFIG_FILE is set, update the mounted SMTP settings file. Otherwise update the backend environment and redeploy.
+                                    </p>}
+                                </div>;
+                            })}
+                            {emailCheck && <p className="text-slate-500">A successful login does not confirm inbox delivery. Use a test email for each sender below.</p>}
+                        </div>
+                    </section>
+
                     {/* ============================================= test send */}
                     <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6
                                         shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]">
@@ -333,8 +389,9 @@ export default function Notifications() {
                             The difference between "the credentials are saved" and "it arrives".
                         </p>
 
-                        <div className="mt-4 flex flex-col sm:flex-row gap-2.5">
+                        <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap gap-2.5">
                             <select
+                                aria-label="Test channel"
                                 value={testChannel}
                                 onChange={(e) => setTestChannel(e.target.value as 'email' | 'whatsapp')}
                                 className="h-11 px-3 rounded-xl border border-slate-200 text-ui-body bg-white
@@ -343,7 +400,14 @@ export default function Notifications() {
                                 <option value="email">Email</option>
                                 <option value="whatsapp">WhatsApp</option>
                             </select>
+                            {testChannel === 'email' && <select aria-label="Test email sender" value={testCategory}
+                                onChange={e => setTestCategory(e.target.value as 'events' | 'membership')}
+                                className="h-11 min-w-0 px-3 rounded-xl border border-slate-200 text-ui-body bg-white">
+                                <option value="membership">Membership — member@activ.org.in</option>
+                                <option value="events">Events — events@activ.org.in</option>
+                            </select>}
                             <input
+                                aria-label="Test recipient"
                                 value={testTo}
                                 onChange={(e) => setTestTo(e.target.value)}
                                 placeholder={testChannel === 'email' ? 'you@example.com' : '9876543210'}
