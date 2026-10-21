@@ -11,7 +11,8 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const profile = await mkdtemp(path.join(tmpdir(), 'activ-personal-contact-'));
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 let chrome, ws, bundle = '', css = '';
-const fixture = { fullName: 'New Member', email: 'new@example.test', phoneNumber: '', religion: 'Hindu', socialCategory: 'SC', gender: 'Female' };
+const fixture = { fullName: 'New Member', email: 'new@example.test', phoneNumber: '', religion: 'Hindu', socialCategory: 'SC', gender: 'Female',
+  hasPassword: false, passwordStatus: 'not_set', linkedProviders: ['google'] };
 const server = http.createServer((req, res) => {
   if (req.url === '/bundle.js') { res.setHeader('Content-Type', 'text/javascript'); return res.end(bundle); }
   if (req.url === '/style.css') { res.setHeader('Content-Type', 'text/css'); return res.end(css); }
@@ -28,12 +29,13 @@ try {
       b.onLoad({ filter: /.*/, namespace: 'fixtures' }, () => ({ contents: `
         export async function getMyProfile(){ if(window.fixtureFail)throw Error('Could not load saved details'); return window.fixture; }
         export async function updateProfile(value){window.saves.push(value);return {};}
+        export async function setFirstPassword(newPassword,confirmPassword){window.passwordSaves.push({newPassword,confirmPassword});return {hasPassword:true,passwordStatus:'set'};}
         export async function getStates(){return {states:[]};} export async function getDistricts(){return {districts:[]};}
         export async function getBlocks(){return {blocks:[]};} export function errorMessage(e,f){return e.message||f;}
       ` }));
     } }],
     stdin: { resolveDir: root, loader: 'tsx', contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {BrowserRouter,Routes,Route} from 'react-router-dom';import Screen from './src/pages/member/PersonalForm';import {Toaster} from 'sonner';
-      window.fixture=${JSON.stringify(fixture)};window.saves=[];localStorage.setItem('token','local-fixture');
+      window.fixture=${JSON.stringify(fixture)};window.saves=[];window.passwordSaves=[];localStorage.setItem('token','local-fixture');
       const c=new URLSearchParams(location.search).get('case');window.fixtureFail=c==='failure';
       if(c==='locked')Object.assign(window.fixture,{phoneNumber:'9123456780',state:'Tamil Nadu',district:'Chennai',city:'Chennai',isLocked:true,personalDetailsComplete:true});
       createRoot(document.getElementById('root')).render(<BrowserRouter><Routes><Route path="/member/forms/business" element={<p>Business step opened</p>}/><Route path="*" element={<Screen/>}/></Routes><Toaster/></BrowserRouter>);` }
@@ -66,6 +68,23 @@ try {
     await until(`document.body.innerText.includes('Business step opened')`);
     const saved = await evaluate('window.saves');
     assert.equal(saved.length, 1); assert.equal(saved[0].phoneNumber, '+447911123456'); assert.equal(saved[0].place, 'London'); assert(!saved[0].state);
+    assert.deepEqual(await evaluate('window.passwordSaves'), [], 'Social-only completion stays optional');
+
+    await open('social-password');
+    await fill('Phone Number', '+447911123456'); await until(`${field('Place')}`); await fill('Place', 'London');
+    await fill('New Password', 'Fixture-password-2026'); await fill('Confirm Password', 'Wrong-confirmation');
+    assert.equal(await evaluate('document.querySelectorAll("input[autocomplete=current-password]").length'), 0);
+    assert.equal(await evaluate('document.querySelectorAll("input[autocomplete=new-password][type=password]").length'), 2);
+    assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'), `Password fields fit ${width}px`);
+    await evaluate(`${button('Next')}.click()`);
+    await until(`document.body.innerText.includes('do not match')`);
+    assert.deepEqual(await evaluate('window.saves'), []);
+    assert.deepEqual(await evaluate('window.passwordSaves'), []);
+    await fill('Confirm Password', 'Fixture-password-2026');
+    await evaluate(`${button('Next')}.click()`); await until(`document.body.innerText.includes('Business step opened')`);
+    assert.deepEqual(await evaluate('window.passwordSaves'), [{newPassword:'Fixture-password-2026',confirmPassword:'Fixture-password-2026'}]);
+    assert(!(await evaluate('JSON.stringify(window.saves)')).includes('Fixture-password-2026'));
+    assert(!(await evaluate('JSON.stringify(localStorage)')).includes('Fixture-password-2026'));
 
     await open('failure');
     await until(`document.querySelector('[role="alert"]')`);
@@ -82,7 +101,7 @@ try {
     assert.deepEqual(await evaluate('window.saves'), []);
   }
   assert.deepEqual(errors, []);
-  console.log('PASS: first social phone/location, load failure/retry, locked-step continuation, no overflow at 320/390/1440px; all API calls are local stubs.');
+  console.log('PASS: first social phone/location/password, matching confirmation, separate credential save, no password in profile/storage, load failure/retry, locked-step continuation, and 320/390/1440px layout; local API stubs only.');
   await send('Browser.close');
 } finally {
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

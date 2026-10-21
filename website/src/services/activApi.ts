@@ -459,6 +459,9 @@ export const logout = async (): Promise<void> => {
 export const changePassword = async (oldPassword: string, newPassword: string) =>
     unwrap(await api.post(ENDPOINTS.AUTH.CHANGE_PASSWORD, { oldPassword, newPassword }), null);
 
+export const setFirstPassword = async (newPassword: string, confirmPassword: string) =>
+    unwrap(await api.post('/auth/set-password', { newPassword, confirmPassword }), null);
+
 export const forgotPassword = async (email: string): Promise<string> => {
     const res = await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
     // Always the same message whether or not the address is registered — the

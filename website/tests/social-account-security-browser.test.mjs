@@ -62,7 +62,7 @@ try {
   const until = async expression => { for (let i = 0; i < 100; i++) { if (await evaluate(`Boolean(${expression})`)) return; await pause(75); } throw Error(`${expression}\n${await evaluate('document.body.innerText')}`); };
   const click = label => evaluate(`[...document.querySelectorAll('button,a')].find(node=>node.textContent.trim()===${JSON.stringify(label)}).click()`);
   const currentInputs = 'document.querySelectorAll("input[autocomplete=current-password]").length';
-  const open = async route => { await send('Page.navigate', { url: base + route + '?step=1&case=' + Date.now() }); await until('document.body.innerText.includes("Sign-in methods") || document.querySelector("input[autocomplete=current-password]")'); };
+  const open = async route => { await send('Page.navigate', { url: base + route + '?step=1&case=' + Date.now() }); await until('document.body.innerText.includes("Sign-in methods") || document.body.innerText.includes("Set your ACTIV password") || document.querySelector("input[autocomplete=current-password]")'); };
   await send('Runtime.enable'); await send('Network.enable'); await send('Network.setBlockedURLs', { urls: ['https://*'] });
   for (const width of [320, 390, 1440]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 950, deviceScaleFactor: 1, mobile: width < 600 });
@@ -70,9 +70,13 @@ try {
       capabilities = { hasPassword: false, passwordStatus: 'not_set', linkedProviders: ['google', 'linkedin', 'facebook'] };
       await open(route);
       assert.equal(await evaluate(currentInputs), 0, `${route}: provider-only has no current-password field`);
-      assert(await evaluate('document.body.innerText.includes("Google, LinkedIn, Facebook") && document.body.innerText.includes("No ACTIV password is needed")'));
+      if (route === '/profile') {
+        assert.equal(await evaluate('document.querySelectorAll("input[autocomplete=new-password]").length'), 2);
+        assert(await evaluate('document.body.innerText.includes("Your social sign-in will keep working")'));
+      } else assert(await evaluate('document.body.innerText.includes("Google, LinkedIn, Facebook") && document.body.innerText.includes("No ACTIV password is needed")'));
       assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), `${route}: no overflow at ${width}px`);
       if (process.env.TEST_ARTIFACTS) { await mkdir(process.env.TEST_ARTIFACTS, { recursive: true }); const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true }); await writeFile(path.join(process.env.TEST_ARTIFACTS, `${route.slice(1)}-${width}.png`), Buffer.from(shot.result.data, 'base64')); }
+      if (route === '/profile') continue;
       await click('Set an ACTIV password (optional)');
       await until('location.pathname === "/forgot-password" && document.querySelector("#fp-email")');
       assert(await evaluate('document.body.innerText.includes("An ACTIV password is optional")'));

@@ -252,7 +252,8 @@ export default function Profile() {
   const [authCapabilities, setAuthCapabilities] = useState<any>(null);
   const [useExistingPassword, setUseExistingPassword] = useState(false);
   const passwordStatus = accountPasswordStatus(authCapabilities);
-  const showPasswordForm = passwordStatus === 'set' || passwordStatus === 'legacy_unknown' && useExistingPassword;
+  const settingFirstPassword = passwordStatus === 'not_set';
+  const showPasswordForm = settingFirstPassword || passwordStatus === 'set' || passwordStatus === 'legacy_unknown' && useExistingPassword;
   /**
    * True when the signed-in account has no row in "web users" at all — an admin
    * account reaching the member profile page. See the 404 branch in
@@ -775,6 +776,9 @@ export default function Profile() {
   const saveCurrentStepData = (data: ProfileData) => {
     const currentData = JSON.parse(localStorage.getItem("userProfile") || "{}");
     const updatedData = { ...currentData, ...data };
+    delete updatedData.password;
+    delete updatedData.confirmPassword;
+    delete updatedData.currentPassword;
     localStorage.setItem("userProfile", JSON.stringify(updatedData));
     localStorage.setItem("registrationData", JSON.stringify(updatedData));
     return updatedData;
@@ -862,12 +866,12 @@ export default function Profile() {
       const token = localStorage.getItem("token");
 
       // Check if user wants to change password
-      const wantsToChangePassword = showPasswordForm && data.password && data.password.trim() !== "";
+      const wantsToChangePassword = showPasswordForm && !!(data.password || data.confirmPassword || data.currentPassword);
 
       if (wantsToChangePassword && token) {
         // Validate password fields
-        if (data.password.length < 6) {
-          toast.error("New password must be at least 6 characters");
+        if ((data.password || '').length < (settingFirstPassword ? 8 : 6)) {
+          toast.error(`New password must be at least ${settingFirstPassword ? 8 : 6} characters`);
           return false;
         }
 
@@ -877,19 +881,19 @@ export default function Profile() {
         }
 
         // Current password is required when changing password
-        if (!data.currentPassword || data.currentPassword.trim() === "") {
+        if (!settingFirstPassword && (!data.currentPassword || data.currentPassword.trim() === "")) {
           toast.error("Please enter your current password to change it");
           return false;
         }
 
-        const passwordResponse = await apiFetch("/auth/change-password", {
+        const passwordResponse = await apiFetch(settingFirstPassword ? "/auth/set-password" : "/auth/change-password", {
           method: 'POST',
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            oldPassword: data.currentPassword, // the name the server reads
+            ...(settingFirstPassword ? { confirmPassword: data.confirmPassword } : { oldPassword: data.currentPassword }),
             newPassword: data.password
           })
         });
@@ -901,8 +905,9 @@ export default function Profile() {
           return false;
         }
 
-        toast.success("Password updated successfully");
+        toast.success(settingFirstPassword ? "Password set. You can sign in with email and password or your social account." : "Password updated successfully");
         setAuthCapabilities((previous: any) => ({ ...previous, hasPassword: true, passwordStatus: 'set' }));
+        reset({ ...data, password: '', confirmPassword: '', currentPassword: '' });
       }
 
       if (token) {
@@ -1744,17 +1749,17 @@ export default function Profile() {
                   </Fields>
                 </Section>
 
-                {passwordStatus !== 'set' && <Section icon={KeyRound} title="Sign-in methods" subtitle="Continue with your linked sign-in provider.">
+                {passwordStatus === 'legacy_unknown' && <Section icon={KeyRound} title="Sign-in methods" subtitle="Continue with your linked sign-in provider.">
                   <SocialAccountSecurity account={authCapabilities} onUsePassword={passwordStatus === 'legacy_unknown' && !useExistingPassword ? () => setUseExistingPassword(true) : undefined} />
                 </Section>}
                 {showPasswordForm &&
                 <Section
                   icon={KeyRound}
-                  title="Change your password"
-                  subtitle="Optional — leave all three blank to keep the password you sign in with."
+                  title={settingFirstPassword ? 'Set your ACTIV password' : 'Change your password'}
+                  subtitle={settingFirstPassword ? 'Use your email and this password next time. Your social sign-in will keep working. Leave both blank to continue with social sign-in only.' : 'Optional — leave all three blank to keep the password you sign in with.'}
                 >
-                  <Fields cols={3}>
-                    <div>
+                  <Fields cols={settingFirstPassword ? 2 : 3}>
+                    {!settingFirstPassword && <div>
                       <Label htmlFor="currentPassword" className={FIELD_LABEL}>Current Password</Label>
                       <PasswordInput
                         id="currentPassword"
@@ -1765,7 +1770,7 @@ export default function Profile() {
                         disabled={isLocked}
                       />
                       <p className="text-ui-caption text-[#64748B] mt-1">The password you use to sign in.</p>
-                    </div>
+                    </div>}
 
                     <div>
                       <Label htmlFor="password" className={FIELD_LABEL}>New Password</Label>
@@ -1777,7 +1782,7 @@ export default function Profile() {
                         {...register("password")}
                         disabled={isLocked}
                       />
-                      <p className="text-ui-caption text-[#64748B] mt-1">At least 8 characters.</p>
+                      <p className="text-ui-caption text-[#64748B] mt-1">At least {settingFirstPassword ? 8 : 6} characters.</p>
                     </div>
 
                     <div>

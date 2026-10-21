@@ -1,13 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { accountPasswordStatus } from "@/lib/authCapabilities";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Phone, Users } from "lucide-react";
+import { MapPin, Phone, Users, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationFormShell, { FormCard, FormField, FormGrid } from "./RegistrationFormShell";
 import {
   getMyProfile,
   updateProfile,
+  setFirstPassword,
   getStates,
   getDistricts,
   getBlocks,
@@ -77,6 +80,9 @@ const PersonalInformationForm = () => {
   const [coverageAvailable, setCoverageAvailable] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [canSetPassword, setCanSetPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -186,6 +192,8 @@ const PersonalInformationForm = () => {
         setStoredAbroad(profile.isInternational === true);
         setStoredCountry(profile.country || "");
         setNeedsFirstPhone(!String(profile.phoneNumber || "").trim());
+        setCanSetPassword(accountPasswordStatus(profile) === 'not_set');
+        setPassword(''); setConfirmPassword('');
       } else throw new Error("Could not load your saved details. Please try again.");
     } catch (error) {
       console.warn("Could not load personal details:", error);
@@ -257,8 +265,16 @@ const PersonalInformationForm = () => {
       return;
     }
 
+    if (canSetPassword && (password || confirmPassword)) {
+      if (password.length < 8) { toast.error('Use at least 8 characters for your password.'); return; }
+      if (password !== confirmPassword) { toast.error('New password and confirm password do not match.'); return; }
+    }
     setSubmitting(true);
     try {
+      if (canSetPassword && password) {
+        await setFirstPassword(password, confirmPassword);
+        setCanSetPassword(false); setPassword(''); setConfirmPassword('');
+      }
       // Sent with the backend's own field names. `updateProfile` routes each
       // group of fields to its own collection and mirrors the personal details
       // onto the member's application, so the admin queues stay in step.
@@ -309,6 +325,20 @@ const PersonalInformationForm = () => {
           Location data is unavailable. Reload the page to try again.
         </div>
       )}
+
+      {canSetPassword && !isLocked && <FormCard icon={KeyRound} title="Set your ACTIV password"
+        subtitle="Use your email and this password next time. Your social sign-in will keep working. Leave both blank to use social sign-in only.">
+        <FormGrid>
+          <FormField label="New Password">
+            <PasswordInput aria-label="New Password" value={password} onChange={event => setPassword(event.target.value)}
+              autoComplete="new-password" placeholder="At least 8 characters" />
+          </FormField>
+          <FormField label="Confirm Password">
+            <PasswordInput aria-label="Confirm Password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)}
+              autoComplete="new-password" placeholder="Enter the same password again" />
+          </FormField>
+        </FormGrid>
+      </FormCard>}
 
       {/* Mirrors mobile's "Location Information" card. */}
       <FormCard
