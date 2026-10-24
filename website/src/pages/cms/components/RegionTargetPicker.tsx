@@ -203,7 +203,7 @@ export default function RegionTargetPicker({
     const checkbox = (target: RegionTarget, text: string) => {
         const selected = list.some(item => covers(item, target));
         const inherited = selected && !list.some(item => same(item, target));
-        return <label className="flex min-h-11 flex-1 cursor-pointer items-center gap-3 py-2 text-sm text-slate-800"><input type="checkbox" aria-label={label(target)} checked={selected} disabled={inherited} onChange={() => selected ? deselect(target) : select(target)} className="h-4 w-4 shrink-0 accent-blue-700" /><span className="min-w-0 break-words">{text}</span></label>;
+        return <label className="flex min-h-12 flex-1 cursor-pointer items-center gap-3 py-2.5 text-lg font-medium text-slate-800"><input type="checkbox" aria-label={label(target)} checked={selected} disabled={inherited} onChange={() => selected ? deselect(target) : select(target)} className="h-6 w-6 shrink-0 accent-blue-700" /><span className="min-w-0 break-words">{text}</span></label>;
     };
 
 
@@ -410,18 +410,18 @@ export default function RegionTargetPicker({
                               three levels without a tree.
                             */}
                             {multipleSelection ? <div className="space-y-3">
-                                <label className="block text-sm font-semibold text-slate-700">Find a region<input type="search" value={term} onChange={event => setTerm(event.target.value)} placeholder="Search states, districts or blocks" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 py-2 text-ui-body font-normal" /></label>
-                                <div className="max-h-96 overflow-y-auto rounded-xl border border-slate-200 p-3">
-                                    {!filtered.length && <p className="text-sm text-slate-500">No regions match your search.</p>}
+                                <label className="block text-lg font-semibold text-slate-700">Find a region<input type="search" value={term} onChange={event => setTerm(event.target.value)} placeholder="Search states, districts or blocks" className="mt-2 min-h-14 w-full rounded-xl border border-slate-300 px-4 py-3 text-lg font-normal" /></label>
+                                <div className="max-h-[32rem] overflow-y-auto rounded-xl border border-slate-200 p-4">
+                                    {!filtered.length && <p className="text-base text-slate-500">No regions match your search.</p>}
                                     {filtered.map(state => {
                                         const st = { state: state.name || '', district: '', block: '' };
                                         const stateOpen = !!term || openStates.has(st.state);
-                                        return <div key={st.state} className="border-b border-slate-100 last:border-0"><div className="flex items-center gap-2">{checkbox(st, st.state)}{!!state.districts?.length && <button type="button" aria-expanded={stateOpen} aria-label={`Show districts in ${st.state}`} onClick={() => toggleIn(setOpenStates, st.state)} className="min-h-11 px-2 text-sm font-semibold text-blue-700">{stateOpen ? 'Hide' : 'Districts'}</button>}</div>
+                                        return <div key={st.state} className="border-b border-slate-100 last:border-0"><div className="flex items-center gap-2">{checkbox(st, st.state)}{!!state.districts?.length && <button type="button" aria-expanded={stateOpen} aria-label={`Show districts in ${st.state}`} onClick={() => toggleIn(setOpenStates, st.state)} className="min-h-12 px-3 text-base font-semibold text-blue-700">{stateOpen ? 'Hide' : 'Districts'}</button>}</div>
                                             {stateOpen && state.districts?.map(district => {
                                                 const dt = { ...st, district: district.name || '' };
                                                 const districtKey = `${st.state}|${dt.district}`;
                                                 const districtOpen = !!term || openDistricts.has(districtKey);
-                                                return <div key={districtKey} className="ml-4 border-l border-slate-200 pl-3"><div className="flex items-center gap-2">{checkbox(dt, dt.district)}{!!district.blocks?.length && <button type="button" aria-expanded={districtOpen} aria-label={`Show blocks in ${dt.district}`} onClick={() => toggleIn(setOpenDistricts, districtKey)} className="min-h-11 px-2 text-sm font-semibold text-blue-700">{districtOpen ? 'Hide' : 'Blocks'}</button>}</div>
+                                                return <div key={districtKey} className="ml-4 border-l border-slate-200 pl-3"><div className="flex items-center gap-2">{checkbox(dt, dt.district)}{!!district.blocks?.length && <button type="button" aria-expanded={districtOpen} aria-label={`Show blocks in ${dt.district}`} onClick={() => toggleIn(setOpenDistricts, districtKey)} className="min-h-12 px-3 text-base font-semibold text-blue-700">{districtOpen ? 'Hide' : 'Blocks'}</button>}</div>
                                                     {districtOpen && district.blocks?.map(block => <div key={block.name} className="ml-4">{checkbox({ ...dt, block: block.name || '' }, block.name || '')}</div>)}
                                                 </div>;
                                             })}
