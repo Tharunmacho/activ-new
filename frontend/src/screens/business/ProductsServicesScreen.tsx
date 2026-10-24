@@ -9,6 +9,7 @@ import api from '../../services/api';
 import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompany, useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import { BusinessTabBar } from './BusinessTabBar';
+import CatalogueAlbum from '../../components/CatalogueAlbum';
 import {
   Notice, Badge, PALETTE, SPACE, TYPE, money,
   BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, GlassFigure, PREMIUM_OVERLAP, FadeInUp,
@@ -34,6 +35,8 @@ interface Product {
   sku: string;
   description?: string;
   imageUrl?: string;
+  isActive?: boolean;
+  companyId?: string | { _id?: string };
 }
 
 const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
@@ -50,6 +53,7 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
   // that SAYS so rather than rendering as an empty catalogue.
   const [searchQuery, setSearchQuery] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [albumAt, setAlbumAt] = useState<number | null>(null);
 
   // Bumped every time the screen regains focus. The data effects below key off
   // it as well as the company id, so returning here after creating, editing or
@@ -162,7 +166,7 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
         <BrandHero
           eyebrow="Active catalogue"
           title={selectedCompany?.businessName || 'No company selected'}
-          subtitle="What buyers see in Discover and on your company page."
+          subtitle="What buyers see in ACTIV Network and on your company page."
           art={<ProductCrate3D tone="business" size={92} />}
           artSize={92}
         >
@@ -243,6 +247,7 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
+    <>
     <BrandFrame tone="business" footer={<BusinessTabBar active="products" onPress={(key) => navigation.navigate(BUSINESS_TAB_ROUTES[key] as any)} />}>
       <FlatList
         data={isLoading ? [] : filteredProducts}
@@ -261,12 +266,15 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
             <ProductCard
               product={item}
               onOpen={() => navigation.navigate('EditProduct', { productId: item?._id })}
+              onPhoto={() => setAlbumAt(index)}
               onDelete={() => handleDeleteProduct(item)}
             />
           </FadeInUp>
         )}
       />
     </BrandFrame>
+    <CatalogueAlbum items={filteredProducts} startIndex={albumAt} tone="business" onClose={() => setAlbumAt(null)} />
+    </>
   );
 };
 
@@ -282,22 +290,25 @@ function stockTone(stock: number, min: number) {
 }
 
 /** One catalogue line: photo, name + category, status, then price and stock chips. */
-function ProductCard({ product, onOpen, onDelete }: { product: Product; onOpen: () => void; onDelete: () => void }) {
+function ProductCard({ product, onOpen, onDelete, onPhoto }: { product: Product; onOpen: () => void; onDelete: () => void; onPhoto: () => void }) {
   const p = premiumTone('business');
   const hidden = (product as any)?.isActive === false;
   const img = product?.imageUrl ? resolveMediaUrl(product.imageUrl) : '';
   const stock = Number(product?.stock || 0);
   const st = stockTone(stock, Number((product as any)?.minStock || 0));
   return (
-    <LiftCard tone="business" onPress={onOpen} accessibilityLabel={`Edit ${product?.name || 'product'}`} style={styles.productCard}>
+    <LiftCard tone="business" style={styles.productCard}>
       <View style={styles.productTop}>
-        {img ? (
-          <FitImage uri={img} style={styles.thumb} />
-        ) : (
-          <LinearGradient colors={[PALETTE.violetSoft, PALETTE.violetTint]} style={[styles.thumb, styles.thumbEmpty]}>
-            <Icon name="inventory-2" size={26} color={p.accent} />
-          </LinearGradient>
-        )}
+        <PressableScale onPress={onPhoto} accessibilityRole="button" accessibilityLabel={`View photos of ${product?.name || 'product'}`}>
+          {img ? (
+            <FitImage uri={img} style={styles.thumb} />
+          ) : (
+            <LinearGradient colors={[PALETTE.violetSoft, PALETTE.violetTint]} style={[styles.thumb, styles.thumbEmpty]}>
+              <Icon name="inventory-2" size={26} color={p.accent} />
+            </LinearGradient>
+          )}
+        </PressableScale>
+        <PressableScale onPress={onOpen} style={styles.productOpen} contentStyle={styles.productTop} accessibilityRole="button" accessibilityLabel={`Edit ${product?.name || 'product'}`}>
         <View style={styles.productText}>
           <Text style={styles.productName} numberOfLines={2} maxFontSizeMultiplier={1.3}>{product?.name || 'Untitled product'}</Text>
           <Text style={TYPE.caption} numberOfLines={1} maxFontSizeMultiplier={1.3}>
@@ -305,13 +316,14 @@ function ProductCard({ product, onOpen, onDelete }: { product: Product; onOpen: 
           </Text>
           <Badge label={hidden ? 'Hidden' : 'Published'} status={hidden ? 'pending' : 'published'} size="sm" dot style={{ marginTop: SPACE.xs, alignSelf: 'flex-start' }} />
         </View>
+        </PressableScale>
         <PressableScale onPress={onDelete} scaleTo={0.9} contentStyle={styles.deleteBtn} accessibilityRole="button" accessibilityLabel={`Delete ${product?.name || 'product'}`} hitSlop={4}>
           <Icon name="delete-outline" size={20} color={PALETTE.danger} />
         </PressableScale>
       </View>
 
       {product?.description ? (
-        <Text style={styles.productDesc} numberOfLines={2} maxFontSizeMultiplier={1.3}>{product.description}</Text>
+        <Text style={styles.productDesc} numberOfLines={3} maxFontSizeMultiplier={1.3}>{product.description}</Text>
       ) : null}
 
       <View style={styles.productFoot}>
@@ -338,6 +350,7 @@ const styles = StyleSheet.create({
   addPillText: { color: PALETTE.white, fontSize: 13, lineHeight: 18, fontWeight: '800' },
 
   productCard: { marginHorizontal: SPACE.lg },
+  productOpen: { flex: 1, minWidth: 0 },
   productTop: { flexDirection: 'row', alignItems: 'flex-start' },
   thumb: { width: 76, height: 76, borderRadius: 16, backgroundColor: PALETTE.field },
   thumbEmpty: { alignItems: 'center', justifyContent: 'center' },

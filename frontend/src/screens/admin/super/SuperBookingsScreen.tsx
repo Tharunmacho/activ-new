@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, AppState, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
-  PALETTE, SPACE, TYPE, money, shortDate,
+  PALETTE, SPACE, TYPE, money, shortDate, GradientButton,
   ConsoleFrame, ConsoleHeader, ConsoleGrid, ConsoleStatTile, ConsoleCard, ConsoleChip, ConsoleTabs,
-  ConsoleSearch, ConsoleSkeleton, ConsoleState, ConsoleNote, CoverageRing, GlassIconButton, CONSOLE_LIST,
+  ConsoleSkeleton, ConsoleState, ConsoleNote, ConsoleButton, CoverageRing, GlassIconButton, CONSOLE_LIST,
 } from '../../../ui';
-import { listBookingOverview, errorText } from '../../../services/superApi';
-import { ToggleRow } from './superKit';
+import { listBookingOverview, exportFilteredBookings, deleteArchivedEventHistory, errorText, type BookingHistoryCategory } from '../../../services/superApi';
+import { saveSpreadsheetReport } from '../../../services/reportExport';
+import type { BookingFiltersValue } from '../../../services/bookingFilters';
+import BookingFilters from './BookingFilters';
+import { ToggleRow, confirm } from './superKit';
 import { BookingPeoplePane } from './SuperBookingPeopleScreen';
 
 /**
@@ -66,7 +69,9 @@ function EventCard({ e, index, onOpen }: { e: any; index: number; onOpen: () => 
           <View style={s.chips}>
             <ConsoleChip label={`#${index + 1}`} kind="neutral" dot={false} />
             {e?.category ? <ConsoleChip label={String(e.category)} kind="info" dot={false} /> : null}
-            {e?.status !== 'published' ? <ConsoleChip label="Draft" kind="neutral" /> : null}
+            {e?.historyCategory === 'deleted' ? <ConsoleChip label="Old event · bookings retained" kind="neutral" />
+              : e?.historyCategory === 'past' ? <ConsoleChip label="Completed" kind="neutral" />
+              : e?.status !== 'published' ? <ConsoleChip label="Draft" kind="neutral" /> : null}
             {!e?.registrationEnabled ? <ConsoleChip label="Bookings off" kind="warning" icon="block" /> : null}
           </View>
           <Text style={s.title} numberOfLines={2} maxFontSizeMultiplier={1.3}>{title}</Text>
@@ -83,7 +88,7 @@ function EventCard({ e, index, onOpen }: { e: any; index: number; onOpen: () => 
           <View style={s.meta}>
             <Icon name="sell" size={15} color={PALETTE.textMuted} />
             <Text style={[s.metaText, s.price]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
-              {price > 0 ? money(price) : 'Free'}{e?.hasMemberRate ? `  ·  Members ${money(Number(e?.memberPrice || 0))}` : ''}
+              {e?.bookingHistoryOnly ? 'Booking history' : price > 0 ? money(price) : 'Free'}{e?.hasMemberRate ? `  ·  Members ${money(Number(e?.memberPrice || 0))}` : ''}
             </Text>
           </View>
         </View>
@@ -93,7 +98,7 @@ function EventCard({ e, index, onOpen }: { e: any; index: number; onOpen: () => 
       </View>
 
       <View style={s.figures}>
-        <Figure label="Total seats" value={total > 0 ? String(total) : 'Unlimited'} color={total > 0 ? PALETTE.text : PALETTE.textFaint} />
+        <Figure label="Total seats" value={total > 0 ? String(total) : e?.bookingHistoryOnly ? '—' : 'Unlimited'} color={total > 0 ? PALETTE.text : PALETTE.textFaint} />
         <Figure label="Booked" value={String(booked)} color={PALETTE.greenDark} />
         <Figure label="Remaining" value={remaining === null ? '—' : String(remaining)} color={remaining === null ? PALETTE.textFaint : remaining === 0 ? PALETTE.redDark : PALETTE.indigo}>
           {Number(e?.waitlistedSeats || 0) > 0 ? <Text style={s.waiting} maxFontSizeMultiplier={1.2}>+{Number(e?.waitlistedSeats || 0)} waiting</Text> : null}
@@ -116,13 +121,18 @@ function EventCard({ e, index, onOpen }: { e: any; index: number; onOpen: () => 
 const SuperBookingsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [tab, setTab] = useState<Tab>('events');
+  const [history, setHistory] = useState<BookingHistoryCategory>('current');
+  const [filters, setFilters] = useState<BookingFiltersValue>({});
+  const criteria = useMemo(() => ({ ...filters, history }), [filters, history]);
+  const [exporting, setExporting] = useState(false);
   const [drafts, setDrafts] = useState(false);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
   const [peopleKey, setPeopleKey] = useState(0);
+  const [deletingEvent, setDeletingEvent] = useState('');
+  const deleteInFlight = useRef(false);
   const seq = useRef(0);
 
   const load = useCallback(async (mode: 'load' | 'refresh' | 'quiet' = 'load') => {
@@ -130,32 +140,59 @@ const SuperBookingsScreen: React.FC = () => {
     if (mode === 'refresh') setRefreshing(true); else if (mode === 'load') setLoading(true);
     setError('');
     try {
-      const d = await listBookingOverview(drafts);
+      const d = await listBookingOverview(drafts, criteria);
       if (mine === seq.current) setData(d || {});
     } catch (err) {
       if (mine === seq.current) setError(errorText(err, 'The events could not be loaded'));
     } finally {
       if (mine === seq.current) { setLoading(false); setRefreshing(false); }
     }
-  }, [drafts]);
+  }, [drafts, criteria]);
+  const removeArchivedHistory = async (event: any) => {
+    if (!event?.id || event.historyCategory !== 'deleted' || deleteInFlight.current) return;
+    deleteInFlight.current = true;
+    try {
+      if (!(await confirm('Delete old event history permanently?', `${event.title || 'Untitled event'}\n${shortDate(event.startAt) || ''}\n\nThis removes this old event and all its bookings, booking contacts, attendance and payment records from the database and reports. Member accounts stay. This cannot be undone and does not refund payments. Download an Excel copy first if needed.`, 'Delete permanently', true))) return;
+      setDeletingEvent(event.id);
+      await deleteArchivedEventHistory(event.id);
+      ++seq.current;
+      setData((current: any) => current ? { ...current, events: (current.events || []).filter((row: any) => row.id !== event.id) } : current);
+      setPeopleKey(key => key + 1);
+      await load('quiet');
+      Alert.alert('History deleted', 'The old event and its booking history were permanently removed.');
+    } catch (err) { Alert.alert('Could not delete old event history', errorText(err)); }
+    finally { deleteInFlight.current = false; setDeletingEvent(''); }
+  };
   // Quiet refetch on return from an event (a payment or a cancellation moves these figures).
   const loadedOnce = useRef(false);
-  useFocusEffect(useCallback(() => { load(loadedOnce.current ? 'quiet' : 'load'); loadedOnce.current = true; }, [load]));
+  useFocusEffect(useCallback(() => {
+    load(loadedOnce.current ? 'quiet' : 'load'); loadedOnce.current = true;
+    const refresh = () => { if (AppState.currentState === 'active') load('quiet'); };
+    const timer = setInterval(refresh, 30000);
+    const listener = AppState.addEventListener('change', state => { if (state === 'active') load('quiet'); });
+    return () => { clearInterval(timer); listener.remove(); };
+  }, [load]));
 
   // Merged over the zeros, as the website does, so a response without `totals` leaves the tiles at 0.
-  const t = { events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0, ...(data?.totals || {}) };
+  const t = { events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0,
+    ...(data?.historyTotals?.[history] || {}) };
   const events: any[] = useMemo(() => (Array.isArray(data?.events) ? data.events : []), [data]);
   const visible = useMemo(() => {
-    const needle = (query || '').trim().toLowerCase();
-    if (!needle) return events;
-    return events.filter((e) => [e?.title || 'Untitled event', e?.venue, e?.category].some((v) => String(v || '').toLowerCase().includes(needle)));
-  }, [events, query]);
+    return events.filter(e => e.historyCategory === history);
+  }, [events, history]);
 
   const refreshAll = () => { if (tab === 'people') setPeopleKey((k) => k + 1); else load('refresh'); };
 
   const openEvent = useCallback((item: any) => navigation.navigate('SuperEventBookings', {
     eventId: String(item?.id || ''), title: item?.title || 'Untitled event', capacity: Number(item?.totalSeats || 0),
-  }), [navigation]);
+    filters: criteria,
+  }), [navigation, criteria]);
+  const exportRows = async () => {
+    setExporting(true); setError('');
+    try { await saveSpreadsheetReport(await exportFilteredBookings(criteria)); }
+    catch (err) { setError(errorText(err, 'The report could not be saved')); }
+    finally { setExporting(false); }
+  };
 
   const top = (
     <>
@@ -182,13 +219,20 @@ const SuperBookingsScreen: React.FC = () => {
         options={[{ value: 'events', label: 'Events' }, { value: 'people', label: 'People' }]}
         style={s.tabs}
       />
+      <ConsoleTabs<BookingHistoryCategory> value={history} onChange={setHistory} style={s.tabs}
+        options={(['current', 'past', 'deleted'] as const).map(value => ({ value,
+          label: `${value === 'current' ? 'Current' : value === 'past' ? 'Past' : 'Old'} (${data?.historyTotals?.[value]?.events || 0})` }))} />
+      <ConsoleNote style={s.note} text="Completed events move to Past. Removed events move to Old, where you can export their bookings or permanently delete unnecessary history." />
+      <BookingFilters value={filters} options={data?.filterOptions} onChange={setFilters} />
+      <View style={s.export}><GradientButton label={exporting ? 'Preparing report…' : 'Download filtered Excel'} icon="download" onPress={exportRows} disabled={exporting || loading} /></View>
+      {!!error && tab === 'people' && <ConsoleNote kind="red" text={error} style={s.note} />}
     </>
   );
 
   if (tab === 'people') {
     return (
       <ConsoleFrame>
-        <BookingPeoplePane header={top} refreshKey={peopleKey} />
+        <BookingPeoplePane key={JSON.stringify(criteria)} header={top} refreshKey={peopleKey} filters={criteria} />
       </ConsoleFrame>
     );
   }
@@ -196,10 +240,10 @@ const SuperBookingsScreen: React.FC = () => {
   const header = (
     <>
       {top}
-      <ConsoleSearch value={query} onChangeText={setQuery} placeholder="Search an event by name, venue or category" />
+      <ConsoleNote style={s.note} text="Event totals include all bookings for matching events. People and Excel use the selected registration filters." />
       <ConsoleCard style={s.toggleCard} padded={false}>
         <View style={s.togglePad}>
-          <ToggleRow label="Include drafts" hint="An unpublished event has no public booking page." value={drafts} onChange={setDrafts} last />
+          <ToggleRow label="Include empty drafts" hint="Past and old events with booking history are always included." value={drafts} onChange={setDrafts} last />
         </View>
       </ConsoleCard>
       {error && data ? <ConsoleNote kind="red" icon="error-outline" text={error} style={s.note} action="Try again" onAction={() => load('load')} /> : null}
@@ -220,22 +264,22 @@ const SuperBookingsScreen: React.FC = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} tintColor={PALETTE.indigo} />}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={loading || (error && !data) ? null : events.length
-          ? <ConsoleState title="Nothing matches" message="No event answers that search." />
-          : <ConsoleState title="No published events yet" message="Create one under Events and it appears here the moment it is saved." />}
+        ListEmptyComponent={loading || (error && !data) ? null
+          : <ConsoleState title={`No ${history} events match`} message="Clear the filters or choose another history group." />}
         ListFooterComponent={events.length && !loading ? (
           <ConsoleNote
             style={s.note}
             text="Booked counts seats on live bookings taken through the public Book Now page together with members' own registrations — both fill the same room. A checkout somebody abandoned holds its seats for thirty minutes and then releases them, so this figure can go down as well as up. Open an event for the names, the payments and the door list."
           />
         ) : null}
-        renderItem={({ item, index }) => <EventCard e={item} index={index} onOpen={() => openEvent(item)} />}
+        renderItem={({ item, index }) => <View><EventCard e={item} index={index} onOpen={() => openEvent(item)} />{item.historyCategory === 'deleted' ? <View style={s.card}><ConsoleButton kind="danger" icon="delete-outline" label="Delete old history permanently" disabled={!!deletingEvent} loading={deletingEvent === item.id} onPress={() => void removeArchivedHistory(item)} /></View> : null}</View>}
       />
     </ConsoleFrame>
   );
 };
 
 const s = StyleSheet.create({
+  export: { marginHorizontal: SPACE.lg, marginBottom: SPACE.md },
   overlap: { marginTop: -30 },
   tabs: { marginTop: SPACE.md, marginBottom: SPACE.md },
   toggleCard: { marginHorizontal: SPACE.lg, marginTop: SPACE.md, marginBottom: SPACE.md },

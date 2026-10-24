@@ -36,6 +36,8 @@ import {
  * (template, provider id, timeline, reason) — expanded in place, no Modal.
  */
 
+import { HistoryDeleteControl } from './HistoryDeleteControl';
+
 const PAGE_SIZE = 25;
 
 const TYPE_LABELS = MESSAGE_TYPES.map(([, l]) => l);
@@ -120,6 +122,7 @@ function MessageCard({ row, open, onToggle, onChanged }: { row: DeliveryLogRow; 
       {reason.text && !open ? (
         <Text style={[s.reason, reason.failed ? null : s.reasonOk]} numberOfLines={2} maxFontSizeMultiplier={1.3}>{reason.text}</Text>
       ) : null}
+      {!!row?._id && <HistoryDeleteControl label="Delete" selection={{ view: 'logs', ids: [row._id] }} onDone={onChanged} />}
       {open ? (
         <View style={s.detail}>
           <DeliveryDetail row={row} />
@@ -240,13 +243,17 @@ export function AutomationPane({ header, refreshKey = 0 }: { header?: React.Reac
       row={item}
       open={openId === String(item?._id || '')}
       onToggle={() => setOpenId((cur) => (cur === String(item?._id || '') ? '' : String(item?._id || '')))}
-      onChanged={() => load('quiet')}
+      onChanged={() => { setOpenId(''); if (page !== 1) setPage(1); else void load('quiet'); }}
     />
-  ), [openId, load]);
+  ), [openId, load, page]);
 
   const listHeader = (
     <>
       {header || null}
+      <View style={s.selects}><HistoryDeleteControl
+        selection={{ view: 'logs', all: true, filters: { group: 'automation', eventId, channel, delivery, event: type, from, to,
+          search: search.trim().length >= 2 ? search.trim() : '' } }} disabled={loading}
+        onDone={() => { setOpenId(''); if (page !== 1) setPage(1); else void load('quiet'); }} /></View>
       {health?.email?.ok === false ? (
         <ConsoleNote
           style={s.note}
@@ -268,8 +275,8 @@ export function AutomationPane({ header, refreshKey = 0 }: { header?: React.Reac
         <ConsoleCard style={s.card}>
           <Text style={s.retryText} maxFontSizeMultiplier={1.3}>
             {retryResult
-              ? `Retried ${retryResult.retried}: ${retryResult.sent} sent${retryResult.stillFailed ? `, ${retryResult.stillFailed} still failing` : ''}${retryResult.permanent ? `, ${retryResult.permanent} cannot be fixed by retrying (wrong number or address)` : ''}${retryResult.waitingForEmail ? `, ${retryResult.waitingForEmail} waiting for the email server` : ''}.`
-              : 'Send every failed message from the last 7 days again — those a retry can fix.'}
+              ? `Tried again: ${retryResult.retried}: ${retryResult.sent} sent${retryResult.stillFailed ? `, ${retryResult.stillFailed} still failing` : ''}${retryResult.permanent ? `, ${retryResult.permanent} require recipient or sending service review before retrying` : ''}${retryResult.waitingForEmail ? `, ${retryResult.waitingForEmail} waiting for the email server` : ''}.`
+              : 'Send failed messages from the last 7 days again, where another attempt may work.'}
           </Text>
           {retryAsk ? (
             <View style={s.retryRow}>
@@ -279,7 +286,7 @@ export function AutomationPane({ header, refreshKey = 0 }: { header?: React.Reac
             </View>
           ) : (
             <View style={s.retryRow}>
-              <ConsoleButton size="sm" kind="soft" icon="refresh" label="Retry all failed" onPress={() => setRetryAsk(true)} />
+              <ConsoleButton size="sm" kind="soft" icon="refresh" label="Send failed messages again" onPress={() => setRetryAsk(true)} />
             </View>
           )}
         </ConsoleCard>

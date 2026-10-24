@@ -19,7 +19,7 @@ export type BusinessTabKey = 'business' | 'products' | 'discover' | 'analytics' 
 const TABS: { key: BusinessTabKey; label: string; icon: string }[] = [
   { key: 'business', label: 'Business', icon: 'storefront' },
   { key: 'products', label: 'Products', icon: 'grid-view' },
-  { key: 'discover', label: 'Discover', icon: 'travel-explore' },
+  { key: 'discover', label: 'ACTIV Network', icon: 'travel-explore' },
   { key: 'analytics', label: 'Analytics', icon: 'insights' },
   { key: 'settings', label: 'Settings', icon: 'tune' },
 ];
@@ -56,7 +56,7 @@ export function BusinessTabBar({ active, onPress }: {
                 <Icon name={t.icon} size={SIZE.iconLg - 2} color={PALETTE.textMuted} />
               </View>
             )}
-            <Text style={[styles.label, on && { color: p.accentDark, fontWeight: '800' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t.label}</Text>
+            <Text style={[styles.label, { textAlign: 'center', minHeight: 28 }, on && { color: p.accentDark, fontWeight: '800' }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>{t.label}</Text>
           </PressableScale>
         );
       })}

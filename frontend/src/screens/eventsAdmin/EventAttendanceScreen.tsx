@@ -1,5 +1,6 @@
+import { saveSpreadsheetReport } from '../../services/reportExport';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, RefreshControl, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -117,9 +118,7 @@ export default function EventAttendanceScreen({ navigation, route }: Props) {
     if (exporting || !eventId) return;
     setExporting(true);
     try {
-      const { csv, filename } = await exportAttendanceCsv(eventId, title);
-      if (!String(csv || '').trim()) { Alert.alert('Nothing to export', 'This event has no registrations yet.'); return; }
-      await Share.share({ title: filename, message: csv });
+      await saveSpreadsheetReport(await exportAttendanceCsv(eventId, title));
     } catch (err: any) {
       Alert.alert('Export failed', checkinErrorMessage(err, 'The attendance report could not be downloaded.'));
     } finally {
@@ -213,12 +212,12 @@ export default function EventAttendanceScreen({ navigation, route }: Props) {
           size="sm"
           kind="soft"
           icon="ios-share"
-          label="Export CSV"
+          label="Export Excel"
           onPress={exportCsv}
           loading={exporting}
           disabled={!eventId}
           style={s.flexBtn}
-          accessibilityLabel="Export attendance CSV"
+          accessibilityLabel="Export attendance Excel report"
         />
       </View>
       <ConsoleSearch value={query} onChangeText={setQuery} placeholder="Search name, registration no or staff" />

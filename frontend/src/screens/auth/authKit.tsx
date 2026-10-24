@@ -4,8 +4,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   Screen, PALETTE, SIZE, SPACE, Tone, toneOf,
-  PremiumScreen, PREMIUM_OVERLAP, PremiumSheet, PremiumHeading, GlassIconButton, GlassBadge, BrandLogo,
-  FloatingIllustration, FadeInUp,
+  PremiumScreen, PREMIUM_OVERLAP, PremiumSheet, GlassIconButton, GlassBadge, BrandLogo,
+  FadeInUp,
 } from '../../ui';
 import { authStyles as a } from './authStyles';
 
@@ -19,9 +19,9 @@ import { authStyles as a } from './authStyles';
  * admin = indigo. Module-level components only.
  *
  *   PremiumAuthScreen   the approved sign-in language: brand header (glass
- *                       back, logo, optional portal badge, heading beside a
- *                       floating illustration) and a white sheet lifting over
- *                       the waves. Recovery, social sign-in and welcome use it.
+ *                       back, logo, optional portal badge and a compact text heading)
+ *                       and a white form sheet. Recovery and social sign-in
+ *                       use the same typography as account registration.
  *   StatusPanel         a finished / failed step: gradient icon in a halo,
  *                       title, text, actions stacked below.
  *   TextLink, PortalLink, AuthDivider, AuthHeading, AuthIntro, BrandMark,
@@ -30,15 +30,25 @@ import { authStyles as a } from './authStyles';
 
 /* ------------------------------------------------------------------ premium shell */
 
+/** Shared by sign-in, account recovery and both registration steps. */
+export function AuthTitle({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) {
+  return <View style={k.titleBlock}>
+    {!!eyebrow && <Text style={k.eyebrow}>{eyebrow}</Text>}
+    <Text accessibilityRole="header" style={k.title}>{title}</Text>
+    {!!subtitle && <Text style={k.subtitle}>{subtitle}</Text>}
+  </View>;
+}
+
+
 export function PremiumAuthScreen({
-  tone = 'member', onBack, eyebrow, title, subtitle, art, badge, children, below, footer,
+  tone = 'member', onBack, eyebrow, title, subtitle, badge, children, below, footer,
 }: {
   tone?: Tone;
   onBack?: () => void;
   eyebrow?: string;
   title: string;
   subtitle?: string;
-  /** The screen's original illustration, floating beside the heading. */
+  /** Compatibility with existing callers; headings now use the shared text layout. */
   art?: React.ReactNode;
   /** A glass pill above the heading, e.g. "ADMIN ACCOUNT". */
   badge?: string;
@@ -51,6 +61,7 @@ export function PremiumAuthScreen({
   return (
     <PremiumScreen
       tone={tone}
+      waveHeight={44}
       footer={footer}
       header={(
         <View>
@@ -71,15 +82,10 @@ export function PremiumAuthScreen({
           ) : null}
           <View style={k.heroRow}>
             <FadeInUp delay={80} style={k.heroText}>
-              <PremiumHeading size="md" eyebrow={eyebrow} title={title} subtitle={subtitle} />
+              <AuthTitle eyebrow={eyebrow} title={title} subtitle={subtitle} />
             </FadeInUp>
-            {art ? (
-              <FadeInUp delay={160} scaleFrom={0.85} distance={10}>
-                <FloatingIllustration size={100}>{art}</FloatingIllustration>
-              </FadeInUp>
-            ) : null}
           </View>
-          <View style={{ height: SPACE.xl }} />
+          <View style={{ height: SPACE.md }} />
         </View>
       )}
     >
@@ -94,9 +100,10 @@ export function PremiumAuthScreen({
 }
 
 const k = StyleSheet.create({
+  titleBlock: { gap: 8 }, title: { fontSize: 28, lineHeight: 35, fontWeight: '700', color: PALETTE.white }, subtitle: { fontSize: 16, lineHeight: 24, color: '#DCE7FF' }, eyebrow: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: '#DCE7FF' },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   badge: { alignSelf: 'flex-start', marginTop: SPACE.lg },
-  heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: SPACE.lg, gap: SPACE.sm },
+  heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: SPACE.lg, gap: SPACE.sm, marginBottom: SPACE.sm },
   heroText: { flex: 1, minWidth: 0 },
   sheetWrap: { marginTop: -PREMIUM_OVERLAP },
   below: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, alignItems: 'center' },

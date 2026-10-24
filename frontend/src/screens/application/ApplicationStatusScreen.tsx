@@ -343,7 +343,7 @@ const ApplicationStatusScreen: React.FC<Props> = ({ navigation }) => {
                   ? 'Your application was not approved. The reviewer note above explains why — you can correct your details and speak to your Block Admin.'
                   : flags.isApproved
                     ? (isPaid
-                      ? 'Your membership is active. Your certificate and member directory entry are available from the dashboard.'
+                      ? 'Your membership is active. Your certificate and ACTIV Network entry are available from the dashboard.'
                       : 'Your State Admin has approved you. Complete the membership payment to activate your account.')
                     : isAbroad
                       ? 'The ACTIV head office holds your file and is reviewing it. Their approval grants the membership.'

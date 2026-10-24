@@ -245,7 +245,7 @@ const TrustListScreen: React.FC<Props> = ({ navigation }) => {
               <BrandTopBar
                 onBack={() => navigation.goBack()}
                 title="Trust list"
-                right={<GlassIconButton icon="travel-explore" onPress={() => navigation.navigate('Discover')} accessibilityLabel="Find more in Discover" />}
+                right={<GlassIconButton icon="travel-explore" onPress={() => navigation.navigate('Discover')} accessibilityLabel="Find more in ACTIV Network" />}
               />
               <BrandHero
                 eyebrow="Your network"
@@ -276,7 +276,7 @@ const TrustListScreen: React.FC<Props> = ({ navigation }) => {
               title="Your trust list opens with membership"
               message="A trust list is the suppliers you have dealt with and would deal with again — kept in one place, and visible to the members deciding whether to deal with you."
               perks={[
-                { icon: 'add-moderator', title: 'Keep who you trust', detail: 'Add a company from Discover and it stays until you remove it.' },
+                { icon: 'add-moderator', title: 'Keep who you trust', detail: 'Add a company from ACTIV Network and it stays until you remove it.' },
                 { icon: 'visibility', title: 'Be kept by others', detail: 'Your company shows how many members trust it — on every screen it appears.' },
                 { icon: 'storefront', title: 'Reach them directly', detail: 'Names, catalogues and telephone numbers, across the whole network.' },
               ]}
@@ -290,8 +290,8 @@ const TrustListScreen: React.FC<Props> = ({ navigation }) => {
                 compact
                 art={count ? <SearchLens3D tone="business" size={74} /> : <TrustShield3D tone="business" size={78} />}
                 title={count ? `Nothing matches “${(query || '').trim()}”` : 'Your trust list is empty'}
-                message={count ? 'Clear the filter to see all of them, or search the whole network in Discover.' : 'Search the network in Discover and add the companies you want to keep. They stay here until you remove them.'}
-                action={count ? undefined : 'Discover companies'}
+                message={count ? 'Clear the filter to see all of them, or search the whole network in ACTIV Network.' : 'Search the network in ACTIV Network and add the companies you want to keep. They stay here until you remove them.'}
+                action={count ? undefined : 'Explore ACTIV Network'}
                 actionIcon="travel-explore"
                 onAction={count ? undefined : () => navigation.navigate('Discover')}
               />

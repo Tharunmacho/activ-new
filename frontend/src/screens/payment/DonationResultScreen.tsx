@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import {
   BottomActionBar, SPACE, money,
@@ -9,6 +9,7 @@ import { Overlap, ResultHeader, TotalBar, TrustLine } from './paymentUi';
 
 import { getDonationReturn, fyLabel } from '../../services/paymentFlow';
 import { rememberDonationDoc } from './donationStore';
+import { clearPendingPayment, getPendingPayment, PendingPayment } from '../../services/paymentRecovery';
 
 /**
  * Where a donor lands after the gateway — website `pages/donate/DonateThankYou.tsx`.
@@ -30,52 +31,48 @@ const DonationResultScreen = ({ navigation, route }: any) => {
 
   const [result, setResult] = useState<any>(null);
   const [phase, setPhase] = useState<'checking' | 'done' | 'stuck' | 'error'>(orderId ? 'checking' : 'error');
-  const tries = useRef(0);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const alive = useRef(true);
-
-  const check = useCallback(async () => {
-    if (!orderId) { setPhase('error'); return; }
-    try {
-      const r = await getDonationReturn(orderId, { payment_id: paymentId, payment_status: gatewayStatus });
-      if (!alive.current) return;
-      setResult(r);
-      const status = String(r?.status || '').toLowerCase();
-      if (status === 'paid') {
-        rememberDonationDoc({
-          orderId,
-          receiptNumber: String(r?.receiptNumber || ''),
-          receiptToken: String(r?.receiptToken || ''),
-          statementToken: String(r?.statementToken || ''),
-          financialYear: String(r?.financialYear || ''),
-          amount: typeof r?.amount === 'number' ? r.amount : null,
-          savedAt: new Date().toISOString(),
-        });
-      }
-      if (status === 'paid' || status === 'failed') { setPhase('done'); return; }
-    } catch {
-      /* treated like pending; the retry covers a blip */
-    }
-    if (!alive.current) return;
-    tries.current += 1;
-    if (tries.current >= POLLS) { setPhase('stuck'); return; }
-    timer.current = setTimeout(() => { check(); }, EVERY_MS);
-  }, [orderId, paymentId, gatewayStatus]);
+  const [revision, setRevision] = useState(0);
+  const [pending, setPending] = useState<PendingPayment | null>(null);
 
   useEffect(() => {
-    alive.current = true;
-    check();
-    return () => {
-      alive.current = false;
-      if (timer.current) clearTimeout(timer.current);
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    setResult(null); setPending(null); setPhase(orderId ? 'checking' : 'error');
+    getPendingPayment('donation', orderId).then(saved => { if (active) setPending(saved); });
+    const check = async (attempt: number) => {
+      if (!orderId || !active) return;
+      try {
+        const r = await getDonationReturn(orderId, { payment_id: paymentId, payment_status: gatewayStatus });
+        if (!active) return;
+        if (r?.orderId && r.orderId !== orderId) throw new Error('The donation did not match this order.');
+        setResult(r);
+        const status = String(r?.status || '').toLowerCase();
+        if (status === 'paid') {
+          await rememberDonationDoc({
+            orderId,
+            receiptNumber: String(r?.receiptNumber || ''),
+            receiptToken: String(r?.receiptToken || ''),
+            statementToken: String(r?.statementToken || ''),
+            financialYear: String(r?.financialYear || ''),
+            amount: typeof r?.amount === 'number' ? r.amount : null,
+            savedAt: new Date().toISOString(),
+          });
+        }
+        if (status === 'paid' || status === 'failed') {
+          await clearPendingPayment(orderId, 'donation');
+          if (active) setPhase('done');
+          return;
+        }
+      } catch { /* An unavailable gateway is not a declined donation. */ }
+      if (!active) return;
+      if (attempt >= POLLS) { setPhase('stuck'); return; }
+      timer = setTimeout(() => { check(attempt + 1); }, EVERY_MS);
     };
-  }, [check]);
+    check(1);
+    return () => { active = false; if (timer) clearTimeout(timer); };
+  }, [orderId, paymentId, gatewayStatus, revision]);
 
-  const retry = () => {
-    tries.current = 0;
-    setPhase('checking');
-    check();
-  };
+  const retry = () => setRevision(value => value + 1);
 
   const goBack = () => navigation.goBack();
   const status = String(result?.status || '').toLowerCase();
@@ -89,7 +86,7 @@ const DonationResultScreen = ({ navigation, route }: any) => {
               compact
               art={<ResultOrb3D size={64} kind="pending" />}
               title="We could not find that donation"
-              message="If you were charged, your receipt will reach your email shortly."
+              message="Open the receipt link in your email, or contact ACTIV with your bank reference if a payment was debited."
               action="Back to donations"
               actionIcon="arrow-back"
               onAction={() => navigation.navigate('MemberDonations')}
@@ -122,7 +119,7 @@ const DonationResultScreen = ({ navigation, route }: any) => {
             outcome="success"
             eyebrow="Donation received"
             title={`Thank you${result?.donorName ? `, ${result.donorName}` : ''}!`}
-            subtitle="Your donation to ACTIV has been received. Your 80G receipt is on its way to your email."
+            subtitle="Your donation to ACTIV has been received. Open your 80G receipt below; a copy is also sent by email."
             amount={money(result?.amount)}
             amountLabel="You gave"
           />
@@ -138,6 +135,7 @@ const DonationResultScreen = ({ navigation, route }: any) => {
       >
         <Overlap>
           <SurfaceCard style={s.gutter}>
+            <ReceiptLine label="Order" value={orderId} selectable />
             <ReceiptLine label="Receipt number" value={result?.receiptNumber} selectable />
             <ReceiptLine label="Financial year" value={fyLabel(result?.financialYear)} />
             <TotalBar label="Amount" value={money(result?.amount)} />
@@ -165,14 +163,16 @@ const DonationResultScreen = ({ navigation, route }: any) => {
   if (status === 'failed') {
     return (
       <PremiumPage
-        header={<ResultHeader outcome="failed" eyebrow="Not completed" title="The payment did not go through" subtitle="No money was taken. You can try again." />}
+        header={<ResultHeader outcome="failed" eyebrow="Not completed" title="The payment did not go through" subtitle="The provider reported that this donation was not completed. If your bank shows a debit, contact ACTIV before paying again." />}
         footer={(
           <BottomActionBar>
             <GradientButton variant="outline" label="My donations" onPress={() => navigation.navigate('MemberDonations')} style={s.flex} />
             <GradientButton label="Try again" icon="refresh" onPress={() => navigation.replace('Donate')} style={s.flex} />
           </BottomActionBar>
         )}
-      />
+      >
+        <Overlap><SurfaceCard style={s.gutter}><ReceiptLine label="Order" value={orderId} selectable /></SurfaceCard></Overlap>
+      </PremiumPage>
     );
   }
 
@@ -184,7 +184,7 @@ const DonationResultScreen = ({ navigation, route }: any) => {
           onBack={goBack}
           eyebrow="Still confirming"
           title="Still confirming your payment"
-          subtitle="The gateway has not confirmed it yet. If you were charged, your receipt will be emailed to you as soon as it does."
+          subtitle="The gateway has not confirmed this order yet. Check again before making another donation."
         />
       )}
       footer={(
@@ -192,7 +192,12 @@ const DonationResultScreen = ({ navigation, route }: any) => {
           <GradientButton label="Check again" icon="refresh" onPress={retry} style={s.flex} />
         </BottomActionBar>
       )}
-    />
+    >
+      <Overlap><SurfaceCard style={s.gutter}>
+        <ReceiptLine label="Order" value={orderId} selectable />
+        {pending?.paymentUrl ? <GradientButton label="Continue the same payment" variant="outline" onPress={() => navigation.replace('Donate')} style={{ marginTop: SPACE.md }} /> : null}
+      </SurfaceCard></Overlap>
+    </PremiumPage>
   );
 };
 

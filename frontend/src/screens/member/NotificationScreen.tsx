@@ -1,3 +1,4 @@
+import { isUpcomingEvent } from '../../utils/eventLifecycle';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -12,7 +13,8 @@ import type { GlyphTone } from '../../ui';
 import {
   listNotifications, markNotificationRead, markAllNotificationsRead, listAnnouncements, listMemberEvents,
 } from '../../services/memberApi';
-import { getUserData } from '../../services/api';
+import api, { getUserData } from '../../services/api';
+import { notificationDestination } from '../../services/pushNotifications';
 
 /**
  * ============================================================================
@@ -134,14 +136,8 @@ const notificationLook = (row: any): { icon: string; tone: GlyphTone } => {
 
 /** Where a stored notification opens: its thread, its receipt, else the application. */
 const notificationTarget = (row: any): { route: string; params?: any } => {
-  const data = row?.data || {};
-  if (data?.kind === 'message' && data?.conversationId) {
-    return { route: 'MessageThread', params: { conversationId: String(data.conversationId), name: data?.from } };
-  }
-  if (data?.orderId && String(data?.event || '').toUpperCase().includes('MEMBERSHIP')) {
-    return { route: 'PaymentSuccess', params: { orderId: String(data.orderId) } };
-  }
-  return { route: 'ApplicationStatus' };
+  const target = notificationDestination(row?.data || {});
+  return target.route === 'MemberNotifications' ? { route: 'ApplicationStatus' } : target;
 };
 
 async function buildFeed(acct: string): Promise<FeedItem[]> {
@@ -171,7 +167,7 @@ async function buildFeed(acct: string): Promise<FeedItem[]> {
   }
 
   if (events.status === 'fulfilled') {
-    asArray<any>(events.value?.events).forEach((event) => {
+    asArray<any>(events.value?.events).filter(event => isUpcomingEvent(event)).forEach((event) => {
       const id = String(event?.id || event?._id || '');
       if (!id) return;
       const at = event?.publishedAt || event?.createdAt || event?.startAt || '';
@@ -339,6 +335,7 @@ const NotificationScreen = () => {
 
   const open = (item: FeedItem) => {
     if (item.unread) markOne(item);
+    if (item.kind === 'notification') void api.patch(`/notifications/${encodeURIComponent(item.id.replace(/^n:/, ''))}/open`, { channel: 'in_app' }).catch(() => undefined);
     try {
       navigation.navigate(item.go.route, item.go.params);
     } catch (err) {

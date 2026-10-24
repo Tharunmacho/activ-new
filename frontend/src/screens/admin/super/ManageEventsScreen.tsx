@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Alert, Share, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Alert, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { resolveMediaUrl } from '../../../config/api.config';
@@ -8,7 +8,7 @@ import {
   ConsoleFrame, ConsoleHeader, ConsoleGrid, ConsoleStatTile, ConsoleCard, ConsoleChip, ConsoleTabs, ConsoleSearch,
   ConsoleSkeleton, ConsoleState, ConsoleNote, ConsoleButton, ConsolePill, GlassIconButton, EventCalendar3D, CONSOLE_LIST,
   PressableScale, FitImage } from '../../../ui';
-import { listCmsEventsForEditor, deleteCmsEvent, eventPublicUrl, errorText, type CmsEventRow } from '../../../services/superApi';
+import { listCmsEventsForEditor, deleteCmsEvent, errorText, type CmsEventRow } from '../../../services/superApi';
 import { useSuperAdminBack } from './useSuperAdminBack';
 import { ChipRow, confirm } from './superKit';
 import { hasBeenHeld, isOnPublicSite, listWhen } from './events/eventKit';
@@ -39,7 +39,7 @@ import { MenuButton } from '../shared/TierMenu';
 
 type When = 'upcoming' | 'past';
 
-function EventCard({ e, onEdit, onDelete, onShare, onQr }: { e: CmsEventRow; onEdit: () => void; onDelete: () => void; onShare: () => void; onQr: () => void }) {
+function EventCard({ e, onEdit, onDelete, onQr }: { e: CmsEventRow; onEdit: () => void; onDelete: () => void; onQr: () => void }) {
   const banner = resolveMediaUrl(e?.media?.url || e?.imageUrl || '');
   const published = e?.status === 'published';
   const onPublic = isOnPublicSite(e);
@@ -94,7 +94,6 @@ function EventCard({ e, onEdit, onDelete, onShare, onQr }: { e: CmsEventRow; onE
         <View style={s.actions}>
           <ConsolePill icon="edit" label="Edit" onPress={onEdit} />
           <ConsolePill icon="qr-code-2" label="QR" onPress={onQr} color={PALETTE.textSoft} />
-          <ConsolePill icon="share" label="Share" onPress={onShare} color={PALETTE.blueDark} />
           <View style={s.flex} />
           <TouchableOpacity onPress={onDelete} style={s.delete} accessibilityRole="button" accessibilityLabel={`Delete ${title || 'this event'}`} hitSlop={6}>
             <Icon name="delete-outline" size={20} color={PALETTE.red} />
@@ -172,7 +171,7 @@ const ManageEventsScreen: React.FC = () => {
   const openEdit = useCallback((e: CmsEventRow) => navigation.navigate('SuperEventEditor', { event: e }), [navigation]);
 
   const remove = useCallback(async (e: CmsEventRow) => {
-    const ok = await confirm('Delete event', `Delete “${e?.title || 'Untitled event'}”? This removes it from the public site and from the member app.`, 'Delete', true);
+    const ok = await confirm('Delete event', `Delete “${e?.title || 'Untitled event'}”? This removes it from public view. Bookings, payments and attendance remain available in Event Bookings.`, 'Delete', true);
     if (!ok) return;
     try {
       await deleteCmsEvent(String(e?.id || ''));
@@ -183,15 +182,10 @@ const ManageEventsScreen: React.FC = () => {
     }
   }, [load]);
 
-  const share = useCallback((e: CmsEventRow) => {
-    const url = eventPublicUrl(e);
-    Share.share({ message: e?.title ? `${e.title}\n${url}` : url, title: e?.title || 'Event' }).catch(() => null);
-  }, []);
-
   const renderItem = useCallback(({ item }: { item: CmsEventRow }) => (
-    <EventCard e={item} onEdit={() => openEdit(item)} onDelete={() => remove(item)} onShare={() => share(item)}
+    <EventCard e={item} onEdit={() => openEdit(item)} onDelete={() => remove(item)}
       onQr={() => navigation.navigate('SuperEventQr', { event: item, justCreated: false })} />
-  ), [openEdit, remove, share, navigation]);
+  ), [openEdit, remove, navigation]);
 
   const header = (
     <>

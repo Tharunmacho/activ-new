@@ -4,7 +4,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import { PremiumInput as Field, Loading, Notice, SPACE, ProfileForm3D } from '../../ui';
 import { errorText } from '../../ui/data';
-import { getMyProfile, updateProfile } from '../../services/memberApi';
+import { getMyProfile, updateProfile, setFirstPassword } from '../../services/memberApi';
+import { accountPasswordStatus } from '../../utils/authCapabilities';
 import { getStates, getDistricts, getBlocks, fetchRegionTree, RegionNode } from '../../services/regions';
 import {
   FormScreen, FormFooter, FormSection, SelectField, FieldLabel, FieldMessage, ChoicePills,
@@ -12,6 +13,9 @@ import {
 import {
   SOCIAL_CATEGORIES, GENDERS, religionsFor, normalizeReligion, normalizeSocialCategory, normalizeGender,
 } from './memberFormOptions';
+import { personalDetailsErrors } from './personalDetailsValidation';
+import { validateMobile } from '../registration/phone';
+import { countryFromDial } from '../registration/countryCodes';
 
 /**
  * ============================================================================
@@ -24,9 +28,8 @@ import {
  *                               block, city, place, socialCategory, religion,
  *                               gender }  — the website's exact body
  *
- * NO PASSWORD FIELDS. Sending `password`/`confirmPassword` here is what makes
- * the server take its password-change branch; changing a password lives in
- * Account Settings, as on the website.
+ * Social accounts can choose their first password through /auth/set-password.
+ * Credentials stay out of the profile payload and navigation state.
  *
  * A member outside India (decided by the SERVER from their number) gives a
  * place instead of a state/district/block; the region is not sent at all.
@@ -46,9 +49,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PersonalDetailsForm'> &
   /** Rendered above the first section (edit mode puts the photo here). */
   topSlot?: React.ReactNode;
 };
-
-/** The website's email check (Profile.tsx saveStep1). */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const STEPS = ['Personal', 'Business', 'Declaration'];
 
@@ -97,10 +97,20 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [canSetPassword, setCanSetPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [isLocked, setIsLocked] = useState(false);
-  const [isAbroad, setIsAbroad] = useState(false);
-  const [abroadCountry, setAbroadCountry] = useState('');
+  const [storedAbroad, setStoredAbroad] = useState(false);
+  const [storedCountry, setStoredCountry] = useState('');
+  const [needsFirstPhone, setNeedsFirstPhone] = useState(false);
+  const firstPhone = needsFirstPhone ? validateMobile(form.phoneNumber) : null;
+  const firstPhoneCountry = firstPhone?.ok && firstPhone.stored.startsWith('+') ? countryFromDial(firstPhone.stored) : undefined;
+  const firstPhoneAbroad = !!firstPhoneCountry && firstPhoneCountry.iso2 !== 'IN';
+  const isAbroad = storedAbroad || firstPhoneAbroad;
+  const abroadCountry = storedCountry || (firstPhoneAbroad ? firstPhoneCountry?.name || '' : '');
 
   const [states, setStates] = useState<string[]>([]);
   const [districts, setDistricts] = useState<string[]>([]);
@@ -119,6 +129,7 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
     setLoadError('');
     try {
       const profile = await getMyProfile();
+      if (!profile || (!profile.fullName && !profile.email)) throw new Error('Could not load your saved details. Please try again.');
       const seed = route?.params?.userData || {};
       setForm({
         fullName: String(profile?.fullName || seed?.fullName || ''),
@@ -133,9 +144,13 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
         religion: normalizeReligion(profile?.religion),
         gender: normalizeGender(profile?.gender),
       });
-      setIsLocked(profile?.isLocked === true);
-      setIsAbroad(profile?.isInternational === true);
-      setAbroadCountry(String(profile?.country || ''));
+      setIsLocked(profile?.isLocked === true && profile?.personalDetailsComplete !== false
+        && Object.keys(personalDetailsErrors(profile)).length === 0);
+      setStoredAbroad(profile?.isInternational === true);
+      setStoredCountry(String(profile?.country || ''));
+      setNeedsFirstPhone(!String(profile?.phoneNumber || '').trim());
+      setCanSetPassword(accountPasswordStatus(profile) === 'not_set');
+      setPassword(''); setConfirmPassword(''); setPasswordError('');
     } catch (err) {
       setLoadError(errorText(err, 'Could not load your details.'));
     } finally {
@@ -234,27 +249,7 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
   };
 
   const validate = (): boolean => {
-    const req = 'Required';
-    const next: Partial<Record<keyof FormState, string>> = {};
-    if (!(form.fullName || '').trim()) next.fullName = req;
-    if (!(form.phoneNumber || '').trim()) next.phoneNumber = req;
-    if (!(form.email || '').trim()) next.email = req;
-    else if (!EMAIL_RE.test((form.email || '').trim())) next.email = 'Please enter a valid email address';
-    if (isAbroad) {
-      if (!(form.place || '').trim()) next.place = req;
-    } else {
-      if (!form.state) next.state = req;
-      if (!form.district) next.district = req;
-      if (!form.block) next.block = req;
-      if (!(form.city || '').trim()) next.city = req;
-    }
-    if (!form.socialCategory) next.socialCategory = req;
-    if (!form.religion) next.religion = req;
-    // A saved combination the form itself would not offer (website Profile.tsx).
-    else if (form.socialCategory && !religionsFor(form.socialCategory).includes(form.religion)) {
-      next.religion = `Please choose a religion recognised for ${form.socialCategory}`;
-    }
-    if (!form.gender) next.gender = req;
+    const next = personalDetailsErrors(form, { international: isAbroad, blockRequired: blocks.length > 0 });
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -264,6 +259,7 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
   };
 
   const handleNext = async () => {
+    if (loading || loadError || saving) return;
     // Locked by the server once submitted: nothing to save, but the member can
     // still walk on to the next step instead of meeting a dead button.
     if (isLocked) {
@@ -274,9 +270,18 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
       Alert.alert('Missing details', 'Please fill in all required fields.');
       return;
     }
+    setPasswordError('');
+    if (canSetPassword && (password || confirmPassword)) {
+      if (password.length < 8) { setPasswordError('Use at least 8 characters for your password.'); return; }
+      if (password !== confirmPassword) { setPasswordError('New password and confirm password do not match.'); return; }
+    }
 
     setSaving(true);
     try {
+      if (canSetPassword && password) {
+        await setFirstPassword(password, confirmPassword);
+        setCanSetPassword(false); setPassword(''); setConfirmPassword('');
+      }
       const place = (form.place || '').trim();
       await updateProfile(
         isAbroad
@@ -325,6 +330,7 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
           primaryLabel={isLocked ? (editMode ? 'Done' : 'Continue') : (editMode ? 'Save changes' : 'Save & continue')}
           onPrimary={handleNext}
           loading={saving}
+          disabled={loading || !!loadError}
         />
       )}
     >
@@ -348,14 +354,14 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
         <Notice
           kind="warning"
           style={NOTICE}
-          text="No region on the platform currently has an active block admin, so there is nothing to select yet. An administrator has to open a region before an application can be routed."
+          text="Location data is unavailable. Retry loading regions."
         />
       ) : null}
 
       <FormSection
         icon="location-on"
         title="Location"
-        subtitle={isAbroad ? 'Where you are based' : 'Where your business is located'}
+        subtitle="Where you are based"
       >
         {isAbroad ? (
           <Field
@@ -408,15 +414,15 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
             />
             <SelectField
               label="Block"
-              required
+              required={blocks.length > 0}
               value={form.block}
               options={blocks}
               onChange={(v) => setField('block', v)}
-              placeholder={form.district ? 'Select block' : 'Choose a district first'}
+              placeholder={form.district ? (blocks.length ? 'Select block' : 'No development blocks ? district only') : 'Choose a district first'}
               icon="holiday-village"
               iconBadge
               error={errors.block}
-              disabled={isLocked || !form.district}
+              disabled={isLocked || !form.district || !blocks.length}
             />
             <Field
               label="City"
@@ -450,9 +456,9 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
           required
           value={form.phoneNumber}
           onChangeText={(v) => setField('phoneNumber', v)}
-          placeholder="Enter phone number"
+          placeholder={needsFirstPhone ? 'Mobile number with country code' : 'Enter phone number'}
           keyboardType="phone-pad"
-          maxLength={isAbroad ? 18 : 10}
+          maxLength={20}
           error={errors.phoneNumber}
           editable={!isLocked}
           icon="phone"
@@ -473,7 +479,17 @@ const PersonalDetailsFormScreen: React.FC<Props> = ({ navigation, route, editMod
         />
       </FormSection>
 
-      <FormSection icon="groups" title="Demographics" subtitle="Help us know you better">
+      {canSetPassword && !isLocked && <FormSection icon="lock-outline" title="Set your ACTIV password"
+        subtitle="Use your email and this password next time. Social sign-in will keep working. Leave both blank to use social sign-in only.">
+        <Field label="New password" value={password} onChangeText={setPassword} secureTextEntry
+          autoCapitalize="none" autoCorrect={false} textContentType="newPassword" autoComplete="new-password"
+          editable={!saving} placeholder="At least 8 characters" icon="lock-outline" />
+        <Field label="Confirm password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry
+          autoCapitalize="none" autoCorrect={false} textContentType="newPassword" autoComplete="new-password"
+          editable={!saving} placeholder="Enter the same password again" error={passwordError} icon="lock-outline" />
+      </FormSection>}
+
+      <FormSection icon="groups" title="Personal background" subtitle="All three answers are required for your application">
         <SelectField
           label="Social category"
           required

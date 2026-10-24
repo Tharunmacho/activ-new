@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, ArrowLeft } from 'lucide-react';
 import BusinessSidebar from './BusinessSidebar';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 import { PAGE_SUBTITLE } from '@/components/layout/appTypography';
 const PAGE_TITLE = 'text-[1.625rem] sm:text-[2.5rem] font-semibold tracking-tight leading-[1.1]';
@@ -170,9 +171,11 @@ export default function BusinessPageShell({
                         ) : null}
                     </div>
 
-                    {actions ? (
-                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">{actions}</div>
-                    ) : null}
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        {actions}
+                        {/* Light / dark, at the same corner as the member and admin headers. */}
+                        <ThemeToggle />
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-8">

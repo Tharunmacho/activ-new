@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Alert, Text, StyleSheet, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ApprovalQueue from '../../../components/ApprovalQueue';
 import { Applicant, ApplicantBuckets } from '../../../types';
 import {
@@ -111,6 +111,7 @@ const SuperApprovalsScreen: React.FC = () => {
   // The website opens on "all" (AdminApprovalsScreen `useState('all')`).
   const [filter, setFilter] = useState<keyof ApplicantBuckets>('all');
   const [region, setRegion] = useState<RegionSelection>({ ...EMPTY_SELECTION });
+  const loadedOnce = useRef(false);
 
   const load = useCallback(async (mode: 'load' | 'refresh' = 'load') => {
     if (mode === 'refresh') setRefreshing(true); else setLoading(true);
@@ -147,7 +148,10 @@ const SuperApprovalsScreen: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useFocusEffect(useCallback(() => {
+    void load(loadedOnce.current ? 'refresh' : 'load');
+    loadedOnce.current = true;
+  }, [load]));
 
   /* Narrow by region and by a search term, over every bucket alike. */
 
@@ -207,9 +211,6 @@ const SuperApprovalsScreen: React.FC = () => {
         <ConsoleState kind="error" title="Could not load approvals" message={error} action="Try again" onAction={() => load()} />
       ) : (
         <View style={s.gap}>
-          {(buckets.all || []).length >= 100 ? (
-            <ConsoleNote icon="info-outline" style={s.note} text="Showing the 100 most recent in each list. Search to find an older application." />
-          ) : null}
           <ApprovalQueue
             buckets={shown}
             level="state"

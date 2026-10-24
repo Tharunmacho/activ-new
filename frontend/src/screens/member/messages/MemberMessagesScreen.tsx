@@ -1,3 +1,5 @@
+import StudentNetworkingGate from '../StudentNetworkingGate';
+import { isStudentMembership } from '../../../utils/memberAudience';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -34,7 +36,7 @@ const GATE_BENEFITS: GateBenefitItem[] = [
   { icon: 'verified', title: 'Membership certificate', detail: 'Your certificate and tax exemption document, issued on activation.' },
   { icon: 'campaign', title: 'Members-only notices', detail: 'Updates the association publishes to active members alone.' },
   { icon: 'event', title: 'Events programme', detail: 'Browse the programme and register for a seat — open to you now.', open: true },
-  { icon: 'groups', title: 'Member directory', detail: 'See who is already a member across the state — open to you now.', open: true },
+  { icon: 'groups', title: 'ACTIV Network', detail: 'See who is already a member across the state — open to you now.', open: true },
 ];
 
 type Tab = 'all' | 'unread';
@@ -103,7 +105,7 @@ function Welcome({ onFind }: { onFind: () => void }) {
       <ArtBadge size={112}><ChatBubbles3D size={84} /></ArtBadge>
       <Text style={styles.welcomeTitle}>Talk business with a member</Text>
       <Text style={styles.welcomeText}>
-        Find a member in the directory, open their profile and choose Message. A first message usually starts with one of these:
+        Find a member in ACTIV Network, open their profile and choose Message. A first message usually starts with one of these:
       </Text>
       {OPENERS.map((o, i) => (
         <FadeInUp key={o.label} delay={120 + i * 70} style={{ alignSelf: 'stretch' }}>
@@ -202,6 +204,8 @@ const MemberMessagesScreen = ({ navigation }: any) => {
       </PremiumPage>
     );
   }
+  if (isStudentMembership(profile)) return <StudentNetworkingGate navigation={navigation} />;
+
   if (!paid) {
     return (
       <PremiumPage header={header(false)}>

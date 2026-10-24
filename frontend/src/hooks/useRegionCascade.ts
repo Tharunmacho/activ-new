@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getStates, getDistricts, getBlocks, RegionNode, invalidateRegionCache } from '../services/regions';
 
 /**
- * The three chained region pickers, backed by the admin database.
+ * The three chained region pickers, backed by the national location directory.
  *
  * Encapsulated as a hook because both the registration flow and the profile
  * form need identical behaviour, and getting the chaining subtly wrong in one
@@ -34,7 +34,7 @@ export interface RegionCascade {
   /** A human-readable load failure, or '' when everything is fine. */
   error: string;
   /**
-   * True when the platform has no staffed region at all. The caller should say
+   * True when the location directory is empty. The caller should say
    * so plainly rather than render three empty dropdowns.
    */
   noCoverage: boolean;
@@ -43,7 +43,7 @@ export interface RegionCascade {
 }
 
 interface Options {
-  /** Pre-select these when they are still covered — used when editing a profile. */
+  /** Pre-select these when they are still listed — used when editing a profile. */
   initialState?: string | null;
   initialDistrict?: string | null;
   initialBlock?: string | null;
@@ -64,7 +64,10 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
   const [block, setBlockValue] = useState('');
 
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [districtsLoading, setDistrictsLoading] = useState(false);
+  const [blocksLoading, setBlocksLoading] = useState(false);
+  const [version, setVersion] = useState(0);
+  const refreshing = districtsLoading || blocksLoading;
   const [error, setError] = useState('');
   const [loadedOnce, setLoadedOnce] = useState(false);
 
@@ -94,9 +97,7 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
       setLoadedOnce(true);
 
       if (!seeded.current && initialState) {
-        // Only adopt a pre-set region if it is still staffed. A member whose
-        // block admin has since been removed must re-pick rather than silently
-        // keep a region the platform can no longer route.
+        // Adopt a saved location when it is still in the national directory.
         const match = (list || []).find(node => eq(node.name, initialState));
         if (match) setStateValue(match.name);
       }
@@ -119,6 +120,7 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
     let cancelled = false;
 
     if (!state) {
+      setDistrictsLoading(false);
       setDistricts([]);
       setDistrictValue('');
       setBlocks([]);
@@ -126,7 +128,7 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
       return undefined;
     }
 
-    setRefreshing(true);
+    setDistrictsLoading(true);
     getDistricts(state)
       .then(list => {
         if (cancelled || !mounted.current) return;
@@ -141,28 +143,32 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
         });
       })
       .catch(() => {
-        if (!cancelled && mounted.current) setDistricts([]);
+        if (!cancelled && mounted.current) {
+          setDistricts([]);
+          setError('Could not load districts. Check your connection and retry.');
+        }
       })
       .finally(() => {
-        if (!cancelled && mounted.current) setRefreshing(false);
+        if (!cancelled && mounted.current) setDistrictsLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [state, initialDistrict]);
+  }, [state, initialDistrict, version]);
 
   // Blocks follow the district.
   useEffect(() => {
     let cancelled = false;
 
     if (!state || !district) {
+      setBlocksLoading(false);
       setBlocks([]);
       setBlockValue('');
       return undefined;
     }
 
-    setRefreshing(true);
+    setBlocksLoading(true);
     getBlocks(state, district)
       .then(list => {
         if (cancelled || !mounted.current) return;
@@ -176,27 +182,35 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
         });
       })
       .catch(() => {
-        if (!cancelled && mounted.current) setBlocks([]);
+        if (!cancelled && mounted.current) {
+          setBlocks([]);
+          setError('Could not load blocks. Check your connection and retry.');
+        }
       })
       .finally(() => {
-        if (!cancelled && mounted.current) setRefreshing(false);
+        if (!cancelled && mounted.current) setBlocksLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [state, district, initialBlock]);
+  }, [state, district, initialBlock, version]);
 
   // Setters clear their descendants immediately, so the form is never briefly
   // showing a district from the previously selected state.
   const setState = useCallback((value: string) => {
     setStateValue(value || '');
+    setError('');
+    setDistricts([]);
+    setBlocks([]);
     setDistrictValue('');
     setBlockValue('');
   }, []);
 
   const setDistrict = useCallback((value: string) => {
     setDistrictValue(value || '');
+    setError('');
+    setBlocks([]);
     setBlockValue('');
   }, []);
 
@@ -206,7 +220,7 @@ export const useRegionCascade = (options: Options = {}): RegionCascade => {
 
   const reload = useCallback(() => {
     seeded.current = false;
-    loadStates(true);
+    void loadStates(true).then(() => setVersion(v => v + 1));
   }, [loadStates]);
 
   const noCoverage = useMemo(

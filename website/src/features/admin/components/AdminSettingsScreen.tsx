@@ -13,6 +13,7 @@ import { uploadAdminProfilePhoto } from '@/services/adminProfilePhoto';
 import { resolveMediaUrl } from '@/config/api.config';
 
 import { PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 /**
  * The admin Settings screen, matching the mobile app's.
  *
@@ -316,6 +317,8 @@ export default function AdminSettingsScreen({
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <h1 className={`${PAGE_TITLE} text-slate-900 flex-1 min-w-0 truncate`}>Settings</h1>
+
+                    <ThemeToggle />
 
                     {/* Mobile's header Edit/Save toggle. */}
                     <div className="ml-auto shrink-0">

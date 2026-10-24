@@ -99,11 +99,11 @@ const SuperMembersScreen: React.FC = () => {
   }, []);
 
   const onRemindAll = async () => {
-    if (!(await confirm('Remind all expired', 'Send a renewal reminder to every expired member with reminders on? Anyone reminded in the last 24 hours is skipped.', 'Send'))) return;
+    if (!(await confirm('Remind all expired', 'Send a renewal reminder to every expired member with reminders on? Members reminded in the last 24 hours will not receive another reminder.', 'Send'))) return;
     setBulkBusy(true);
     try {
       const r = await remindAllExpired();
-      Alert.alert('Reminders sent', `Sent to ${r?.sent || 0} member${r?.sent === 1 ? '' : 's'}${r?.skipped ? ` · ${r.skipped} skipped (reminded in the last 24 hours)` : ''}.`);
+      Alert.alert('Reminders sent', `Sent to ${r?.sent || 0} member${r?.sent === 1 ? '' : 's'}${r?.skipped ? ` · ${r.skipped} not sent (already reminded in the last 24 hours)` : ''}.`);
       reload();
     } catch (err) {
       Alert.alert('Could not send reminders', errorText(err));

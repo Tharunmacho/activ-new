@@ -68,7 +68,7 @@ export type GlyphTone = keyof typeof GLYPH_COLORS;
  * drops a shadow on a clipped view). `onPress` makes it spring.
  */
 export function SurfaceCard({
-  children, onPress, style, contentStyle, padded = true, accessibilityLabel, accent, disabled,
+  children, onPress, style, contentStyle, padded = true, accessibilityLabel, accent, disabled, stretch = false,
 }: {
   children: React.ReactNode;
   onPress?: () => void;
@@ -79,9 +79,11 @@ export function SurfaceCard({
   /** A coloured border (e.g. PALETTE.green for "you are registered"). */
   accent?: string;
   disabled?: boolean;
+  /** Fill a horizontal carousel cell without fixing its text height. */
+  stretch?: boolean;
 }) {
   const inner = (
-    <View style={[b.cardInner, padded && b.cardPad, accent ? { borderColor: accent, borderWidth: 1.5 } : null, contentStyle]}>
+    <View style={[b.cardInner, padded && b.cardPad, accent ? { borderColor: accent, borderWidth: 1.5 } : null, stretch && { flex: 1 }, contentStyle]}>
       {children}
     </View>
   );
@@ -90,7 +92,8 @@ export function SurfaceCard({
       <PressableScale
         onPress={onPress}
         disabled={disabled}
-        style={[b.cardShadow, style]}
+        style={[b.cardShadow, stretch && { flex: 1 }, style]}
+        contentStyle={stretch ? { flex: 1 } : undefined}
         scaleTo={0.98}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
@@ -99,7 +102,7 @@ export function SurfaceCard({
       </PressableScale>
     );
   }
-  return <View style={[b.cardShadow, style]}>{inner}</View>;
+  return <View style={[b.cardShadow, stretch && { flex: 1 }, style]}>{inner}</View>;
 }
 
 /** Gradient square + white glyph. */

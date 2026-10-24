@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert, Share } from 'react-native';
+import { useEventClock } from '../../../utils/useEventClock';
+import React, { useState, useCallback, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -11,13 +13,17 @@ import {
   getMemberEvent, cancelEventRegistration, payForEvent, registrationGate,
 } from '../../../services/memberApi';
 import { resolveMediaUrl } from '../../../config/api.config';
-import { WEBSITE_PATHS, websiteUrl } from '../../../config/website.config';
+import { getPublicEventDetail } from '../../../services/publicContent';
+import { openPublicAction } from '../../../services/publicNavigation';
+import { openWebsitePage } from '../../../services/websiteNavigation';
+import type { PublicAction } from '../../../utils/publicBrowse';
+import { publicShareUrl, sharePublicPage } from '../../../services/contentShare';
 import { QrCode } from '../../admin/super/events/qr';
 import { useLoad } from '../useLoad';
-import { useEventSeat, seatsLeftOf, isFillingFast } from './eventSeats';
+import { useEventSeat, seatsLeftOf, isFillingFast, toSeatInfo } from './eventSeats';
 import {
   feeFor, myActiveRegistration, isPastEvent, formatWhen, longDate, eventPhase, countdownLabel,
-  formatReminders, googleCalendarUrl, directionsUrl, shareLine,
+  formatReminders, googleCalendarUrl, directionsUrl, eventShareContent, programmeTime,
 } from './eventFormat';
 
 /**
@@ -87,21 +93,35 @@ function ActionPill({ icon, label, onPress }: { icon: string; label: string; onP
   );
 }
 
-const open = (url: string) => {
-  if (!url) return;
-  Linking.openURL(url).catch((err) => console.warn('Open link safely caught:', err));
-};
-
-const MemberEventDetailScreen = ({ navigation, route }: any) => {
+const MemberEventDetailScreen = ({ navigation, route, publicAccess = false }: any) => {
+  const open = (url: string) => { if (url) openWebsitePage(navigation, url, 'Event information'); };
+  const eventNow = useEventClock();
   const id = String(route?.params?.id || '');
-  const { data: e, loading, error, reload, refreshing, refresh } = useLoad<any>(() => getMemberEvent(id), [id], null);
+  const { data: e, loading, error, reload, refreshing, refresh } = useLoad<any>(
+    () => publicAccess ? getPublicEventDetail(id) : getMemberEvent(id), [id, publicAccess], null);
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+  const firstFocus = useRef(true);
+  useFocusEffect(useCallback(() => {
+    if (firstFocus.current) { firstFocus.current = false; return; }
+    refreshRef.current();
+  }, []));
   // Seats from the booking system — `registeredCount` on this payload misses every booking.
-  const seat = useEventSeat(e);
+  const memberSeat = useEventSeat(publicAccess ? null : e);
+  const seat = publicAccess ? toSeatInfo(e?.publicAvailability) : memberSeat;
   const [working, setWorking] = useState(false);
   const [paying, setPaying] = useState(false);
   const [method, setMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
 
   const back = () => navigation.goBack();
+  const allEvents = () => publicAccess ? navigation.navigate('PublicExplore', { section: 'events' }) : navigation.navigate('MemberEvents');
+  const continueAsMember = async (action: PublicAction) => {
+    setWorking(true);
+    try { await openPublicAction(navigation, action); }
+    catch (err) { Alert.alert('Unable to continue', errorText(err, 'Please try again.')); }
+    finally { setWorking(false); }
+  };
+  const membership = () => publicAccess ? continueAsMember({ kind: 'membership' }) : navigation.navigate('MembershipPlans');
 
   if (loading || error || !e) {
     return (
@@ -138,9 +158,9 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
                   message="This event is for members with an active membership. Activate yours to see the programme and book a seat."
                   action="Activate membership"
                   actionIcon="workspace-premium"
-                  onAction={() => navigation.navigate('MembershipPlans')}
+                  onAction={membership}
                   secondary="Back to events"
-                  onSecondary={() => navigation.navigate('MemberEvents')}
+                  onSecondary={allEvents}
                 />
               ) : (
               <StateView
@@ -150,7 +170,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
                 title="This event is not available"
                 message={error || 'It may have been withdrawn, or it is for a different membership.'}
                 action={error ? 'Try again' : 'Back to events'}
-                onAction={() => (error ? reload() : navigation.navigate('MemberEvents'))}
+                onAction={() => (error ? reload() : allEvents())}
               />
               )}
             </SurfaceCard>
@@ -160,16 +180,16 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
     );
   }
 
-  const registration = myActiveRegistration(e);
+  const registration = publicAccess ? null : myActiveRegistration(e);
   const fromBooking = registration?.source === 'booking';
   const awaitingPayment = !!registration && registration?.payment?.status === 'pending';
   const fee = feeFor(e);
   const listFee = Number(e?.registrationFee || 0);
   const saving = Number(e?.yourSaving || 0);
-  const gate = registrationGate(e);
+  const gate = publicAccess && e?.publicAvailability?.closed ? { open: false, reason: 'Registration has closed' } : registrationGate(e);
   const left = seatsLeftOf(seat);
-  const past = isPastEvent(e);
-  const phase = eventPhase(e);
+  const past = isPastEvent(e, eventNow);
+  const phase = eventPhase(e, eventNow);
   const countdown = !past && phase === 'upcoming' ? countdownLabel(e?.startAt) : null;
   const capacity = Number(seat?.capacity || 0);
   const fillingFast = isFillingFast(seat);
@@ -178,23 +198,17 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
   const agenda = asArray<any>(e?.agenda).filter((r) => r && (r.title || r.startTime));
   const speakers = asArray<any>(e?.speakers).filter((s) => s && s.name);
   const reminders = formatReminders(e?.reminderOffsetsHours);
-  // The public WEBSITE page — never the API host, which has no such page (404).
-  const pageUrl = websiteUrl(WEBSITE_PATHS.event(String(e?.slug || e?.id || '')));
+  const shareContent = eventShareContent(e, publicAccess);
+  const pageUrl = publicShareUrl(shareContent.path);
   const calendar = googleCalendarUrl(e, pageUrl);
   const directions = directionsUrl(e);
   const due = Number(registration?.payment?.amount || 0);
   const bookable = !awaitingPayment && !registration && gate.open;
-  const showQr = e?.showQrOnPage !== false && !!(e?.slug || e?.id);
+  const showQr = e?.showQrOnPage !== false && !!pageUrl;
   const online = String(e?.mode || '') === 'online';
   const ticket = () => navigation.navigate('EventBooking', { eventId: String(e.id), ref: String(registration?.bookingRef || '') });
 
-  const share = async () => {
-    try {
-      await Share.share({ title: e?.title || 'ACTIV event', message: `${shareLine(e)}\n\n${pageUrl}` });
-    } catch (err) {
-      console.warn('Share safely caught:', err);
-    }
-  };
+  const share = () => sharePublicPage(shareContent);
 
   const cancel = (giveUp = false) => {
     Alert.alert(giveUp ? 'Give up this seat' : 'Cancel registration', 'Give up your seat for this event?', [
@@ -254,7 +268,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
           right={(
             <>
               <GlassIconButton icon="share" onPress={share} accessibilityLabel="Share this event" />
-              <GlassIconButton icon="event-note" onPress={() => navigation.navigate('MemberEvents')} accessibilityLabel="All events" />
+              <GlassIconButton icon="event-note" onPress={allEvents} accessibilityLabel="All events" />
             </>
           )}
           art={banner ? undefined : (registration ? <EventTicket3D size={84} /> : <EventCalendar3D size={84} />)}
@@ -277,10 +291,12 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
       footer={bookable ? (
         <BottomActionBar note={fee > 0 ? `${money(fee)} per seat${saving > 0 ? ` · member price, you save ${money(saving)}` : ''}` : 'Free to attend'}>
           <GradientButton
-            label={left === 0 ? 'Join the waiting list' : 'Book Now'}
+            label={left === 0 ? 'Fully booked' : 'Book Now'}
+            disabled={left === 0}
+            loading={working}
             iconRight="chevron-right"
             icon="confirmation-number"
-            onPress={() => navigation.navigate('EventBooking', { eventId: String(e.id) })}
+            onPress={() => publicAccess ? continueAsMember({ kind: 'event', id: String(e.id) }) : navigation.navigate('EventBooking', { eventId: String(e.id) })}
             style={{ flex: 1 }}
           />
         </BottomActionBar>
@@ -314,7 +330,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
       <FadeInUp delay={next()}>
         <SurfaceCard style={styles.card} contentStyle={styles.factsCard}>
           <Fact icon="event" label="Date and time" value={formatWhen(e)} last={contactLast('date')} />
-          {e?.venue || e?.venueAddress ? (
+          {!online && (e?.venue || e?.venueAddress) ? (
             <Fact icon="place" tone="teal" label="Venue" value={e?.venue} last={contactLast('venue')}>
               {e?.venueAddress ? <Text style={styles.sub} selectable>{e.venueAddress}</Text> : null}
               {e?.venueMapUrl ? (
@@ -324,6 +340,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
               ) : null}
             </Fact>
           ) : null}
+          {online ? <Fact icon="videocam" label="Attend online" value={e?.onlinePlatform || 'Online event'} /> : null}
           {region ? <Fact icon="map" tone="sky" label="Region" value={region} last={contactLast('region')} /> : null}
           {e?.contactName ? <Fact icon="person-outline" tone="navy" label="Contact" value={e.contactName} last={contactLast('name')} /> : null}
           {e?.contactPhone ? <Fact icon="call" tone="green" label="Phone" value={e.contactPhone} onPress={() => open(`tel:${String(e.contactPhone).replace(/[^\d+]/g, '')}`)} last={contactLast('phone')} /> : null}
@@ -394,7 +411,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
                 </View>
                 <Text style={styles.sub}>
                   {registration?.status === 'waitlist'
-                    ? 'You will move into a seat automatically if one is given up.'
+                    ? fromBooking ? 'No seat is held and no payment is due. The organiser will contact you if a place becomes available.' : 'You will move into a seat automatically if one is given up.'
                     : `Registered on ${longDate(registration?.registeredAt) || '—'}.`}
                 </Text>
                 {fromBooking ? (
@@ -405,6 +422,8 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
                 ) : null}
               </View>
               {fromBooking ? <GradientButton label="View your ticket" icon="confirmation-number" onPress={ticket} style={{ marginTop: SPACE.md }} /> : null}
+              {!past && gate.open ? <GradientButton label="Book for someone else" variant="outline" icon="person-add" onPress={() => navigation.navigate('EventBooking', { eventId: String(e.id || e._id), forOthers: true })} style={{ marginTop: SPACE.md }} /> : null}
+              {asArray<any>(registration?.responses).length ? <View style={styles.receipt}><Text style={styles.receiptHead}>REGISTRATION DETAILS</Text>{asArray<any>(registration.responses).map((answer, index) => <ReceiptLine key={answer.key || index} label={answer.label || answer.key} value={answer.value || '—'} />)}</View> : null}
               {registration?.payment?.status === 'paid' ? (
                 <View style={styles.receipt}>
                   <View style={styles.inline}>
@@ -455,7 +474,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
                     {saving > 0 ? (
                       <Text style={styles.save}>Member price — you save {money(saving)} <Text style={styles.strike}>{money(listFee)}</Text></Text>
                     ) : e?.hasMemberRate && Number(e?.memberPrice) < listFee ? (
-                      <TouchableOpacity onPress={() => navigation.navigate('MembershipPlans')} style={styles.memberRate} accessibilityRole="button">
+                      <TouchableOpacity onPress={membership} style={styles.memberRate} accessibilityRole="button">
                         <Text style={styles.memberRateText}>Members pay {money(Number(e.memberPrice))} — activate your membership</Text>
                       </TouchableOpacity>
                     ) : null}
@@ -473,10 +492,11 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
               )}
               {left !== null && capacity > 0 ? (
                 left === 0 ? (
-                  <Text style={[styles.sub, { marginTop: SPACE.md, fontWeight: '700', color: PALETTE.amberDark }]}>This event is full — you can join the waiting list.</Text>
+                  <Text style={[styles.sub, { marginTop: SPACE.md, fontWeight: '700', color: PALETTE.amberDark }]}>This event is fully booked. Contact the organiser for availability.</Text>
                 ) : <SeatMeter capacity={capacity} left={left} style={{ marginTop: SPACE.md }} />
               ) : null}
               {e?.registrationDeadline ? <Text style={[styles.sub, { marginTop: SPACE.sm }]}>Registration closes {longDate(e?.registrationClosesAt)}.</Text> : null}
+              {publicAccess && <Text style={[styles.sub, { marginTop: SPACE.md }]}>Sign in when you’re ready to book. Your event will be kept ready for you.</Text>}
             </View>
           )}
 
@@ -502,7 +522,7 @@ const MemberEventDetailScreen = ({ navigation, route }: any) => {
                 </View>
                 <View style={[styles.flexMin, { paddingBottom: i < agenda.length - 1 ? SPACE.lg : 0 }]}>
                   {r?.startTime || r?.endTime ? (
-                    <View style={styles.timeChip}><Text style={styles.agendaTime}>{[r?.startTime, r?.endTime].filter(Boolean).join(' – ')}</Text></View>
+                    <View style={styles.timeChip}><Text style={styles.agendaTime}>{[r?.startTime, r?.endTime].filter(Boolean).map(programmeTime).join(' – ')} IST</Text></View>
                   ) : null}
                   <Text style={styles.agendaTitle}>{r?.title || 'Session'}</Text>
                   {r?.description ? <Text style={styles.sub}>{r.description}</Text> : null}

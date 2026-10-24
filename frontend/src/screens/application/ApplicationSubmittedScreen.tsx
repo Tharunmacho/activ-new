@@ -12,7 +12,7 @@ import { getMyApplications, getMyProfile, formatApplicationRef, isPaidMember } f
 import { pickMostAdvancedApplication, deriveApprovalFlags, applicantKindLabel } from '../member/dashboard/memberRules';
 
 /** The website's support address on this screen. */
-const SUPPORT_EMAIL = 'support@activ.org.in';
+const SUPPORT_EMAIL = 'member@activ.org.in';
 
 /**
  * ============================================================================
@@ -51,7 +51,7 @@ const WHAT_NEXT: { icon: string; title: string; detail: string; tone: ChipTone }
   {
     icon: 'credit-card',
     title: 'Then you pay and you are in',
-    detail: 'Once it is approved, your membership payment unlocks and your profile goes live in the directory.',
+    detail: 'Once it is approved, your membership payment unlocks and your profile goes live in ACTIV Network.',
     tone: 'green',
   },
 ];

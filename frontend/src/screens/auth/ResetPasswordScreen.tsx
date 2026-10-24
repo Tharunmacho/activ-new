@@ -114,7 +114,7 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
     const code = extractToken(token);
 
     if (!code) {
-      setError('Paste the reset link or code from your email.');
+      setError('Paste the reset link from your email.');
       return;
     }
     // The website asks for 8 (the server's own floor is 6).
@@ -204,7 +204,7 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
                 size="lg"
                 onPress={() => navigation.navigate('ForgotPassword', { portal })}
               />
-              <GradientButton tone={tone} variant="outline" label="Paste a different code" onPress={() => { setExpired(false); setToken(''); }} />
+              <GradientButton tone={tone} variant="outline" label="Paste a different link" onPress={() => { setExpired(false); setToken(''); }} />
               <TextLink tone={tone} muted label="Back to sign in" onPress={() => navigation.navigate(signIn)} />
             </>
           )}
@@ -222,7 +222,7 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
       title="Set a new password"
       subtitle={account
         ? `For the account ${account}.`
-        : 'Paste the link (or code) from your reset email, then choose a new password.'}
+        : 'Paste the link from your reset email, then choose a new password.'}
       below={(
         <>
           <TextLink tone={tone} label="Send me a new link" onPress={() => navigation.navigate('ForgotPassword', { portal })} />
@@ -233,13 +233,13 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
     >
       <PremiumInput
         tone={tone}
-        label="Reset code"
+        label="Reset link"
         value={token}
         onChangeText={(text) => {
           setToken(text);
           if (error) setError('');
         }}
-        placeholder="Paste the code from your email"
+        placeholder="Paste the link from your email"
         autoCapitalize="none"
         autoCorrect={false}
         editable={!loading}

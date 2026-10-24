@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Linking, Alert, FlatList, Share } from 'react-native';
+import { View, Text, StyleSheet, Linking, Alert, FlatList, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -7,13 +7,16 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RootStackParamList } from '../../types';
 import {
   Badge, InfoRow, PALETTE, SPACE, TYPE, money,
-  BrandFrame, BrandHeaderBlock, BrandTopBar, GlassIconButton, PREMIUM_OVERLAP, FadeInUp, LiftCard,
+  BrandFrame, BrandHeaderBlock, BrandTopBar, PREMIUM_OVERLAP, FadeInUp, LiftCard,
   GradientButton, TrustStar, ContactAction, ArtEmptyState, ProductCrate3D, CountUpText, premiumTone, FitImage } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
 import {
   getPublicCompany, addToTrustList, removeFromTrustList, errorMessage, Company, PublicProduct,
 } from '../../services/businessApi';
 import { recordProductView } from '../../services/memberApi';
+import { governmentSchemes } from '../../utils/governmentSchemes';
+import { CompanyShareButton } from '../../components/BusinessShareButton';
+import CatalogueAlbum from '../../components/CatalogueAlbum';
 import { BizSectionTitle, BizStatePage, CoverHero, GlassTag } from './businessKit';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompanyPublic'>;
@@ -34,13 +37,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CompanyPublic'>;
  * the trust toggle answers at once and rolls back if the server refuses.
  */
 
-/**
- * The website's address for this page (`/business/company/:id`) — what the
- * website's "copy link" button copies. Fixed to the production site: a dev
- * build's localhost origin is not a link anybody else can open.
- */
-const WEB_ORIGIN = 'https://activ.org.in';
-
 /** "March 2024" — when the company joined the directory. */
 const monthYear = (value?: string | null) => {
   if (!value) return '';
@@ -53,12 +49,17 @@ const monthYear = (value?: string | null) => {
   }
 };
 
-function ProductCard({ item }: { item: PublicProduct }) {
+function ProductCard({ item, onOpen }: { item: PublicProduct; onOpen?: () => void }) {
   const p = premiumTone('business');
   const img = item?.imageUrl ? resolveMediaUrl(item.imageUrl) : '';
   const stock = Number(item?.stock || 0);
   return (
-    <View style={[styles.product, { shadowColor: p.shadow }]}>
+    <Pressable
+      style={[styles.product, { shadowColor: p.shadow }]}
+      onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel={`${item?.name || 'Product'}, view photos and details`}
+    >
       {/* Fixed 4:3 frame so every card's text starts on the same line. */}
       <View style={styles.productImgWrap}>
         {img ? <FitImage uri={img} style={styles.productImg} /> : (
@@ -73,14 +74,14 @@ function ProductCard({ item }: { item: PublicProduct }) {
       <View style={styles.productBody}>
         <Text style={styles.productName} numberOfLines={2} maxFontSizeMultiplier={1.3}>{item?.name || 'Product'}</Text>
         <Text style={styles.productCat} numberOfLines={1} maxFontSizeMultiplier={1.3}>{item?.category || 'General'}{item?.sku ? ` · ${item.sku}` : ''}</Text>
-        {item?.description ? <Text style={styles.productDesc} numberOfLines={2} maxFontSizeMultiplier={1.3}>{item.description}</Text> : null}
+        {item?.description ? <Text style={styles.productDesc} numberOfLines={3} maxFontSizeMultiplier={1.3}>{item.description}</Text> : null}
         <View style={styles.productFoot}>
           <LinearGradient colors={p.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.priceChip}>
             <Text style={styles.priceText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.2}>{money(item?.price)}</Text>
           </LinearGradient>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -106,6 +107,7 @@ const CompanyPublicScreen: React.FC<Props> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [albumAt, setAlbumAt] = useState<number | null>(null);
   const hasData = useRef(false);
 
   /*
@@ -171,22 +173,12 @@ const CompanyPublicScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const shareLink = async () => {
-    try {
-      const url = `${WEB_ORIGIN}/business/company/${encodeURIComponent(company?._id || companyId)}`;
-      await Share.share({ title: company?.businessName || 'Company', message: `${company?.businessName || 'Company'} on ACTIV
-${url}`, url });
-    } catch (err) {
-      console.warn('Share safely caught:', err);
-    }
-  };
-
   const open = (url: string) => {
     Linking.openURL(url).catch(() => Alert.alert('Cannot open', url));
   };
 
-  if (loading) return <BizStatePage title="Company" eyebrow="On the ACTIV network" onBack={() => navigation.goBack()} />;
-  if (error || !company) return <BizStatePage title="Company" eyebrow="On the ACTIV network" onBack={() => navigation.goBack()} error={error} onRetry={load} />;
+  if (loading) return <BizStatePage title="Company" eyebrow="On the ACTIV Network" onBack={() => navigation.goBack()} />;
+  if (error || !company) return <BizStatePage title="Company" eyebrow="On the ACTIV Network" onBack={() => navigation.goBack()} error={error} onRetry={load} />;
 
   const banner = company?.banner ? resolveMediaUrl(company.banner) : '';
   const logo = company?.logo ? resolveMediaUrl(company.logo) : '';
@@ -194,6 +186,7 @@ ${url}`, url });
   const phone = String(company?.mobileNumber || '').replace(/[^\d+]/g, '');
   const place = [company?.area, company?.location].filter(Boolean).join(', ');
   const categories = (company?.productCategories || []).filter((c) => c && c.description);
+  const { schemes, explicitlyNone } = governmentSchemes(company?.govtSchemes);
   const isOwner = company?.isOwner === true;
   isOwnerRef.current = isOwner;
   const trustedBy = Number(company?.trustedBy || 0);
@@ -207,7 +200,7 @@ ${url}`, url });
         <BrandTopBar
           onBack={() => navigation.goBack()}
           title="Company"
-          right={<GlassIconButton icon="share" onPress={shareLink} accessibilityLabel="Share a link to this company" />}
+          right={<CompanyShareButton company={company} source="public" compact appearance="glass" />}
         />
         <FadeInUp delay={80} distance={12} style={styles.coverWrap}>
           <CoverHero
@@ -327,10 +320,11 @@ ${url}`, url });
             <View style={styles.tags}>{(company?.govtRegistrations || []).map((t) => <Badge key={t} label={t} icon="verified" color={PALETTE.violetDark} bg={PALETTE.violetSoft} />)}</View>
           </View>
         ) : null}
-        {(company?.govtSchemes || []).length ? (
+        {schemes.length || explicitlyNone ? (
           <View style={styles.tagsBlock}>
             <Text style={styles.tagsLabel}>Schemes availed</Text>
-            <View style={styles.tags}>{(company?.govtSchemes || []).map((t) => <Badge key={t} label={t} color={PALETTE.greenDark} bg={PALETTE.greenSoft} />)}</View>
+            {schemes.length ? <View style={styles.tags}>{schemes.map((t) => <Badge key={t} label={t} color={PALETTE.greenDark} bg={PALETTE.greenSoft} />)}</View>
+              : <Text style={TYPE.body}>No government schemes availed.</Text>}
           </View>
         ) : null}
       </LiftCard>
@@ -340,7 +334,8 @@ ${url}`, url });
   );
 
   return (
-    <BrandFrame tone="business">
+    <>
+    <BrandFrame tone="business" safeBottom>
       <FlatList
         data={products}
         keyExtractor={(item, index) => String(item?._id || index)}
@@ -366,9 +361,21 @@ ${url}`, url });
             />
           </LiftCard>
         }
-        renderItem={({ item }) => <ProductCard item={item} />}
+        renderItem={({ item, index }) => <ProductCard item={item} onOpen={() => setAlbumAt(index)} />}
       />
     </BrandFrame>
+    <CatalogueAlbum
+      items={products}
+      startIndex={albumAt}
+      tone="business"
+      onClose={() => setAlbumAt(null)}
+      onProductShown={(it) => {
+        if (isOwnerRef.current || !it.key || seenProducts.current.has(it.key)) return;
+        seenProducts.current.add(it.key);
+        recordProductView(it.key);
+      }}
+    />
+    </>
   );
 };
 
@@ -408,7 +415,7 @@ const styles = StyleSheet.create({
   productCat: { ...TYPE.caption, fontSize: 11, lineHeight: 15, marginTop: SPACE.xxs },
   productDesc: { ...TYPE.caption, fontSize: 11, lineHeight: 15, marginTop: SPACE.xs },
   // Pinned to the bottom so prices line up across a row, whatever the text above.
-  productFoot: { flexDirection: 'row', alignItems: 'center', marginTop: 'auto', paddingTop: SPACE.sm },
+  productFoot: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.xs, marginTop: 'auto', paddingTop: SPACE.sm },
   priceChip: { paddingHorizontal: SPACE.md, paddingVertical: 5, borderRadius: 999, maxWidth: '100%' },
   priceText: { color: PALETTE.white, fontSize: 13, lineHeight: 17, fontWeight: '800', fontVariant: ['tabular-nums'] },
   catRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.sm, padding: SPACE.md, borderRadius: 14, backgroundColor: PALETTE.violetTint, borderWidth: 1, borderColor: PALETTE.violetBorder },

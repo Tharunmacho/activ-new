@@ -11,6 +11,7 @@ import {
 } from './formKit';
 import { commencementYears } from './memberFormOptions';
 import PlatinumApplicationCard from './PlatinumApplicationCard';
+import { businessFormError } from '../../utils/applicationFormValidation';
 
 /**
  * ============================================================================
@@ -56,7 +57,7 @@ const toChoice = (value: unknown): Choice => {
 
 const toKind = (saved: any): Kind => {
   if (String(saved?.registrationType || '').toLowerCase() === 'student') return 'student';
-  if (saved?.doingBusiness === false || saved?.doingBusiness === 'no') return 'aspirant';
+  if (String(saved?.registrationType || '').toLowerCase() === 'aspirant') return 'aspirant';
   return '';
 };
 
@@ -103,6 +104,9 @@ const BusinessInformationFormScreen: React.FC<Props> = ({ navigation, route, edi
   };
 
   const handleNext = async () => {
+    if (loading || loadError || saving) return;
+    const error = businessFormError({ doingBusiness, registrationType: kind, businessCommencementYear: year });
+    if (error) { Alert.alert('Required', error); return; }
     if (!doingBusiness) {
       Alert.alert('Required', 'Please select whether you are currently doing business.');
       return;
@@ -169,6 +173,7 @@ const BusinessInformationFormScreen: React.FC<Props> = ({ navigation, route, edi
           primaryLabel={editMode ? 'Save changes' : 'Next'}
           onPrimary={handleNext}
           loading={saving}
+          disabled={!!loadError}
         />
       )}
     >

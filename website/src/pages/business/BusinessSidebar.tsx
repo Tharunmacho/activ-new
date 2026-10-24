@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { getPaymentStatus } from '@/services/activApi';
 import { resolveMediaUrl } from '@/config/api.config';
 import { useActiveCompanyStore } from '@/contexts/ActiveCompanyContext';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 type Props = {
     /** Drawer state, owned by `BusinessPageShell`. */
@@ -239,7 +240,7 @@ export default function BusinessSidebar({
                         <img
                             src="/logo_ACTIVian-removebg-preview.png"
                             alt="ACTIV"
-                            className={`w-auto object-contain ${collapsed ? 'h-8' : 'h-12'}`}
+                            className={`w-auto object-contain dark:brightness-0 dark:invert ${collapsed ? 'h-8' : 'h-12'}`}
                         />
                     </Link>
 
@@ -354,6 +355,10 @@ export default function BusinessSidebar({
                   company am I in, and how do I leave".
                 */}
                 <div className={`pt-3 pb-6 bg-white border-t border-slate-200 flex-shrink-0 ${collapsed ? 'px-2' : 'px-3'}`}>
+                    {/* Light / dark: labelled pair when open, one tile when collapsed. */}
+                    <div className={collapsed ? 'mb-2 flex justify-center' : 'mb-2'}>
+                        <ThemeToggle variant={collapsed ? 'icon' : 'segmented'} />
+                    </div>
                     <Link
                         to="/business/settings"
                         onClick={onClose}

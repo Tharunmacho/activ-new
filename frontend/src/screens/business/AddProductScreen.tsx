@@ -139,7 +139,7 @@ const AddProductScreen: React.FC<Props> = ({ navigation, route }) => {
       </FadeInUp>
 
       <FadeInUp delay={280}>
-        <PremiumSection tone="business" icon="sell" title="Details" subtitle="What buyers see in Discover and on your company page">
+        <PremiumSection tone="business" icon="sell" title="Details" subtitle="What buyers see in ACTIV Network and on your company page">
           <PremiumInput tone="business"
             label="Product / service name"
             required

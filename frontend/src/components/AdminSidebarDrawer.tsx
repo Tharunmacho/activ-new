@@ -89,7 +89,7 @@ const AdminSidebarDrawer: React.FC<AdminSidebarDrawerProps> = ({
   const handleSupportPress = () => {
     Alert.alert(
       'ACTIV Support',
-      'Contact support team at support@activ.org or call 1800-123-4567',
+      'Membership queries: member@activ.org.in\nEvent queries: events@activ.org.in\nPhone: +91 82201 12188',
       [{ text: 'OK' }]
     );
   };

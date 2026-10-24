@@ -69,17 +69,18 @@ export function GlassIconBadgeButton({ icon, onPress, accessibilityLabel, badge,
 
 /* ------------------------------------------------------------ card */
 
-export function PremiumCard({ children, style, onPress, tone = 'member', padded = true, accessibilityLabel }: {
+export function PremiumCard({ children, style, onPress, tone = 'member', padded = true, accessibilityLabel, stretch = false }: {
   children: React.ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; tone?: Tone; padded?: boolean;
   accessibilityLabel?: string;
+  stretch?: boolean;
 }) {
   const p = premiumTone(tone);
-  const box = [s.card, padded && s.cardPad, { shadowColor: p.shadow }];
+  const box = [s.card, padded && s.cardPad, { shadowColor: p.shadow }, stretch && { flex: 1 }];
   if (!onPress) return <View style={[box, style]}>{children}</View>;
   return (
     <PressableScale
       onPress={onPress}
-      style={style}
+      style={[stretch && { flex: 1 }, style]}
       scaleTo={0.985}
       contentStyle={box}
       accessibilityRole="button"
@@ -96,7 +97,7 @@ export function PremiumSectionHeader({ title, subtitle, action, onAction, tone =
   const p = premiumTone(tone);
   return (
     <View style={[s.sh, style]}>
-      <View style={{ flex: 1, minWidth: 0 }}>
+      <View style={s.shText}>
         <Text style={s.shTitle} accessibilityRole="header" maxFontSizeMultiplier={CAP}>{title}</Text>
         {subtitle ? <Text style={s.shSub} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
       </View>
@@ -197,7 +198,7 @@ export function ActionTile({ icon, label, detail, tone = 'blue', onPress, badge,
         ) : <Icon name="arrow-outward" size={16} color={PALETTE.textFaint} />}
       </View>
       <Text style={s.tileLabel} numberOfLines={2} maxFontSizeMultiplier={CAP}>{label}</Text>
-      {detail ? <Text style={s.tileDetail} numberOfLines={1} maxFontSizeMultiplier={CAP}>{detail}</Text> : null}
+      {detail ? <Text style={s.tileDetail} maxFontSizeMultiplier={CAP}>{detail}</Text> : null}
     </PressableScale>
   );
 }
@@ -278,11 +279,12 @@ const s = StyleSheet.create({
   },
   cardPad: { padding: SPACE.lg + 2 },
 
-  sh: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, marginHorizontal: SPACE.lg, marginTop: SPACE.xl + 4, marginBottom: SPACE.md },
-  shTitle: { ...TYPE.heading, fontSize: 18, lineHeight: 24, letterSpacing: -0.3 },
+  sh: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SPACE.sm, marginHorizontal: SPACE.lg, marginTop: SPACE.xl + 4, marginBottom: SPACE.md },
+  shText: { flexGrow: 1, flexShrink: 1, flexBasis: 180, minWidth: 0 },
+  shTitle: { ...TYPE.heading, fontSize: 18, lineHeight: 24, fontWeight: '800', letterSpacing: -0.3 },
   shSub: { ...TYPE.caption, fontWeight: '400', marginTop: 2 },
   shAction: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 32, paddingLeft: SPACE.md, paddingRight: SPACE.sm, borderRadius: 999 },
-  shActionText: { fontSize: 13, lineHeight: 17, fontWeight: '700' },
+  shActionText: { fontSize: 13, lineHeight: 17, fontWeight: '700', flexShrink: 1 },
 
   chipShadow: { shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 8, elevation: 3 },
   chipSheen: { position: 'absolute', left: 0, right: 0, top: 0, height: '48%', backgroundColor: 'rgba(255,255,255,0.16)' },
@@ -292,7 +294,7 @@ const s = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: SPACE.lg },
   tileCell: { width: '48.5%', marginBottom: SPACE.md },
   tile: {
-    minHeight: 124, padding: SPACE.lg, backgroundColor: PALETTE.white, borderRadius: 20, borderWidth: 1,
+    flex: 1, minHeight: 124, padding: SPACE.lg, backgroundColor: PALETTE.white, borderRadius: 20, borderWidth: 1,
     borderColor: 'rgba(226,232,240,0.9)', shadowColor: BRAND.shadowNavy, shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08, shadowRadius: 16, elevation: 3,
   },
@@ -305,7 +307,7 @@ const s = StyleSheet.create({
   statRow: { flexDirection: 'row', gap: SPACE.sm, marginHorizontal: SPACE.lg },
   statFlex: { flex: 1, minWidth: 0 },
   stat: {
-    alignItems: 'flex-start', padding: SPACE.md, backgroundColor: PALETTE.white, borderRadius: 18, borderWidth: 1,
+    flexGrow: 1, alignItems: 'flex-start', padding: SPACE.md, backgroundColor: PALETTE.white, borderRadius: 18, borderWidth: 1,
     borderColor: 'rgba(226,232,240,0.9)', shadowColor: BRAND.shadowNavy, shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.07, shadowRadius: 12, elevation: 2, minHeight: 104,
   },

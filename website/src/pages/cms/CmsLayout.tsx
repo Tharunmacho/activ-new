@@ -11,6 +11,7 @@ import { listLeaderMessages } from '@/services/cmsLeaderMessagesApi';
 import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import { STORAGE_KEYS } from '@/config/api.config';
 
+import { THEME_STORAGE_KEY } from '@/lib/appTheme';
 import { PAGE_TITLE } from '@/components/layout/appTypography';
 /**
  * The CMS shell.
@@ -141,7 +142,8 @@ const ago = (value: string) => {
  * because dark was the default and the choice was saved on every visit, so a
  * new default under the old key would never have reached anybody.
  */
-const THEME_KEY = 'cms_theme_v2';
+/* One key for every signed-in area — see lib/appTheme.ts. */
+const THEME_KEY = THEME_STORAGE_KEY;
 
 export default function CmsLayout() {
     const navigate = useNavigate();

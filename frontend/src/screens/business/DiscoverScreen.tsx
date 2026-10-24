@@ -64,6 +64,7 @@ interface CompanyItem {
   email?: string;
   description?: string;
   logo?: string;
+  banner?: string;
   trustedBy?: number;
   ownerIsMember?: boolean;
   products?: ProductItem[];
@@ -175,6 +176,7 @@ function CompanyCard({ item, ordered, highlightIds, matchedOnly, own, trusted, b
   return (
     <FadeInUp distance={12} style={s.cardWrap}>
       <LiftCard tone="business">
+        {item.banner ? <PressableScale onPress={onOpen} accessibilityLabel={`View ${item.businessName || 'company'} banner`}><FitImage uri={resolveMediaUrl(item.banner)} style={{ width: '100%', height: 132, backgroundColor: '#fff', borderRadius: 14 }} /></PressableScale> : null}
         <View style={s.cardHead}>
           <PressableScale onPress={onOpen} scaleTo={0.98} style={{ flex: 1, minWidth: 0 }} contentStyle={s.cardHeadMain} accessibilityRole="button" accessibilityLabel={`Open ${item?.businessName || 'company'}`}>
             <CompanyLogoTile tone="business" uri={logo} name={item?.businessName} size={56} ring={trusted} />
@@ -235,14 +237,17 @@ function CompanyCard({ item, ordered, highlightIds, matchedOnly, own, trusted, b
               const hit = highlightIds.has(String(pr?._id));
               const img = pr?.imageUrl ? resolveMediaUrl(pr.imageUrl) : '';
               return (
-                <TouchableOpacity
+                <View
                   key={String(pr?._id || i)}
                   style={[s.product, hit && s.productHit]}
-                  activeOpacity={0.85}
-                  onPress={() => onViewProduct?.(String(pr?._id || ''))}
-                  accessibilityRole="button"
-                  accessibilityLabel={pr?.name || 'Product'}
                 >
+                  <TouchableOpacity
+                    style={s.productMain}
+                    activeOpacity={0.85}
+                    onPress={() => onViewProduct?.(String(pr?._id || ''))}
+                    accessibilityRole="button"
+                    accessibilityLabel={pr?.name || 'Product'}
+                  >
                   {img ? <FitImage uri={img} style={s.productImg} /> : (
                     <LinearGradient colors={[PALETTE.violetSoft, PALETTE.violetTint]} style={[s.productImg, s.productImgEmpty]}><Icon name="inventory-2" size={18} color={p.accent} /></LinearGradient>
                   )}
@@ -250,11 +255,12 @@ function CompanyCard({ item, ordered, highlightIds, matchedOnly, own, trusted, b
                     <Text style={s.productName} numberOfLines={1} maxFontSizeMultiplier={1.3}>{pr?.name || 'Item'}</Text>
                     <Text style={s.productMeta} numberOfLines={1} maxFontSizeMultiplier={1.3}>{pr?.category || 'General'}{pr?.sku ? ` · ${pr.sku}` : ''}</Text>
                   </View>
+                  </TouchableOpacity>
                   <View style={s.priceCol}>
                     <Text style={s.productPrice} numberOfLines={1} maxFontSizeMultiplier={1.2}>{money(pr?.price)}</Text>
                     {Number(pr?.stock || 0) > 0 ? <Text style={s.stock} numberOfLines={1} maxFontSizeMultiplier={1.2}>Stock {Number(pr?.stock || 0)}</Text> : null}
                   </View>
-                </TouchableOpacity>
+                </View>
               );
             })}
             {(ordered || []).length > shownProducts.length ? (
@@ -294,7 +300,8 @@ function CompanyRow({ item, onOpen }: { item: CompanyItem; onOpen: () => void })
   const logo = item?.logo ? resolveMediaUrl(item.logo) : '';
   const phone = String(item?.mobileNumber || '');
   return (
-    <PressableScale onPress={onOpen} scaleTo={0.98} style={s.listRowWrap} contentStyle={[s.listRow, { shadowColor: p.shadow }]} accessibilityRole="button" accessibilityLabel={`Open ${item?.businessName || 'company'}`}>
+    <View style={[s.listRowWrap, s.listRow, { shadowColor: p.shadow }]}>
+      <PressableScale onPress={onOpen} scaleTo={0.98} style={{ flex: 1, minWidth: 0 }} contentStyle={s.listRowMain} accessibilityRole="button" accessibilityLabel={`Open ${item?.businessName || 'company'}`}>
       <CompanyLogoTile tone="business" uri={logo} name={item?.businessName} size={42} ring={false} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={s.nameRow}>
@@ -305,6 +312,8 @@ function CompanyRow({ item, onOpen }: { item: CompanyItem; onOpen: () => void })
           {[item?.businessType || '—', [item?.location, item?.area].filter(Boolean).join(', ') || 'Location not set'].join(' · ')}
         </Text>
       </View>
+      <Icon name="chevron-right" size={20} color={PALETTE.textFaint} />
+      </PressableScale>
       {phone ? (
         <PressableScale
           onPress={() => Linking.openURL(`tel:${phone.replace(/[^\d+]/g, '')}`).catch(() => null)}
@@ -316,8 +325,7 @@ function CompanyRow({ item, onOpen }: { item: CompanyItem; onOpen: () => void })
           <Icon name="call" size={18} color={PALETTE.white} />
         </PressableScale>
       ) : null}
-      <Icon name="chevron-right" size={20} color={PALETTE.textFaint} />
-    </PressableScale>
+    </View>
   );
 }
 
@@ -581,12 +589,12 @@ const DiscoverScreen: React.FC<Props> = ({ navigation }) => {
       <BrandHeaderBlock tone="business">
         <BrandTopBar
           onBack={() => navigation.goBack()}
-          title="Discover"
+          title="ACTIV Network"
           right={<GlassIconButton icon="verified-user" onPress={() => navigation.navigate('TrustList')} accessibilityLabel="My trust list" />}
         />
         <BrandHero
           eyebrow="The ACTIV business network"
-          title="Discover businesses"
+          title="ACTIV Network"
           subtitle={`Browsing ${regionLabel}`}
           art={<MarketGlobe3D tone="business" size={92} />}
           artSize={92}
@@ -667,7 +675,7 @@ const DiscoverScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const empty = loading || paid === null ? (
-    <View accessibilityLabel={hasQuery ? 'Searching the business network…' : 'Loading the directory…'}>
+    <View accessibilityLabel={hasQuery ? 'Searching the business network…' : 'Loading ACTIV Network…'}>
       <CardSkeletons rows={3} tall />
     </View>
   ) : paid === false ? (
@@ -759,6 +767,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   listName: { ...TYPE.bodyStrong, flexShrink: 1 },
+  listRowMain: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   listMeta: { ...TYPE.caption, marginTop: SPACE.xxs },
   listCall: { width: SIZE.controlSm, height: SIZE.controlSm, borderRadius: 999, backgroundColor: PALETTE.violet, alignItems: 'center', justifyContent: 'center' },
 
@@ -780,6 +789,7 @@ const s = StyleSheet.create({
   products: { marginTop: SPACE.md, paddingTop: SPACE.md, borderTopWidth: 1, borderTopColor: PALETTE.divider, gap: SPACE.sm },
   productsLabel: { ...TYPE.eyebrow },
   product: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.sm, borderRadius: 14, backgroundColor: PALETTE.fieldBg, borderWidth: 1, borderColor: PALETTE.divider },
+  productMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   productHit: { backgroundColor: PALETTE.violetTint, borderColor: PALETTE.violet },
   productImg: { width: 46, height: 46, borderRadius: 12, backgroundColor: PALETTE.card },
   productImgEmpty: { alignItems: 'center', justifyContent: 'center' },

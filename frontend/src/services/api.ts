@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from 'react-native';
 import axios, { AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, API_TIMEOUT } from '../config/api.config';
@@ -57,6 +58,8 @@ api.interceptors.response.use(
       if (status === 401 && !AUTH_ATTEMPT.test(requestUrl)) {
         const hadToken = !!(await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN));
         const role = (await AsyncStorage.getItem(STORAGE_KEYS.USER_ROLE)) || '';
+        await require('./pushNotifications').detachPushDevice(false);
+        await require('./analytics').analyticsLogout();
         await AsyncStorage.multiRemove([
           STORAGE_KEYS.AUTH_TOKEN,
           STORAGE_KEYS.USER_DATA,
@@ -84,6 +87,7 @@ api.interceptors.response.use(
 export const setAuthToken = async (token: string): Promise<void> => {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+    DeviceEventEmitter.emit('activ:session-changed');
   } catch (error) {
     console.error('Error saving auth token:', error);
   }
@@ -100,7 +104,9 @@ export const getAuthToken = async (): Promise<string | null> => {
 
 export const removeAuthToken = async (): Promise<void> => {
   try {
+    await require('./pushNotifications').detachPushDevice();
     await AsyncStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    DeviceEventEmitter.emit('activ:session-changed');
   } catch (error) {
     console.error('Error removing auth token:', error);
   }
@@ -109,6 +115,7 @@ export const removeAuthToken = async (): Promise<void> => {
 export const setUserData = async (userData: any): Promise<void> => {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+    DeviceEventEmitter.emit('activ:session-changed');
   } catch (error) {
     console.error('Error saving user data:', error);
   }

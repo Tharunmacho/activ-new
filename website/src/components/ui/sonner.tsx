@@ -1,10 +1,13 @@
-import { useTheme } from "next-themes";
+import { useThemeApplied } from "@/lib/appTheme";
 import { Toaster as Sonner, toast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  // Follows the app's own light/dark switch (signed-in areas only). There is no
+  // next-themes provider, so the old `useTheme()` always answered "system" and the
+  // toast followed the OS instead of the page.
+  const theme = useThemeApplied() ? "dark" : "light";
 
   return (
     <Sonner

@@ -1,4 +1,7 @@
+import { isPastEvent } from '../utils/eventLifecycle';
+import { withEventAgenda } from '../utils/eventAgenda';
 import api from './api';
+import publicApi from './publicApi';
 import { unwrap, asArray } from '../ui';
 
 /**
@@ -36,6 +39,9 @@ export const uploadProfilePhoto = async (uri: string, type = 'image/jpeg', name 
 
 export const changePassword = async (oldPassword: string, newPassword: string) =>
   unwrap<any>(await api.post('/auth/change-password', { oldPassword, newPassword }), {});
+
+export const setFirstPassword = async (newPassword: string, confirmPassword: string) =>
+  unwrap<any>(await api.post('/auth/set-password', { newPassword, confirmPassword }), {});
 
 export const logoutOnServer = async () => {
   try { await api.post('/auth/logout'); } catch { /* signing out locally is what matters */ }
@@ -131,8 +137,19 @@ export const getThread = async (conversationId: string, before?: string) =>
   unwrap<any>(await api.get(`/messages/${encodeURIComponent(conversationId)}`, { params: before ? { before } : {} }),
     { conversation: null, messages: [], hasMore: false });
 
-export const sendMessage = async (conversationId: string, body: string, attachmentUrl = '') =>
-  unwrap<any>(await api.post(`/messages/${encodeURIComponent(conversationId)}`, { body, attachmentUrl }), {});
+export const sendMessage = async (conversationId: string, body: string, attachmentUrl = '', attachment?: { token?: string }) =>
+  unwrap<any>(await api.post(`/messages/${encodeURIComponent(conversationId)}`, { body, attachmentUrl, ...(attachment?.token ? { attachment: { token: attachment.token } } : {}) }), {});
+
+export const deleteMessage = async (conversationId: string, messageId: string, scope: 'me' | 'everyone') =>
+  unwrap<any>(await api.delete(`/messages/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}`, { data: { scope } }), {});
+
+export const getMessageStatuses = async (conversationId: string, ids: string[]) => {
+  const result: Array<{ id: string; hidden: boolean; deleted: boolean; readAt: string | null }> = [];
+  for (let offset = 0; offset < ids.length; offset += 500) {
+    result.push(...unwrap<any[]>(await api.post(`/messages/${encodeURIComponent(conversationId)}/message-status`, { ids: ids.slice(offset, offset + 500) }), []));
+  }
+  return result;
+};
 
 export const markConversationRead = async (conversationId: string) => {
   try { await api.post(`/messages/${encodeURIComponent(conversationId)}/read`); } catch { /* best effort */ }
@@ -145,6 +162,15 @@ export const uploadMessageImage = async (uri: string, type = 'image/jpeg', name 
   return unwrap<any>(await api.post('/messages/attachment', form, { headers: { 'Content-Type': 'multipart/form-data' } }), {});
 };
 
+export const uploadMessageAttachment = async (file: { uri: string; type: string; name: string }, onProgress?: (percent: number) => void) => {
+  const form = new FormData();
+  form.append('file', file as any);
+  return unwrap<any>(await api.post('/messages/attachment', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: event => { if (event.total) onProgress?.(Math.min(99, Math.round(event.loaded * 100 / event.total))); },
+  }), {});
+};
+
 /* ------------------------------------------------------------------ events */
 
 export const listMemberEvents = async (params: Record<string, any> = {}) =>
@@ -152,19 +178,7 @@ export const listMemberEvents = async (params: Record<string, any> = {}) =>
 
 export const getMemberEvent = async (id: string) => {
   const event = unwrap<any>(await api.get(`/events/${encodeURIComponent(id)}`), null);
-  // Sessions written with the DAY editor live on days[].agenda (website withDayAgenda).
-  if (!event) return event;
-  const flat = asArray<any>(event.agenda).filter((r) => r && (r.title || r.startTime));
-  const days = asArray<any>(event.days);
-  if (flat.length || !days.length) return event;
-  const multi = days.filter((d) => d && d.date).length > 1;
-  const merged: any[] = [];
-  days.forEach((day, i) => {
-    asArray<any>(day?.agenda).filter((r) => r && (r.title || r.startTime)).forEach((row) => {
-      merged.push({ ...row, title: multi ? `Day ${i + 1} — ${row.title || 'Session'}` : row.title });
-    });
-  });
-  return merged.length ? { ...event, agenda: merged } : event;
+  return withEventAgenda(event);
 };
 
 export const listMyEventRegistrations = async () => {
@@ -193,18 +207,19 @@ export const recordProductView = async (id: string): Promise<void> => {
 };
 
 /** The event as the booking page needs it: price for THIS caller, seats left, closed. */
-export const getBookableEvent = async (eventId: string) =>
-  unwrap<any>(await api.get(`/event-bookings/event/${encodeURIComponent(eventId)}`), null);
+export const getBookableEvent = async (eventId: string, guest = false) =>
+  unwrap<any>(await (guest ? publicApi : api).get(`/event-bookings/event/${encodeURIComponent(eventId)}`), null);
 
 /** "Already booked / entered twice" check without writing anything. */
-export const checkEventBooking = async (eventId: string, body: Record<string, any>) =>
-  unwrap<any>(await api.post(`/event-bookings/event/${encodeURIComponent(eventId)}/check`, body), {});
+export const checkEventBooking = async (eventId: string, body: Record<string, any>, guest = false) =>
+  unwrap<any>(await (guest ? publicApi : api).post(`/event-bookings/event/${encodeURIComponent(eventId)}/check`, body), {});
 
 /** Take a booking. Sends NO amount — the server prices it. */
 export const createEventBooking = async (eventId: string, body: {
   name: string; email: string; phone: string; noOfPersons: number;
-  participants: { name: string; email: string; phone: string }[]; note?: string;
-}) => unwrap<any>(await api.post(`/event-bookings/event/${encodeURIComponent(eventId)}`, body), {});
+  participants: { name: string; email: string; phone: string }[]; note?: string; useBookerForFirstParticipant?: boolean;
+  responses?: Record<string, string | boolean>;
+}, guest = false) => unwrap<any>(await (guest ? publicApi : api).post(`/event-bookings/event/${encodeURIComponent(eventId)}`, body), {});
 
 export const getEventBooking = async (ref: string) =>
   unwrap<any>(await api.get(`/event-bookings/${encodeURIComponent(ref)}`), null);
@@ -212,10 +227,9 @@ export const getEventBooking = async (ref: string) =>
 /** Registration gate — the website's eventFormat.registrationGate. */
 export const registrationGate = (event: any): { open: boolean; reason: string } => {
   if (!event?.registrationEnabled) return { open: false, reason: 'Registration is not open for this event' };
-  const end = event?.endAt || event?.startAt;
-  if (end && new Date(end).getTime() < Date.now()) return { open: false, reason: 'This event has finished' };
+  if (event?.archivedAt || isPastEvent(event)) return { open: false, reason: 'This event has finished' };
   const closes = event?.registrationClosesAt ? new Date(event.registrationClosesAt) : null;
-  if (closes && !Number.isNaN(closes.getTime()) && closes.getTime() < Date.now()) {
+  if (closes && !Number.isNaN(closes.getTime()) && closes.getTime() <= Date.now()) {
     return { open: false, reason: 'Registration has closed' };
   }
   return { open: true, reason: '' };

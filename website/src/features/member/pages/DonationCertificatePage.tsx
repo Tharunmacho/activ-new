@@ -1,3 +1,4 @@
+import { useForceLightTheme } from '@/lib/appTheme';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer } from 'lucide-react';
 import DonationCertificate, {
@@ -31,6 +32,8 @@ const EXAMPLE: DonationCertificateData = {
 };
 
 export default function DonationCertificatePage() {
+    /* A tax receipt is a printed document: it stays light on screen as on paper. */
+    useForceLightTheme();
     const navigate = useNavigate();
 
     return (

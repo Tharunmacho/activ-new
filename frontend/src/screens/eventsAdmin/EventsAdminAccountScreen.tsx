@@ -33,7 +33,7 @@ const IN_APP = [
   { icon: 'qr-code-scanner', text: 'Scan entry passes and admit attendees' },
   { icon: 'keyboard', text: 'Find a booking by ID or registration number' },
   { icon: 'groups', text: 'See each booking’s party and admit seat by seat' },
-  { icon: 'fact-check', text: 'Live attendance per event, with CSV export' },
+  { icon: 'fact-check', text: 'Live attendance per event, with Excel export' },
 ];
 
 const ELSEWHERE = [

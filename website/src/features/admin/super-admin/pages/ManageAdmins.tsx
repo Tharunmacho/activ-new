@@ -10,6 +10,7 @@ import RegionInput from '../components/RegionInput';
 import SiteStaffAccounts from '../components/SiteStaffAccounts';
 import { AdminBackButton, ADMIN_PAGE, ADMIN_INPUT } from '@/features/admin/components/AdminUI';
 import { PAGE_SUBTITLE, PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 import {
     listAdmins, createAdmin, updateAdmin, deleteAdmin, getRegionTree, type RegionTree,
     previewAdminRemoval, suggestAdminRegions, errorMessage,
@@ -453,7 +454,8 @@ export default function ManageAdmins() {
                         </div>
                     </div>
 
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
+                        <ThemeToggle />
                         <button
                             onClick={openNew}
                             className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 h-11

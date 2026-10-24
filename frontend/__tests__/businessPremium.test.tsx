@@ -170,6 +170,10 @@ describe('the business round trip', () => {
     // The stepper moves between sections and keeps what was typed.
     await ReactTestRenderer.act(async () => { button(tree, 'Next section').props.onPress(); });
     expect(textOf(tree)).toContain('Business details');
+    await ReactTestRenderer.act(async () => { button(tree, 'Next section').props.onPress(); });
+    expect(textOf(tree)).toContain('Financial information');
+    await ReactTestRenderer.act(async () => { button(tree, 'Next section').props.onPress(); });
+    expect(textOf(tree)).toContain('Government registrations');
     await ReactTestRenderer.act(async () => { button(tree, 'Create company').props.onPress(); await flush(); await flush(); });
     const post = mockCalls.find((c) => c.method === 'post' && c.url === '/business-profiles');
     expect(post?.body).toMatchObject({ businessName: 'Sri Lakshmi Engineering', businessType: 'Manufacturing', mobileNumber: '9840212857', location: 'Chennai' });

@@ -478,7 +478,7 @@ export default function CompanyForm({ companyId, title, subtitle, createLabel = 
             title="Financial information"
             subtitle={summary.financial ? `${summary.financial} of 4 answered` : 'PAN, GSTIN, returns, turnover'}
           >
-            <Notice kind="info" icon="lock-outline" text="Tax identifiers are kept private — never shown in the member directory." style={styles.inlineNotice} />
+            <Notice kind="info" icon="lock-outline" text="Tax identifiers are kept private — never shown in the ACTIV Network." style={styles.inlineNotice} />
             <PremiumInput tone="business" label="PAN number" value={form.panNumber} onChangeText={(v) => set('panNumber', (v || '').toUpperCase())} placeholder="ABCDE1234F" autoCapitalize="characters" icon="credit-card" />
             <PremiumInput tone="business" label="GSTIN number" value={form.gstNumber} onChangeText={(v) => set('gstNumber', (v || '').toUpperCase())} placeholder="22AAAAA0000A1Z5" autoCapitalize="characters" icon="receipt-long" />
 

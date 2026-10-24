@@ -38,12 +38,11 @@ const titleCase = (v: string) => (v || '').replace(/[_-]+/g, ' ').replace(/\b\w/
  *
  * WITHOUT an orderId (the Plan / Documents screens' "Payment receipt") it is
  * the website's `/member/payment-success?view=receipt`: the member's own
- * record — lastPaymentAmount ?? paymentAmount, lastPaymentDate ||
- * membershipActivatedAt, paymentId — still a dash for anything not recorded.
+ * latest paid order when available. Older records without an order use
+ * lastPaymentAmount ?? paymentAmount, lastPaymentDate and paymentId.
  */
 const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
   const orderId: string = String(route?.params?.orderId || '');
-  const planHint: string = String(route?.params?.planType || '');
   const renewed: boolean = route?.params?.renewed === true;
 
   const [loading, setLoading] = useState(true);
@@ -51,40 +50,43 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
   const [order, setOrder] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [application, setApplication] = useState<any>(null);
+  const [receiptError, setReceiptError] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [o, pr, apps] = await Promise.all([
-      orderId ? getOrder(orderId).catch(() => null) : Promise.resolve(null),
+  const load = useCallback(async (quiet = false) => {
+    if (quiet) setRefreshing(true); else setLoading(true);
+    setReceiptError('');
+    const [pr, apps] = await Promise.all([
       getMyProfile().catch(() => null),
       getMyApplications().catch(() => [] as any[]),
     ]);
-    setOrder(o);
     setProfile(pr);
     setApplication(pickMostAdvancedApplication(apps || []));
+    const requested = orderId || pr?.paidMembership?.orderId;
+    if (requested) {
+      try {
+        const receipt = await getOrder(requested);
+        if (receipt?.status !== 'paid' || receipt?.orderType !== 'membership') throw new Error('Unconfirmed membership receipt');
+        setOrder(receipt);
+      } catch {
+        setOrder(null);
+        setReceiptError('This receipt could not be loaded. Check that you are signed in to the account that made this payment.');
+      }
+    } else {
+      setOrder(null);
+      if (!pr) setReceiptError('Your membership payment record could not be loaded. Please try again.');
+    }
     setLoading(false);
+    setRefreshing(false);
   }, [orderId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   /* Pull-to-refresh re-reads quietly (the receipt stays on screen). */
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const [o, pr] = await Promise.all([
-        orderId ? getOrder(orderId).catch(() => null) : Promise.resolve(null),
-        getMyProfile().catch(() => null),
-      ]);
-      if (o) setOrder(o);
-      if (pr) setProfile(pr);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [orderId]);
+  const refresh = useCallback(() => load(true), [load]);
 
 
   // No order to read → the receipt is the member's own payment record.
-  const fromProfile = !orderId || !order;
+  const fromProfile = !order;
   const profilePaid = ['active', 'completed'].includes(String(profile?.membershipStatus || '').toLowerCase());
   const profileAmount = profile?.lastPaymentAmount ?? profile?.paymentAmount;
   const amount = typeof order?.amount === 'number'
@@ -98,17 +100,21 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
   const paidAt = order?.paidAt || (fromProfile ? (profile?.lastPaymentDate || profile?.membershipActivatedAt || '') : '');
   const txnRef = String(order?.gatewayPaymentId || (fromProfile ? profile?.paymentId || '' : ''));
   /* Plan wording, period and validity — the website's PaymentSuccess rules. */
-  const kind = String(profile?.memberType || application?.memberType || '').toLowerCase();
+  const kind = String(order ? order.planAudience || '' : profile?.memberType || application?.memberType || '').toLowerCase();
   const kindLabel = kind === 'student' ? 'Student' : kind === 'aspirant' ? 'Aspirant' : kind === 'business' ? 'Business' : '';
-  const platinum = String(profile?.membershipTier || '').toLowerCase() === 'platinum';
-  const typeRaw = String(profile?.membershipType || '').toLowerCase();
+  const platinum = order ? kind === 'platinum' || String(order.planId || '').toLowerCase() === 'platinum' : String(profile?.membershipTier || '').toLowerCase() === 'platinum';
+  const typeRaw = String(order ? order.membershipType || '' : profile?.membershipType || '').toLowerCase();
   const lifetime = platinum || typeRaw === 'lifetime';
-  const derivedPlan = platinum ? 'Platinum Lifetime' : [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership';
-  const planName = String(order?.planName || planHint || derivedPlan);
+  const derivedPlan = platinum ? 'Lifetime Membership' : [kindLabel, 'membership'].filter(Boolean).join(' ') || 'ACTIV membership';
+  const planName = platinum ? 'Lifetime Membership' : String(order?.planName || (fromProfile ? profile?.paidMembership?.planName : '') || derivedPlan);
   const period = lifetime ? 'Lifetime' : typeRaw === 'annual' ? 'Annual' : '';
-  const method = String(order?.paymentMethod || profile?.paymentMethod || '');
+  const method = String(order ? order.paymentMethod || '' : profile?.paymentMethod || '');
+  const receiptOrderId = String(order?.orderId || orderId);
   const validUntil = (() => {
     if (lifetime) return 'Lifetime — no renewal';
+    // Later renewals or Platinum upgrades must not change an older receipt.
+    if (order && !(order.orderId && order.orderId === profile?.paidMembership?.orderId)
+      && ![order.orderId, order.gatewayPaymentId].some(ref => !!ref && ref === profile?.paymentId)) return '';
     if (profile?.membershipExpiresAt) return longDate(profile.membershipExpiresAt);
     const start = profile?.membershipActivatedAt || paidAt;
     if (!start) return '';
@@ -124,6 +130,7 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
   };
 
   const share = async () => {
+    if (!paid || receiptError) return;
     try {
       await Share.share({
         message: [
@@ -134,7 +141,7 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
           validUntil ? `Valid until: ${validUntil}` : '',
           method ? `Payment method: ${titleCase(method)}` : '',
           `Amount: ${money(amount)}`,
-          orderId ? `Order: ${orderId}` : '',
+          receiptOrderId ? `Order: ${receiptOrderId}` : '',
           txnRef ? `Transaction: ${txnRef}` : '',
           paidAt ? `Paid on: ${dateTime(paidAt)}` : '',
         ].filter(Boolean).join('\n'),
@@ -145,7 +152,7 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
   };
 
   const onBack = navigation.canGoBack() ? () => navigation.goBack() : undefined;
-  const shareButton = !loading ? <GlassIconButton icon="share" onPress={share} accessibilityLabel="Share receipt" /> : undefined;
+  const shareButton = !loading && paid && !receiptError ? <GlassIconButton icon="share" onPress={share} accessibilityLabel="Share receipt" /> : undefined;
 
   if (loading) {
     return (
@@ -159,6 +166,15 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
       </PremiumPage>
     );
   }
+
+  if (receiptError) return (
+    <PremiumPage header={<PremiumPageHeader onBack={onBack} eyebrow="Payment" title="Your receipt" art={<Receipt3D size={88} />} />}>
+      <SurfaceCard style={s.notice}>
+        <Notice kind="warning" text={receiptError} />
+        <GradientButton label="Retry loading receipt" icon="refresh" onPress={() => void load()} />
+      </SurfaceCard>
+    </PremiumPage>
+  );
 
   const paidFor = [planName, period && !lifetime ? `· ${period}` : ''].filter(Boolean).join(' ');
   const stamp = paid ? 'PAID' : status ? status.toUpperCase() : 'PENDING';
@@ -177,7 +193,7 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
           subtitle={paid
             ? (orderId
               ? (renewed
-                ? `Your ${planName.toLowerCase()} is renewed${profile?.membershipExpiresAt ? ` until ${longDate(profile.membershipExpiresAt)}` : ''}. Every member benefit carries on.`
+                ? `Your ${planName.toLowerCase()} is renewed${validUntil ? ` until ${validUntil}` : ''}. Every member benefit carries on.`
                 : `Your ${planName.toLowerCase()} is now active. Everything a member gets is open to you.`)
               : 'Your membership fee, as recorded')
             : 'This order has not been confirmed as paid yet.'}
@@ -233,7 +249,7 @@ const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
             <ReceiptLine label="Member name" value={name} />
             <ReceiptLine label="Paid on" value={longDate(paidAt) || dateTime(paidAt)} />
             {method ? <ReceiptLine label="Payment method" value={titleCase(method)} /> : null}
-            {orderId ? <ReceiptLine label="Order" value={orderId} selectable /> : null}
+            {receiptOrderId ? <ReceiptLine label="Order" value={receiptOrderId} selectable /> : null}
 
             <TotalBar label="Amount paid" value={money(amount)} />
 

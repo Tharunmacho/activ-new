@@ -1,5 +1,6 @@
-import api from './api';
+import api, { getAuthToken } from './api';
 import { unwrap, asArray } from '../ui';
+import { isLifetimeTier, selectHeldMembershipPlan } from '../utils/heldMembershipPlan';
 
 /**
  * ============================================================================
@@ -27,6 +28,8 @@ import { unwrap, asArray } from '../ui';
 export type PlanAudience = 'business' | 'aspirant' | 'student' | 'platinum';
 
 export interface Plan {
+  commencementYears?: string[];
+  commencementYearLabel?: string;
   key: string;
   name: string;
   description: string;
@@ -42,6 +45,10 @@ export interface Plan {
 }
 
 export interface MyPlans {
+  kind?: string;
+  currentPlanDetails?: Plan | null;
+  canPurchase?: boolean;
+  commencementYear?: string;
   plans: Plan[];
   /** The plan the server resolved for this member (band / kind). */
   matched: Plan | null;
@@ -58,16 +65,18 @@ export const toAudience = (v: unknown): PlanAudience => {
 };
 
 const toPlan = (row: any): Plan => ({
+  commencementYears: asArray<string>(row?.commencementYears).map(String),
+  commencementYearLabel: String(row?.commencementYearLabel || ""),
   key: String(row?.key || row?.id || ''),
   name: String(row?.name || ''),
   description: String(row?.description || ''),
-  price: Number(row?.price || 0),
+  price: Number(row?.price ?? row?.amount ?? (row?.amountPaise != null ? row.amountPaise / 100 : NaN)),
   audience: toAudience(row?.audience),
-  membershipType: String(row?.membershipType || 'annual'),
+  membershipType: String(row?.membershipType || row?.memberType || 'annual'),
   minYears: Number(row?.minYears || 0),
   maxYears: row?.maxYears === null || row?.maxYears === undefined ? null : Number(row.maxYears),
   experience: String(row?.experience || ''),
-  features: asArray<string>(row?.features).map((f) => String(f || '')).filter(Boolean),
+  features: asArray<string>(row?.features ?? row?.entitlements).map((f) => String(f || '')).filter(Boolean),
   popular: row?.popular === true,
 });
 
@@ -92,6 +101,34 @@ export const getMyPlans = async (): Promise<MyPlans> => {
   } catch {
     return { plans: [], matched: null, years: null, reason: '', showAllPlans: false, failed: true };
   }
+};
+
+/** Display-only catalogue lookup for the membership already held, including office-issued lifetime memberships. */
+export const getHeldMembershipPlan = async (profile: any): Promise<Plan | null> => {
+  if (!profile) throw new Error('The membership record could not be loaded.');
+  const [response, legacy] = await Promise.all([
+    api.get('/membership/plans', { params: { include: 'platinum' } }),
+    isLifetimeTier(profile) || profile.paidMembership?.planId ? Promise.resolve(null) : getMyPlans(),
+  ]);
+  const body = unwrap<any>(response, {});
+  const rows = (Array.isArray(body) ? body : asArray<any>(body?.plans)).filter(row => row.active !== false && row.isActive !== false);
+  const plan = selectHeldMembershipPlan(profile, rows.map(toPlan), legacy?.matched);
+  if (plan && (!Number.isFinite(plan.price) || plan.price <= 0)) {
+    throw new Error('The current membership price is unavailable. Please retry.');
+  }
+  return plan;
+};
+
+/** Re-priced upgrade choices for the caller's saved profile. */
+export const getUpgradePlans = async (): Promise<MyPlans> => {
+  const d = unwrap<any>(await api.get('/payment/upgrade/plans'), {});
+  if (typeof d?.canPurchase !== 'boolean') throw new Error('Membership upgrade options are temporarily unavailable. Please try again later.');
+  const plans = asArray(d?.plans).map(toPlan).filter((p) => p.key && p.audience !== 'platinum');
+  return {
+    plans, kind: d?.kind, currentPlanDetails: d?.currentPlanDetails ? toPlan(d.currentPlanDetails) : null,
+    canPurchase: d?.canPurchase !== false, matched: null, years: null, commencementYear: String(d?.commencementYear || ''),
+    reason: String(d?.reason || ''), showAllPlans: true, failed: false,
+  };
 };
 
 /** "0–5 years", "10+ years" — the band a plan covers, for the card. */
@@ -163,22 +200,26 @@ export interface HostedStart {
 
 /** Start an Instamojo payment. `planId` for a membership, `bookingRef` for seats. */
 export const startHostedPayment = async (input: {
-  orderType: 'membership' | 'event_booking';
+  upgrade?: boolean;
+  commencementYear?: string;
+  orderType: 'membership' | 'event_booking' | 'company_listing';
+  companyId?: string;
   planId?: string;
   bookingRef?: string;
   /** The website's startHostedMembershipPayment also sends it, when known. */
   applicationId?: string;
 }): Promise<HostedStart> => {
-  const body = input.orderType === 'event_booking'
+  const body = input.orderType === 'company_listing' ? { orderType: 'company_listing', companyId: input.companyId } : input.orderType === 'event_booking'
     ? { orderType: 'event_booking', bookingRef: input.bookingRef }
     : {
       orderType: 'membership',
       membershipType: input.planId,
+      ...(input.upgrade ? { upgrade: true, commencementYear: input.commencementYear } : {}),
       ...(input.applicationId ? { applicationId: input.applicationId } : {}),
     };
-  const d = unwrap<any>(await api.post('/payment/create-request', body), {});
+  const d = unwrap<any>(await api.post('/payment/create-request', { ...body, client: 'app' }), {});
   const paymentUrl = String(d?.payment_url || d?.longurl || '');
-  if (!paymentUrl) throw new Error('The payment could not be started');
+  if (!/^https:\/\//i.test(paymentUrl) || !d?.orderId) throw new Error('The secure payment page could not be started. Please try again.');
   return {
     paymentUrl,
     paymentRequestId: String(d?.payment_request_id || ''),
@@ -191,8 +232,8 @@ export const startHostedPayment = async (input: {
  * The MOCK membership purchase (dev servers only — the server refuses it in
  * production): order → mock-authorize → complete. Returns the order.
  */
-export const payMembershipMock = async (planId: string, applicationId?: string) => {
-  const order = unwrap<any>(await api.post('/payment/order', { planId, ...(applicationId ? { applicationId } : {}) }), {});
+export const payMembershipMock = async (planId: string, applicationId?: string, upgrade = false, commencementYear?: string, companyId?: string) => {
+  const order = unwrap<any>(await api.post('/payment/order', { planId, ...(companyId ? { companyId } : {}), ...(upgrade ? { upgrade: true, commencementYear } : {}), ...(applicationId ? { applicationId } : {}) }), {});
   if (!order?.orderId) throw new Error('The payment could not be started');
   const auth = unwrap<any>(await api.post('/payment/mock-authorize', { orderId: order.orderId }), {});
   if (!auth?.signature) throw new Error('The payment was not authorised');
@@ -226,7 +267,26 @@ export interface ReturnResult {
   amount: number | null;
   bookingRef: string;
   eventId: string;
+  eventSlug: string;
+  companyId: string;
+  planName: string;
+  paymentId: string;
+  paidAt: string | null;
 }
+
+const toReturnResult = (d: any, orderId: string): ReturnResult => ({
+  orderId: String(d?.orderId || orderId),
+  orderType: String(d?.orderType || ''),
+  status: String(d?.status || '').toLowerCase(),
+  amount: typeof d?.amount === 'number' && Number.isFinite(d.amount) ? d.amount : null,
+  bookingRef: String(d?.bookingRef || ''),
+  eventId: String(d?.eventId || ''),
+  eventSlug: String(d?.eventSlug || ''),
+  companyId: String(d?.companyId || ''),
+  planName: String(d?.planName || ''),
+  paymentId: String(d?.paymentId || d?.gatewayPaymentId || ''),
+  paidAt: d?.paidAt ? String(d.paidAt) : null,
+});
 
 /** Public: what the server knows about the order (settles an event booking). */
 export const resolveReturn = async (
@@ -239,19 +299,28 @@ export const resolveReturn = async (
       ...(gateway.paymentStatus ? { payment_status: gateway.paymentStatus } : {}),
     },
   }), {});
-  return {
-    orderId: String(d?.orderId || orderId),
-    orderType: String(d?.orderType || ''),
-    status: String(d?.status || ''),
-    amount: typeof d?.amount === 'number' ? d.amount : null,
-    bookingRef: String(d?.bookingRef || ''),
-    eventId: String(d?.eventId || ''),
-  };
+  return toReturnResult(d, orderId);
 };
 
 /** Signed-in: the order record (status, amount, plan, paidAt). */
 export const getOrder = async (orderId: string) =>
   unwrap<any>(await api.get(`/payment/order/${encodeURIComponent(orderId)}`), {});
+
+/** Both paths are server records. URL status is only forwarded for verification. */
+export async function checkPaymentOrder(orderId: string, gateway: { paymentId?: string; paymentStatus?: string } = {}): Promise<ReturnResult> {
+  let found: ReturnResult | null = null;
+  let failure: unknown;
+  try { found = await resolveReturn(orderId, gateway); } catch (err) { failure = err; }
+  if (found && (found.status === 'paid' || found.status === 'failed')) return found;
+  if (await getAuthToken()) {
+    try {
+      const order = await getOrder(orderId);
+      if (order?.status) return toReturnResult({ ...found, ...order }, orderId);
+    } catch { /* Keep the public pending response when the private read is unavailable. */ }
+  }
+  if (found) return found;
+  throw failure || new Error('The payment status is unavailable.');
+}
 
 /**
  * Is this URL the gateway's return to ACTIV? The server builds
@@ -299,7 +368,7 @@ export interface DonationInput {
 }
 
 export const createDonation = async (input: DonationInput) =>
-  unwrap<any>(await api.post('/donations', input), {}) as {
+  unwrap<any>(await api.post('/donations', { ...input, client: 'app' }), {}) as {
     donationId?: string; orderId?: string; amount?: number; paymentUrl?: string; mock?: boolean;
   };
 

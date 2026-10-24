@@ -1,6 +1,9 @@
+import { isUpcomingEvent } from '../utils/eventLifecycle';
 import api from './api';
 import { resolveMediaUrl } from '../config/api.config';
 import { WEBSITE_PATHS } from '../config/website.config';
+import { publishedExploreZones } from '../utils/exploreRegions';
+import { newsArticlePath, newsMedia } from '../utils/newsContent';
 
 /**
  * ============================================================================
@@ -31,10 +34,10 @@ import { WEBSITE_PATHS } from '../config/website.config';
  */
 
 export interface SiteLink { label: string; path: string }
-export interface Zone { slug: string; label: string; national: boolean; states: { name: string; slug: string }[] }
+export interface Zone { slug: string; label: string; national: boolean; hasPage?: boolean; states: { name: string; slug: string }[] }
 export interface NewsTeaser { key: string; title: string; summary: string; image: string; category: string; date: string; path: string; external: string }
 export interface GalleryThumb { key: string; title: string; image: string; path: string }
-export interface EventTeaser { key: string; title: string; startAt: string; mode: string; category: string; place: string; image: string; path: string }
+export interface EventTeaser { id: string; endAt?: string; days?: { date?: string }[]; key: string; title: string; startAt: string; mode: string; category: string; place: string; image: string; path: string }
 
 const TTL_MS = 10 * 60 * 1000;
 const cache: Record<string, { at: number; value: any }> = {};
@@ -94,6 +97,7 @@ export const FALLBACK_LEGAL: SiteLink[] = [
   { label: 'Terms & Conditions', path: WEBSITE_PATHS.terms },
   { label: 'Refund Policy', path: WEBSITE_PATHS.refund },
   { label: 'Cancellation', path: WEBSITE_PATHS.cancellation },
+  { label: 'Delete account', path: WEBSITE_PATHS.deleteAccount },
 ];
 
 const toLinks = (rows: any[]): SiteLink[] => {
@@ -117,25 +121,18 @@ export const getSiteNav = (force = false) => cached<SiteLink[]>('nav', FALLBACK_
 
 export const getLegalLinks = (force = false) => cached<SiteLink[]>('legal', FALLBACK_LEGAL, async () => {
   const links = toLinks(payloadOf(await api.get('/cms/legal/links')));
-  return links.length ? links : FALLBACK_LEGAL;
+  if (!links.length) return FALLBACK_LEGAL;
+  // Account deletion is a public request form, not a CMS policy document.
+  return links.some(link => link.path.replace(/\/+$/, '') === WEBSITE_PATHS.deleteAccount)
+    ? links
+    : [...links, { label: 'Delete account', path: WEBSITE_PATHS.deleteAccount }];
 }, force);
 
 /* ------------------------------------------------------------------ zones */
 
-export const getZones = (force = false) => cached<Zone[]>('zones', [], async () => {
-  const data = payloadOf(await api.get('/cms/regions/map')) || {};
-  return arr(data?.regions)
-    .filter((r) => str(r?.slug) && r?.hasPage !== false && (!r?.status || r?.status === 'published'))
-    .sort((a, b) => Number(a?.order || 0) - Number(b?.order || 0))
-    .map((r) => ({
-      slug: str(r?.slug),
-      label: str(r?.label) || str(r?.slug),
-      national: r?.national === true,
-      states: arr(r?.states)
-        .filter((s) => str(s?.slug) && s?.hasPage !== false && (!s?.status || s?.status === 'published'))
-        .map((s) => ({ name: str(s?.name) || str(s?.slug), slug: str(s?.slug) })),
-    }));
-}, force);
+export const toExploreZones = (regions: any[]): Zone[] => publishedExploreZones(regions);
+export const getZones = (force = false) => cached<Zone[]>('zones', [], async () =>
+  toExploreZones((payloadOf(await api.get('/cms/regions/map')) || {}).regions), force);
 
 /* ------------------------------------------------------------------ teasers */
 
@@ -144,9 +141,7 @@ const time = (iso: any) => {
   return Number.isNaN(t) ? 0 : t;
 };
 
-export const getLatestNews = (count = 3, force = false) => cached<NewsTeaser[]>(`news:${count}`, [], async () => {
-  const rows = arr(payloadOf(await api.get('/cms/news')));
-  return rows
+export const toExploreNews = (rows: any[], count = 3): NewsTeaser[] => arr(rows)
     .filter((n) => str(n?.title) && (!n?.status || n?.status === 'published'))
     .sort((a, b) => time(b?.publishedAt || b?.createdAt) - time(a?.publishedAt || a?.createdAt))
     .slice(0, Math.max(1, count))
@@ -157,19 +152,18 @@ export const getLatestNews = (count = 3, force = false) => cached<NewsTeaser[]>(
         key: slug || str(n?.id) || String(i),
         title: str(n?.title),
         summary: str(n?.summary),
-        image: resolveMediaUrl(n?.image?.url || n?.imageUrl || ''),
+        image: newsMedia(n).find(media => media.type === 'image')?.url || '',
         category: str(n?.category),
         date: str(n?.displayDate) || str(n?.publishedAt),
-        path: slug ? WEBSITE_PATHS.article(slug) : WEBSITE_PATHS.news,
+        path: newsArticlePath(n) || WEBSITE_PATHS.news,
         external,
       };
     });
-}, force);
+export const getLatestNews = (count = 3, force = false) => cached<NewsTeaser[]>(`news:${count}`, [], async () =>
+  toExploreNews(payloadOf(await api.get('/cms/news')), count), force);
 
-export const getGalleryStrip = (count = 8, force = false) => cached<GalleryThumb[]>(`gallery:${count}`, [], async () => {
-  const rows = arr(payloadOf(await api.get('/cms/gallery', { params: { limit: count } })));
-  return rows
-    .filter((g) => g?.visible !== false && (g?.media?.type || 'image') === 'image' && str(g?.media?.url))
+export const toExploreGallery = (rows: any[], count = 8): GalleryThumb[] => arr(rows)
+    .filter((g) => g?.visible !== false && (!g?.status || g.status === 'published') && (g?.media?.type || 'image') === 'image' && str(g?.media?.url))
     .slice(0, Math.max(1, count))
     .map((g, i) => {
       const id = str(g?.slug) || str(g?._id) || str(g?.id);
@@ -180,28 +174,33 @@ export const getGalleryStrip = (count = 8, force = false) => cached<GalleryThumb
         path: id ? WEBSITE_PATHS.galleryItem(id) : WEBSITE_PATHS.gallery,
       };
     });
-}, force);
+export const getGalleryStrip = (count = 8, force = false) => cached<GalleryThumb[]>(`gallery:${count}`, [], async () =>
+  toExploreGallery(payloadOf(await api.get('/cms/gallery', { params: { limit: count } })), count), force);
 
-export const getPublicEvents = (count = 3, force = false) => cached<EventTeaser[]>(`events:${count}`, [], async () => {
-  const rows = arr(payloadOf(await api.get('/cms/events', { params: { scope: 'public' } })));
+export const toExploreEvents = (rows: any[], count = 3): EventTeaser[] => {
   const now = Date.now();
-  return rows
+  return arr(rows)
     .filter((e) => (!e?.status || e?.status === 'published') && e?.audience !== 'paid')
     // Upcoming or still running; undated events lead (not happened yet).
-    .filter((e) => { const end = time(e?.endAt || e?.startAt); return !end || end >= now; })
+    .filter((e) => isUpcomingEvent(e, now))
     .sort((a, b) => (time(a?.startAt) || 0) - (time(b?.startAt) || 0))
     .slice(0, Math.max(1, count))
     .map((e, i) => {
       const id = str(e?.slug) || str(e?.id) || str(e?._id);
       return {
+        id: str(e?.id) || str(e?._id),
         key: id || String(i),
         title: str(e?.title) || 'Untitled event',
         startAt: str(e?.startAt),
+        endAt: str(e?.endAt),
+        days: e?.days || [],
         mode: str(e?.mode),
         category: str(e?.category),
         place: [str(e?.venue), str(e?.district), str(e?.state)].filter(Boolean).join(', ') || str(e?.location),
-        image: resolveMediaUrl(e?.imageUrl || e?.media?.url || ''),
+        image: resolveMediaUrl(e?.imageUrl || e?.bannerUrl || e?.media?.url || ''),
         path: id ? WEBSITE_PATHS.event(id) : WEBSITE_PATHS.events,
       };
     });
-}, force);
+};
+export const getPublicEvents = async (count = 3, force = false) => (await cached<EventTeaser[]>(`events:${count}`, [], async () =>
+  toExploreEvents(payloadOf(await api.get('/cms/events', { params: { scope: 'public' } })), count), force)).filter(e => isUpcomingEvent(e));

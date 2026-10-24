@@ -151,6 +151,7 @@ const SuperBookingDetailScreen: React.FC = () => {
           {canCancel ? <ConsoleButton kind="danger" icon="block" label="Cancel booking" onPress={() => { setCancelOpen(true); setNotice(''); }} disabled={acting} /> : null}
         </>
       )}
+      <Text style={{ ...TYPE.caption, color: PALETTE.textMuted }}>Cancelling releases seats and keeps all booking details.</Text>
       <ConsoleButton kind="soft" label="Close" onPress={() => navigation?.goBack?.()} disabled={acting} />
     </View>
   );
@@ -168,6 +169,7 @@ const SuperBookingDetailScreen: React.FC = () => {
 
       <View style={s.body}>
         {notice ? <ConsoleNote kind="green" icon="check-circle" text={notice} style={s.block} /> : null}
+        {booking?.payment?.reconciliationRequired ? <ConsoleNote kind="amber" icon="warning" text={`Payment received; seats need organiser review. ${booking.payment.reconciliationReason || ''} No entry pass has been issued. Do not collect another payment.`} style={s.block} /> : null}
 
         <ConsoleCard style={s.block} accent={booking?.status === 'cancelled' ? PALETTE.red : pay.kind === 'pending' ? PALETTE.amber : PALETTE.green}>
           <View style={s.statusRow}>

@@ -153,7 +153,7 @@ export default function PremiumMemberCard({
             <Text style={s.sub} numberOfLines={1}>{m?.memberNumber || m?.applicationRef || '—'}</Text>
             <View style={s.chips}>
               <ConsoleChip label={chip.label} kind={chip.kind} />
-              {m?.platinum ? <ConsoleChip label="Platinum" kind="dark" icon="workspace-premium" /> : (m?.kindLabel || m?.kind) ? <ConsoleChip label={m?.kindLabel || m?.kind} kind={kindKind} dot={false} /> : null}
+              {m?.platinum ? <ConsoleChip label="Lifetime" kind="dark" icon="workspace-premium" /> : (m?.kindLabel || m?.kind) ? <ConsoleChip label={m?.kindLabel || m?.kind} kind={kindKind} dot={false} /> : null}
             </View>
             <Text style={[s.validity, lapsed && { color: PALETTE.dangerText }]} numberOfLines={1}>{validity}</Text>
           </View>

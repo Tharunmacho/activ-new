@@ -9,6 +9,7 @@ import {
 } from '../../ui';
 import { fyLabel } from '../../services/paymentFlow';
 import { readDonationDocs, SavedDonationDoc } from './donationStore';
+import { getPendingPayment, PendingPayment } from '../../services/paymentRecovery';
 
 /**
  * Donations — the member's way into giving and their 80G papers.
@@ -23,10 +24,12 @@ const MemberDonationsScreen = ({ navigation }: any) => {
   const [docs, setDocs] = useState<SavedDonationDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [pending, setPending] = useState<PendingPayment | null>(null);
 
   const load = useCallback(async () => {
     try {
-      setDocs(await readDonationDocs());
+      const [receipts, retained] = await Promise.all([readDonationDocs(), getPendingPayment('donation')]);
+      setDocs(receipts); setPending(retained);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -60,6 +63,9 @@ const MemberDonationsScreen = ({ navigation }: any) => {
 
   const listHeader = (
     <FadeInUp delay={160} style={s.lift}>
+      {pending ? <SurfaceCard style={s.gutter} padded={false}>
+        <LinkRow icon="pending-actions" tone="amber" title="Check your recent donation" subtitle="Your payment is waiting for confirmation." onPress={() => navigation.navigate('DonationResult', { orderId: pending.orderId })} last />
+      </SurfaceCard> : null}
       {latestStatement ? (
         <SurfaceCard style={s.gutter} padded={false}>
           <LinkRow

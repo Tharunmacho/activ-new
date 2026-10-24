@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View, useWindowDimensions, type ImageURISource, type StyleProp, type ViewStyle } from 'react-native';
+import { ContentImage } from './ContentImage';
+import { responsiveImageWidth } from '../utils/imageSizing';
+import { PALETTE } from './tokens';
 
 /**
  * ============================================================================
@@ -63,28 +66,27 @@ export function FitImage({
   children = null,
 }: FitImageProps) {
   const src = typeof uri === 'string' ? uri.trim() : '';
+  const { width: screenWidth } = useWindowDimensions();
+  const frameWidth = StyleSheet.flatten(style)?.width;
+  const imageWidth = responsiveImageWidth(typeof frameWidth === 'number' ? frameWidth : screenWidth);
   const [failed, setFailed] = useState(false);
+  const [loadedSource, setLoadedSource] = useState<ImageURISource | null>(null);
+  const [slow, setSlow] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   // The image's own width:height, once known. Until then a sensible banner shape.
   const [ratio, setRatio] = useState<number | null>(null);
 
   useEffect(() => {
     setFailed(false);
     setRatio(null);
-    if (!src || mode !== 'auto') return undefined;
-    let alive = true;
-    try {
-      if (typeof Image.getSize === 'function') {
-        Image.getSize(
-          src,
-          (w, h) => { if (alive && Number(w) > 0 && Number(h) > 0) setRatio(Number(w) / Number(h)); },
-          () => { /* the <Image> below reports the failure */ },
-        );
-      }
-    } catch (err) {
-      console.warn('Image size safely caught:', err);
-    }
-    return () => { alive = false; };
-  }, [src, mode]);
+    setLoadedSource(null);
+    setSlow(false);
+  }, [src, imageWidth]);
+  useEffect(() => {
+    if (!src || loadedSource || failed) return;
+    const timer = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(timer);
+  }, [src, loadedSource, failed, attempt, imageWidth]);
 
   const frameStyle: StyleProp<ViewStyle> = [
     s.frame,
@@ -94,26 +96,38 @@ export function FitImage({
   ];
 
   if (!src || failed) {
-    return <View style={frameStyle}>{fallback}{children}</View>;
+    return <View style={frameStyle}>
+      {fallback || <View style={s.status}><Text style={s.statusText}>{src ? 'Image temporarily unavailable.' : 'No image available.'}</Text></View>}
+      {src && <Pressable accessibilityRole="button" accessibilityLabel="Retry image" onPress={event => { event?.stopPropagation?.(); setAttempt(value => value + 1); setFailed(false); setLoadedSource(null); setSlow(false); }} style={s.retry}><Text style={s.retryText}>Retry image</Text></Pressable>}
+      {children}
+    </View>;
   }
 
-  const fail = () => { setFailed(true); onError?.(); };
+  const fail = () => { setLoadedSource(null); setFailed(true); onError?.(); };
 
   return (
     <View style={frameStyle} accessible={!!accessibilityLabel} accessibilityRole={accessibilityLabel ? 'image' : undefined} accessibilityLabel={accessibilityLabel}>
-      {fit === 'contain' ? (
+      {!loadedSource && <View style={s.status} accessibilityLiveRegion="polite"><ActivityIndicator color={PALETTE.blue} /><Text style={s.statusText}>{slow ? 'This image is taking longer to load.' : 'Loading image...'}</Text></View>}
+      {fit === 'contain' && loadedSource ? (
         // The fill behind: the same picture, blurred and dimmed, so the space a
         // shape leaves reads as part of the image rather than as empty bars.
         <>
-          <Image source={{ uri: src }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={18} accessibilityIgnoresInvertColors />
+          <Image source={loadedSource} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={18} accessible={false} accessibilityIgnoresInvertColors />
           <View style={[StyleSheet.absoluteFill, s.dim]} />
         </>
       ) : null}
-      <Image
-        source={{ uri: src }}
+      <ContentImage
+        key={`${src}:${attempt}`}
+        uri={src}
+        width={imageWidth}
         style={StyleSheet.absoluteFill}
         resizeMode={fit === 'cover' ? 'cover' : 'contain'}
         onError={fail}
+        onSourceLoad={setLoadedSource}
+        onLoad={event => {
+          const loaded = event.nativeEvent?.source;
+          if (loaded?.width > 0 && loaded?.height > 0) setRatio(loaded.width / loaded.height);
+        }}
         accessibilityIgnoresInvertColors
       />
       {children}
@@ -122,7 +136,11 @@ export function FitImage({
 }
 
 const s = StyleSheet.create({
-  frame: { width: '100%', overflow: 'hidden', backgroundColor: '#0F172A' },
+  frame: { width: '100%', overflow: 'hidden', backgroundColor: PALETTE.blueSoft },
+  status: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16 },
+  statusText: { color: PALETTE.textMuted, fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  retry: { position: 'absolute', alignSelf: 'center', bottom: 8, minHeight: 44, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 12, backgroundColor: PALETTE.white },
+  retryText: { fontSize: 13, fontWeight: '700', color: PALETTE.blue },
   dim: { backgroundColor: 'rgba(15,23,42,0.28)' },
 });
 

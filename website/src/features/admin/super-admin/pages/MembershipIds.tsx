@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import AdminSidebar from './AdminSidebar';
 import { ADMIN_BG, ADMIN_PAGE, ADMIN_CARD, ADMIN_INPUT, ADMIN_PRIMARY_BTN, ADMIN_SECONDARY_BTN } from '@/features/admin/components/AdminUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { correctionForm, listMembershipIds, getMembershipId, updateMembershipId, deleteMembershipId, visibleMembershipIds, type MembershipIdRecord, type MembershipIdPage, type MembershipIdCorrection } from '@/services/membershipIdApi';
+import { correctionForm, listMembershipIds, getMembershipId, updateMembershipId, deleteMembershipId, visibleMembershipIds, idLegend, idExample, type MembershipIdRecord, type MembershipIdPage, type MembershipIdCorrection } from '@/services/membershipIdApi';
 import { PAGE_TITLE, PAGE_SUBTITLE, SECTION_TITLE } from '@/components/layout/appTypography';
 import { errorMessage } from '@/services/activApi';
 
@@ -65,8 +65,8 @@ export default function MembershipIds() {
             <button className={ADMIN_SECONDARY_BTN} onClick={() => void load()} disabled={loading}><RefreshCw size={18} />Refresh</button>
         </div>
         <section className={`${ADMIN_CARD} mb-5 p-4 sm:p-5`}>
-            <p className="text-ui-body font-bold text-slate-900 break-all">ACTIV-BEG-20261012-001</p>
-            <p className="mt-1 text-ui-caption leading-relaxed text-slate-600">Category · joining year, month and day · unique daily number. BEG Beginner · INT Intermediate · IDL Ideal · STU Student · ASP Aspirant · LIF Lifetime.</p>
+            <p className="text-ui-body font-bold text-slate-900 break-all">{idExample(data)}</p>
+            <p className="mt-1 text-ui-caption leading-relaxed text-slate-600">Category · joining year, month and day · unique daily number.{idLegend(data) ? ` ${idLegend(data)}.` : ''}</p>
             <p className="mt-2 text-ui-caption text-slate-500">IDs stay the same during renewals. Previous IDs remain searchable after a correction.</p>
         </section>
         <div className="mb-4 flex flex-wrap items-center gap-3"><label className="relative min-w-0 flex-1 basis-full sm:basis-auto"><span className="sr-only">Search membership IDs</span><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input className={`${ADMIN_INPUT} w-full pl-10`} placeholder="Search ID, name, email or mobile" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /></label><span className="text-ui-small font-semibold text-slate-500">{data?.total || 0} members</span></div>

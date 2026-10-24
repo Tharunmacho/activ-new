@@ -28,7 +28,7 @@ const words = (v?: string | null) => String(v || '').replace(/[_-]+/g, ' ').repl
 const yesNo = (v?: boolean) => (v ? 'Yes' : 'No');
 const join = (v: any) => (Array.isArray(v) ? v.filter(Boolean).join(', ') : String(v || ''));
 const CONTACT_LABEL: Record<string, string> = { call: 'a phone call', whatsapp: 'WhatsApp', email: 'email' };
-const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted', converted: 'Platinum granted', declined: 'Declined' };
+const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted', converted: 'Lifetime granted', declined: 'Declined' };
 const statusKind = (st?: string): ConsoleChipKind => (st === 'converted' ? 'approved' : st === 'declined' ? 'rejected' : 'pending');
 
 /** Absent values are left out rather than printed as dashes (website `Row`). */
@@ -100,7 +100,7 @@ const SuperPlatinumRequestScreen: React.FC = () => {
       member: {
         id: r.memberId, fullName: r?.name || p?.fullName, email: r?.email || p?.email, phoneNumber: r?.phone || p?.phoneNumber,
         block: p?.block, district: p?.district, state: p?.state, membershipNumber: mem?.memberNumber,
-        membershipStatus: mem?.status, membershipType: mem?.type,
+        membershipStatus: mem?.status, membershipType: mem?.type, blockedReason,
       },
     });
   };
@@ -110,8 +110,8 @@ const SuperPlatinumRequestScreen: React.FC = () => {
   const header = (
     <ConsoleHeader
       compact
-      eyebrow="Super Admin · wants Platinum"
-      title={r?.name || p?.fullName || 'Platinum request'}
+      eyebrow="Super Admin · wants Lifetime"
+      title={r?.name || p?.fullName || 'Lifetime request'}
       subtitle={detail ? `Prefers ${CONTACT_LABEL[String(r?.preferredContact || '')] || 'a phone call'}${r?.preferredTime ? ` · ${r.preferredTime}` : ''}${r?.createdAt ? ` · asked ${shortDate(r.createdAt)}` : ''}` : 'Loading the member’s details…'}
       left={<GlassIconButton icon="arrow-back" accessibilityLabel="Back" onPress={() => navigation?.goBack?.()} />}
     />
@@ -150,8 +150,8 @@ const SuperPlatinumRequestScreen: React.FC = () => {
         </View>
         <View style={s.actions}>
           <MiniAction icon="call" label={r?.phone || 'Call'} onPress={() => callNumber(phone)} disabled={!phone} />
-          <MiniAction icon="chat" label="WhatsApp" color={PALETTE.green} onPress={() => whatsappNumber(wa, `Hello ${r?.name || ''}, this is the ACTIV office about your Platinum membership request.`)} disabled={!wa} />
-          <MiniAction icon="email" label="Email" color={PALETTE.textSoft} onPress={() => openUrl(r?.email ? `mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Platinum membership request')}` : '')} disabled={!r?.email} />
+          <MiniAction icon="chat" label="WhatsApp" color={PALETTE.green} onPress={() => whatsappNumber(wa, `Hello ${r?.name || ''}, this is the ACTIV office about your Lifetime Membership request.`)} disabled={!wa} />
+          <MiniAction icon="email" label="Email" color={PALETTE.textSoft} onPress={() => openUrl(r?.email ? `mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Lifetime Membership request')}` : '')} disabled={!r?.email} />
         </View>
       </ConsoleCard>
 
@@ -180,7 +180,7 @@ const SuperPlatinumRequestScreen: React.FC = () => {
       <Section title="Membership & application" icon="badge">
         <Row label="Member ID" value={mem?.memberNumber} />
         <Row label="Member type" value={words(mem?.memberType)} />
-        <Row label="Membership" value={`${words(mem?.status)}${mem?.type && mem.type !== 'none' ? ` · ${words(mem.type)}` : ''}${mem?.tier === 'platinum' ? ' · Platinum' : ''}`} />
+        <Row label="Membership" value={`${words(mem?.status)}${mem?.type && mem.type !== 'none' ? ` · ${words(mem.type)}` : ''}${mem?.tier === 'platinum' ? ' · Lifetime' : ''}`} />
         <Row label="Member since" value={shortDate(mem?.activatedAt)} />
         <Row label="Valid until" value={lifetime ? 'Lifetime' : shortDate(mem?.expiresAt)} />
         <Row label="Last payment" value={mem?.lastPaymentAmount ? `${money(mem.lastPaymentAmount)}${mem?.lastPaymentDate ? ` · ${shortDate(mem.lastPaymentDate)}` : ''}` : ''} />
@@ -222,7 +222,7 @@ const SuperPlatinumRequestScreen: React.FC = () => {
       </Section>
 
       {earlier.length ? (
-        <Section title="Earlier Platinum requests" icon="history">
+        <Section title="Earlier Lifetime requests" icon="history">
           {earlier.map((h, i) => (
             <Row key={String(h?.id || i)} label={shortDate(h?.createdAt) || '—'} value={`${words(h?.status)}${h?.notes ? ` — ${h.notes}` : ''}`} />
           ))}
@@ -237,7 +237,7 @@ const SuperPlatinumRequestScreen: React.FC = () => {
 
       {open ? (
         <View style={s.decide}>
-          <ConsoleButton icon="diamond" label="Grant Platinum" onPress={grant} loading={busy} disabled={!!blockedReason} />
+          <ConsoleButton icon="diamond" label="Grant Lifetime" onPress={grant} loading={busy} disabled={!!blockedReason} />
           {r?.status === 'new' ? <ConsoleButton kind="soft" icon="done" label="Mark contacted" onPress={() => setStatus('contacted')} disabled={busy} /> : null}
           <ConsoleButton kind="danger" icon="close" label="Decline" onPress={() => setStatus('declined')} disabled={busy} />
         </View>

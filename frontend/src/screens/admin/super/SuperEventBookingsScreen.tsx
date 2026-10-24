@@ -1,5 +1,6 @@
+import { saveSpreadsheetReport } from '../../../services/reportExport';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Alert, Share, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -37,7 +38,7 @@ import { DeliveryChips, useDeliverySummaries, useDelayedNonce } from './delivery
  *                 member rate, Confirmed or Waiting list; counts in the footer.
  *   Attendance    the read-only door list (EventAttendance, readOnly).
  *   Excel report  GET /events/:id/bookings/export — the website's CSV, handed
- *                 to the system share sheet (no file-system native module).
+ *                 to the phone's Files picker to save as a spreadsheet file.
  */
 
 type Tab = 'bookings' | 'attendees';
@@ -134,10 +135,11 @@ const SuperEventBookingsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const eventId: string = String(route?.params?.eventId || '');
+  const filters = useMemo(() => route?.params?.filters || {}, [route?.params?.filters]);
   const [tab, setTab] = useState<Tab>('bookings');
 
   // ---- the event picker
-  const [events, setEvents] = useState<{ id: string; title: string; startAt: string | null; registrationFee: number; capacity: number }[]>([]);
+  const [events, setEvents] = useState<{ id: string; title: string; startAt: string | null; registrationFee: number; capacity: number; bookingHistoryOnly?: boolean; archivedAt?: string | null }[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   useEffect(() => {
@@ -153,10 +155,10 @@ const SuperEventBookingsScreen: React.FC = () => {
   const capacity = selected ? Number(selected?.capacity || 0) : Number(route?.params?.capacity || 0);
 
   // ---- bookings (server-side search, filter and paging)
-  const [search, setSearch] = useState('');
-  const [debounced, setDebounced] = useState('');
+  const [search, setSearch] = useState(filters.search || '');
+  const [debounced, setDebounced] = useState(filters.search || '');
   useEffect(() => { const t = setTimeout(() => setDebounced((search || '').trim()), 400); return () => clearTimeout(t); }, [search]);
-  const [paymentStatus, setPaymentStatus] = useState<PayFilter>('');
+  const [paymentStatus, setPaymentStatus] = useState<PayFilter>(filters.paymentStatus || '');
   const [page, setPage] = useState(1);
   useEffect(() => { setPage(1); }, [eventId, debounced, paymentStatus]);
 
@@ -172,14 +174,14 @@ const SuperEventBookingsScreen: React.FC = () => {
     if (mode === 'refresh') setRefreshing(true); else if (mode === 'load') setLoading(true);
     setError('');
     try {
-      const d = await listEventBookings(eventId, { page, limit: LIMIT, search: debounced, paymentStatus });
+      const d = await listEventBookings(eventId, { ...filters, page, limit: LIMIT, search: debounced, paymentStatus });
       if (mine === seq.current) setData(d || {});
     } catch (err) {
       if (mine === seq.current) setError(errorText(err, 'The bookings could not be loaded'));
     } finally {
       if (mine === seq.current) { setLoading(false); setRefreshing(false); }
     }
-  }, [eventId, page, debounced, paymentStatus]);
+  }, [eventId, page, debounced, paymentStatus, filters]);
 
   // ---- who is coming (loaded when its tab is open)
   const [attendees, setAttendees] = useState<any[] | null>(null);
@@ -221,9 +223,7 @@ const SuperEventBookingsScreen: React.FC = () => {
     if (exporting || !eventId) return;
     setExporting(true);
     try {
-      const { csv, filename } = await exportBookingsCsv(eventId, title || 'event');
-      if (!(csv || '').trim()) { Alert.alert('Nothing to export', 'This event has no bookings yet.'); return; }
-      await Share.share({ title: filename, message: csv });
+      await saveSpreadsheetReport(await exportBookingsCsv(eventId, title || 'event', { ...filters, search: debounced, paymentStatus }));
     } catch (err) {
       Alert.alert('The report could not be downloaded', errorText(err));
     } finally { setExporting(false); }
@@ -268,13 +268,14 @@ const SuperEventBookingsScreen: React.FC = () => {
   const back = <GlassIconButton icon="arrow-back" accessibilityLabel="Back" onPress={() => navigation?.goBack?.()} />;
   const headerRight = (
     <View style={s.headRight}>
-      <GlassIconButton icon="how-to-reg" accessibilityLabel="Attendance" onPress={openAttendance} />
+      {!selected?.bookingHistoryOnly && <GlassIconButton icon="how-to-reg" accessibilityLabel="Attendance" onPress={openAttendance} />}
       <GlassIconButton icon={exporting ? 'hourglass-empty' : 'file-download'} accessibilityLabel="Excel report" onPress={exportCsv} />
     </View>
   );
 
-  const eventLine = (e: { startAt: string | null; registrationFee: number } | null) =>
-    e ? [e.startAt ? shortDate(e.startAt) : '', Number(e.registrationFee || 0) > 0 ? money(Number(e.registrationFee || 0)) : 'Free'].filter(Boolean).join(' — ') : '';
+  const eventLine = (e: { startAt: string | null; registrationFee: number; bookingHistoryOnly?: boolean; archivedAt?: string | null; historyCategory?: string } | null) =>
+    e ? [e.startAt ? shortDate(e.startAt) : '', e.historyCategory === 'deleted' ? 'Old event · bookings retained' : e.historyCategory === 'past' ? 'Past event' : 'Current event',
+      e.bookingHistoryOnly ? '' : Number(e.registrationFee || 0) > 0 ? money(Number(e.registrationFee || 0)) : 'Free'].filter(Boolean).join(' — ') : '';
 
   const header = (
     <>
@@ -290,7 +291,7 @@ const SuperEventBookingsScreen: React.FC = () => {
       {loading && !data ? <ConsoleSkeleton variant="tiles" style={s.overlap} /> : (
         <ConsoleGrid overlap>
           <ConsoleStatTile label="Bookings" value={Number(summary?.bookings || 0)} icon="confirmation-number" accent="indigo" hint={`${Number(summary?.paidBookings || 0)} paid`} />
-          <ConsoleStatTile label="Seats taken" value={Number(summary?.seats || 0)} icon="groups" accent="sky" hint={capacity > 0 ? `of ${capacity}` : 'no seat limit set'} delay={60} />
+          <ConsoleStatTile label="Seats taken" value={Number(summary?.seats || 0)} icon="groups" accent="sky" hint={capacity > 0 ? `of ${capacity}` : selected?.bookingHistoryOnly ? 'retained booking history' : 'no seat limit set'} delay={60} />
           <ConsoleStatTile label="Collected" value={money(Number(summary?.collected || 0))} icon="payments" accent="green" hint="money actually received" delay={120} />
           <ConsoleStatTile
             label="Awaiting payment"

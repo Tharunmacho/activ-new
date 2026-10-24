@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { getUserData, setUserData } from '../../../../services/api';
 import { Applicant } from '../../../../types';
 import { approveApplication, rejectApplication } from '../../../../services/adminApi';
@@ -83,13 +82,7 @@ export const BlockAdminProvider: React.FC<{ children: ReactNode }> = ({ children
   const [scopeMessage, setScopeMessage] = useState<string>('');
   const [profileImageUri, setProfileImageUriState] = useState<string | null>(null);
 
-  const setProfileImageUri = async (uri: string | null) => {
-    setProfileImageUriState(uri);
-    try {
-      if (uri) await AsyncStorage.setItem(`@profile_img_${adminEmail || 'block'}`, uri);
-      else await AsyncStorage.removeItem(`@profile_img_${adminEmail || 'block'}`);
-    } catch {}
-  };
+  const setProfileImageUri = (uri: string | null) => setProfileImageUriState(uri);
 
   const fetchDashboardData = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
@@ -121,10 +114,6 @@ export const BlockAdminProvider: React.FC<{ children: ReactNode }> = ({ children
         if (data?.phoneNumber || data?.phone) setAdminPhone(data.phoneNumber || data.phone);
         if (data?.email) {
           setAdminEmail(data.email);
-          try {
-            const savedUri = await AsyncStorage.getItem(`@profile_img_${data.email}`);
-            if (savedUri) setProfileImageUriState(savedUri);
-          } catch {}
         }
       })
       .catch(() => {});
@@ -139,6 +128,7 @@ export const BlockAdminProvider: React.FC<{ children: ReactNode }> = ({ children
         if (profile?.fullName) setAdminName(profile.fullName);
         if (profile?.email) setAdminEmail(profile.email);
         if (typeof profile?.phoneNumber === 'string') setAdminPhone(profile.phoneNumber);
+        setProfileImageUriState(profile?.profilePhoto || null);
       })
       .catch(() => {});
       

@@ -243,7 +243,7 @@ const EditProductScreen: React.FC<Props> = ({ navigation, route }) => {
           <ToggleRow tone="business"
             icon={published ? 'visibility' : 'visibility-off'}
             title={published ? 'Published' : 'Hidden'}
-            subtitle={published ? 'Other members see it in Discover and on your company page.' : 'Only you can see it.'}
+            subtitle={published ? 'Other members see it in ACTIV Network and on your company page.' : 'Only you can see it.'}
             value={published}
             onValueChange={togglePublish}
             disabled={publishing}
@@ -251,7 +251,7 @@ const EditProductScreen: React.FC<Props> = ({ navigation, route }) => {
           <ToggleRow tone="business"
             icon={featured ? 'star' : 'star-outline'}
             title="Featured"
-            subtitle={featured ? 'Promoted first on your company page and in Discover.' : 'Promote this item ahead of the rest of your catalogue.'}
+            subtitle={featured ? 'Promoted first on your company page and in ACTIV Network.' : 'Promote this item ahead of the rest of your catalogue.'}
             value={featured}
             onValueChange={toggleFeatured}
             disabled={featuring}

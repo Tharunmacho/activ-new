@@ -27,7 +27,7 @@ import { SkeletonList } from './components/Skeleton';
 import EmptyState from './components/EmptyState';
 import { MenuButton } from '../shared/TierMenu';
 
-type Category = 'all' | 'application' | 'admin' | 'event';
+type Category = 'all' | 'application' | 'admin' | 'event' | 'authentication' | 'content';
 
 interface AuditEntry {
   id: string;
@@ -48,6 +48,8 @@ const CATEGORY_TABS: { key: Category; label: string }[] = [
   { key: 'application', label: 'Apps' },
   { key: 'admin', label: 'Admins' },
   { key: 'event', label: 'Events' },
+        { key: 'authentication', label: 'Sign-ins' },
+        { key: 'content', label: 'Updates' },
 ];
 
 const ACTION_ICON: Record<string, { icon: string; fg: string; bg: string }> = {

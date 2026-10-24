@@ -129,7 +129,7 @@ const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
         >
           <View style={styles.figures}>
             <GlassFigure icon="apartment" value={String(count)} label={count === 1 ? 'Company' : 'Companies'} />
-            <GlassFigure icon="travel-explore" value={String(listed)} label="In Discover" />
+            <GlassFigure icon="travel-explore" value={String(listed)} label="In ACTIV Network" />
           </View>
         </BrandHero>
       </BrandHeaderBlock>
@@ -199,10 +199,10 @@ const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
 
 function statusLabel(status?: string) {
   return status === 'pending'
-    ? 'Under Review'
+    ? 'Not published'
     : status === 'active'
     ? 'Active'
-    : status || 'Under Review';
+    : status || 'Not published';
 }
 
 /** One company: identity, the switch control, and its actions. */
@@ -233,7 +233,7 @@ function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProd
       </View>
 
       <View style={styles.tags}>
-        <Badge size="sm" dot label={listed ? 'Listed in Discover' : 'Hidden from Discover'} color={listed ? PALETTE.successText : PALETTE.warningText} bg={listed ? PALETTE.successSoft : PALETTE.warningSoft} />
+        <Badge size="sm" dot label={listed ? 'Listed in ACTIV Network' : 'Hidden from ACTIV Network'} color={listed ? PALETTE.successText : PALETTE.warningText} bg={listed ? PALETTE.successSoft : PALETTE.warningSoft} />
       </View>
 
       {/* Active / switch control — the single company-switch point */}

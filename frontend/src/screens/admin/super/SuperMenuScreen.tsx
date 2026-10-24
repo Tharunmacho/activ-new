@@ -48,8 +48,10 @@ export const SUPER_MENU_SECTIONS: { title: string; items: Item[] }[] = [
   {
     title: 'Membership & money',
     items: [
+      { key: 'registrations', icon: 'how-to-reg', label: 'Registrations & payments', hint: 'Members, receipts, manual confirmation', accent: 'indigo', go: stack('SuperMembershipRegistrations') },
+      { key: 'membership-ids', icon: 'badge', label: 'Membership IDs', hint: 'Member records and corrections', accent: 'indigo', go: stack('SuperMembershipIds') },
       { key: 'plans', icon: 'card-membership', label: 'Membership plans', hint: 'Prices, bands, show-all', accent: 'indigo', go: stack('SuperMembership', { tab: 'plans' }) },
-      { key: 'platinum', icon: 'workspace-premium', label: 'Platinum', hint: 'Grant, requests', accent: 'gold', go: stack('SuperMembership', { tab: 'platinum' }) },
+      { key: 'platinum', icon: 'workspace-premium', label: 'Lifetime', hint: 'Grant, requests', accent: 'gold', go: stack('SuperMembership', { tab: 'platinum' }) },
       { key: 'bookings', icon: 'confirmation-number', label: 'Bookings & revenue', hint: 'Seats sold, paid, unpaid', accent: 'green', go: stack('SuperBookings') },
       { key: 'donations', icon: 'volunteer-activism', label: 'Donations', hint: 'Donors, receipts, totals', accent: 'red', go: stack('SuperDonors') },
     ],
@@ -89,8 +91,8 @@ function Tile({ item, onPress, delay }: { item: Item; onPress: () => void; delay
             </LinearGradient>
             <Icon name="arrow-outward" size={16} color={PALETTE.textFaint} />
           </View>
-          <Text style={s.tileLabel} numberOfLines={1}>{item.label}</Text>
-          <Text style={s.tileHint} numberOfLines={2}>{item.hint}</Text>
+          <Text style={s.tileLabel}>{item.label}</Text>
+          <Text style={s.tileHint}>{item.hint}</Text>
         </View>
         </View>
       </PressableScale>
@@ -127,7 +129,7 @@ const SuperMenuScreen: React.FC = () => {
 
       {SUPER_MENU_SECTIONS.map((sec, si) => (
         <View key={sec.title} style={si === 0 ? s.firstSection : undefined}>
-          <Text style={s.section}>{sec.title}</Text>
+          <Text style={s.section} accessibilityRole="header">{sec.title}</Text>
           <View style={s.grid}>
             {sec.items.map((it) => {
               n += 1;
@@ -157,8 +159,8 @@ const SuperMenuScreen: React.FC = () => {
 
 const s = StyleSheet.create({
   flex: { flex: 1 },
-  firstSection: { marginTop: -SPACE.lg },
-  section: { ...TYPE.eyebrow, color: PALETTE.indigoDark, marginHorizontal: SPACE.lg, marginTop: SPACE.lg, marginBottom: SPACE.md },
+  firstSection: { marginTop: 0 },
+  section: { ...TYPE.eyebrow, fontSize: 13, lineHeight: 18, fontWeight: '800', color: PALETTE.indigoDark, marginHorizontal: SPACE.lg, marginTop: SPACE.lg, marginBottom: SPACE.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'stretch', paddingHorizontal: SPACE.lg },
   cell: { width: '48.4%', marginBottom: SPACE.md },
   cellInner: { flex: 1 },

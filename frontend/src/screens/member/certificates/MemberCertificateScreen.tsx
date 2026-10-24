@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Share } from 'react-native';
+import { View, Text, StyleSheet, Share, Alert } from 'react-native';
 import {
   Skeleton, Notice, BottomActionBar, SPACE, RADIUS, TYPE, errorText,
   PremiumPage, PremiumPageHeader, PREMIUM_OVERLAP, HeaderStat, HeaderStatRow, GlassIconButton, GradientButton,
   PillTabs, StateView, SurfaceCard, GradientGlyph, FadeInUp, CertificateSeal3D,
 } from '../../../ui';
 import { getCertificate } from '../../../services/memberApi';
+import { saveCertificatePdf } from '../../../services/certificateExport';
 import { isPaymentGate } from '../useLoad';
 import MemberLocked from '../MemberLocked';
 import { MembershipCertificateView, TaxCertificateView, certDate, certRupees, fullYear } from './CertificateViews';
@@ -21,9 +22,8 @@ import { MembershipCertificateView, TaxCertificateView, certDate, certRupees, fu
  * active — that refusal IS the answer, so it is shown as the locked state, not
  * as a blank certificate.
  *
- * Sharing: the app ships no screenshot/PDF module, so Share sends the
- * certificate's facts as text plus the link to the same certificate on the
- * website (where it prints / saves as PDF).
+ * Download saves the complete native certificate as an A4 PDF. Sharing also
+ * offers the certificate's facts and its authenticated website link.
  */
 
 type Kind = 'membership' | 'tax-exemption';
@@ -49,7 +49,7 @@ const shareText = (kind: Kind, cert: any): string => {
   const valid = platinum ? 'Lifetime' : cert?.validUntil ? certDate(cert.validUntil) : String(cert?.membershipType || '') === 'lifetime' ? 'Lifetime' : '';
   return [
     'ACTIV — Membership Certificate',
-    `${m?.companyName || m?.name || 'Member'} has been admitted as ${platinum ? 'a Platinum Lifetime Member' : 'an official member'} of ACTIV.`,
+    `${m?.companyName || m?.name || 'Member'} has been admitted as ${platinum ? 'a Lifetime Member' : 'an official member'} of ACTIV.`,
     m?.membershipNumber ? `Membership No: ${m.membershipNumber}` : '',
     valid ? `Valid till: ${valid}` : '',
     cert?.reference ? `Certificate No: ${cert.reference}` : '',
@@ -67,6 +67,8 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
   const [error, setError] = useState('');
   const [gated, setGated] = useState(false);
   const alive = useRef(true);
+  const pdfRef = useRef<View>(null);
+  const [savingPdf, setSavingPdf] = useState(false);
 
   const load = useCallback(async (mode: 'load' | 'refresh' = 'load') => {
     if (mode === 'refresh') setRefreshing(true); else setLoading(true);
@@ -102,6 +104,19 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
     }
   }, [cert, kind]);
 
+  const downloadPdf = async () => {
+    if (!cert || savingPdf) return;
+    setSavingPdf(true);
+    try {
+      const saved = await saveCertificatePdf(pdfRef.current, `ACTIV-${kind}-${cert.reference || 'certificate'}.pdf`);
+      if (saved) Alert.alert('PDF saved', 'Your certificate has been saved in Downloads on this device.');
+    } catch (err) {
+      Alert.alert('PDF could not be saved', errorText(err, 'Please try again.'));
+    } finally {
+      if (alive.current) setSavingPdf(false);
+    }
+  };
+
   const platinum = String(cert?.membershipTier || '') === 'platinum';
   const validTill = platinum
     ? 'Lifetime'
@@ -112,7 +127,7 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
     <PremiumPageHeader
       eyebrow={kind === 'tax-exemption' ? 'Section 80G · Income Tax Act' : 'Official document'}
       title={kind === 'tax-exemption' ? 'Tax exemption certificate' : 'Membership certificate'}
-      subtitle={ready ? 'Issued by ACTIV — share it or print it from the website.' : 'Your certificates, drawn from your membership record.'}
+      subtitle={ready ? 'Issued by ACTIV — view it or download your PDF.' : 'Your certificates, drawn from your membership record.'}
       onBack={() => navigation.goBack()}
       right={ready ? <GlassIconButton icon="share" accessibilityLabel="Share certificate" onPress={share} /> : null}
       art={<CertificateSeal3D size={88} />}
@@ -185,8 +200,8 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
       onRefresh={() => load('refresh')}
       refreshing={refreshing}
       footer={(
-        <BottomActionBar note="The link opens this certificate on activ.org.in, where it prints or saves as a PDF.">
-          <GradientButton label="Share certificate" icon="share" onPress={share} style={s.grow} />
+        <BottomActionBar note="Your PDF saves directly to Downloads on this device.">
+          <GradientButton label="Download PDF" icon="download" onPress={downloadPdf} loading={savingPdf} disabled={refreshing} style={s.grow} />
         </BottomActionBar>
       )}
     >
@@ -200,6 +215,7 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
         {kind === 'tax-exemption' ? (
           <TaxCertificateView
             cert={cert}
+            pdfRef={pdfRef}
             hint="Tap the certificate to view it full size"
             onPress={() => {
               try {
@@ -209,7 +225,7 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
               }
             }}
           />
-        ) : <MembershipCertificateView cert={cert} />}
+        ) : <MembershipCertificateView cert={cert} pdfRef={pdfRef} hint="A4 landscape · Tap to zoom" onPress={() => navigation.navigate('CertificateZoom', { cert, kind: 'membership' })} />}
       </FadeInUp>
       <FadeInUp delay={320}>
         <SurfaceCard style={s.verify}>

@@ -13,6 +13,7 @@ import useApplicantDetail from '@/features/admin/components/useApplicantDetail';
 import ProfileViewModal from '@/components/ui/profile-view-modal';
 
 import { PAGE_SUBTITLE, PAGE_TITLE } from '@/components/layout/appTypography';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 /**
  * The Hub: every application on the platform, reached by drilling down through
  * the geography that owns it.
@@ -317,6 +318,8 @@ export default function Hub() {
                                 .filter(Boolean).join(', ')}
                         </p>
                     </div>
+                    {/* Light / dark, at the same corner as every other admin header. */}
+                    <ThemeToggle className="ml-auto" />
                   </div>
                 </header>
 

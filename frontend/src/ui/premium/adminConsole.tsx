@@ -74,7 +74,7 @@ export function ConsoleFrame({ children, footer, style, avoidKeyboard }: {
   const top = Number(insets?.top || 0);
   return (
     <View style={[f.flex, { backgroundColor: CONSOLE_CANVAS }, style]}>
-      <StatusBar barStyle="light-content" backgroundColor={ADMIN.top} />
+      <StatusBar barStyle="light-content" />
       <View pointerEvents="none" style={[f.overscroll, { backgroundColor: ADMIN.top }]} />
       {avoidKeyboard && Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={f.flex} behavior="padding">
@@ -151,22 +151,21 @@ export function ConsoleHeader({
       {left || right || topCenter ? (
         <FadeInUp distance={8} style={h.topRow}>
           <View style={h.side}>{left || null}</View>
-          {topCenter ? <Text style={h.topCenter} numberOfLines={1} maxFontSizeMultiplier={CAP}>{topCenter}</Text> : <View style={f.flex} />}
+          {topCenter ? <Text style={h.topCenter} maxFontSizeMultiplier={CAP}>{topCenter}</Text> : <View style={f.flex} />}
           <View style={[h.side, h.sideRight]}>{right || null}</View>
         </FadeInUp>
       ) : null}
       <View style={[h.heroRow, compact && h.heroRowCompact]}>
         <FadeInUp delay={60} style={h.heroText}>
-          {eyebrow ? <Text style={h.eyebrow} numberOfLines={1} maxFontSizeMultiplier={CAP}>{eyebrow}</Text> : null}
+          {eyebrow ? <Text style={h.eyebrow} maxFontSizeMultiplier={CAP}>{eyebrow}</Text> : null}
           <Text
             style={[compact ? h.titleCompact : h.title]}
-            numberOfLines={2}
             accessibilityRole="header"
             maxFontSizeMultiplier={1.25}
           >
             {String(title || '')}
           </Text>
-          {subtitle ? <Text style={h.subtitle} numberOfLines={3} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
+          {subtitle ? <Text style={h.subtitle} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
         </FadeInUp>
         {art ? (
           <FadeInUp delay={140} scaleFrom={0.85} distance={10}>
@@ -330,9 +329,9 @@ export function ConsoleSectionTitle({ title, subtitle, icon, action, onAction, s
           <Icon name={icon} size={16} color={PALETTE.white} />
         </LinearGradient>
       ) : null}
-      <View style={f.flexText}>
-        <Text style={c.sectionTitle} accessibilityRole="header" numberOfLines={1} maxFontSizeMultiplier={CAP}>{title}</Text>
-        {subtitle ? <Text style={c.sectionSub} numberOfLines={2} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
+      <View style={c.sectionText}>
+        <Text style={c.sectionTitle} accessibilityRole="header" maxFontSizeMultiplier={CAP}>{title}</Text>
+        {subtitle ? <Text style={c.sectionSub} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
       </View>
       {action && onAction ? (
         <TouchableOpacity onPress={onAction} style={c.sectionAction} accessibilityRole="button" hitSlop={8}>
@@ -859,12 +858,13 @@ const c = StyleSheet.create({
     shadowColor: BRAND.indigoDeep, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 18, elevation: 3,
   },
   padded: { padding: SPACE.lg },
-  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, marginHorizontal: SPACE.lg, marginTop: SPACE.xl, marginBottom: SPACE.md },
+  sectionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SPACE.md, marginHorizontal: SPACE.lg, marginTop: SPACE.xl, marginBottom: SPACE.md },
+  sectionText: { flexGrow: 1, flexShrink: 1, flexBasis: 180, minWidth: 0 },
   sectionIcon: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  sectionTitle: { ...TYPE.heading, fontSize: 17, lineHeight: 22 },
+  sectionTitle: { ...TYPE.heading, fontSize: 17, lineHeight: 22, fontWeight: '800' },
   sectionSub: { ...TYPE.caption, marginTop: 1 },
-  sectionAction: { flexDirection: 'row', alignItems: 'center', minHeight: SIZE.touch, paddingLeft: SPACE.sm },
-  sectionActionText: { ...TYPE.label, color: PALETTE.indigo, fontWeight: '700' },
+  sectionAction: { flexDirection: 'row', alignItems: 'center', minHeight: SIZE.touch, paddingLeft: SPACE.sm, maxWidth: '100%' },
+  sectionActionText: { ...TYPE.label, color: PALETTE.indigo, fontWeight: '700', flexShrink: 1 },
   note: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.sm + 2, padding: SPACE.md, borderRadius: 16 },
   noteIcon: { marginTop: 1 },
   noteText: { ...TYPE.caption, lineHeight: 18, fontWeight: '600' },

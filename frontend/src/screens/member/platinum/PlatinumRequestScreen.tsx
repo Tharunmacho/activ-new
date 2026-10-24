@@ -28,8 +28,8 @@ type Contact = 'call' | 'whatsapp' | 'email';
 
 const BENEFITS: { icon: string; tone: GlyphTone; title: string; text: string }[] = [
   { icon: 'all-inclusive', tone: 'navy', title: 'Member for life', text: 'One payment — no renewal, ever.' },
-  { icon: 'verified', tone: 'slate', title: 'Platinum badge', text: 'On your dashboard and your membership certificate.' },
-  { icon: 'emoji-events', tone: 'gold', title: 'Recognised at ACTIV', text: 'Acknowledged as a Platinum member at association conclaves.' },
+  { icon: 'verified', tone: 'slate', title: 'Lifetime badge', text: 'On your dashboard and your membership certificate.' },
+  { icon: 'emoji-events', tone: 'gold', title: 'Recognised at ACTIV', text: 'Acknowledged as a Lifetime member at association conclaves.' },
   { icon: 'event-available', tone: 'blue', title: 'First to hear', text: 'Early word on ACTIV events and business programmes.' },
   { icon: 'support-agent', tone: 'teal', title: 'A direct line', text: 'The ACTIV office looks after your membership personally.' },
   { icon: 'auto-awesome', tone: 'amber', title: 'Everything included', text: 'Every member benefit, for as long as you are a member.' },
@@ -43,7 +43,7 @@ const CONTACTS: { key: Contact; label: string; detail: string }[] = [
 
 const STATUS_COPY: Record<string, { title: string; text: string }> = {
   new: { title: 'We have your request', text: 'The ACTIV office will contact you within two working days.' },
-  contacted: { title: 'The office has been in touch', text: 'Complete the payment at the office and your membership is upgraded to Platinum.' },
+  contacted: { title: 'The office has been in touch', text: 'Complete the payment at the office and your membership is upgraded to Lifetime.' },
 };
 
 const ContactMarkFor = ({ kind }: { kind: Contact }) =>
@@ -101,7 +101,7 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
 
   const header = (
     <PremiumPageHeader
-      eyebrow="Platinum lifetime membership"
+      eyebrow="Lifetime Membership"
       title="Join once. Stay a member for life."
       subtitle={isPlatinum ? 'You hold ACTIV’s highest recognition.' : 'One payment makes your membership permanent.'}
       onBack={() => navigation.goBack()}
@@ -134,7 +134,7 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
 
   const footer = canApply && !open ? (
     <BottomActionBar note="No payment online — the ACTIV office calls you and explains everything.">
-      <GradientButton label="Apply for Platinum" icon="workspace-premium" onPress={() => setOpen(true)} style={styles.grow} />
+      <GradientButton label="Apply for Lifetime" icon="workspace-premium" onPress={() => setOpen(true)} style={styles.grow} />
     </BottomActionBar>
   ) : undefined;
 
@@ -143,10 +143,10 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
       <FadeInUp delay={200} style={styles.overlap}>
         {isPlatinum ? (
           <SurfaceCard style={styles.gutter} padded={false}>
-            <LinearGradient colors={['#111827', '#374151', '#6B7280']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.holder}>
+            <LinearGradient colors={['#c8a04a', '#f8e6b2', '#ccaa58']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.holder}>
               <GradientGlyph icon="diamond" tone="gold" size={48} />
               <View style={styles.flexText}>
-                <Text style={styles.holderTitle}>You are a Platinum Lifetime Member</Text>
+                <Text style={styles.holderTitle}>You are a Lifetime Member</Text>
                 <Text style={styles.holderText}>Your membership never needs renewing.</Text>
               </View>
             </LinearGradient>
@@ -161,7 +161,7 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
               </View>
             </View>
             <View style={styles.steps}>
-              {['Requested', 'Office contacts you', 'Pay at the office', 'Platinum'].map((label, i) => {
+              {['Requested', 'Office contacts you', 'Pay at the office', 'Lifetime'].map((label, i) => {
                 const reached = i === 0 || (i === 1 && openRequest.status === 'contacted');
                 return (
                   <View key={label} style={styles.step}>
@@ -175,14 +175,14 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
             </View>
           </SurfaceCard>
         ) : !price ? (
-          <Notice kind="info" style={styles.gutter} text="Platinum membership is not being offered right now. The ACTIV office can tell you more." action="Help" onAction={() => navigation.navigate('MemberHelp')} />
+          <Notice kind="info" style={styles.gutter} text="Lifetime Membership is not being offered right now. The ACTIV office can tell you more." action="Help" onAction={() => navigation.navigate('MemberHelp')} />
         ) : (
           <SurfaceCard style={styles.gutter}>
             <View style={styles.statusRow}>
               <GradientGlyph icon="workspace-premium" tone="gold" size={46} />
               <View style={styles.flexText}>
                 <Text style={TYPE.heading}>The association’s highest recognition</Text>
-                <Text style={[TYPE.body, { marginTop: SPACE.xs }]}>Upgrade to Platinum and your membership becomes permanent — nothing to renew, ever.</Text>
+                <Text style={[TYPE.body, { marginTop: SPACE.xs }]}>Upgrade to Lifetime and your membership becomes permanent — nothing to renew, ever.</Text>
               </View>
             </View>
           </SurfaceCard>
@@ -221,7 +221,7 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
             <PremiumInput label="Best time to reach you" icon="schedule" value={time} onChangeText={setTime} placeholder="e.g. Weekdays after 6 pm" editable={!busy} />
             <PremiumInput label="Anything to add? (optional)" icon="chat-bubble-outline" value={message} onChangeText={setMessage} placeholder="A question for the office" editable={!busy} multiline />
             <Text style={[TYPE.small, { marginBottom: SPACE.md }]}>
-              The office explains the next steps; Platinum is paid at the office and activated for you once your membership application is approved.
+              The office explains the next steps; Lifetime is paid at the office and activated for you once your membership application is approved.
             </Text>
             <GradientButton label="Send my request" icon="send" onPress={submit} loading={busy} />
             <TouchableOpacity onPress={() => setOpen(false)} disabled={busy} style={styles.cancel} accessibilityRole="button">
@@ -231,7 +231,7 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
         </FadeInUp>
       ) : null}
 
-      <GroupTitle title="What Platinum gives you" count={BENEFITS.length} />
+      <GroupTitle title="What Lifetime gives you" count={BENEFITS.length} />
       <View style={styles.grid}>
         {BENEFITS.map((b, i) => (
           <FadeInUp key={b.title} delay={260 + i * 60} style={styles.cell}>
@@ -252,7 +252,7 @@ const PlatinumRequestScreen = ({ navigation }: any) => {
           </View>
           <View style={styles.cmpRow}>
             <View style={[styles.cmpIcon, { backgroundColor: PALETTE.greenSoft }]}><Icon name="check" size={SIZE.iconSm} color={PALETTE.green} /></View>
-            <Text style={styles.cmpText}><Text style={styles.cmpStrong}>Platinum</Text> — pay once, never renew</Text>
+            <Text style={styles.cmpText}><Text style={styles.cmpStrong}>Lifetime</Text> — pay once, never renew</Text>
           </View>
         </SurfaceCard>
       </FadeInUp>
@@ -277,8 +277,8 @@ const styles = StyleSheet.create({
   lifeText: { fontSize: 12, lineHeight: 16, fontWeight: '700', color: '#FDE68A' },
 
   holder: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.lg },
-  holderTitle: { fontSize: 16, lineHeight: 21, fontWeight: '800', color: PALETTE.white },
-  holderText: { ...TYPE.caption, color: 'rgba(255,255,255,0.82)', marginTop: 2 },
+  holderTitle: { fontSize: 17, lineHeight: 23, fontWeight: '600', color: '#3e2c0e' },
+  holderText: { ...TYPE.caption, color: '#674c1b', marginTop: 2 },
 
   statusRow: { flexDirection: 'row', gap: SPACE.md, alignItems: 'flex-start' },
   steps: { flexDirection: 'row', marginTop: SPACE.lg, gap: 4 },

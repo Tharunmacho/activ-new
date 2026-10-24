@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { TIERS, tierForRole } from './tierConfig';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 import { CARD_SUBTITLE, CARD_TITLE, PAGE_SUBTITLE, PAGE_TITLE } from '@/components/layout/appTypography';
 /**
@@ -52,7 +53,7 @@ import { CARD_SUBTITLE, CARD_TITLE, PAGE_SUBTITLE, PAGE_TITLE } from '@/componen
  * whatever the body painted show through and the admin screens picked up a
  * lavender wash nobody had chosen.
  */
-export const ADMIN_BG = 'bg-white';
+export const ADMIN_BG = 'bg-white dark:bg-[#0a0a0a]';
 
 /**
  * The card.
@@ -342,7 +343,9 @@ export function AdminPageHeader({
             * below it — see `ADMIN_COLUMN`. The bar itself stays full-bleed so
             * its bottom rule still runs the width of the pane.
             */}
-          <div className={`${ADMIN_COLUMN} flex flex-col xl:flex-row xl:flex-wrap xl:items-center gap-3 sm:gap-4`}>
+          <div className={`${ADMIN_COLUMN} flex items-start xl:items-center gap-3`}>
+          {/* The old header row, unchanged, now to the LEFT of the theme toggle. */}
+          <div className="flex min-w-0 flex-1 flex-col xl:flex-row xl:flex-wrap xl:items-center gap-3 sm:gap-4">
             {/* On a phone the menu and back tiles are their own row and the
                 title takes the full width under them; beside the title they
                 squeezed it and its explanation into a narrow column. */}
@@ -395,6 +398,11 @@ export function AdminPageHeader({
                    three full-width 48px bars. They size to their labels from `sm`. */
                 <div className="flex max-w-full flex-wrap gap-2 [&>*]:flex-auto sm:[&>*]:flex-none">{actions}</div>
             )}
+          </div>
+          {/* Light / dark, at the same corner of every admin screen. The rail
+              carries the labelled pair; this is the one-tap version, and the only
+              one on a phone where the rail is behind the menu. */}
+          <ThemeToggle className="order-last" />
           </div>
         </header>
     );

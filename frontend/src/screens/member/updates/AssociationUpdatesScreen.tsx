@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   Badge, PALETTE, SPACE, SIZE, TYPE, asArray, timeAgo, BRAND,
   PremiumListPage, PremiumPageHeader, HeaderStat, HeaderStatRow, Megaphone3D,
-  SurfaceCard, GradientGlyph, GroupTitle, SearchPill, StateView, CardSkeletons, FadeInUp, FitImage } from '../../../ui';
+  SurfaceCard, GradientGlyph, GroupTitle, SearchPill, StateView, CardSkeletons, FadeInUp, FitImage, PressableScale } from '../../../ui';
 import { listAnnouncements } from '../../../services/memberApi';
 import { resolveMediaUrl } from '../../../config/api.config';
 import { useLoad } from '../useLoad';
@@ -42,10 +42,9 @@ function UpdateCard({ u, index, onPress }: { u: any; index: number; onPress: () 
     <FadeInUp delay={Math.min(index, 6) * 60} distance={14}>
       <SurfaceCard
         padded={false}
-        onPress={onPress}
         accent={u?.pinned ? '#BFD4FB' : undefined}
-        accessibilityLabel={`${style.label}${u?.pinned ? ', pinned' : ''}: ${u?.title || 'Update'}`}
       >
+        <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${style.label}${u?.pinned ? ', pinned' : ''}: ${u?.title || 'Update'}`}>
         {banner ? (
           <View>
             <FitImage uri={banner} style={styles.banner} accessibilityLabel={u?.bannerAlt || ''} />
@@ -86,6 +85,7 @@ function UpdateCard({ u, index, onPress }: { u: any; index: number; onPress: () 
             <Icon name="arrow-forward" size={18} color={PALETTE.blue} />
           </View>
         </View>
+        </PressableScale>
       </SurfaceCard>
     </FadeInUp>
   );

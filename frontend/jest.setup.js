@@ -1,5 +1,17 @@
 /* Native modules have no implementation under Jest: use their official mocks,
    or a minimal stand-in, so the whole app can be rendered as a smoke test. */
+jest.mock('@react-native-firebase/app', () => ({ getApps: jest.fn(() => []) }));
+jest.mock('@react-native-firebase/messaging', () => ({
+  getMessaging: jest.fn(), AuthorizationStatus: { AUTHORIZED: 1, PROVISIONAL: 2 },
+  getToken: jest.fn(), deleteToken: jest.fn(), hasPermission: jest.fn(), requestPermission: jest.fn(),
+  onMessage: jest.fn(() => () => {}), onTokenRefresh: jest.fn(() => () => {}),
+  onNotificationOpenedApp: jest.fn(() => () => {}), getInitialNotification: jest.fn(async () => null),
+  setBackgroundMessageHandler: jest.fn(),
+}));
+jest.mock('@react-native-firebase/analytics', () => ({
+  getAnalytics: jest.fn(), logEvent: jest.fn(async () => {}), setConsent: jest.fn(async () => {}),
+  setAnalyticsCollectionEnabled: jest.fn(async () => {}), setUserId: jest.fn(async () => {}),
+}));
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('react-native-safe-area-context', () =>
@@ -7,6 +19,13 @@ jest.mock('react-native-safe-area-context', () =>
 jest.mock('react-native-image-picker', () => ({
   launchImageLibrary: jest.fn(),
   launchCamera: jest.fn(),
+}));
+jest.mock('@react-native-documents/picker', () => ({
+  pick: jest.fn(async () => []),
+  keepLocalCopy: jest.fn(),
+  types: { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', images: 'image/*', zip: 'application/zip', plainText: 'text/plain', csv: 'text/csv' },
+  errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
+  isErrorWithCode: error => !!error && typeof error.code === 'string',
 }));
 jest.mock('react-native-linear-gradient', () => {
   const { View } = require('react-native');
@@ -36,6 +55,7 @@ jest.mock('react-native-webview', () => {
   const { View } = require('react-native');
   return { __esModule: true, WebView: View, default: View };
 });
+jest.mock('react-native-video', () => ({ __esModule: true, default: require('react-native').View }));
 // react-native-vision-camera (event check-in scanner): no native camera under
 // Jest. A plain View for <Camera>, a granted permission, a back camera, and a
 // code scanner that never fires — the screens' manual-entry path is testable.

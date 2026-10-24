@@ -74,7 +74,6 @@ export function GradientButton({
       {icon ? <Icon name={icon} size={19} color={disabled ? PALETTE.textFaint : fg} /> : null}
       <Text
         style={[s.btnText, { color: disabled ? PALETTE.textFaint : fg }]}
-        numberOfLines={1}
         maxFontSizeMultiplier={CAP}
       >
         {String(label || '')}
@@ -85,15 +84,15 @@ export function GradientButton({
 
   let body: React.ReactNode;
   if (disabled && !loading) {
-    body = <View style={[s.btn, { height, backgroundColor: PALETTE.disabled }]}>{content}</View>;
+    body = <View style={[s.btn, { minHeight: height, backgroundColor: PALETTE.disabled }]}>{content}</View>;
   } else if (variant === 'outline') {
-    body = <View style={[s.btn, s.btnOutline, { height, borderColor: p.accent }]}>{content}</View>;
+    body = <View style={[s.btn, s.btnOutline, { minHeight: height, borderColor: p.accent }]}>{content}</View>;
   } else if (variant === 'glass') {
-    body = <View style={[s.btn, s.btnGlass, { height }]}>{content}</View>;
+    body = <View style={[s.btn, s.btnGlass, { minHeight: height }]}>{content}</View>;
   } else {
     body = (
       <View style={[s.btnShadow, { shadowColor: p.accent, backgroundColor: p.button[p.button.length - 1] }]}>
-        <LinearGradient colors={p.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.btn, { height }]}>
+        <LinearGradient colors={p.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.btn, { minHeight: height }]}>
           <View pointerEvents="none" style={s.btnSheen} />
           {content}
         </LinearGradient>
@@ -327,17 +326,19 @@ export function PortalSwitchCard({
 }
 
 /** Round translucent button for the brand header (back, close). */
-export function GlassIconButton({ icon, onPress, accessibilityLabel, style }: {
-  icon: string; onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>;
+export function GlassIconButton({ icon, onPress, accessibilityLabel, style, disabled = false }: {
+  icon: string; onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>; disabled?: boolean;
 }) {
   return (
     <PressableScale
       onPress={onPress}
-      style={style}
+      style={[disabled && { opacity: 0.65 }, style]}
+      disabled={disabled}
       scaleTo={0.92}
       contentStyle={s.glassIcon}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
       hitSlop={6}
     >
       <Icon name={icon} size={22} color={PALETTE.white} />
@@ -390,7 +391,7 @@ export function PremiumHeading({ eyebrow, title, subtitle, size = 'lg', align = 
   return (
     <View style={style}>
       {eyebrow ? (
-        <Text style={[s.eyebrow, { textAlign }]} numberOfLines={1} maxFontSizeMultiplier={CAP}>{eyebrow}</Text>
+        <Text style={[s.eyebrow, { textAlign }]} maxFontSizeMultiplier={CAP}>{eyebrow}</Text>
       ) : null}
       <Text
         style={[size === 'md' ? PREMIUM_TYPE.heroMd : PREMIUM_TYPE.hero, s.heroText, { textAlign }]}
@@ -568,7 +569,7 @@ export function PremiumInput({
  */
 export function PremiumSelect({
   label, value, options, onChange, placeholder = 'Select', required, disabled, hint, error, icon, emptyText, tone = 'member',
-  optionEmoji, iconBadge,
+  optionEmoji, iconBadge, strong = false,
 }: {
   label: string;
   value: string;
@@ -590,6 +591,8 @@ export function PremiumSelect({
   optionEmoji?: (option: string) => string;
   /** Draw `icon` white inside a small brand-gradient tile instead of as a bare glyph. */
   iconBadge?: boolean;
+  /** Emphasised admin filters; normal form fields retain their usual weight. */
+  strong?: boolean;
 }) {
   const p = premiumTone(tone);
   const [open, setOpen] = useState(false);
@@ -624,7 +627,7 @@ export function PremiumSelect({
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${value || placeholder}`}
         accessibilityState={{ expanded: open, disabled: !!disabled }}
-        style={[s.input, { backgroundColor: bg, borderColor }]}
+        style={[s.input, { backgroundColor: bg, borderColor }, strong && { borderColor: disabled ? PALETTE.divider : p.accentSoft, borderWidth: 1.5 }]}
       >
         {valueEmoji ? (
           <Text style={s.emoji} maxFontSizeMultiplier={1.2}>{valueEmoji}</Text>
@@ -641,7 +644,7 @@ export function PremiumSelect({
           <Icon name={icon} size={SIZE.icon} color={open ? p.accent : PALETTE.textMuted} style={{ marginRight: SPACE.sm + 2 }} />
         ) : null}
         <Text
-          style={[s.selectText, !value && { color: PALETTE.textFaint }, disabled && !!value && { color: PALETTE.textMuted }]}
+          style={[s.selectText, !value && { color: PALETTE.textFaint }, disabled && !!value && { color: PALETTE.textMuted }, strong && { fontWeight: '700', color: disabled ? PALETTE.textMuted : PALETTE.text }]}
           numberOfLines={1}
           maxFontSizeMultiplier={CAP}
         >
@@ -759,7 +762,7 @@ export function GradientAvatar({ name, uri, size = 56, tone = 'member', ring = t
 /* =================================================================== styles */
 
 const s = StyleSheet.create({
-  btn: { borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACE.xl, overflow: 'hidden' },
+  btn: { borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACE.xl, paddingVertical: SPACE.md, overflow: 'hidden' },
   btnShadow: {
     borderRadius: 999,
     shadowOffset: { width: 0, height: 8 },
@@ -771,7 +774,7 @@ const s = StyleSheet.create({
   btnOutline: { borderWidth: 1.5, backgroundColor: PALETTE.white },
   btnGlass: { borderWidth: 1, borderColor: BRAND.glassBorder, backgroundColor: BRAND.glass },
   btnInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm },
-  btnText: { fontSize: 16, lineHeight: 21, fontWeight: '700', letterSpacing: 0.2, flexShrink: 1 },
+  btnText: { fontSize: 16, lineHeight: 21, fontWeight: '700', letterSpacing: 0.2, flexShrink: 1, textAlign: 'center' },
 
   footerRow: { flex: 1, flexDirection: 'row', gap: SPACE.md },
   footerSecondary: { minWidth: 96 },

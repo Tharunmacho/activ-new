@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   Skeleton, PALETTE, SPACE, TYPE, SIZE,
-  PremiumScreen, PREMIUM_OVERLAP, PremiumCard, GradientIconChip, GradientAvatar, GradientButton, GlassIconButton,
+  PremiumScreen, PremiumCard, GradientIconChip, GradientAvatar, GradientButton, GlassIconButton,
   BrandLogo, FadeInUp, PressableScale, BRAND, PREMIUM_TYPE, ChipTone,
 } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
@@ -46,7 +46,7 @@ function MenuGroup({ title, items, paid, delay }: { title: string; items: Item[]
   if (!shown.length) return null;
   return (
     <FadeInUp delay={delay} style={styles.group}>
-      <Text style={styles.groupTitle}>{title}</Text>
+      <Text style={styles.groupTitle} accessibilityRole="header">{title}</Text>
       <PremiumCard padded={false}>
         {shown.map((i, idx) => {
           const paidLock = !!i.paidOnly && !paid;
@@ -62,8 +62,8 @@ function MenuGroup({ title, items, paid, delay }: { title: string; items: Item[]
             >
               <GradientIconChip icon={locked ? 'lock-outline' : i.icon} tone={locked ? 'slate' : i.tone} size={40} />
               <View style={styles.rowText}>
-                <Text style={[styles.rowTitle, locked && { color: PALETTE.textSoft }]} numberOfLines={1}>{i.label}</Text>
-                <Text style={styles.rowSub} numberOfLines={1}>
+                <Text style={[styles.rowTitle, locked && { color: PALETTE.textSoft }]}>{i.label}</Text>
+                <Text style={styles.rowSub}>
                   {paidLock ? 'Complete your membership' : i.lockedBy ? `${i.lockedBy} to unlock` : i.sub}
                 </Text>
               </View>
@@ -131,12 +131,15 @@ const MemberMenuScreen = ({ navigation }: any) => {
     { key: 'docs', label: 'Documents', sub: 'What you have submitted', icon: 'folder-open', tone: 'amber', go: () => navigation.navigate('MemberDocuments') },
   ];
   const association: Item[] = [
-    { key: 'dir', label: 'Member Directory', sub: 'Find members and their businesses', icon: 'groups', tone: 'sky', paidOnly: true, go: gated('MemberDirectory') },
+    { key: 'dir', label: 'ACTIV Network', sub: 'Find members and their businesses', icon: 'groups', tone: 'sky', paidOnly: true, go: gated('MemberDirectory') },
     { key: 'events', label: 'Events', sub: 'Upcoming events and your tickets', icon: 'event', tone: 'rose', go: () => navigation.navigate('MemberEvents') },
     { key: 'updates', label: 'Association Updates', sub: 'News for your region', icon: 'campaign', tone: 'amber', go: () => navigation.navigate('AssociationUpdates') },
     { key: 'msgs', label: 'Messages', sub: 'Talk to other members', icon: 'chat-bubble-outline', tone: 'green', paidOnly: true, go: gated('MemberMessages') },
     { key: 'donate', label: 'Donate', sub: 'Support ACTIV · 80G receipts', icon: 'volunteer-activism', tone: 'rose', go: () => navigation.navigate('MemberDonations') },
-    { key: 'website', label: 'Explore ACTIV website', sub: 'News, gallery, zones and schemes', icon: 'public', tone: 'navy', go: () => navigation.navigate('WebsiteViewer', { path: '/', title: 'ACTIV' }) },
+    { key: 'gallery', label: 'Gallery', sub: 'Community albums and photographs', icon: 'collections', tone: 'sky', go: () => navigation.navigate('PublicContent', { path: '/gallery', title: 'Gallery' }) },
+    { key: 'news', label: 'News', sub: 'Stories from the ACTIV community', icon: 'newspaper', tone: 'navy', go: () => navigation.navigate('PublicContent', { path: '/news', title: 'News' }) },
+    { key: 'zones', label: 'Zones & States', sub: 'Leadership and local updates', icon: 'public', tone: 'green', go: () => navigation.navigate('PublicContent', { path: '/zones', title: 'Zones & States' }) },
+    { key: 'schemes', label: 'Government Schemes', sub: 'Benefits, eligibility and application steps', icon: 'account-balance', tone: 'amber', go: () => navigation.navigate('PublicContent', { path: '/schemes', title: 'Schemes' }) },
   ];
   const support: Item[] = [
     { key: 'notif', label: 'Notifications', sub: 'Everything we have sent you', icon: 'notifications-none', tone: 'blue', go: () => navigation.navigate('MemberNotifications') },
@@ -163,8 +166,8 @@ const MemberMenuScreen = ({ navigation }: any) => {
         <GradientAvatar name={name} uri={photo || undefined} size={64} status={paid ? 'verified' : 'pending'} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.eyebrow} numberOfLines={1} maxFontSizeMultiplier={1.2}>{paid ? 'Active member' : 'Membership pending'}</Text>
-          <Text style={styles.name} numberOfLines={2} maxFontSizeMultiplier={1.25}>{name}</Text>
-          <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          <Text style={styles.name} maxFontSizeMultiplier={1.25}>{name}</Text>
+          <Text style={styles.sub} maxFontSizeMultiplier={1.2}>
             {paid ? `Member ID ${profile?.membershipNumber || '—'}` : 'Complete your membership to unlock everything'}
           </Text>
         </View>
@@ -172,7 +175,7 @@ const MemberMenuScreen = ({ navigation }: any) => {
       {paid || platinum ? (
         <FadeInUp delay={120} style={styles.chips}>
           {paid ? <GlassChip label="Active" dot="#34D399" /> : null}
-          {platinum ? <GlassChip label="Platinum" icon="diamond" /> : null}
+          {platinum ? <GlassChip label="Lifetime" icon="diamond" /> : null}
         </FadeInUp>
       ) : null}
       {!paid ? (
@@ -186,7 +189,6 @@ const MemberMenuScreen = ({ navigation }: any) => {
 
   return (
     <PremiumScreen header={header} waveHeight={56}>
-      <View style={styles.overlap} />
       {loading && !profile ? (
         <View style={styles.group}>
           {[0, 1, 2].map((i) => <Skeleton key={i} width="100%" height={150} radius={22} style={{ marginBottom: SPACE.lg }} />)}
@@ -221,10 +223,9 @@ const styles = StyleSheet.create({
   sub: { ...TYPE.caption, color: BRAND.onBrandSoft, marginTop: 2 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md },
   cta: { marginTop: SPACE.lg },
-  // The first group lifts over the waves; the groups keep their own top margin.
-  overlap: { marginTop: -PREMIUM_OVERLAP - SPACE.lg },
+  // Plain section headings stay below the waves; only surfaced cards overlap.
   group: { marginTop: SPACE.lg, paddingHorizontal: SPACE.lg },
-  groupTitle: { ...TYPE.eyebrow, marginBottom: SPACE.sm, marginLeft: SPACE.xs },
+  groupTitle: { ...TYPE.eyebrow, fontSize: 13, lineHeight: 18, fontWeight: '800', color: PALETTE.blueDeep, marginBottom: SPACE.sm, marginLeft: SPACE.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingHorizontal: SPACE.lg, paddingVertical: SPACE.md, minHeight: SIZE.row + 8 },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth * 2, borderBottomColor: PALETTE.divider },
   rowText: { flex: 1, minWidth: 0 },

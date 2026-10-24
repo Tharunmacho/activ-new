@@ -1,6 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+// After index.css: the dark-mode remap ties with the Tailwind utilities it replaces and must come later.
+import "./styles/app-dark.css";
 import { syncLegacyTokenKeys } from "@/services/api";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 

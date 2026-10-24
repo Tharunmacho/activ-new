@@ -14,6 +14,8 @@
  * different stage, a different next step or a different completion figure.
  */
 
+import { personalDetailsErrors } from '../../profile/personalDetailsValidation';
+
 export type Tier = 'block' | 'district' | 'state';
 export type StageState = 'pending' | 'in_progress' | 'approved' | 'rejected';
 
@@ -142,7 +144,9 @@ export const TOTAL_FORMS = 3;
 /** ProfileContext.loadProfileCompletion — same three forms, same 100% rule. */
 export const profileCompletion = (profile: any, business: any, declaration: any, application: any) => {
   const completed: string[] = [];
-  if (profile?.fullName) completed.push('Personal Details');
+  const personalComplete = profile?.personalDetailsComplete === true
+    || (profile?.personalDetailsComplete === undefined && Object.keys(personalDetailsErrors(profile)).length === 0);
+  if (personalComplete) completed.push('Personal Details');
   if (business && business.doingBusiness !== null && business.doingBusiness !== undefined) completed.push('Business Details');
   const SUBMITTED = ['submitted', 'verified', 'approved', 'completed'];
   if (declaration?.agreeToDeclaration || SUBMITTED.includes(String(declaration?.status || '').toLowerCase())) completed.push('Declaration');

@@ -383,7 +383,7 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
           <MetricGrid>
             <MetricTile tone="business" icon="visibility" label="Product views" value={catalogStats.views} colors={CHIP.violet} delay={120} />
             <MetricTile tone="business" icon="inventory-2" label="Products" value={catalogStats.total} colors={CHIP.sky} onPress={companyId ? goProducts : undefined} delay={180} />
-            <MetricTile tone="business" icon="check-circle" label="Live in Discover" value={catalogStats.active} colors={CHIP.green} delay={240} />
+            <MetricTile tone="business" icon="check-circle" label="Live in ACTIV Network" value={catalogStats.active} colors={CHIP.green} delay={240} />
             <MetricTile tone="business" icon="star" label="Featured" value={catalogStats.featured} colors={CHIP.amber} delay={300} />
           </MetricGrid>
         </>
@@ -418,7 +418,7 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
                 : navigation.navigate('AddCompany'))} />
             <ToolTile icon="inventory" label="Stock" colors={CHIP.sky}
               onPress={() => navigation.navigate('StockCentre')} />
-            <ToolTile icon="travel-explore" label="Discover" colors={CHIP.plum}
+            <ToolTile icon="travel-explore" label="ACTIV Network" colors={CHIP.plum}
               onPress={() => navigation.navigate('Discover')} />
             <ToolTile icon="verified-user" label="Trust list" colors={CHIP.green}
               onPress={() => navigation.navigate('TrustList')} />

@@ -330,7 +330,7 @@ export function MembershipCard3D({
         </View>
         <Text style={p.refLabel} maxFontSizeMultiplier={1.2}>MEMBER ID</Text>
         <Text
-          style={p.memberId}
+          style={[p.memberId, idText.length > 20 && { fontSize: 20, letterSpacing: 0.5 }]}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.7}
@@ -348,8 +348,8 @@ export function MembershipCard3D({
             <Text style={p.refLabel} maxFontSizeMultiplier={1.2}>{validLabel.toUpperCase()}</Text>
             <Text style={p.refSmall} numberOfLines={1} maxFontSizeMultiplier={1.2}>{validValue || '—'}</Text>
           </View>
-          <GlassChip label={statusLabel} dot={active ? '#34D399' : '#FBBF24'} />
         </View>
+        <View style={p.membershipStatus}><GlassChip label={statusLabel} dot={active ? '#34D399' : '#FBBF24'} /></View>
       </LinearGradient>
     </PressableScale>
   );
@@ -449,6 +449,7 @@ const p = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', marginBottom: SPACE.lg,
   },
   validRow: { flexDirection: 'row', alignItems: 'flex-end', gap: SPACE.md },
+  membershipStatus: { alignItems: 'flex-end', marginTop: SPACE.md, paddingTop: SPACE.sm, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.16)' },
 
   skCard: { marginHorizontal: SPACE.lg, borderRadius: 26, backgroundColor: PALETTE.white, padding: SPACE.xl, borderWidth: 1, borderColor: PALETTE.border },
   skRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: SPACE.lg, marginTop: SPACE.lg },

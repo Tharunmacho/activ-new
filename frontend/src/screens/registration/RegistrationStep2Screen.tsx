@@ -1,3 +1,4 @@
+import { AuthTitle } from '../auth/authKit';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -5,12 +6,13 @@ import { RootStackParamList } from '../../types';
 import api from '../../services/api';
 import { ENDPOINTS } from '../../config/api.config';
 import { clearSession, sanitizeUser } from '../../services/session';
+import { takePublicAction } from '../../services/publicNavigation';
 import { useAuthStore } from '../../stores/exampleStore';
 import useRegionCascade from '../../hooks/useRegionCascade';
 import {
   Notice, SPACE, BottomActionBar,
-  PremiumScreen, PREMIUM_OVERLAP, PremiumHeading, PremiumStepper, PremiumSection, PremiumInput, PremiumSelect,
-  PremiumFooter, GlassIconButton, BrandLogo, FloatingIllustration, LocationMap3D, FadeInUp,
+  PremiumScreen, PREMIUM_OVERLAP, PremiumStepper, PremiumSection, PremiumInput, PremiumSelect,
+  PremiumFooter, GlassIconButton, BrandLogo, FadeInUp,
 } from '../../ui';
 import { errorText } from '../../ui/data';
 
@@ -58,8 +60,8 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
   const { login } = useAuthStore();
 
   const handleSubmit = async () => {
-    if (!email || !password) {
-      Alert.alert('Missing details', 'Email and password are required.', [
+    if (!fullName.trim() || !email.trim() || !password) {
+      Alert.alert('Missing details', 'Full name, email and password are required. Please complete the account step.', [
         { text: 'Go back', onPress: () => navigation.goBack() },
       ]);
       return;
@@ -77,7 +79,7 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
     try {
       await clearSession();
       const res = await api.post(ENDPOINTS.AUTH.REGISTER, {
-        fullName,
+        fullName: fullName.trim(),
         email,
         password,
         phoneNumber,
@@ -102,7 +104,10 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
       });
       await login(stored, token, role as any);
 
-      navigation.reset({ index: 0, routes: [{ name: 'MemberMain' }] });
+      const resume = takePublicAction();
+      navigation.reset(resume
+        ? { index: 1, routes: [{ name: 'MemberMain' }, resume] }
+        : { index: 0, routes: [{ name: 'MemberMain' }] });
     } catch (err: any) {
       const message = errorText(err, 'Registration failed. Please try again.');
       if (err?.response?.status === 409 || /already registered/i.test(message)) {
@@ -119,6 +124,7 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <PremiumScreen
+      waveHeight={44}
       tone="member"
       footer={(
         <BottomActionBar>
@@ -144,17 +150,11 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
           </View>
           <View style={s.heroRow}>
             <FadeInUp delay={60} style={s.heroText}>
-              <PremiumHeading
-                size="md"
+              <AuthTitle
                 eyebrow="Member registration"
                 title="Your location"
                 subtitle="Profile details — optional. You can finish this later from your dashboard."
               />
-            </FadeInUp>
-            <FadeInUp delay={140} scaleFrom={0.85} distance={10}>
-              <FloatingIllustration size={96}>
-                <LocationMap3D size={96} />
-              </FloatingIllustration>
             </FadeInUp>
           </View>
           <FadeInUp delay={200} distance={10}>
@@ -194,7 +194,7 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
               <Notice
                 kind="warning"
                 style={s.notice}
-                text="No regions are open for registration yet. Please check back once your area has an administrator."
+                text="Location data is unavailable. Please retry loading regions."
               />
             ) : null}
             <PremiumSelect
@@ -225,9 +225,9 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
               value={region.block}
               options={(region.blocks || []).map((n) => n?.name || '').filter(Boolean)}
               onChange={region.setBlock}
-              placeholder={region.district ? (region.refreshing ? 'Loading blocks...' : 'Select block') : 'Please select district first'}
-              disabled={submitting || !region.district}
-              emptyText="No blocks listed for this district yet"
+              placeholder={region.district ? (region.refreshing ? 'Loading blocks...' : !region.blocks.length ? 'No development blocks ? district only' : 'Select block') : 'Please select district first'}
+              disabled={submitting || !region.district || region.refreshing || !region.blocks.length}
+              emptyText="No development blocks listed; your district is sufficient"
             />
             <PremiumInput
               label="City"
@@ -247,9 +247,9 @@ const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
 
 const s = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: SPACE.lg, gap: SPACE.sm },
-  heroText: { flex: 1, minWidth: 0 },
-  stepper: { marginTop: SPACE.xl, marginBottom: SPACE.xl },
+  heroRow: { marginTop: SPACE.lg },
+  heroText: { minWidth: 0 },
+  stepper: { marginTop: SPACE.lg, marginBottom: SPACE.md },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   // Inside a section the Notice drops its own gutter and keeps the field rhythm.
   notice: { marginHorizontal: 0, marginTop: 0, marginBottom: SPACE.lg },

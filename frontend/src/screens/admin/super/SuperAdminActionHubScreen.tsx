@@ -146,15 +146,20 @@ const SuperAdminActionHubScreen = ({ navigation }: any) => {
     try {
       const params: Record<string, string> = { limit: '50', level: targetTier };
       if (target?.state) params.state = target.state;
-      if (target?.district) params.district = target.district;
-      if (target?.block) params.block = target.block;
+      if (targetTier !== 'state' && target?.district) params.district = target.district;
+      if (targetTier === 'block' && target?.block) params.block = target.block;
       // A directory row with no path at all still narrows by its own name.
       if (!target?.state && !target?.district && !target?.block && target?.name) params[targetTier] = target.name;
       if (targetStatus !== 'all') params.status = targetStatus;
 
       const response = await api.get('/admin/super/applications', { params });
       const payload = response.data?.data || response.data || {};
-      setApplicants(payload.applicants || []);
+      const rows = [...(payload.applicants || [])];
+      for (let page = 2; page <= Number(payload.pagination?.pages || 1); page += 1) {
+        const next = await api.get('/admin/super/applications', { params: { ...params, page } });
+        rows.push(...((next.data?.data || next.data)?.applicants || []));
+      }
+      setApplicants(rows);
       setError('');
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Could not load applications');

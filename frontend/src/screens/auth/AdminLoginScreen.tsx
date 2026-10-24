@@ -9,11 +9,11 @@ import { useAuthStore } from '../../stores/exampleStore';
 import { ADMIN_HOME, clearSession, sanitizeUser, UNSUPPORTED_ACCOUNT_MESSAGE } from '../../services/session';
 import {
   PALETTE, SPACE, TYPE,
-  PremiumScreen, PREMIUM_OVERLAP, PremiumSheet, PremiumHeading, PremiumInput, GradientButton,
-  BrandLogo, GlassBadge, FloatingIllustration, AdminConsole3D, FadeInUp, PortalSwitchCard,
+  PremiumScreen, PREMIUM_OVERLAP, PremiumSheet, PremiumInput, GradientButton,
+  BrandLogo, GlassBadge, FadeInUp, PortalSwitchCard,
 } from '../../ui';
 import { EyeToggle } from '../profile/formKit';
-import { TextLink } from './authKit';
+import { AuthTitle, TextLink } from './authKit';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AdminLogin'>;
@@ -102,6 +102,7 @@ const AdminLoginScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <PremiumScreen
+      waveHeight={44}
       tone="admin"
       header={(
         <View>
@@ -111,16 +112,11 @@ const AdminLoginScreen: React.FC<Props> = ({ navigation }) => {
           </FadeInUp>
           <View style={styles.heroRow}>
             <FadeInUp delay={80} style={styles.heroText}>
-              <PremiumHeading
+              <AuthTitle
                 eyebrow="Administrators"
                 title="Admin sign in"
                 subtitle="For ACTIV administrators only"
               />
-            </FadeInUp>
-            <FadeInUp delay={160} scaleFrom={0.85} distance={10}>
-              <FloatingIllustration size={108}>
-                <AdminConsole3D size={108} />
-              </FloatingIllustration>
             </FadeInUp>
           </View>
         </View>
@@ -198,13 +194,13 @@ const AdminLoginScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.sm, flexWrap: 'wrap' },
-  heroRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: SPACE.lg, gap: SPACE.sm },
-  heroText: { flex: 1, minWidth: 0, paddingBottom: SPACE.lg },
+  heroRow: { marginTop: SPACE.lg, marginBottom: SPACE.lg },
+  heroText: { minWidth: 0 },
   sheetWrap: { marginTop: -PREMIUM_OVERLAP },
   lastField: { marginBottom: SPACE.xs },
   optionsRow: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: SPACE.md },
   below: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.lg },
-  note: { ...TYPE.caption, color: PALETTE.textMuted, textAlign: 'center', lineHeight: 18 },
+  note: { fontSize: 14, color: PALETTE.textMuted, textAlign: 'center', lineHeight: 21 },
   portal: { marginTop: SPACE.lg },
 });
 

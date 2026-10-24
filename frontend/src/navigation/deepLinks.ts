@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Linking } from 'react-native';
 import { navigationRef } from './navigationRef';
 import { RootStackParamList } from '../types';
+import { resolvePaymentLink, type PaymentLinkTarget } from './paymentLinks';
 
 /**
  * ============================================================================
@@ -23,6 +24,7 @@ import { RootStackParamList } from '../types';
  */
 
 type Target =
+  | PaymentLinkTarget
   | { name: 'SocialSignIn'; params: RootStackParamList['SocialSignIn'] }
   | { name: 'ResetPassword'; params: RootStackParamList['ResetPassword'] };
 
@@ -110,6 +112,14 @@ export const flushPendingDeepLink = () => {
   if (pending) deliver(pending);
 };
 
+let linkGeneration = 0;
+/** Resolve account-scoped payment returns before delivering them to navigation. */
+export const handleDeepLink = async (url?: string | null) => {
+  const generation = ++linkGeneration;
+  const target = parseDeepLink(url) || await resolvePaymentLink(url);
+  if (generation === linkGeneration) deliver(target);
+};
+
 /** Listen for links while the app runs, and read the one that launched it. */
 export const useDeepLinks = () => {
   useEffect(() => {
@@ -117,11 +127,13 @@ export const useDeepLinks = () => {
     try {
       if (typeof Linking?.getInitialURL === 'function') {
         Linking.getInitialURL()
-          .then((url) => deliver(parseDeepLink(url)))
+          .then(handleDeepLink)
           .catch((err) => console.warn('Initial URL safely caught:', err));
       }
       if (typeof Linking?.addEventListener === 'function') {
-        sub = Linking.addEventListener('url', (event) => deliver(parseDeepLink(event?.url)));
+        sub = Linking.addEventListener('url', (event) => {
+          void handleDeepLink(event?.url).catch(() => {});
+        });
       }
     } catch (err) {
       console.warn('Deep link setup safely caught:', err);

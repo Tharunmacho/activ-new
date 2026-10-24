@@ -86,7 +86,7 @@ export function Screen({
   );
   return (
     <SafeAreaView style={[{ flex: 1, backgroundColor: t.canvas }, style]} edges={edges}>
-      <StatusBar barStyle={statusBar} backgroundColor={t.canvas} />
+      <StatusBar barStyle={statusBar} />
       {avoidKeyboard && Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           {body}
@@ -130,9 +130,9 @@ export function AppHeader({
     <View style={[s.header, border && s.headerBorder, style]}>
       {lead}
       <View style={[s.headerText, !lead && { marginLeft: 0 }]}>
-        {eyebrow ? <Text style={[s.headerEyebrow, { color: t.accent }]} numberOfLines={1} maxFontSizeMultiplier={CAP}>{eyebrow}</Text> : null}
-        <Text style={s.headerTitle} numberOfLines={1} accessibilityRole="header" maxFontSizeMultiplier={CAP}>{String(title ?? '')}</Text>
-        {subtitle ? <Text style={s.headerSub} numberOfLines={1} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
+        {eyebrow ? <Text style={[s.headerEyebrow, { color: t.accent }]} maxFontSizeMultiplier={CAP}>{eyebrow}</Text> : null}
+        <Text style={s.headerTitle} accessibilityRole="header" maxFontSizeMultiplier={CAP}>{String(title ?? '')}</Text>
+        {subtitle ? <Text style={s.headerSub} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
       </View>
       {right ? <View style={s.headerRight}>{right}</View> : null}
     </View>
@@ -243,9 +243,9 @@ export function SectionTitle({ title, action, onAction, style, subtitle, tone = 
   const t = toneOf(tone);
   return (
     <View style={[s.sectionRow, style]}>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={s.sectionTitle} numberOfLines={1} accessibilityRole="header">{title}</Text>
-        {subtitle ? <Text style={s.sectionSub} numberOfLines={2}>{subtitle}</Text> : null}
+      <View style={s.sectionText}>
+        <Text style={s.sectionTitle} accessibilityRole="header">{title}</Text>
+        {subtitle ? <Text style={s.sectionSub}>{subtitle}</Text> : null}
       </View>
       {action && onAction ? (
         <TouchableOpacity onPress={onAction} hitSlop={HIT} style={s.sectionActionBtn} accessibilityRole="button" accessibilityLabel={action}>
@@ -329,8 +329,8 @@ export function ListRow({ icon, iconColor = PALETTE.blue, iconBg = PALETTE.blueS
       {leading ? <View style={s.rowLead}>{leading}</View>
         : icon ? <View style={[s.rowIcon, { backgroundColor: danger ? PALETTE.redSoft : iconBg }]}><Icon name={icon} size={SIZE.icon} color={danger ? PALETTE.red : iconColor} /></View> : null}
       <View style={s.rowText}>
-        <Text style={[s.rowTitle, danger && { color: PALETTE.red }]} numberOfLines={1}>{String(title ?? '')}</Text>
-        {subtitle ? <Text style={s.rowSub} numberOfLines={2}>{subtitle}</Text> : null}
+        <Text style={[s.rowTitle, danger && { color: PALETTE.red }]} numberOfLines={2}>{String(title ?? '')}</Text>
+        {subtitle ? <Text style={s.rowSub}>{subtitle}</Text> : null}
       </View>
       {meta ? <Text style={s.rowMeta} numberOfLines={1} maxFontSizeMultiplier={CAP}>{meta}</Text> : null}
       {right !== undefined ? right : onPress ? <Icon name="chevron-right" size={22} color={PALETTE.textFaint} /> : null}
@@ -888,11 +888,12 @@ const s = StyleSheet.create({
   cardTinted: { backgroundColor: PALETTE.blueTint, borderColor: PALETTE.blueSoft },
   cardPressed: { opacity: 0.92, transform: [{ scale: 0.985 }] },
 
-  sectionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACE.lg, marginTop: SPACE.xl, marginBottom: SPACE.md, minHeight: 24 },
-  sectionTitle: { ...TYPE.heading },
+  sectionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', rowGap: SPACE.sm, marginHorizontal: SPACE.lg, marginTop: SPACE.xl, marginBottom: SPACE.md, minHeight: 24 },
+  sectionText: { flexGrow: 1, flexShrink: 1, flexBasis: 180, minWidth: 0 },
+  sectionTitle: { ...TYPE.heading, fontWeight: '800' },
   sectionSub: { ...TYPE.caption, marginTop: 2 },
-  sectionActionBtn: { flexDirection: 'row', alignItems: 'center', marginLeft: SPACE.md, minHeight: 32 },
-  sectionAction: { fontWeight: '600', fontSize: 13 },
+  sectionActionBtn: { flexDirection: 'row', alignItems: 'center', marginLeft: SPACE.md, minHeight: 32, maxWidth: '100%' },
+  sectionAction: { fontWeight: '600', fontSize: 13, flexShrink: 1 },
 
   statGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'stretch', paddingHorizontal: SPACE.lg },
   statCell: { marginBottom: SPACE.md },

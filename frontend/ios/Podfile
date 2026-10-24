@@ -14,7 +14,10 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+$RNFirebaseAsStaticFramework = true
+$RNFirebaseAnalyticsWithoutAdIdSupport = true
 target 'Activ' do
+  use_frameworks! :linkage => :static
   config = use_native_modules!
 
   use_react_native!(

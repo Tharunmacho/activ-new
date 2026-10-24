@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowLeft, ArrowRight, Loader2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 import { PAGE_SUBTITLE, PAGE_TITLE, CARD_TITLE } from '@/components/layout/appTypography';
 /**
@@ -188,6 +189,7 @@ export default function RegistrationFormShell({
                     <span className="ml-auto text-sm sm:text-ui-small font-medium text-slate-500 shrink-0">
                         Step {step} of {TOTAL_STEPS}
                     </span>
+                    <ThemeToggle />
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6">

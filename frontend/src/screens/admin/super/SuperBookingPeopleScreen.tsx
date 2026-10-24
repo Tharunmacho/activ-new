@@ -81,8 +81,8 @@ function PersonDetail({ p, bookings, loading }: { p: any; bookings: any[] | null
         <ConsoleNote kind="amber" icon="schedule" style={s.owed} text={`${money(Number(p?.pending || 0))} is owed on a booking that was never completed.`} />
       ) : null}
 
-      <Text style={s.histTitle} maxFontSizeMultiplier={1.3}>Every booking</Text>
-      <Text style={s.sub} maxFontSizeMultiplier={1.3}>Newest first, across every event.</Text>
+      <Text style={s.histTitle} maxFontSizeMultiplier={1.3}>Booking history</Text>
+      <Text style={s.sub} maxFontSizeMultiplier={1.3}>Newest first.</Text>
       {loading ? <ActivityIndicator style={s.spinner} color={PALETTE.indigo} /> : list.length === 0 ? (
         <Text style={[s.sub, s.gapTop]} maxFontSizeMultiplier={1.3}>No bookings found for this address.</Text>
       ) : list.map((b, i) => {
@@ -162,7 +162,8 @@ function PersonCard({ p, index, open, bookings, loading, onToggle }: {
 }
 
 /** The people list, with whatever header the host screen puts above it. */
-export function BookingPeoplePane({ header, refreshKey = 0 }: { header?: React.ReactElement | null; refreshKey?: number }) {
+const NO_FILTERS = {};
+export function BookingPeoplePane({ header, refreshKey = 0, filters = NO_FILTERS }: { header?: React.ReactElement | null; refreshKey?: number; filters?: import('../../../services/bookingFilters').BookingFiltersValue }) {
   const [q, setQ] = useState('');
   const [people, setPeople] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,14 +179,14 @@ export function BookingPeoplePane({ header, refreshKey = 0 }: { header?: React.R
     if (mode === 'refresh') setRefreshing(true); else setLoading(true);
     setError('');
     try {
-      const data = await listBookingPeople();
+      const data = await listBookingPeople('', filters);
       if (mine === seq.current) setPeople(Array.isArray(data?.people) ? data.people : []);
     } catch (err) {
       if (mine === seq.current) setError(errorText(err, 'The list could not be loaded'));
     } finally {
       if (mine === seq.current) { setLoading(false); setRefreshing(false); }
     }
-  }, []);
+  }, [filters]);
   useEffect(() => { load(refreshKey ? 'refresh' : 'load'); }, [load, refreshKey]);
 
   const toggle = useCallback(async (p: any) => {
@@ -193,13 +194,13 @@ export function BookingPeoplePane({ header, refreshKey = 0 }: { header?: React.R
     if (openEmail === email) { setOpenEmail(''); setHistory(null); return; }
     setOpenEmail(email); setHistory(null); setHistoryLoading(true);
     try {
-      const data = await getBookingPerson(email);
+      const data = await getBookingPerson(email, filters);
       setHistory(Array.isArray(data?.bookings) ? data.bookings : []);
     } catch (err) {
       setError(errorText(err, 'That history could not be loaded'));
       setHistory([]);
     } finally { setHistoryLoading(false); }
-  }, [openEmail]);
+  }, [openEmail, filters]);
 
   const rows = useMemo(() => {
     const needle = (q || '').trim().toLowerCase();
@@ -213,7 +214,7 @@ export function BookingPeoplePane({ header, refreshKey = 0 }: { header?: React.R
   const listHeader = (
     <>
       {header || null}
-      <ConsoleSearch value={q} onChangeText={setQ} placeholder="Search a name, email address or mobile number" />
+      {!filters.history ? <ConsoleSearch value={q} onChangeText={setQ} placeholder="Search a name, email address or mobile number" /> : null}
       {error && people ? <ConsoleNote kind="red" icon="error-outline" text={error} style={s.note} /> : null}
       {total ? (
         <Text style={s.count} maxFontSizeMultiplier={1.3}>{rows.length === total ? (total === 1 ? '1 person' : `${total} people`) : `${rows.length} of ${total}`}</Text>

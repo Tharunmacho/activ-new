@@ -6,9 +6,10 @@ import api from '../../services/api';
 import { ENDPOINTS } from '../../config/api.config';
 import {
   PALETTE, SIZE, SPACE, TYPE, BottomActionBar,
-  PremiumScreen, PREMIUM_OVERLAP, PremiumHeading, PremiumStepper, PremiumSection, PremiumInput, PremiumSelect,
-  PremiumFooter, PremiumLabel, GlassIconButton, BrandLogo, FloatingIllustration, NewMemberCard3D, FadeInUp, flagEmoji,
+  PremiumScreen, PREMIUM_OVERLAP, PremiumStepper, PremiumSection, PremiumInput, PremiumSelect,
+  PremiumFooter, PremiumLabel, GlassIconButton, BrandLogo, FadeInUp, flagEmoji,
 } from '../../ui';
+import { AuthTitle } from '../auth/authKit';
 import { FieldMessage, CheckRow, EyeToggle } from '../profile/formKit';
 import { DIAL_COUNTRIES, INDIA, DialCountry, countryLabel, checkPhone, checkLooseNumber } from './phone';
 
@@ -81,8 +82,11 @@ const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
   const clear = (field: keyof Errors) => setErrors((prev) => ({ ...prev, [field]: '' }));
 
   const handleNext = async () => {
+    if (checking) return;
     const next: Errors = {};
     // The website's react-hook-form rules and messages, exactly.
+    const cleanName = (fullName || '').trim();
+    if (!cleanName) next.fullName = 'Full name required';
     const cleanTyped = (email || '').trim();
     if (!cleanTyped) next.email = 'Email required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanTyped)) next.email = 'Invalid email';
@@ -121,7 +125,7 @@ const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
     }
 
     navigation.navigate('RegistrationStep2', {
-      fullName: (fullName || '').trim(),
+      fullName: cleanName,
       email: cleanEmail,
       phoneNumber: phoneCheck.stored,
       whatsappNumber: whatsappCheck.ok ? whatsappCheck.stored : phoneCheck.stored,
@@ -132,6 +136,7 @@ const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <PremiumScreen
+      waveHeight={44}
       tone="member"
       footer={(
         <BottomActionBar>
@@ -150,17 +155,11 @@ const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
           </View>
           <View style={s.heroRow}>
             <FadeInUp delay={60} style={s.heroText}>
-              <PremiumHeading
-                size="md"
+              <AuthTitle
                 eyebrow="Member registration"
                 title="Create your account"
-                subtitle="Join ACTIV — an email address and a password are all we need to begin."
+                subtitle="Start with your name, contact details and a secure password."
               />
-            </FadeInUp>
-            <FadeInUp delay={140} scaleFrom={0.85} distance={10}>
-              <FloatingIllustration size={96}>
-                <NewMemberCard3D size={96} />
-              </FloatingIllustration>
             </FadeInUp>
           </View>
           <FadeInUp delay={200} distance={10}>
@@ -175,12 +174,13 @@ const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
             label="Full name"
             required
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={(value) => { setFullName(value); clear('fullName'); }}
             placeholder="Enter your full name"
             autoCapitalize="words"
             autoComplete="name"
             textContentType="name"
             icon="person-outline"
+            error={errors.fullName}
             editable={!checking}
           />
 
@@ -293,9 +293,9 @@ const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
 
 const s = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: SPACE.lg, gap: SPACE.sm },
-  heroText: { flex: 1, minWidth: 0 },
-  stepper: { marginTop: SPACE.xl, marginBottom: SPACE.xl },
+  heroRow: { marginTop: SPACE.lg },
+  heroText: { minWidth: 0 },
+  stepper: { marginTop: SPACE.lg, marginBottom: SPACE.md },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   footerRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', marginHorizontal: SPACE.lg },
   prompt: { ...TYPE.body, color: PALETTE.textMuted },

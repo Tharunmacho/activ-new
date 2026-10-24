@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -8,6 +8,7 @@ import {
 } from '../../../ui';
 import { getBookingDelivery, type BookingDelivery, type DeliveryLogRow } from '../../../services/notificationDeliveryApi';
 import { errorText } from '../../../services/superApi';
+import { HistoryDeleteControl } from './delivery/HistoryDeleteControl';
 import {
   DeliveryBadge, DeliveryDetail, ResendButton, STATE_META, channelColor, channelIcon, channelWord, messageLabel, reasonOf, stateOf, whenLabel,
 } from './delivery/deliveryKit';
@@ -57,6 +58,12 @@ export default function SuperBookingMessagesScreen() {
   useEffect(() => { load('first'); }, [load]);
 
   const rows: DeliveryLogRow[] = Array.isArray(data?.rows) ? data.rows : [];
+  const historyCleanup = useMemo(() => {
+    const items: DeliveryLogRow[] = Array.isArray(data?.rows) ? data.rows : [];
+    return {
+      pending: items.filter(row => stateOf(row) === 'queued').length,
+    };
+  }, [data?.rows]);
 
   const renderItem = useCallback(({ item }: { item: DeliveryLogRow }) => {
     const open = openId === item?._id;
@@ -81,6 +88,8 @@ export default function SuperBookingMessagesScreen() {
           </View>
           <DeliveryBadge state={stateOf(item)} />
         </View>
+        {!!item?._id && <HistoryDeleteControl label="Delete" selection={{ view: 'logs', ids: [item._id] }}
+          onDone={() => { setOpenId(''); void load('quiet'); }} />}
         {open ? (
           <View style={s.detail}>
             <DeliveryDetail row={item} />
@@ -105,7 +114,7 @@ export default function SuperBookingMessagesScreen() {
           <Text style={s.sumTitle} maxFontSizeMultiplier={1.3}>{channelWord(ch)}</Text>
         </View>
         {sm ? <DeliveryBadge state={String(sm?.status || '')} /> : <Text style={s.none} maxFontSizeMultiplier={1.3}>Nothing sent</Text>}
-        {sm?.reason ? <Text style={s.sumReason} numberOfLines={3} maxFontSizeMultiplier={1.3}>{sm.reason}</Text> : null}
+        {sm?.reason ? <Text style={s.sumReason} numberOfLines={3} maxFontSizeMultiplier={1.3}>{reasonOf({ failureReason: sm.reason })}</Text> : null}
       </View>
     );
   });
@@ -121,6 +130,12 @@ export default function SuperBookingMessagesScreen() {
         right={<GlassIconButton icon="refresh" accessibilityLabel="Refresh" onPress={() => load('refresh')} />}
       />
       {!loading && !error && rows.length ? <View style={s.sumRow}>{summary}</View> : null}
+      {!!rows.length && <View style={s.note}>
+        {!!historyCleanup.pending && <Text style={s.sub}>{historyCleanup.pending} messages waiting to send will stay in this history.</Text>}
+        <HistoryDeleteControl label="Clear logs"
+          selection={{ view: 'logs', all: true, filters: { bookingRef } }} disabled={loading || !!error || !bookingRef}
+          onDone={() => { setOpenId(''); void load('quiet'); }} />
+      </View>}
       {error ? <ConsoleState kind="error" title="Could not load the messages" message={error} action="Try again" onAction={() => load('first')} /> : null}
       {loading && !error ? <ConsoleSkeleton rows={3} style={s.skeleton} /> : null}
     </>

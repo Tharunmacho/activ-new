@@ -1,3 +1,4 @@
+import { useForceLightTheme } from '@/lib/appTheme';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Printer, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
@@ -25,6 +26,8 @@ import CertificatePreview from '@/features/member/certificates/CertificatePrevie
  */
 
 export default function CertificatePage() {
+    /* A certificate is a printed document: it stays light on screen as on paper. */
+    useForceLightTheme();
     const { kind = 'membership' } = useParams();
     const navigate = useNavigate();
 

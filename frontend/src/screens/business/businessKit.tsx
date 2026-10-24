@@ -36,9 +36,9 @@ export const CHIP = {
 /** Company review status → a label and colours that read on the gradient. */
 export function companyStatus(status?: string | null) {
   const raw = String(status || 'pending').trim().toLowerCase() || 'pending';
-  if (raw === 'active' || raw === 'approved') return { key: raw, label: 'Active', icon: 'verified', dot: '#34D399' };
+  if (raw === 'active' || raw === 'approved') return { key: raw, label: 'Published', icon: 'verified', dot: '#34D399' };
   if (raw === 'inactive' || raw === 'rejected') return { key: raw, label: raw === 'rejected' ? 'Rejected' : 'Inactive', icon: 'block', dot: '#F87171' };
-  return { key: raw, label: 'Under review', icon: 'schedule', dot: '#FBBF24' };
+  return { key: raw, label: 'Not published', icon: 'schedule', dot: '#FBBF24' };
 }
 
 /** A status pill for the gradient header. */

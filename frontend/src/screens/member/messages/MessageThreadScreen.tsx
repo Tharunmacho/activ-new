@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Linking, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Linking, ScrollView, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -9,16 +9,22 @@ import {
   Notice, PALETTE, SPACE, SIZE, TYPE, asArray,
   PremiumTopBar, GradientAvatar, GradientGlyph, CardSkeletons, StateView, ArtBadge, ChatBubbles3D, PressableScale,
   PREMIUM_GRADIENTS, BRAND, FitImage } from '../../../ui';
-import { getThread, sendMessage, markConversationRead, uploadMessageImage } from '../../../services/memberApi';
+import { getThread, sendMessage, markConversationRead, uploadMessageAttachment, deleteMessage, getMessageStatuses } from '../../../services/memberApi';
+import { ChatDraftAttachment, ChatAttachment, pickChatDocument, validateChatFile, fileSizeLabel, downloadChatAttachment } from '../../../services/messageAttachments';
+import { useThreadKeyboard } from './useThreadKeyboard';
 import { resolveMediaUrl } from '../../../config/api.config';
 import { memberFacing, OPENERS, EMOJI, timeOf } from './messageCopy';
+import { useMemberAccess } from '../useMemberAccess';
+import StudentNetworkingGate from '../StudentNetworkingGate';
+import { isStudentMembership } from '../../../utils/memberAudience';
+import ChatAudio from './ChatAudio';
 
 /**
  * One conversation — website `MemberInbox` thread pane.
  *
  *   GET  /messages/:id (oldest→newest, paged with `before`), re-read quietly every 10 s
- *   POST /messages/:id { body, attachmentUrl }     POST /messages/:id/read
- *   POST /messages/attachment (field `image`) → { url } — upload first, then send
+ *   POST /messages/:id { body, attachmentUrl, attachment }     POST /messages/:id/read
+ *   POST /messages/attachment (field `file`) → signed receipt — upload first, then send
  *
  * Website parity: the openers ("What is it about?" on an empty thread; a
  * "Start with" chip row on a live one, only while the box is empty), the
@@ -68,23 +74,47 @@ function DaySeparator({ label }: { label: string }) {
   );
 }
 
-function Bubble({ m, tail }: { m: any; tail: boolean }) {
+function Bubble({ m, tail, onOptions }: { m: any; tail: boolean; onOptions: (message: any) => void }) {
   const mine = !!m?.mine;
-  const img = m?.attachmentUrl ? resolveMediaUrl(m.attachmentUrl) : '';
+  const [downloading, setDownloading] = useState(false);
+  const document = !m.deleted && m?.attachment?.kind === 'file' ? m.attachment as ChatAttachment : null;
+  const audio = !m.deleted && m?.attachment?.kind === 'audio' ? m.attachment as ChatAttachment : null;
+  const img = !m.deleted && !document && !audio && m?.attachmentUrl ? resolveMediaUrl(m.attachmentUrl) : '';
+  const openDocument = async () => {
+    if (!document || downloading) return;
+    setDownloading(true);
+    try {
+      await downloadChatAttachment(document);
+      if (Platform.OS === 'android') Alert.alert('Document saved', `${document.name}\nFind it in Downloads.`);
+    } catch (error) { Alert.alert('Could not download', memberFacing(error, 'Please try downloading the document again.')); }
+    finally { setDownloading(false); }
+  };
   const openImage = () => {
     try { Linking.openURL(img).catch(() => null); } catch { /* nothing to open */ }
   };
   const content = (
     <>
+      {m.deleted && <Text style={[styles.body, { fontStyle: 'italic', opacity: 0.8 }, mine && styles.white]}>Message deleted</Text>}
+      {audio && <ChatAudio attachment={audio} mine={mine} />}
+      {document ? (
+        <TouchableOpacity onPress={openDocument} disabled={downloading} accessibilityRole="button" accessibilityLabel={`Download ${document.name}`} style={styles.document}>
+          {downloading ? <ActivityIndicator color={mine ? PALETTE.white : PALETTE.blue} /> : <Icon name="description" size={28} color={mine ? PALETTE.white : PALETTE.blue} />}
+          <View style={styles.documentText}>
+            <Text style={[styles.documentName, mine && styles.white]} numberOfLines={2}>{document.name}</Text>
+            <Text style={[styles.documentHint, mine && styles.white]}>{fileSizeLabel(document.size)} · {downloading ? 'Downloading…' : 'Tap to download'}</Text>
+          </View>
+          <Icon name="download" size={19} color={mine ? PALETTE.white : PALETTE.blue} />
+        </TouchableOpacity>
+      ) : null}
       {img ? (
         <TouchableOpacity activeOpacity={0.9} onPress={openImage} accessibilityRole="imagebutton" accessibilityLabel="Open picture">
           <FitImage uri={img} style={[styles.img, !m?.body && { marginBottom: SPACE.xs }]} />
         </TouchableOpacity>
       ) : null}
-      {m?.body ? <Text style={[styles.body, mine && { color: PALETTE.white }]} selectable>{m.body}</Text> : null}
+      {!m.deleted && m?.body ? <Text style={[styles.body, mine && { color: PALETTE.white }]} selectable>{m.body}</Text> : null}
       <View style={styles.metaRow}>
         <Text style={[styles.meta, mine && { color: 'rgba(255,255,255,0.78)' }]}>{timeOf(m?.at)}</Text>
-        {mine ? (
+        {mine && !m.deleted ? (
           <Icon
             name={m?.readAt ? 'done-all' : 'done'}
             size={14}
@@ -92,6 +122,7 @@ function Bubble({ m, tail }: { m: any; tail: boolean }) {
             accessibilityLabel={m?.readAt ? 'Read' : 'Sent'}
           />
         ) : null}
+        <TouchableOpacity onPress={() => onOptions(m)} accessibilityRole="button" accessibilityLabel={`Message options ${m.id}`} style={styles.messageOptions}><Icon name="more-horiz" size={18} color={mine ? PALETTE.white : PALETTE.textMuted} /></TouchableOpacity>
       </View>
     </>
   );
@@ -113,9 +144,8 @@ function Bubble({ m, tail }: { m: any; tail: boolean }) {
   );
 }
 
-type Picture = { uri: string; type: string; name: string };
-
 const MessageThreadScreen = ({ navigation, route }: any) => {
+  const { profile } = useMemberAccess();
   const conversationId = String(route?.params?.conversationId || '');
   const [messages, setMessages] = useState<any[]>([]);
   const [other, setOther] = useState<any>(null);
@@ -124,25 +154,49 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
   const [older, setOlder] = useState(false);
   const [error, setError] = useState('');
   const [text, setText] = useState('');
-  const [picture, setPicture] = useState<Picture | null>(null);
+  const [picture, setPicture] = useState<ChatDraftAttachment | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const uploaded = useRef<ChatAttachment | null>(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
   const listRef = useRef<FlatList>(null);
   const focused = useRef(false);
+  const followLatest = useRef(true);
+  const dragging = useRef(false);
+  const loadingOlder = useRef(false);
+  const messagesRef = useRef<any[]>([]);
+  messagesRef.current = messages;
+  const requestVersion = useRef(0);
+  const deletedLocally = useRef(new Map<string, 'me' | 'everyone'>());
+  const deleting = useRef(false);
+  const keyboard = useThreadKeyboard();
   // The composer is the screen's bottom edge — pad it past the home indicator.
   const insets = useSafeAreaInsets();
-  const composerBottom = Math.max(Number(insets?.bottom || 0), SPACE.md);
+  const composerBottom = keyboard.visible ? SPACE.sm : Math.max(Number(insets?.bottom || 0), SPACE.md);
+  const scrollLatest = useCallback((animated = false) => {
+    if (followLatest.current && !loadingOlder.current) listRef.current?.scrollToEnd({ animated });
+  }, []);
 
   const load = useCallback(async (quiet = false) => {
     if (!conversationId) return;
+    const request = ++requestVersion.current;
     if (!quiet) { setLoading(true); setError(''); }
     try {
-      const res = await getThread(conversationId);
+      const [res, statuses] = await Promise.all([getThread(conversationId), quiet && messagesRef.current.length ? getMessageStatuses(conversationId, messagesRef.current.map(message => String(message.id))) : Promise.resolve([])]);
+      if (request !== requestVersion.current) return;
       const list = asArray<any>(res?.messages);
+      const stateById = new Map(statuses.map(status => [status.id, status]));
+      const reconcile = (rows: any[]) => rows.filter(message => deletedLocally.current.get(message.id) !== 'me' && !stateById.get(message.id)?.hidden)
+        .map(message => deletedLocally.current.get(message.id) === 'everyone' || stateById.get(message.id)?.deleted ? { ...message, deleted: true, body: '', attachmentUrl: '', attachment: null } : { ...message, ...(stateById.has(message.id) ? { readAt: stateById.get(message.id)?.readAt } : {}) });
       // A quiet poll only ever grows the thread — it never drops "load earlier" pages.
-      setMessages((prev) => (quiet && prev.length > list.length ? prev : list));
+      setMessages((prev) => {
+        if (!quiet) return reconcile(list);
+        const merged = new Map(prev.map(message => [String(message.id || message._id), message]));
+        list.forEach(message => merged.set(String(message.id || message._id), message));
+        return reconcile([...merged.values()]).sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+      });
       if (!quiet) setHasMore(!!res?.hasMore);
       setOther(res?.conversation?.withMember || null);
       markConversationRead(conversationId);
@@ -153,7 +207,7 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
     }
   }, [conversationId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { followLatest.current = true; load(); }, [load]);
 
   useFocusEffect(useCallback(() => {
     focused.current = true;
@@ -168,12 +222,15 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
 
   const loadOlder = async () => {
     if (!hasMore || older || !messages.length) return;
+    followLatest.current = false;
+    loadingOlder.current = true;
     setOlder(true);
     try {
       const res = await getThread(conversationId, String(messages[0]?.at || ''));
-      setMessages((prev) => [...asArray<any>(res?.messages), ...prev]);
+      setMessages((prev) => [...new Map([...prev, ...asArray<any>(res?.messages)].map(message => [message.id, message])).values()].filter(message => deletedLocally.current.get(message.id) !== 'me').map(message => deletedLocally.current.get(message.id) === 'everyone' ? { ...message, deleted: true, body: '', attachmentUrl: '', attachment: null } : message).sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime()));
       setHasMore(!!res?.hasMore);
     } catch { /* keep what is shown */ } finally {
+      loadingOlder.current = false;
       setOlder(false);
     }
   };
@@ -210,35 +267,77 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
     setSendError('');
     try {
       let url = '';
+      let attachment: ChatAttachment | null = null;
       if (picture) {
-        const up = await uploadMessageImage(picture.uri, picture.type, picture.name);
+        setUploadProgress(0);
+        const up = uploaded.current || await uploadMessageAttachment(picture, setUploadProgress);
+        uploaded.current = up;
+        attachment = up;
         url = String(up?.url || '');
-        if (!url) throw new Error('The picture could not be uploaded');
+        if (!url || !up.token) throw new Error('The attachment could not be uploaded. Choose the file again.');
       }
-      const msg = await sendMessage(conversationId, body, url);
+      setUploadProgress(null);
+      const msg = await sendMessage(conversationId, body, url, attachment || undefined);
+      followLatest.current = true;
       setText('');
       setPicture(null);
+      uploaded.current = null;
       if (msg && (msg.id || msg.body || msg.attachmentUrl)) setMessages((prev) => [...prev, msg]);
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
+      scrollLatest(true);
     } catch (err) {
       setSendError(memberFacing(err, 'That message could not be sent'));
     } finally {
       setSending(false);
+      setUploadProgress(null);
     }
   };
 
   const pickPicture = () => {
+    Keyboard.dismiss();
     try {
       if (typeof launchImageLibrary !== 'function') return;
       launchImageLibrary({ mediaType: 'photo', quality: 0.8, maxWidth: 1600, maxHeight: 1600 }, (res) => {
         const asset = res?.assets?.[0];
         if (!asset?.uri || res?.didCancel) return;
-        setPicture({ uri: asset.uri, type: asset.type || 'image/jpeg', name: asset.fileName || 'photo.jpg' });
-        setEmojiOpen(false);
+        try {
+          const meta = validateChatFile(asset.fileName || 'photo.jpg', asset.type || 'image/jpeg', asset.fileSize);
+          setPicture({ ...meta, uri: asset.uri });
+          uploaded.current = null;
+          setSendError(''); setEmojiOpen(false);
+        } catch (error) { setSendError(memberFacing(error, 'Choose another photo.')); }
       });
     } catch (err) {
       console.warn('Native module call safely caught:', err);
     }
+  };
+
+  const pickDocument = async (audio = false) => {
+    Keyboard.dismiss(); setEmojiOpen(false);
+    try {
+      const document = await pickChatDocument(audio);
+      if (document) { setPicture(document); uploaded.current = null; setSendError(''); }
+    } catch (error) { setSendError(memberFacing(error, 'The document could not be opened.')); }
+  };
+
+  const remove = async (message: any, scope: 'me' | 'everyone') => {
+    if (deleting.current) return;
+    deleting.current = true;
+    try {
+      await deleteMessage(conversationId, String(message.id), scope);
+      ++requestVersion.current;
+      deletedLocally.current.set(String(message.id), scope);
+      setMessages(rows => scope === 'me' ? rows.filter(row => row.id !== message.id) : rows.map(row => row.id === message.id ? { ...row, deleted: true, body: '', attachmentUrl: '', attachment: null } : row));
+    } catch (err) { setSendError(memberFacing(err, 'The message could not be deleted. Please try again.')); }
+    finally { deleting.current = false; }
+  };
+
+  const messageOptions = (message: any) => {
+    Keyboard.dismiss();
+    Alert.alert('Delete message', 'Delete for me removes this message from your account. Delete for everyone removes your message from both sides.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete for me', onPress: () => { void remove(message, 'me'); } },
+      ...(message.mine && !message.deleted ? [{ text: 'Delete for everyone', style: 'destructive' as const, onPress: () => { void remove(message, 'everyone'); } }] : []),
+    ]);
   };
 
   const insertEmoji = (mark: string) => {
@@ -261,7 +360,7 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
   const draftEmpty = !(text || '').trim();
   const cannotSend = sending || (draftEmpty && !picture);
   const placeholder = picture
-    ? 'Add a caption, or send the picture on its own…'
+    ? picture.kind === 'image' ? 'Add a caption, or send the picture on its own…' : picture.kind === 'audio' ? 'Add a caption, or send the audio…' : 'Add a caption, or send the document on its own…'
     : messages.length === 0
       ? 'Write about your business — what you make, what you need…'
       : `Message ${firstName === 'there' ? 'member' : firstName}…`;
@@ -292,12 +391,29 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
     <>
       <FlatList
         ref={listRef}
+        testID="chat-message-list"
+        style={styles.flex}
         data={rows}
         keyExtractor={(r, i) => String(r?.key || i)}
         renderItem={({ item }) => (item.kind === 'day'
           ? <DaySeparator label={item.label} />
-          : <Bubble m={item.m} tail={item.tail} />)}
-        onContentSizeChange={() => { if (!older) listRef.current?.scrollToEnd({ animated: false }); }}
+          : <Bubble m={item.m} tail={item.tail} onOptions={messageOptions} />)}
+        onContentSizeChange={() => scrollLatest()}
+        onLayout={() => scrollLatest()}
+        onScrollBeginDrag={() => { dragging.current = true; }}
+        onScrollEndDrag={() => { dragging.current = false; }}
+        onMomentumScrollBegin={() => { dragging.current = true; }}
+        onMomentumScrollEnd={() => { dragging.current = false; }}
+        onScroll={event => {
+          const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+          const nearBottom = contentSize.height - layoutMeasurement.height - contentOffset.y <= 80;
+          // A keyboard/layout resize is not the reader choosing older history.
+          if (nearBottom || dragging.current) {
+            followLatest.current = nearBottom;
+          }
+        }}
+        scrollEventThrottle={100}
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         ListHeaderComponent={hasMore ? (
           <TouchableOpacity onPress={loadOlder} style={styles.older} accessibilityRole="button">
             {older ? <ActivityIndicator color={PALETTE.blue} /> : (
@@ -323,7 +439,7 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
       />
 
       {/* An EMPTY thread: the labelled openers (website "What is it about?"). */}
-      {messages.length === 0 && draftEmpty && !picture ? (
+      {messages.length === 0 && draftEmpty && !picture && !keyboard.visible ? (
         <View style={styles.openers}>
           <Text style={styles.openersTitle}>What is it about?</Text>
           <Text style={styles.openersHint}>Pick one to start. It goes in the box below for you to change before you send it.</Text>
@@ -347,7 +463,7 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
       ) : null}
 
       {/* A LIVE thread: one quiet chip row, only while the box is empty. */}
-      {messages.length > 0 && draftEmpty && !picture ? (
+      {messages.length > 0 && draftEmpty && !picture && !keyboard.visible ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow} keyboardShouldPersistTaps="handled" style={styles.chipScroll}>
           <Text style={styles.chipLead}>START WITH</Text>
           {OPENERS.map((o) => (
@@ -362,12 +478,12 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
       {/* The chosen picture, before it goes. */}
       {picture ? (
         <View style={styles.preview}>
-          <FitImage uri={picture.uri} style={styles.previewImg} />
+          {picture.kind === 'image' ? <FitImage uri={picture.uri} style={styles.previewImg} /> : <Icon name={picture.kind === 'audio' ? 'audiotrack' : 'description'} size={36} color={PALETTE.blue} />}
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.previewName} numberOfLines={1}>{picture.name}</Text>
-            <Text style={styles.previewHint}>Ready to send — a caption is optional.</Text>
+            <Text style={styles.previewHint}>{picture.kind === 'image' ? 'Ready to send — a caption is optional.' : sending ? uploadProgress === null ? 'Sending…' : `Uploading ${uploadProgress}%…` : [fileSizeLabel(picture.size), 'Caption optional'].filter(Boolean).join(' · ')}</Text>
           </View>
-          <TouchableOpacity onPress={() => setPicture(null)} accessibilityLabel="Remove picture" style={styles.previewX}>
+          <TouchableOpacity disabled={sending} onPress={() => { setPicture(null); uploaded.current = null; }} accessibilityLabel={picture.kind === 'image' ? 'Remove picture' : 'Remove attachment'} style={styles.previewX}>
             <Icon name="close" size={SIZE.icon} color={PALETTE.textMuted} />
           </TouchableOpacity>
         </View>
@@ -384,14 +500,18 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
       ) : null}
 
       {sendError ? <Notice kind="warning" text={sendError} style={styles.sendError} /> : null}
+      <View style={styles.attachmentTools}>
+        <TouchableOpacity onPress={pickPicture} disabled={sending} style={styles.attachmentTool} accessibilityRole="button" accessibilityLabel="Send a picture"><Icon name="add-photo-alternate" size={22} color={PALETTE.blueDark} /><Text style={styles.toolLabel}>Photo</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => void pickDocument()} disabled={sending} style={styles.attachmentTool} accessibilityRole="button" accessibilityLabel="Attach a document"><Icon name="description" size={22} color={PALETTE.blueDark} /><Text style={styles.toolLabel}>Document</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => void pickDocument(true)} disabled={sending} style={styles.attachmentTool} accessibilityRole="button" accessibilityLabel="Attach audio"><Icon name="audiotrack" size={22} color={PALETTE.blueDark} /><Text style={styles.toolLabel}>Audio</Text></TouchableOpacity>
+      </View>
       <View style={[styles.composer, { paddingBottom: composerBottom }]}>
-        <TouchableOpacity onPress={pickPicture} disabled={sending} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Send a picture">
-          <Icon name="add-photo-alternate" size={SIZE.iconLg - 2} color={PALETTE.blueDark} />
-        </TouchableOpacity>
         <View style={styles.inputWrap}>
           <TextInput
             style={styles.input}
             value={text}
+            editable={!sending}
+            onFocus={() => setEmojiOpen(false)}
             onChangeText={(v) => { setText(v); if (sendError) setSendError(''); }}
             onSelectionChange={(ev) => setSelection(ev?.nativeEvent?.selection || { start: (text || '').length, end: (text || '').length })}
             placeholder={placeholder}
@@ -430,26 +550,36 @@ const MessageThreadScreen = ({ navigation, route }: any) => {
     </>
   );
 
+  if (isStudentMembership(profile)) return <StudentNetworkingGate navigation={navigation} />;
   return (
-    <View style={styles.screen}>
+    <View ref={keyboard.ref} onLayout={keyboard.onLayout} style={styles.screen}>
       {Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={styles.flex} behavior="padding">
           {topBar}
           {body}
         </KeyboardAvoidingView>
       ) : (
-        <>
+        <View style={[styles.flex, { paddingBottom: keyboard.overlap }]} testID="chat-keyboard-frame">
           {topBar}
           <View style={styles.flex}>{body}</View>
-        </>
+        </View>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  attachmentTools: { flexDirection: 'row', gap: 8, paddingHorizontal: SPACE.md, backgroundColor: PALETTE.white, borderTopWidth: 1, borderTopColor: PALETTE.border },
+  attachmentTool: { flex: 1, minHeight: 44, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' },
+  toolLabel: { fontSize: 12, fontWeight: '700', color: PALETTE.blueDark },
+  messageOptions: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
   screen: { flex: 1, backgroundColor: PALETTE.canvas },
   flex: { flex: 1 },
+  document: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 170, maxWidth: 250, paddingVertical: 6 },
+  documentText: { flex: 1, minWidth: 0 },
+  documentName: { fontSize: 14, fontWeight: '700', color: PALETTE.text },
+  documentHint: { fontSize: 11, color: PALETTE.textMuted, marginTop: 4 },
+  white: { color: PALETTE.white },
   barBtn: {
     width: SIZE.touch, height: SIZE.touch, borderRadius: SIZE.touch / 2, alignItems: 'center', justifyContent: 'center',
     backgroundColor: BRAND.glass, borderWidth: 1, borderColor: BRAND.glassBorder,

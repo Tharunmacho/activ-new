@@ -1,10 +1,12 @@
-# Add project specific ProGuard rules here.
-# By default, the flags in this file are appended to flags specified
-# in /usr/local/Cellar/android-sdk/24.3.3/tools/proguard/proguard-android.txt
-# You can edit the include path and order by changing the proguardFiles
-# directive in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# React Native and each native dependency supply their own consumer rules.
+# Avoid broad keep rules: R8 must be able to optimise and obfuscate the release.
+# React Native 0.82 registers these classes by name from react_devsupportjni
+# whenever InspectorFlags initializes, including production builds. The outer
+# connection and DelegateImpl lack class-level DoNotStrip annotations; consumer
+# member rules alone let R8 remove them and crash before the first screen loads.
+-keep,allowoptimization,includedescriptorclasses class com.facebook.react.devsupport.CxxInspectorPackagerConnection { *; }
+-keep,allowoptimization,includedescriptorclasses class com.facebook.react.devsupport.CxxInspectorPackagerConnection$* { *; }
 
-# Add any project specific keep options here:
+# Preserve source locations for Play Console crash retracing using mapping.txt.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

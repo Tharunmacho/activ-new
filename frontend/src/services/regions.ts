@@ -1,20 +1,9 @@
 import api from './api';
 
-/**
- * Region discovery, driven entirely by the admin database.
- *
- * The registration screens used to read a bundled 360KB JSON of every Indian
- * state, district and block. That list is complete but wrong for the job: it
- * offers thousands of regions the platform has nobody to review applications
- * for, and an applicant who picks one submits a file that lands in no queue.
- *
- * These endpoints return only regions with an active admin, so the picker is a
- * shortlist of places the applicant can actually be processed in.
- */
-
+/** National locations and real staffing counts, shared by member/admin forms. */
 export interface RegionNode {
   name: string;
-  /** How many active admins cover this region. Always >= 1 to be listed. */
+  /** How many active admins cover this region. Zero for an unstaffed location. */
   admins: number;
 }
 
@@ -49,18 +38,7 @@ const EMPTY_TREE: RegionTree = { coverageAvailable: false, states: [] };
  */
 const CACHE_TTL_MS = 2 * 60 * 1000;
 
-/**
- * WHICH REGIONS THE ANSWER COVERS — the website's getRegionTree(force, include).
- *
- *   selectable  (default) pruned bottom-up: only regions staffed down to a block.
- *   all         every region any admin names (?include=all).
- *
- * Registration and the personal-details form read 'all', exactly as the website's
- * getStates/getDistricts/getBlocks do: a state staffed only by a state admin is a
- * real choice (the application routes upward via tierRouting), and district and
- * block are optional beneath it. One cache slot PER SCOPE, so the two answers can
- * never evict each other.
- */
+/** Both legacy include modes now return the national directory. */
 export type RegionScope = 'selectable' | 'all';
 
 const cache: Partial<Record<RegionScope, { at: number; tree: RegionTree }>> = {};

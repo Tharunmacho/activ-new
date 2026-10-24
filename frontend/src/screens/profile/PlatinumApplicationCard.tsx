@@ -18,7 +18,7 @@ import { getPlatinumPrice, getPlatinumRequest } from '../../services/memberApi';
 
 const BENEFITS: { icon: string; title: string }[] = [
   { icon: 'all-inclusive', title: 'Member for life' },
-  { icon: 'verified', title: 'Platinum badge' },
+  { icon: 'verified', title: 'Lifetime badge' },
   { icon: 'emoji-events', title: 'Recognised at ACTIV' },
   { icon: 'event-available', title: 'First to hear' },
   { icon: 'support-agent', title: 'A direct line' },
@@ -27,7 +27,7 @@ const BENEFITS: { icon: string; title: string }[] = [
 
 const STATUS_COPY: Record<string, { title: string; text: string }> = {
   new: { title: 'We have your request', text: 'The ACTIV office will contact you within two working days.' },
-  contacted: { title: 'The office has been in touch', text: 'Complete the payment at the office and your membership is upgraded to Platinum.' },
+  contacted: { title: 'The office has been in touch', text: 'Complete the payment at the office and your membership is upgraded to Lifetime.' },
 };
 
 export default function PlatinumApplicationCard({ onApply }: { onApply: () => void }) {
@@ -69,11 +69,11 @@ export default function PlatinumApplicationCard({ onApply }: { onApply: () => vo
         <View style={s.crown}><DiamondGem3D size={40} /></View>
         <View style={s.eyebrow}>
           <Icon name="workspace-premium" size={14} color={PALETTE.gold} />
-          <Text style={s.eyebrowText} numberOfLines={1} maxFontSizeMultiplier={1.3}>PLATINUM LIFETIME MEMBERSHIP</Text>
+          <Text style={s.eyebrowText} numberOfLines={1} maxFontSizeMultiplier={1.3}>LIFETIME MEMBERSHIP</Text>
         </View>
         <Text style={s.title}>Join once. Stay an ACTIV member for life.</Text>
         <Text style={s.text}>
-          Building a business? Platinum makes your membership permanent — one payment, no renewals, and the
+          Building a business? Lifetime makes your membership permanent — one payment, no renewals, and the
           association’s highest recognition.
         </Text>
 
@@ -103,9 +103,9 @@ export default function PlatinumApplicationCard({ onApply }: { onApply: () => vo
             </View>
           </View>
         ) : (
-          <PressableScale onPress={onApply} contentStyle={s.cta} accessibilityRole="button" accessibilityLabel="Apply for Platinum">
+          <PressableScale onPress={onApply} contentStyle={s.cta} accessibilityRole="button" accessibilityLabel="Apply for Lifetime">
             <Icon name="workspace-premium" size={18} color={PALETTE.blueDeep} />
-            <Text style={s.ctaText}>Apply for Platinum</Text>
+            <Text style={s.ctaText}>Apply for Lifetime</Text>
           </PressableScale>
         )}
       </LinearGradient>

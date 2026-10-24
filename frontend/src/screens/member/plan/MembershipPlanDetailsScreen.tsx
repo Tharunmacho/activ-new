@@ -1,17 +1,19 @@
+import { membershipValidityLabel } from '../../../utils/membershipDates';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {
-  Badge, Skeleton, PALETTE, SPACE, TYPE, money, shortDate,
+  Badge, Skeleton, PALETTE, SPACE, TYPE, money,
   PremiumPage, PremiumPageHeader, PREMIUM_OVERLAP, HeaderStat, HeaderStatRow, FadeInUp, GradientButton,
   SurfaceCard, GradientGlyph, GlyphTone, GLYPH_COLORS, GroupTitle, LinkRow, MeterBar, ReceiptLine, CardSkeletons,
   MembershipPassCard, PremiumPlan3D, PlatinumCrown3D,
 } from '../../../ui';
 import { resolveMediaUrl } from '../../../config/api.config';
 import { getMyProfile, getMyApplications } from '../../../services/memberApi';
-import { getMyPlans, readRenewal, Plan, RenewalInfo } from '../../../services/paymentFlow';
+import { getHeldMembershipPlan, readRenewal, Plan, RenewalInfo } from '../../../services/paymentFlow';
+import { isLifetimeTier } from '../../../utils/heldMembershipPlan';
 import { pickMostAdvancedApplication, resolveApplicantKind, planLabelFor } from '../dashboard/memberRules';
 
 /**
@@ -21,7 +23,7 @@ import { pickMostAdvancedApplication, resolveApplicantKind, planLabelFor } from 
  *
  *   GET /members/my-profile           status, Member ID, dates, what was paid, `renewal`
  *   GET /applications/my-applications the declared kind (plan label fallback)
- *   GET /membership/plans/mine        resolvePlanEligibility: matched || popular || first
+ *   GET /membership/plans?include=platinum  match the plan actually held
  *
  * NO FALLBACK PRICE. When the rate cannot be read the card says so with a
  * retry — a number invented here would be wrong the moment the Super Admin
@@ -39,7 +41,7 @@ const longDate = (iso?: string | null) => {
 /** The website's renewalMessage. */
 const renewalMessage = (r: RenewalInfo | null): string => {
   if (!r) return '';
-  const on = longDate(r.expiresAt);
+  const on = membershipValidityLabel(r.expiresAt);
   if (r.state === 'expired') {
     return on
       ? `Your membership ended on ${on}. Renew now to restore every member benefit.`
@@ -63,15 +65,15 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
 
   const load = useCallback(async (mode: 'load' | 'refresh' = 'load') => {
     if (mode === 'refresh') setRefreshing(true);
-    const [p, a, e] = await Promise.allSettled([getMyProfile(), getMyApplications(), getMyPlans()]);
-    if (p.status === 'fulfilled') setProfile(p.value);
+    const [p, a] = await Promise.allSettled([getMyProfile(), getMyApplications()]);
+    setProfile(p.status === 'fulfilled' ? p.value : null);
     if (a.status === 'fulfilled') setApplication(pickMostAdvancedApplication(a.value));
-    if (e.status === 'fulfilled') {
-      const mine = e.value;
-      const selected = mine.matched || (mine.plans || []).find((x) => x.popular) || (mine.plans || [])[0] || null;
+    try {
+      const selected = await getHeldMembershipPlan(p.status === 'fulfilled' ? p.value : null);
       setPlan(selected);
-      setPriceFailed(!!mine.failed);
-    } else {
+      setPriceFailed(!selected);
+    } catch {
+      setPlan(null);
       setPriceFailed(true);
     }
     setLoading(false);
@@ -82,7 +84,7 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
 
   const renewal = useMemo(() => readRenewal(profile), [profile]);
   const membershipType = String(profile?.membershipType || '').trim();
-  const platinum = String(profile?.membershipTier || '') === 'platinum';
+  const platinum = isLifetimeTier(profile);
   const lifetime = platinum || membershipType.toLowerCase() === 'lifetime';
   const status = String(profile?.membershipStatus || 'active');
   const activeNow = status.toLowerCase() === 'active';
@@ -102,12 +104,12 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
   const region = [profile?.block, profile?.district, profile?.state]
     .map((v: any) => String(v || '').trim()).filter(Boolean).join(' · ');
   const planName = platinum
-    ? 'Platinum Lifetime Membership'
-    : (plan?.name || planLabelFor(resolveApplicantKind(application), false) || 'Membership');
+    ? 'Lifetime Membership'
+    : (profile?.currentMembership?.planName || profile?.paidMembership?.planName || plan?.name || planLabelFor(resolveApplicantKind(profile?.paidMembership?.kind ? { memberType: profile.paidMembership.kind } : application), false) || 'Membership');
 
   const name = String(profile?.fullName || profile?.name || '').trim() || 'Member';
   const photo = resolveMediaUrl(profile?.profilePhoto || profile?.profileImage || '');
-  const validValue = lifetime ? 'Lifetime' : (shortDate(expiresAt) || '');
+  const validValue = lifetime ? 'Lifetime' : (membershipValidityLabel(expiresAt) || '');
 
   // How far through the current term — a live figure, from the member's own dates.
   const term = useMemo(() => {
@@ -150,7 +152,7 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
   const facts = [
     profile?.membershipNumber ? { icon: 'verified-user', label: 'Member ID', value: String(profile.membershipNumber) } : null,
     memberSince ? { icon: 'event', label: 'Member since', value: longDate(memberSince) } : null,
-    { icon: 'autorenew', label: lifetime ? 'Renewal' : 'Valid until', value: lifetime ? 'No renewal needed' : (longDate(expiresAt) || 'Not recorded') },
+    { icon: 'autorenew', label: lifetime ? 'Renewal' : 'Valid until', value: lifetime ? 'No renewal needed' : (membershipValidityLabel(expiresAt) || 'Not recorded') },
     region ? { icon: 'place', label: 'Region', value: region } : null,
   ].filter(Boolean) as { icon: string; label: string; value: string }[];
 
@@ -216,18 +218,18 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
               <GradientGlyph icon="warning-amber" tone="amber" size={40} />
               <View style={styles.flexText}>
                 <Text style={styles.warnTitle}>The current rate could not be loaded</Text>
-                <Text style={styles.warnText}>Nothing is shown here rather than a figure that might be out of date.</Text>
+                <Text style={styles.warnText}>Your recorded payment is shown below. Please retry to load this membership's current rate.</Text>
               </View>
             </View>
             <GradientButton label="Try again" icon="refresh" variant="outline" onPress={() => { setLoading(true); load(); }} style={{ marginTop: SPACE.lg }} />
           </SurfaceCard>
         ) : (
           <SurfaceCard style={styles.gutter} padded={false}>
-            <LinearGradient colors={['#EAF1FE', '#FFFFFF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.priceHead}>
+            <LinearGradient colors={platinum ? ['#F7E6B5', '#FFFCF3'] : ['#EAF1FE', '#FFFFFF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.priceHead}>
               <Text style={TYPE.eyebrow}>Current rate</Text>
               <View style={styles.priceRow}>
                 <Text style={styles.price}>{money(plan.price)}</Text>
-                {membershipType ? <Text style={styles.per}>per {membershipType.toLowerCase() === 'annual' ? 'year' : 'term'}</Text> : null}
+                <Text style={styles.per}>{lifetime || plan.membershipType === 'lifetime' ? 'one-time · lifetime' : 'per year'}</Text>
               </View>
               {plan.description ? <Text style={[TYPE.body, { marginTop: SPACE.xs }]}>{plan.description}</Text> : null}
             </LinearGradient>
@@ -289,7 +291,7 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
                     : renewal?.canRenew
                       ? renewalMessage(renewal)
                       : expiresAt
-                        ? `Your plan runs to ${longDate(expiresAt)}.${renewal?.opensAt ? ` Renewal opens on ${longDate(renewal.opensAt)}.` : ''}`
+                        ? `Your plan runs to ${membershipValidityLabel(expiresAt)}.${renewal?.opensAt ? ` Renewal opens on ${longDate(renewal.opensAt)}.` : ''}`
                         : 'Your renewal date is not recorded yet.'}
                 </Text>
               </View>
@@ -305,11 +307,11 @@ const MembershipPlanDetailsScreen = ({ navigation }: any) => {
 
       {!platinum ? (
         <FadeInUp delay={460}>
-          <SurfaceCard style={styles.block} onPress={() => navigation.navigate('PlatinumRequest')} accessibilityLabel="Platinum membership. Learn more" padded={false}>
+          <SurfaceCard style={styles.block} onPress={() => navigation.navigate('PlatinumRequest')} accessibilityLabel="Lifetime Membership. Learn more" padded={false}>
             <LinearGradient colors={['#111827', '#374151', '#6B7280']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.platinum}>
               <PlatinumCrown3D size={64} />
               <View style={styles.flexText}>
-                <Text style={styles.platTitle}>Go Platinum</Text>
+                <Text style={styles.platTitle}>Go Lifetime</Text>
                 <Text style={styles.platText}>One payment makes your membership permanent — no renewals.</Text>
               </View>
               <Icon name="chevron-right" size={24} color={PALETTE.white} />

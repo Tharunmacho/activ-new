@@ -130,14 +130,14 @@ export default function AdminMembersView({ tier, region, navigation }: { tier: A
   };
 
   const onRemindAll = () => {
-    Alert.alert('Remind every expired member', 'Send a renewal reminder to every expired member in your region with reminders on? Anyone reminded in the last 24 hours is skipped.', [
+    Alert.alert('Remind every expired member', 'Send a renewal reminder to every expired member in your region with reminders on? Members reminded in the last 24 hours will not receive another reminder.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Send to all', onPress: async () => {
           setBulkBusy(true);
           try {
             const r = await remindAllExpired();
-            Alert.alert('Reminders sent', `Sent to ${r?.sent || 0} member${r?.sent === 1 ? '' : 's'}${r?.skipped ? ` · ${r.skipped} skipped (reminded in the last 24 hours)` : ''}.`);
+            Alert.alert('Reminders sent', `Sent to ${r?.sent || 0} member${r?.sent === 1 ? '' : 's'}${r?.skipped ? ` · ${r.skipped} not sent (already reminded in the last 24 hours)` : ''}.`);
             load('refresh');
           } catch (err) {
             Alert.alert('Not sent', errorText(err));

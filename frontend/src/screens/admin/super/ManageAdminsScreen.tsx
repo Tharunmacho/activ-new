@@ -21,6 +21,8 @@ import {
 import api from '../../../services/api';
 import { listStaffAccounts, updateStaffAccount, errorText, type StaffAccount } from '../../../services/superApi';
 import { getGeography, invalidateRegionCache } from '../../../services/regions';
+import { useRegionCascade } from '../../../hooks/useRegionCascade';
+import { PremiumSelect } from '../../../ui';
 import { SkeletonList } from './components/Skeleton';
 import EmptyState from './components/EmptyState';
 import RegionInput from './components/RegionInput';
@@ -28,7 +30,7 @@ import { useSuperAdminBack } from './useSuperAdminBack';
 import { MenuButton } from '../shared/TierMenu';
 
 type AdminRole = 'block_admin' | 'district_admin' | 'state_admin';
-type RoleFilter = 'all' | AdminRole;
+type RoleFilter = 'all' | 'staff' | AdminRole;
 
 interface AdminRow {
   id: string;
@@ -94,9 +96,10 @@ const TIERS: { key: AdminRole; label: string; plural: string; icon: string; colo
 
 const ROLE_TABS: { key: RoleFilter; label: string }[] = [
   { key: 'all', label: 'All' },
-  { key: 'block_admin', label: 'Block' },
-  { key: 'district_admin', label: 'District' },
   { key: 'state_admin', label: 'State' },
+  { key: 'district_admin', label: 'District' },
+  { key: 'block_admin', label: 'Block' },
+  { key: 'staff', label: 'Staff' },
 ];
 
 const EMPTY_FORM = {
@@ -323,6 +326,14 @@ const ManageAdminsScreen = ({ route }: any) => {
   const [staff, setStaff] = useState<StaffAccount[]>([]);
   const [counts, setCounts] = useState<{ [key: string]: number }>({});
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const rosterSequence = useRef(0);
+  const rosterAbort = useRef<AbortController | null>(null);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [staffLoading, setStaffLoading] = useState(true);
+  const [staffError, setStaffError] = useState('');
+  const regionFilter = useRegionCascade();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -364,7 +375,7 @@ const ManageAdminsScreen = ({ route }: any) => {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    debounceTimer.current = setTimeout(() => { setPage(1); setDebouncedQuery(query); }, SEARCH_DEBOUNCE_MS);
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
@@ -376,59 +387,66 @@ const ManageAdminsScreen = ({ route }: any) => {
       // (the server ignores shorter ones anyway).
       const q = (debouncedQuery || '').trim();
       return {
+        page, limit: 25, kind: 'regional',
         ...(roleFilter !== 'all' ? { role: roleFilter } : {}),
         ...(q.length >= 2 ? { q } : {}),
+        ...(regionFilter.state ? { state: regionFilter.state } : {}),
+        ...(regionFilter.district ? { district: regionFilter.district } : {}),
+        ...(regionFilter.block ? { block: regionFilter.block } : {}),
       };
     },
-    [roleFilter, debouncedQuery],
+    [roleFilter, debouncedQuery, regionFilter.state, regionFilter.district, regionFilter.block, page],
   );
 
   const fetchAdmins = useCallback(async (isRefresh = false) => {
+    const sequence = ++rosterSequence.current;
+    rosterAbort.current?.abort();
+    const controller = new AbortController();
+    rosterAbort.current = controller;
+    if (roleFilter === 'staff') { setAdmins([]); setLoading(false); setRefreshing(false); setError(''); return; }
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const response = await api.get('/admin/super/admins', { params });
+      const response = await api.get('/admin/super/admins', { params, signal: controller.signal });
+      if (sequence !== rosterSequence.current) return;
       const payload = response.data?.data || response.data || {};
       setAdmins(payload.admins || []);
       setCounts(payload.counts || {});
+      setTotal(payload.total || 0);
+      setPages(payload.pagination?.pages || 1);
+      if (payload.pagination?.page && payload.pagination.page !== page) setPage(payload.pagination.page);
       setError('');
     } catch (err: any) {
+      if (sequence !== rosterSequence.current || controller.signal.aborted) return;
       setError(err?.response?.data?.message || 'Could not load admins');
       setAdmins([]);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (sequence === rosterSequence.current) { setLoading(false); setRefreshing(false); }
     }
-  }, [params]);
-
-  useEffect(() => {
-    fetchAdmins();
-  }, [fetchAdmins]);
+  }, [params, roleFilter, page]);
 
   const fetchStaff = useCallback(async () => {
+    setStaffLoading(true);
     try {
       const rows = await listStaffAccounts();
       setStaff(Array.isArray(rows) ? rows : []);
+      setStaffError('');
     } catch {
-      // The tier list is this screen's main job; a failed staff read leaves
-      // the section out rather than blocking the rest.
-      setStaff([]);
-    }
+      setStaffError('Could not load staff accounts. Pull down to try again.');
+    } finally { setStaffLoading(false); }
   }, []);
-
-  useEffect(() => {
-    fetchStaff();
-  }, [fetchStaff]);
 
   // Same reason as the Hub: bottom tabs stay mounted, so without this the list
   // and its per-tier counts are whatever they were when the tab was first
   // opened. Deleting an admin from another screen would leave a ghost row here.
   useFocusEffect(
     useCallback(() => {
-      fetchAdmins(true);
-      fetchStaff();
-    }, [fetchAdmins, fetchStaff]),
+      fetchAdmins();
+      return () => { rosterAbort.current?.abort(); };
+    }, [fetchAdmins]),
   );
+
+  useFocusEffect(useCallback(() => { fetchStaff(); }, [fetchStaff]));
 
   /**
    * Load the suggestion lists, re-scoped whenever the parent region changes.
@@ -474,11 +492,10 @@ const ManageAdminsScreen = ({ route }: any) => {
   // "All" only, narrowed by the search box. Super admin rows are not listed:
   // their password is changed in Settings.
   const staffShown = useMemo(() => {
-    if (roleFilter !== 'all') return [];
     const q = (debouncedQuery || '').trim().toLowerCase();
     return (staff || []).filter(a => q.length < 2 ||
       `${a?.fullName || ''} ${a?.email || ''} ${a?.roleLabel || ''}`.toLowerCase().includes(q));
-  }, [staff, roleFilter, debouncedQuery]);
+  }, [staff, debouncedQuery]);
 
   const sections = useMemo(() => [
     ...TIERS.map(tier => ({
@@ -487,7 +504,7 @@ const ManageAdminsScreen = ({ route }: any) => {
       icon: tier.icon,
       color: tier.color,
       light: tier.light,
-      data: (admins || []).filter(a => a?.role === tier.key),
+      data: roleFilter === 'staff' ? [] : (admins || []).filter(a => a?.role === tier.key),
     })),
     {
       key: 'staff',
@@ -495,10 +512,10 @@ const ManageAdminsScreen = ({ route }: any) => {
       icon: 'manage-accounts',
       color: PALETTE.indigo,
       light: PALETTE.indigoSoft,
-      data: staffShown as any[],
+      data: (roleFilter === 'all' || roleFilter === 'staff') ? staffShown as any[] : [],
     },
   ].filter(section => section.data.length > 0),
-  [admins, staffShown]);
+  [admins, staffShown, roleFilter]);
 
   const setField = (key: keyof FormState, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
@@ -1125,7 +1142,7 @@ const ManageAdminsScreen = ({ route }: any) => {
   };
 
   const listEmpty = () => {
-    if (loading) return <View style={styles.gutter}><SkeletonList count={4} /></View>;
+    if (loading || (roleFilter === 'staff' && staffLoading)) return <View style={styles.gutter}><SkeletonList count={4} /></View>;
     if (error) {
       return <EmptyState tone="error" title={error} caption="Pull down to try again." action="Try again" onAction={() => fetchAdmins()} />;
     }
@@ -1164,7 +1181,7 @@ const ManageAdminsScreen = ({ route }: any) => {
             accessibilityLabel={mode === 'idle' ? 'Add admin' : 'Close form'}
           />
         )}
-        eyebrow={`${(admins || []).length} accounts`}
+        eyebrow={`${roleFilter === 'staff' ? staffShown.length : total} ${roleFilter === 'staff' ? 'staff' : 'regional'} accounts`}
         title="Admins"
         subtitle="A block admin opens a region for registration."
         art={<TeamKeys3D size={96} />}
@@ -1182,14 +1199,34 @@ const ManageAdminsScreen = ({ route }: any) => {
         </FadeInUp>
       ) : null}
 
-      <ConsoleSearch value={query} onChangeText={setQuery} placeholder="Name, email or region" style={styles.search} />
-
-      <ConsoleTabs
-        value={roleFilter}
-        onChange={setRoleFilter}
-        options={ROLE_TABS.map(tab => ({ value: tab.key, label: tab.label, count: counts[tab.key] || 0 }))}
-        style={styles.roleTabs}
-      />
+      <ConsoleCard style={styles.filters}>
+        <Text style={styles.filterTitle}>Find an admin</Text>
+        <PremiumInput tone="admin" label="Search admins" icon="search" value={query} onChangeText={setQuery}
+          placeholder="Name, email or region" autoCapitalize="none" autoCorrect={false}
+          inputStyle={{ fontWeight: '700', color: PALETTE.text }} />
+        <View style={styles.filterTabs} accessibilityRole="radiogroup">
+          {ROLE_TABS.map(tab => {
+            const selected = roleFilter === tab.key;
+            const count = tab.key === 'staff' ? staff.length : tab.key === 'all' ? Number(counts.all || 0) + staff.length : counts[tab.key] || 0;
+            return <TouchableOpacity key={tab.key} accessibilityRole="radio" accessibilityState={{ checked: selected }}
+              accessibilityLabel={tab.label + ', ' + count} activeOpacity={0.85}
+              onPress={() => { setPage(1); setRoleFilter(tab.key); }}
+              style={[styles.filterTab, selected && styles.filterTabSelected]}>
+              <Text style={[styles.filterTabLabel, selected && styles.filterTabTextSelected]}>{tab.label}</Text>
+              <Text style={[styles.filterTabCount, selected && styles.filterTabTextSelected]}>{count}</Text>
+            </TouchableOpacity>;
+          })}
+        </View>
+        {roleFilter === 'staff' ? <ConsoleNote text="CMS, events and attendance accounts work across all regions." /> : <>
+          <PremiumSelect strong icon="public" label="State" value={regionFilter.state} onChange={value => { setPage(1); regionFilter.setState(value); }} tone="admin" placeholder="All states and union territories" options={regionFilter.states.map(s => s.name)} />
+          <PremiumSelect strong icon="map" label="District" value={regionFilter.district} onChange={value => { setPage(1); regionFilter.setDistrict(value); }} disabled={!regionFilter.state} tone="admin" placeholder="All districts" options={regionFilter.districts.map(d => d.name)} />
+          <PremiumSelect strong icon="location-city" label="Block" value={regionFilter.block} onChange={value => { setPage(1); regionFilter.setBlock(value); }} disabled={!regionFilter.district} tone="admin" placeholder="All blocks" options={regionFilter.blocks.map(b => b.name)} />
+          {regionFilter.state ? <ConsoleButton label="Clear region filters" onPress={() => { setPage(1); regionFilter.setState(''); }} /> : null}
+          {regionFilter.error ? <ConsoleNote text={regionFilter.error} /> : null}
+        </>}
+        {error && roleFilter !== 'staff' ? <ConsoleNote text={error} /> : null}
+        {staffError && (roleFilter === 'staff' || roleFilter === 'all') ? <ConsoleNote text={staffError} /> : null}
+      </ConsoleCard>
 
       {/* Inline expandable form — never a native Modal inside a tab. */}
       {mode !== 'idle' ? renderForm() : null}
@@ -1213,7 +1250,16 @@ const ManageAdminsScreen = ({ route }: any) => {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={header}
         ListEmptyComponent={listEmpty}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchAdmins(true)} colors={[PALETTE.indigo]} tintColor={PALETTE.white} />}
+        ListFooterComponent={roleFilter !== 'staff' && !error ? <View style={styles.pagination}>
+          <Text style={styles.pageLabel}>{total} regional accounts · Page {page} of {pages}</Text>
+          <View style={styles.paginationButtons}>
+            <ConsoleButton kind="soft" label="Previous" disabled={loading || page <= 1} style={styles.flex}
+              onPress={() => { setPage(value => value - 1); listRef.current?.getScrollResponder()?.scrollTo({ y: 0, animated: true }); }} />
+            <ConsoleButton kind="soft" label="Next" disabled={loading || page >= pages} style={styles.flex}
+              onPress={() => { setPage(value => value + 1); listRef.current?.getScrollResponder()?.scrollTo({ y: 0, animated: true }); }} />
+          </View>
+        </View> : null}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { fetchAdmins(true); fetchStaff(); }} colors={[PALETTE.indigo]} tintColor={PALETTE.white} />}
       />
     </ConsoleFrame>
   );
@@ -1221,6 +1267,17 @@ const ManageAdminsScreen = ({ route }: any) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  filters: { marginHorizontal: SPACE.lg, borderWidth: 1.5, borderColor: '#ccd7f6', backgroundColor: '#f6f8ff', marginBottom: SPACE.md },
+  filterTitle: { ...TYPE.heading, fontWeight: '800', color: PALETTE.indigoDark, marginBottom: SPACE.md },
+  filterTabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: SPACE.lg },
+  filterTab: { minWidth: 86, flexGrow: 1, borderWidth: 1.5, borderColor: '#ccd7f6', borderRadius: 12, padding: SPACE.sm, backgroundColor: PALETTE.white, alignItems: 'center', justifyContent: 'center', minHeight: 60 },
+  filterTabSelected: { backgroundColor: PALETTE.indigo, borderColor: PALETTE.indigo },
+  filterTabLabel: { ...TYPE.label, fontWeight: '800', color: PALETTE.indigoDark },
+  filterTabCount: { ...TYPE.caption, fontWeight: '700', color: PALETTE.indigoDark },
+  filterTabTextSelected: { color: PALETTE.white },
+  pagination: { marginHorizontal: SPACE.lg, marginVertical: SPACE.lg },
+  paginationButtons: { flexDirection: 'row', gap: SPACE.sm, marginTop: SPACE.sm },
+  pageLabel: { ...TYPE.label, fontWeight: '700', textAlign: 'center' },
   flexText: { flex: 1, minWidth: 0 },
   gutter: { marginHorizontal: SPACE.lg },
   addWrap: { marginHorizontal: SPACE.lg, marginTop: -26, marginBottom: SPACE.md },

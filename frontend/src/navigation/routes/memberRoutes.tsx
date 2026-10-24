@@ -19,6 +19,8 @@ import AccountSettingsScreen from '../../screens/member/settings/AccountSettings
 import PlatinumRequestScreen from '../../screens/member/platinum/PlatinumRequestScreen';
 import MemberDonationsScreen from '../../screens/payment/MemberDonationsScreen';
 import WebsiteViewerScreen from '../../screens/member/website/WebsiteViewerScreen';
+import PublicContentScreen from '../../screens/public/PublicContentScreen';
+import PublicInfoScreen from '../../screens/public/PublicInfoScreen';
 
 /**
  * The member area's NEW stack screens (types in types/routes/member.ts).
@@ -67,5 +69,7 @@ export const memberScreens = (Stack: any) => (
     <Stack.Screen name="PlatinumRequest" component={PlatinumRequestScreen} options={noHeader} />
     <Stack.Screen name="MemberDonations" component={MemberDonationsScreen} options={noHeader} />
     <Stack.Screen name="WebsiteViewer" component={WebsiteViewerScreen} options={noHeader} />
+    <Stack.Screen name="PublicContent" component={PublicContentScreen} options={noHeader} />
+    <Stack.Screen name="PublicInfo" component={PublicInfoScreen} options={noHeader} />
   </>
 );

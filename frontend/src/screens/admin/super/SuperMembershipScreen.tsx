@@ -9,11 +9,11 @@ import {
   PremiumInput, MembershipBenefits3D, type ConsoleChipKind,
 } from '../../../ui';
 import {
-  listMembershipPlans, updateMembershipSettings, retireMembershipPlan, deleteMembershipPlan, updateMembershipPlan, alignMembershipBands,
+  listMembershipPlans,  retireMembershipPlan, deleteMembershipPlan, updateMembershipPlan, alignMembershipBands,
   getPlatinumOverview, searchPlatinumCandidates, revokePlatinum, listPlatinumRequests, updatePlatinumRequest,
   MembershipPlanRow, PAYMENT_MODE_LABEL, errorText,
 } from '../../../services/superApi';
-import { ToggleRow, MiniAction, ChipRow, confirm, place, callNumber, whatsappNumber, openUrl } from './superKit';
+import { MiniAction, ChipRow, confirm, place, callNumber, whatsappNumber, openUrl } from './superKit';
 import { hasBand, bandLabel, yearWindowLabel, inBand, companyPlans, bandProblems, yearRanges } from './membershipBands';
 
 /**
@@ -42,7 +42,7 @@ const GROUPS: { audience: string; title: string; hint: string; icon: string }[] 
   { audience: 'business', title: 'Company plans', hint: 'Ordered by band. An applicant is offered the one their commencement year falls in.', icon: 'business' },
   { audience: 'aspirant', title: 'Aspirant plan', hint: 'For an applicant planning a business who is not trading yet. No band applies.', icon: 'star' },
   { audience: 'student', title: 'Student plan', hint: 'For an applicant who is studying and not in business. No band applies.', icon: 'school' },
-  { audience: 'platinum', title: 'Platinum plan', hint: 'Lifetime membership, paid offline and granted by the Super Admin. Never offered to applicants online.', icon: 'diamond' },
+  { audience: 'platinum', title: 'Lifetime plan', hint: 'Lifetime Membership, paid offline and granted by the Super Admin. Never offered to applicants online.', icon: 'diamond' },
 ];
 
 function PlanCard({ p, thisYear, onEdit, onRestore, onDelete }: {
@@ -77,7 +77,6 @@ function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
   const [data, setData] = useState<{ plans: MembershipPlanRow[]; settings: { showAllPlans: boolean } } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
   const [aligning, setAligning] = useState(false);
   const [previewYear, setPreviewYear] = useState('');
   // Read once per render so every year label on the screen agrees.
@@ -87,13 +86,14 @@ function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
     setLoading(true); setError('');
     try { setData(await listMembershipPlans()); } catch (err) { setError(errorText(err, 'Could not load the membership plans')); } finally { setLoading(false); }
   }, []);
+  // The parent refresh token deliberately reloads this tab while it is focused.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useFocusEffect(useCallback(() => { load(); }, [load, nonce]));
 
   const plans = useMemo(() => (Array.isArray(data?.plans) ? data?.plans || [] : []), [data]);
   const business = useMemo(() => companyPlans(plans), [plans]);
   const problems = useMemo(() => bandProblems(business), [business]);
   const runs = useMemo(() => yearRanges(business, thisYear), [business, thisYear]);
-  const showAll = !!data?.settings?.showAllPlans;
   const offered = plans.filter((p) => p?.active).length;
 
   const preview = useMemo(() => {
@@ -104,18 +104,6 @@ function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
     return { years, matched };
   }, [previewYear, business, thisYear]);
 
-  /** Optimistic, as on the website: the switch must feel immediate. */
-  const setShowAll = async (v: boolean) => {
-    setBusy(true);
-    setData((d) => (d ? { ...d, settings: { showAllPlans: v } } : d));
-    try {
-      await updateMembershipSettings({ showAllPlans: v });
-      Alert.alert('Saved', v ? 'Applicants now see every plan' : 'Applicants now see only the plan their commencement year earns');
-    } catch (err) {
-      setData((d) => (d ? { ...d, settings: { showAllPlans: !v } } : d));
-      Alert.alert('Could not save that setting', errorText(err));
-    } finally { setBusy(false); }
-  };
   /**
    * Delete, with retire offered only when deletion is actually blocked
    * (website Membership.tsx `removePlan`): the server is the only side that can
@@ -177,16 +165,7 @@ function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
       </View>
 
       <ConsoleCard style={s.card}>
-        <ToggleRow
-          label="Show every plan to every applicant"
-          hint={showAll
-            ? 'On — every applicant picks from all the company plans, whatever their commencement year. Turn this off to show each applicant only the one plan their year earns, the way the aspirant plan works.'
-            : 'Off — each applicant sees only the one plan their commencement year earns them, at the price set below, exactly as an aspirant sees only the aspirant plan. Turn this on to let them choose from all of them.'}
-          value={showAll}
-          onChange={setShowAll}
-          disabled={busy}
-          last
-        />
+        <ConsoleNote text="Members see their eligible category and business-year plan. Plans advance automatically at the configured year boundaries; the new fee applies at renewal. Students and aspirants start with the entry business plan." />
       </ConsoleCard>
 
       {problems.length ? (
@@ -196,7 +175,7 @@ function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
             <Text style={s.warnTitle} maxFontSizeMultiplier={1.3}>These bands leave applicants without a plan</Text>
           </View>
           {problems.map((t, i) => <Text key={i} style={s.warnItem} maxFontSizeMultiplier={1.3}>• {t}</Text>)}
-          <Text style={s.warnBody} maxFontSizeMultiplier={1.3}>An applicant no band covers is shown every plan instead, and where two bands overlap the cheaper one silently wins — which reads as the rule not working.</Text>
+          <Text style={s.warnBody} maxFontSizeMultiplier={1.3}>A missing range leaves members without an eligible payment plan. Keep the ranges continuous and without overlap so each business matches one plan.</Text>
           <ConsoleButton icon="auto-fix-high" label="Make the bands continuous" onPress={align} loading={aligning} style={s.warnBtn} />
         </ConsoleCard>
       ) : null}
@@ -264,12 +243,10 @@ function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
           accessibilityLabel="Commencement year"
         />
         {preview ? (
-          showAll ? (
-            <Text style={s.previewText} maxFontSizeMultiplier={1.3}><Text style={s.bold}>{preview.years} years trading</Text> — and every plan is shown, because the switch at the top of this page is on.</Text>
-          ) : preview.matched ? (
+          preview.matched ? (
             <Text style={s.previewText} maxFontSizeMultiplier={1.3}><Text style={s.bold}>{preview.years} years trading</Text> → they see <Text style={s.strong}>{preview.matched.name}</Text> at <Text style={s.strong}>{money(preview.matched.price)}</Text>, and nothing else.</Text>
           ) : (
-            <Text style={[s.previewText, s.warnText]} maxFontSizeMultiplier={1.3}><Text style={s.bold}>{preview.years} years trading</Text> — no band covers this, so they would be shown every plan. Fix the bands above.</Text>
+            <Text style={[s.previewText, s.warnText]} maxFontSizeMultiplier={1.3}><Text style={s.bold}>{preview.years} years trading</Text> — no band covers this, so membership payment is unavailable. Configure the missing range above.</Text>
           )
         ) : null}
       </ConsoleCard>
@@ -293,12 +270,13 @@ function CandidateRow({ m, onGrant }: { m: any; onGrant: () => void }) {
           {contact ? <Text style={s.meta} numberOfLines={1} maxFontSizeMultiplier={1.3}>{contact}</Text> : null}
           {where ? <Text style={s.meta} numberOfLines={1} maxFontSizeMultiplier={1.3}>{where}</Text> : null}
         </View>
-        {isPlat ? <ConsoleChip label="Platinum" kind="gold" icon="diamond" /> : null}
+        {isPlat ? <ConsoleChip label="Lifetime" kind="gold" icon="diamond" /> : null}
       </View>
       {!isPlat && m?.blockedReason ? <Text style={[s.desc, s.warnText]} maxFontSizeMultiplier={1.3}>{m.blockedReason}</Text> : null}
+      {isPlat ? <MiniAction icon="edit" label="Edit account" onPress={onGrant} /> : null}
       {!isPlat && !m?.blockedReason ? (
         <View style={s.actions}>
-          <MiniAction icon="diamond" label="Make Platinum" onPress={onGrant} />
+          <MiniAction icon="diamond" label="Make Lifetime" onPress={onGrant} />
         </View>
       ) : null}
     </ConsoleCard>
@@ -306,7 +284,7 @@ function CandidateRow({ m, onGrant }: { m: any; onGrant: () => void }) {
 }
 
 /** One existing Platinum member, with the office receipt and Undo. */
-function PlatinumMemberRow({ m, onRevoke }: { m: any; onRevoke: () => void }) {
+function PlatinumMemberRow({ m, onRevoke, onEdit }: { m: any; onRevoke: () => void; onEdit: () => void }) {
   const g = m?.platinumGrant || null;
   return (
     <ConsoleCard style={s.card} accent={PALETTE.gold}>
@@ -316,7 +294,7 @@ function PlatinumMemberRow({ m, onRevoke }: { m: any; onRevoke: () => void }) {
           <Text style={s.planName} numberOfLines={1} maxFontSizeMultiplier={1.3}>{m?.fullName || 'Unnamed member'}</Text>
           <Text style={s.meta} numberOfLines={1} maxFontSizeMultiplier={1.3}>{[m?.membershipNumber, m?.email].filter(Boolean).join(' · ') || '—'}</Text>
         </View>
-        <ConsoleChip label="Platinum" kind="gold" icon="diamond" />
+        <ConsoleChip label="Lifetime" kind="gold" icon="diamond" />
       </View>
       {g ? (
         <Text style={s.desc} maxFontSizeMultiplier={1.3}>
@@ -324,6 +302,7 @@ function PlatinumMemberRow({ m, onRevoke }: { m: any; onRevoke: () => void }) {
         </Text>
       ) : null}
       <View style={s.actions}>
+        <MiniAction icon="edit" label="Edit account" onPress={onEdit} />
         <MiniAction icon="undo" label="Undo" color={PALETTE.red} onPress={onRevoke} />
       </View>
     </ConsoleCard>
@@ -340,8 +319,10 @@ function PlatinumTab({ navigation, nonce }: { navigation: any; nonce: number }) 
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
-    try { setOverview(await getPlatinumOverview()); } catch (err) { setError(errorText(err, 'Could not load Platinum members')); } finally { setLoading(false); }
+    try { setOverview(await getPlatinumOverview()); } catch (err) { setError(errorText(err, 'Could not load Lifetime members')); } finally { setLoading(false); }
   }, []);
+  // The parent refresh token deliberately reloads this tab while it is focused.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useFocusEffect(useCallback(() => { load(); }, [load, nonce]));
 
   // Debounced search — one request per pause in typing (as on the website).
@@ -361,16 +342,16 @@ function PlatinumTab({ navigation, nonce }: { navigation: any; nonce: number }) 
   const revoke = async (m: any) => {
     const mid = String(m?.id || '');
     if (!mid) return;
-    if (!(await confirm('Undo this Platinum grant?', 'Restore their earlier membership and cancel this receipt?', 'Remove', true))) return;
+    if (!(await confirm('Undo this Lifetime grant?', 'Restore their earlier membership and cancel this receipt?', 'Remove', true))) return;
     try {
       await revokePlatinum(mid);
-      Alert.alert('Platinum removed', `Platinum removed from ${m?.fullName || 'the member'}; their earlier membership is restored`);
+      Alert.alert('Lifetime removed', `Lifetime removed from ${m?.fullName || 'the member'}; their earlier membership is restored`);
       load();
-    } catch (err) { Alert.alert('Could not remove Platinum', errorText(err)); }
+    } catch (err) { Alert.alert('Could not remove Lifetime', errorText(err)); }
   };
 
   if (loading && !overview) return <ConsoleSkeleton rows={3} style={s.gap} />;
-  if (error && !overview) return <ConsoleState kind="error" title="Could not load Platinum" message={error} action="Try again" onAction={load} />;
+  if (error && !overview) return <ConsoleState kind="error" title="Could not load Lifetime" message={error} action="Try again" onAction={load} />;
   const members: any[] = Array.isArray(overview?.members) ? overview.members : [];
   // The price is the Platinum PLAN ROW — never a number in this client.
   const price = Number(overview?.plan?.price);
@@ -379,16 +360,17 @@ function PlatinumTab({ navigation, nonce }: { navigation: any; nonce: number }) 
   return (
     <View>
       <ConsoleGrid style={s.gap}>
-        <ConsoleStatTile label="Platinum price" value={hasPrice ? money(price) : '—'} icon="diamond" accent="gold" hint="one payment · never renews" />
-        <ConsoleStatTile label="Platinum members" value={members.length} icon="all-inclusive" accent="indigo" hint="lifetime validity" delay={60} />
+        <ConsoleStatTile label="Lifetime price" value={hasPrice ? money(price) : '—'} icon="diamond" accent="gold" hint="one payment · never renews" />
+        <ConsoleStatTile label="Lifetime members" value={members.length} icon="all-inclusive" accent="indigo" hint="lifetime validity" delay={60} />
       </ConsoleGrid>
       <ConsoleNote
         style={s.noteGap}
         icon="sell"
-        text="The price is the Platinum plan on the Plans tab — edit it there. Members see it advertised on their dashboard."
+        text="The price is the Lifetime plan on the Plans tab — edit it there. Members see it advertised on their dashboard."
       />
 
-      <ConsoleSectionTitle title="Make a member Platinum" subtitle="Search by name, email, mobile or Member ID. Their application must be approved." icon="person-search" style={s.section} />
+      <View style={s.pad}><ConsoleButton icon="person-add" label="Create an office member account" onPress={() => navigation?.navigate?.('SuperOfficeAccount')} /></View>
+      <ConsoleSectionTitle title="Make a member Lifetime" subtitle="Search an approved applicant or existing member. New members must complete and submit all required forms." icon="person-search" style={s.section} />
       <ConsoleSearch value={q} onChangeText={setQ} placeholder="Start typing a name, email or number…" style={s.searchGap} />
       {searching ? (
         <View style={s.searching}><ActivityIndicator color={PALETTE.indigo} /><Text style={s.meta} maxFontSizeMultiplier={1.3}>Searching…</Text></View>
@@ -398,11 +380,11 @@ function PlatinumTab({ navigation, nonce }: { navigation: any; nonce: number }) 
         <CandidateRow key={String(m?.id || i)} m={m} onGrant={() => navigation?.navigate?.('SuperPlatinumGrant', { member: m, ...(hasPrice ? { price } : {}) })} />
       ))}
 
-      <ConsoleSectionTitle title="Platinum members" icon="workspace-premium" style={s.section} />
+      <ConsoleSectionTitle title="Lifetime members" icon="workspace-premium" style={s.section} />
       {members.length === 0 ? (
-        <ConsoleState title="No Platinum members yet" message="Search above to grant the first one." />
+        <ConsoleState title="No Lifetime members yet" message="Search above to grant the first one." />
       ) : members.map((m, i) => (
-        <PlatinumMemberRow key={String(m?.id || i)} m={m} onRevoke={() => revoke(m)} />
+        <PlatinumMemberRow key={String(m?.id || i)} m={m} onRevoke={() => revoke(m)} onEdit={() => navigation?.navigate?.('SuperPlatinumGrant', { member: m })} />
       ))}
       <ConsoleNote
         style={s.noteGap}
@@ -415,7 +397,7 @@ function PlatinumTab({ navigation, nonce }: { navigation: any; nonce: number }) 
 }
 
 const CONTACT_LABEL: Record<string, string> = { call: 'Phone call', whatsapp: 'WhatsApp', email: 'Email' };
-const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted', converted: 'Platinum granted', declined: 'Declined' };
+const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted', converted: 'Lifetime granted', declined: 'Declined' };
 const statusKind = (st?: string): ConsoleChipKind => (st === 'converted' ? 'approved' : st === 'declined' ? 'rejected' : st === 'contacted' ? 'pending' : 'info');
 
 function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) {
@@ -428,8 +410,10 @@ function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) 
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
-    try { setData(await listPlatinumRequests(status)); } catch (err) { setError(errorText(err, 'Could not load Platinum requests')); } finally { setLoading(false); }
+    try { setData(await listPlatinumRequests(status)); } catch (err) { setError(errorText(err, 'Could not load Lifetime requests')); } finally { setLoading(false); }
   }, [status]);
+  // The parent refresh token deliberately reloads this tab while it is focused.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useFocusEffect(useCallback(() => { load(); }, [load, nonce]));
   useEffect(() => {
     let alive = true;
@@ -461,7 +445,7 @@ function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) 
   const rows: any[] = Array.isArray(data?.requests) ? data?.requests || [] : [];
   return (
     <View>
-      <ConsoleNote style={s.noteGapTop} icon="contact-phone" text="Members who asked to become Platinum. Call them, then grant it once the payment is received." />
+      <ConsoleNote style={s.noteGapTop} icon="contact-phone" text="Members who asked to become Lifetime. Call them, then grant it once the payment is received." />
       <ChipRow<string>
         options={[
           { value: 'new', label: `New (${Number(counts?.new || 0)})` },
@@ -479,7 +463,7 @@ function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) 
       ) : rows.length === 0 ? (
         <ConsoleState
           title={status === 'new' ? 'No new requests' : 'Nothing here yet'}
-          message={status === 'new' ? 'When a member presses “Apply for Platinum”, it appears here and the office is emailed.' : undefined}
+          message={status === 'new' ? 'When a member presses “Apply for Lifetime”, it appears here and the office is emailed.' : undefined}
         />
       ) : rows.map((r, i) => {
         const open = r?.status === 'new' || r?.status === 'contacted';
@@ -506,14 +490,14 @@ function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) 
             {open && r?.blockedReason ? <Text style={[s.desc, s.warnText]} maxFontSizeMultiplier={1.3}>{r.blockedReason}</Text> : null}
             <View style={s.actions}>
               <MiniAction icon="call" label="Call" onPress={() => callNumber(r?.phone)} disabled={!r?.phone} />
-              <MiniAction icon="chat" label="WhatsApp" color={PALETTE.green} onPress={() => whatsappNumber(r?.phone, `Hello ${r?.name || ''}, this is the ACTIV office about your Platinum membership request.`)} disabled={!r?.phone} />
-              <MiniAction icon="email" label="Email" color={PALETTE.textSoft} onPress={() => openUrl(r?.email ? `mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Platinum membership request')}` : '')} disabled={!r?.email} />
+              <MiniAction icon="chat" label="WhatsApp" color={PALETTE.green} onPress={() => whatsappNumber(r?.phone, `Hello ${r?.name || ''}, this is the ACTIV office about your Lifetime Membership request.`)} disabled={!r?.phone} />
+              <MiniAction icon="email" label="Email" color={PALETTE.textSoft} onPress={() => openUrl(r?.email ? `mailto:${r.email}?subject=${encodeURIComponent('Your ACTIV Lifetime Membership request')}` : '')} disabled={!r?.email} />
               <MiniAction icon="description" label="View full details" onPress={() => openDetail(r)} />
             </View>
             {open ? (
               <View style={s.actions}>
                 {r?.status === 'new' ? <MiniAction icon="done" label={busy === rid ? 'Saving…' : 'Mark contacted'} onPress={() => markContacted(r)} disabled={!!busy} /> : null}
-                <MiniAction icon="diamond" label="Grant Platinum" color={PALETTE.indigoDark} onPress={() => grant(r)} disabled={!!r?.blockedReason} />
+                <MiniAction icon="diamond" label="Grant Lifetime" color={PALETTE.indigoDark} onPress={() => grant(r)} disabled={!!r?.blockedReason} />
                 <MiniAction icon="close" label="Decline" color={PALETTE.textMuted} onPress={() => openDetail(r)} />
               </View>
             ) : null}
@@ -547,7 +531,7 @@ const SuperMembershipScreen: React.FC = () => {
         value={tab}
         onChange={setTab}
         style={s.tabs}
-        options={[{ value: 'plans', label: 'Plans' }, { value: 'platinum', label: 'Platinum' }, { value: 'requests', label: 'Requests' }]}
+        options={[{ value: 'plans', label: 'Plans' }, { value: 'platinum', label: 'Lifetime' }, { value: 'requests', label: 'Requests' }]}
       />
       <ConsoleNote style={s.noteGapTop} icon="payments" text="An edit here changes what applicants are charged — checkout reads the same plan rows." />
       {tab === 'plans' ? <PlansTab navigation={navigation} nonce={nonce} />

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, ArrowLeft, Shield, Lock } from 'lucide-react';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 import { toast } from 'sonner';
 import { getUserApplication } from '@/services/applicationApi';
 import { resolvePlanEligibility, type MembershipPlan } from '@/features/member/membershipPlans';
@@ -149,6 +150,7 @@ export default function PaymentRegistration() {
             <ArrowLeft className="w-6 h-6 text-slate-700" />
           </button>
           <h1 className="text-lg sm:text-[1.5625rem] font-bold text-slate-900 truncate min-w-0">Payment Registration</h1>
+          <ThemeToggle className="ml-auto" />
         </div>
       </div>
 

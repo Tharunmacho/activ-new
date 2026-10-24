@@ -1,3 +1,4 @@
+import { fetchSpreadsheet } from './spreadsheetDownload';
 import { Platform } from 'react-native';
 import api from './api';
 
@@ -174,23 +175,13 @@ export const getAttendance = async (eventId: string, params: { q?: string; statu
 /* ============================================================================
  * ATTENDANCE EXPORT — GET /events/:id/attendance/export
  * ============================================================================
- * The website's CSV, as text, handed to the share sheet. The server decides
+ * The same Excel workbook as the website, saved through the Files picker. The server decides
  * the columns by role: masked numbers for the events admin, email and phone
  * for the super admin.
  */
-export const exportAttendanceCsv = async (eventId: string, title = 'event'): Promise<{ csv: string; filename: string }> => {
-  const res = await api.get(`/events/${encodeURIComponent(String(eventId || ''))}/attendance/export`, {
-    responseType: 'text',
-    transformResponse: (raw: any) => raw,
-  });
-  const csv = typeof res?.data === 'string' ? res.data : String(res?.data ?? '');
-  const slug = String(title || 'event')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60) || 'event';
-  return { csv, filename: `attendance-${slug}.csv` };
-};
+export const exportAttendanceCsv = async (eventId: string, _title = 'event') =>
+  fetchSpreadsheet('/events/' + encodeURIComponent(String(eventId || '')) + '/attendance/export');
+
 
 /* ============================================================================
  * THE PROGRAMME — GET /cms/events (the website editor's list)

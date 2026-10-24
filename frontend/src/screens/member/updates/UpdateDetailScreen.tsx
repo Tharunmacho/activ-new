@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   Skeleton, Badge, BottomActionBar, PALETTE, SPACE, SIZE, TYPE, shortDate, timeAgo, BRAND,
@@ -9,6 +9,10 @@ import { getAnnouncement } from '../../../services/memberApi';
 import { resolveMediaUrl } from '../../../config/api.config';
 import { useLoad } from '../useLoad';
 import { categoryStyle, categoryGlyph, htmlToText } from './updateFormat';
+import { openWebsitePage } from '../../../services/websiteNavigation';
+import { Body } from '../../public/PublicContentKit';
+import { updateAudienceLabel } from '../../../utils/memberAudience';
+import { sharePublicPage } from '../../../services/contentShare';
 
 /**
  * One Association Update — website `features/member/pages/AnnouncementDetail.tsx`.
@@ -30,22 +34,18 @@ const UpdateDetailScreen = ({ navigation, route }: any) => {
 
   const openAttachment = async () => {
     if (!attachment) return;
-    try { await Linking.openURL(attachment); } catch (err) { console.warn('Open attachment safely caught:', err); }
+    openWebsitePage(navigation, attachment, update?.attachmentLabel || 'Attachment');
   };
 
-  const share = async () => {
-    try {
-      await Share.share({ message: [update?.title || 'ACTIV update', update?.summary || ''].filter(Boolean).join('\n\n') });
-    } catch (err) {
-      console.warn('Share safely caught:', err);
-    }
-  };
+  // The server personalizes this content for the signed-in recipient. Share
+  // only its gated address; the receiving member must pass the same checks.
+  const share = () => sharePublicPage({ path: '/member/updates/' + encodeURIComponent(id), title: 'ACTIV member update' });
 
   const header = (
     <PremiumPageHeader
       eyebrow="Association Updates"
       title={style ? style.label : 'Update'}
-      subtitle={update ? [ago ? `Published ${ago}` : '', update?.targetLabel ? `For ${update.targetLabel}` : 'For all members'].filter(Boolean).join(' · ') : loading ? 'Opening the notice…' : undefined}
+      subtitle={update ? [ago ? `Published ${ago}` : '', update?.targetLabel ? `For ${update.targetLabel}` : updateAudienceLabel(update?.audience)].filter(Boolean).join(' · ') : loading ? 'Opening the notice…' : undefined}
       onBack={() => navigation.goBack()}
       right={update ? <GlassIconButton icon="share" onPress={share} accessibilityLabel="Share update" /> : undefined}
       art={<Megaphone3D size={84} />}
@@ -53,16 +53,9 @@ const UpdateDetailScreen = ({ navigation, route }: any) => {
     />
   );
 
-  const footer = update && !loading ? (
+  const footer = update && !loading && attachment ? (
     <BottomActionBar>
-      {attachment ? (
-        <>
-          <GradientButton label="Share" icon="share" variant="outline" onPress={share} style={styles.footSecondary} />
-          <GradientButton label="Open attachment" icon="file-download" onPress={openAttachment} style={styles.flex} />
-        </>
-      ) : (
-        <GradientButton label="Share this update" icon="share" onPress={share} style={styles.flex} />
-      )}
+      <GradientButton label="Open attachment" icon="file-download" onPress={openAttachment} style={styles.flex} />
     </BottomActionBar>
   ) : undefined;
 
@@ -105,7 +98,7 @@ const UpdateDetailScreen = ({ navigation, route }: any) => {
               <Text style={styles.title} selectable maxFontSizeMultiplier={1.3}>{update?.title || 'Update'}</Text>
               <View style={styles.target}>
                 <Icon name="place" size={SIZE.iconSm} color={PALETTE.textMuted} />
-                <Text style={styles.targetText}>{update?.targetLabel ? `For ${update.targetLabel}` : 'For all members'}</Text>
+                <Text style={styles.targetText}>{update?.targetLabel ? `For ${update.targetLabel}` : updateAudienceLabel(update?.audience)}</Text>
               </View>
               {update?.summary ? (
                 <View style={styles.summaryBox}>
@@ -113,7 +106,7 @@ const UpdateDetailScreen = ({ navigation, route }: any) => {
                   <Text style={styles.summary} selectable>{update.summary}</Text>
                 </View>
               ) : null}
-              {body ? <Text style={styles.text} selectable>{body}</Text> : null}
+              {body ? <Body value={update.body} navigation={navigation} /> : null}
               {attachment ? (
                 <TouchableOpacity style={styles.attach} onPress={openAttachment} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={`Open ${update?.attachmentLabel || 'attachment'}`}>
                   <GradientGlyph icon="attach-file" tone="blue" size={40} />
@@ -135,7 +128,6 @@ const UpdateDetailScreen = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   flexMin: { flex: 1, minWidth: 0 },
-  footSecondary: { minWidth: 112 },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   gutter: { marginHorizontal: SPACE.lg },
   banner: { width: '100%', aspectRatio: 16 / 10, backgroundColor: PALETTE.field },

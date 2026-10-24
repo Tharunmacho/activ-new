@@ -12,6 +12,7 @@ import {
 import { resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import { getCompany, getProductStats, errorMessage, Company } from '../../services/businessApi';
+import { CompanyShareButton } from '../../components/BusinessShareButton';
 import api from '../../services/api';
 import { BizSectionTitle, BizStatePage, CoverHero, GlassStatus, GlassTag, CHIP } from './businessKit';
 
@@ -103,7 +104,10 @@ const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
       <BrandTopBar
         onBack={() => navigation.goBack()}
         title={isActiveCompany ? 'Active company' : 'Company'}
-        right={<GlassIconButton icon="edit" onPress={() => navigation.navigate('EditCompany', { companyId })} accessibilityLabel="Edit company" />}
+        right={<View style={{ flexDirection: 'row', gap: SPACE.sm }}>
+          <CompanyShareButton company={company} compact appearance="glass" />
+          <GlassIconButton icon="edit" onPress={() => navigation.navigate('EditCompany', { companyId })} accessibilityLabel="Edit company" />
+        </View>}
       />
       <FadeInUp delay={80} distance={12} style={{ marginTop: SPACE.md }}>
         <CoverHero
@@ -120,7 +124,7 @@ const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
         />
       </FadeInUp>
       <FadeInUp delay={160} distance={8} style={styles.headTags}>
-        <GlassTag icon={live ? 'travel-explore' : 'visibility-off'} label={live ? 'Listed in Discover' : 'Hidden from Discover'} />
+        <GlassTag icon={live ? 'travel-explore' : 'visibility-off'} label={live ? 'Listed in ACTIV Network' : 'Hidden from ACTIV Network'} />
       </FadeInUp>
     </View>
   );
@@ -151,7 +155,7 @@ const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
       <BizSectionTitle title="Catalogue" caption="From your products" />
       <MetricGrid>
         <MetricTile tone="business" label="Catalogue products" value={stats.total} icon="inventory-2" hint="Total listed" colors={CHIP.violet} delay={100} />
-        <MetricTile tone="business" label="Live products" value={stats.active} icon="check-circle" colors={CHIP.green} hint="Visible in Discover" delay={160} />
+        <MetricTile tone="business" label="Live products" value={stats.active} icon="check-circle" colors={CHIP.green} hint="Visible in ACTIV Network" delay={160} />
         <MetricTile tone="business" label="Featured" value={stats.featured} icon="star" colors={CHIP.amber} hint="Promoted items" delay={220} />
         <MetricTile tone="business" label="Product views" value={stats.views} icon="visibility" colors={CHIP.sky} delay={280} />
       </MetricGrid>

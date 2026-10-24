@@ -1,5 +1,5 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, LayoutChangeEvent, Platform, Pressable } from 'react-native';
+import React, { useLayoutEffect, useId, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Image, LayoutChangeEvent, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Svg, {
   Circle,
@@ -16,6 +16,8 @@ import Svg, {
   TextPath,
 } from 'react-native-svg';
 import { asArray, RADIUS, SHADOW } from '../../../ui';
+import { amountInWords as spellAmount } from '../../../utils/amountInWords';
+import { A4_WIDTH, A4_HEIGHT, MEMBERSHIP_PAGE, MEMBERSHIP_SIGNATURE, membershipContentScale } from './certificateLayout';
 
 /**
  * ============================================================================
@@ -27,7 +29,7 @@ import { asArray, RADIUS, SHADOW } from '../../../ui';
  * `TaxExemptionCertificate.tsx` (which the server does not render — it sends
  * the fields; each client draws them), with the template's furniture in SVG.
  *
- *   membership   a fixed 360-unit-wide sheet, scaled to the screen width.
+ *   membership   a fixed A4 landscape sheet, scaled to the available viewport.
  *   tax (80G)    a TRUE A4 page: laid out at the website's 794 x 1123 units
  *                with the website's paddings, type sizes and columns, then
  *                scaled uniformly — every phone shows the identical page, at
@@ -38,10 +40,8 @@ import { asArray, RADIUS, SHADOW } from '../../../ui';
  *                in all four corners, faint guilloche waves, the mark centred,
  *                the Founder President's signature ink, the struck medallion,
  *                the date of issue, a navy foot bar with the certificate no.
- *   tax (80G)    the navy wave down the left edge with gold lines riding it,
- *                navy + gold corners, the ribboned medallion — and, as the
- *                website does on the association's instruction, NO signature
- *                and NO QR.
+ *   tax (80G)    formal white letter, centered logo, navy/gold right corners,
+ *                contribution paragraph, payment references and ACTIV address.
  *
  * NOTHING IS INVENTED: a fact the server did not send is left out, an amount
  * it did not record is a dash, and a null `validUntil` is never printed as a
@@ -105,17 +105,6 @@ export const fullYear = (fy?: string | null) => {
 
 /** An id safe for `url(#…)` — two medallions on one screen must not share one. */
 const useSvgId = (prefix: string) => `${prefix}${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-
-/** The paper's measured size, so the frame is drawn in real pixels (no stretching). */
-function usePaperSize() {
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  const onLayout = (e: LayoutChangeEvent) => {
-    const w = Math.round(Number(e?.nativeEvent?.layout?.width || 0));
-    const h = Math.round(Number(e?.nativeEvent?.layout?.height || 0));
-    setSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
-  };
-  return { ...size, onLayout };
-}
 
 const at = (cx: number, cy: number, r: number, deg: number) => {
   const a = (deg * Math.PI) / 180;
@@ -269,32 +258,6 @@ export function Seal({ line, size = 96 }: { line: string; size?: number }) {
   );
 }
 
-/**
- * The medallion hung on two ribbon tails — website `RibbonMedallion`, to the
- * unit: a 140 x 178 box, the 140px medallion at its top, the tails (140 x 86)
- * starting 92px down, drawn BEHIND the medallion.
- */
-function RibbonSeal({ line }: { line: string }) {
-  const tail = useSvgId('rsTail');
-  return (
-    <View style={{ width: 140, height: 178 }}>
-      <Svg width={140} height={86} viewBox="0 0 140 86" style={{ position: 'absolute', left: 0, top: 92 }}>
-        <Defs>
-          <SvgLinearGradient id={tail} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={NAVY_SOFT} />
-            <Stop offset="1" stopColor={NAVY} />
-          </SvgLinearGradient>
-        </Defs>
-        <Path d="M34 0 L66 8 L52 86 L40 70 L22 80 Z" fill={`url(#${tail})`} stroke={GOLD} strokeWidth={1.4} />
-        <Path d="M106 0 L74 8 L88 86 L100 70 L118 80 Z" fill={`url(#${tail})`} stroke={GOLD} strokeWidth={1.4} />
-      </Svg>
-      <View style={{ position: 'absolute', left: 0, top: 0 }}>
-        <Seal line={line} size={140} />
-      </View>
-    </View>
-  );
-}
-
 /* ------------------------------------------------------------------ frames */
 
 const WAVES = Array.from({ length: 12 }, (_, i) => i);
@@ -361,100 +324,31 @@ function MembershipFrame({ w, h }: { w: number; h: number }) {
  * units. The tax certificate is laid out at exactly this size and then scaled
  * as a whole, so every phone (and the zoom view) shows the identical page.
  */
-export const A4_W = 794;
-export const A4_H = 1123;
+export const A4_W = A4_WIDTH;
+export const A4_H = A4_HEIGHT;
 
-const GUILLOCHE = Array.from({ length: 11 }, (_, i) => i);
-
-/** Tax (80G): website TaxExemptionCertificate `Frame`, drawn in the same 794 x 1123 units. */
+/** White paper and navy/gold corners, matching the website's tax certificate. */
 function TaxFrame() {
-  const navy = useSvgId('tfNavy');
-  const wave = useSvgId('tfWave');
-  const royalId = useSvgId('tfRoyal');
-  const gold = useSvgId('tfGold');
-  const pale = useSvgId('tfPale');
-  const glow = useSvgId('tfGlow');
-  const goldStroke = `url(#${gold})`;
+  const navy = useSvgId('taxNavy');
+  const gold = useSvgId('taxGold');
   return (
     <Svg width={A4_W} height={A4_H} viewBox={`0 0 ${A4_W} ${A4_H}`} style={StyleSheet.absoluteFill} pointerEvents="none">
       <Defs>
         <SvgLinearGradient id={navy} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={NAVY_MID} />
-          <Stop offset="1" stopColor={NAVY} />
-        </SvgLinearGradient>
-        <SvgLinearGradient id={wave} x1="0" y1="0" x2="0.4" y2="1">
-          <Stop offset="0" stopColor={NAVY} />
-          <Stop offset="0.5" stopColor={NAVY_MID} />
-          <Stop offset="1" stopColor={NAVY} />
-        </SvgLinearGradient>
-        <SvgLinearGradient id={royalId} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#3A5DB4" />
-          <Stop offset="1" stopColor={NAVY_SOFT} />
+          <Stop offset="0" stopColor="#254875" /><Stop offset="1" stopColor="#0e224a" />
         </SvgLinearGradient>
         <SvgLinearGradient id={gold} x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={GOLD_PALE} />
-          <Stop offset="0.5" stopColor={GOLD} />
-          <Stop offset="1" stopColor={GOLD_DEEP} />
+          <Stop offset="0" stopColor="#dfc28c" /><Stop offset=".5" stopColor="#efddbc" /><Stop offset="1" stopColor="#d7b77f" />
         </SvgLinearGradient>
-        <SvgLinearGradient id={pale} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor="#C9D8F2" />
-          <Stop offset="1" stopColor="#EEF3FC" />
-        </SvgLinearGradient>
-        <RadialGradient id={glow} cx="55%" cy="40%" r="70%">
-          <Stop offset="0" stopColor="#FFFFFF" />
-          <Stop offset="1" stopColor="#EEF3FC" />
-        </RadialGradient>
       </Defs>
-
-      <Rect x={0} y={0} width={A4_W} height={A4_H} fill={`url(#${glow})`} />
-
-      {/* faint guilloche waves across the paper */}
-      {GUILLOCHE.map((i) => (
-        <Path
-          key={i}
-          d={`M-20 ${200 + i * 72} C 220 ${130 + i * 72}, 540 ${290 + i * 72}, 820 ${190 + i * 72}`}
-          fill="none" stroke="#DCE6F7" strokeWidth={1} strokeOpacity={0.8}
-        />
-      ))}
-
-      {/* the left wave, three layers deep */}
-      <Path d="M0 0 H176 C 132 70, 150 150, 168 210 C 186 280, 170 340, 128 380 C 92 414, 100 520, 108 620 C 116 720, 70 800, 40 880 C 22 930, 16 980, 0 1010 Z" fill={`url(#${pale})`} fillOpacity={0.75} />
-      <Path d="M0 0 H128 C 98 60, 104 120, 128 164 C 150 204, 160 236, 154 270 C 148 310, 118 330, 86 340 C 56 350, 50 386, 58 430 C 68 490, 72 560, 62 640 C 54 720, 30 790, 0 850 Z" fill={`url(#${wave})`} />
-      <Path d="M0 0 H62 C 44 70, 40 130, 22 200 C 12 240, 8 270, 0 300 Z" fill={`url(#${royalId})`} fillOpacity={0.55} />
-      {/* the deep edge strip, top to bottom */}
-      <Rect x={0} y={0} width={18} height={A4_H} fill={`url(#${navy})`} />
-
-      {/* the gold lines that ride the wave */}
-      <Path d="M136 0 C 106 60, 112 120, 136 164 C 158 204, 168 238, 162 272 C 156 314, 124 336, 92 346 C 64 356, 58 390, 66 432 C 76 492, 80 562, 70 642 C 62 722, 38 792, 8 852" fill="none" stroke={goldStroke} strokeLinecap="round" strokeWidth={2.2} />
-      <Path d="M184 0 C 142 70, 158 150, 176 210 C 194 282, 178 344, 136 384 C 100 418, 108 522, 116 622 C 124 722, 78 802, 48 882 C 30 932, 24 982, 8 1012" fill="none" stroke={goldStroke} strokeLinecap="round" strokeWidth={1.1} strokeOpacity={0.8} />
-      <Path d="M40 0 L 0 60" fill="none" stroke={goldStroke} strokeLinecap="round" strokeWidth={1.6} />
-      <Path d="M76 0 L 0 110" fill="none" stroke={goldStroke} strokeLinecap="round" strokeWidth={1} strokeOpacity={0.85} />
-
-      {/* top-right corner */}
-      <Polygon points="794,0 690,0 794,98" fill={`url(#${navy})`} />
-      <Polygon points="690,0 676,0 794,112 794,98" fill={goldStroke} />
-      <Polygon points="676,0 648,0 794,140 794,112" fill={`url(#${royalId})`} fillOpacity={0.85} />
-      <Polygon points="648,0 642,0 794,146 794,140" fill={goldStroke} />
-
-      {/* bottom-left corner */}
-      <Polygon points="0,1123 0,990 124,1123" fill={`url(#${navy})`} />
-      <Polygon points="0,990 0,976 137,1123 124,1123" fill={goldStroke} />
-      <Polygon points="0,976 0,948 163,1123 137,1123" fill={`url(#${royalId})`} fillOpacity={0.88} />
-      <Polygon points="0,948 0,942 168,1123 163,1123" fill={goldStroke} />
-
-      {/* bottom-right corner, light, so the skyline reads */}
-      <Polygon points="794,1123 794,1010 690,1123" fill={`url(#${navy})`} />
-      <Polygon points="794,1010 794,996 676,1123 690,1123" fill={goldStroke} />
-
-      {/* skyline and gears, faint, bottom right — the template's motif */}
-      <G opacity={0.7} transform="translate(612 972) scale(0.9)">
-        <Path
-          d="M0 100 V70 H16 V52 H28 V100 Z M30 100 V40 H44 V100 Z M46 100 V12 H54 V0 H58 V12 H66 V100 Z M68 100 V50 H86 V100 Z M88 100 V26 H100 V100 Z M102 100 V60 H122 V100 Z M124 100 V38 H136 V100 Z"
-          fill="#DCE6F7" stroke="#B5C6E6" strokeWidth={1.1}
-        />
-        <Circle cx={168} cy={54} r={24} fill="none" stroke="#B5C6E6" strokeWidth={5} strokeDasharray="7 5" />
-        <Circle cx={168} cy={54} r={12} fill="none" stroke="#B5C6E6" strokeWidth={1.1} />
-      </G>
+      <Rect width={A4_W} height={A4_H} fill="#ffffff" />
+      <Path d="M646 0 H794 V143 C764 134 743 106 716 76 Z" fill={`url(#${gold})`} />
+      <Path d="M667 0 H794 V119 C769 111 748 83 725 60 Z" fill="#ffffff" />
+      <Path d="M680 0 H794 V111 C767 96 752 77 730 54 Z" fill={`url(#${navy})`} />
+      <Path d="M794 976 V1123 H642 C691 1075 740 1027 794 976 Z" fill={`url(#${gold})`} />
+      <Path d="M794 998 V1123 H664 Z" fill="#ffffff" />
+      <Path d="M794 1011 V1123 H676 Z" fill={`url(#${navy})`} />
+      <Path d="M794 1034 V1123 H710 Z" fill="#24477a" opacity={0.55} />
     </Svg>
   );
 }
@@ -479,60 +373,16 @@ function FadeRule({ width, height, fade, color = GOLD }: { width: number; height
 
 /* ------------------------------------------------------------------ furniture */
 
-function Rules({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={f.rules}>
-      <View style={f.rule} />
-      <View style={{ flexShrink: 1 }}>{children}</View>
-      <View style={f.rule} />
-    </View>
-  );
-}
-
-function FactRow({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
-  return (
-    <View style={[f.fact, !last && f.factDivider]}>
-      <Icon name={icon} size={18} color={NAVY_MID} style={{ marginTop: 1 }} />
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={f.factLabel}>{label}</Text>
-        <Text style={f.factValue} selectable>{value}</Text>
-      </View>
-    </View>
-  );
-}
-
-/**
- * ONE TEMPLATE FOR EVERYONE. The sheet is laid out at a fixed design width and
- * then scaled as a picture to whatever width the phone gives it. Laid out at
- * the phone's own width instead, the text re-wrapped and the logo, seal and
- * rules landed in different places on every device — two members comparing
- * certificates saw two different documents.
- */
-const SHEET_W = 360;
-
-function Paper({ children }: { children: React.ReactNode }) {
-  const { w, h, onLayout } = usePaperSize();
-  const [avail, setAvail] = useState(0);
-  const scale = avail > 0 ? avail / SHEET_W : 1;
-  return (
-    <View
-      style={[f.paperShadow, avail > 0 && h > 0 ? { height: Math.round(h * scale) } : null]}
-      onLayout={(e: LayoutChangeEvent) => {
-        const next = Math.round(Number(e?.nativeEvent?.layout?.width || 0));
-        if (next > 0 && next !== avail) setAvail(next);
-      }}
-    >
-      <View style={[f.paper, { width: SHEET_W, transformOrigin: 'top left', transform: [{ scale }] }]} onLayout={onLayout}>
-        <MembershipFrame w={w} h={h} />
-        {children}
-      </View>
-    </View>
-  );
-}
+type PdfSheetRef = React.RefObject<View | null>;
 
 /* ------------------------------------------------------------------ membership */
 
-export function MembershipCertificateView({ cert }: { cert: any }) {
+export function MembershipCertificateView({ cert, pdfRef, width, onPress, hint = '' }: {
+  cert: any; pdfRef?: PdfSheetRef; width?: number; onPress?: () => void; hint?: string;
+}) {
+  const [contentHeight, setContentHeight] = useState(0);
+  // The complete header and facts shrink together when unusually long records need space.
+  const fit = membershipContentScale(contentHeight);
   const member = cert?.member || {};
   const company = String(member?.companyName || member?.name || '—');
   const platinum = String(cert?.membershipTier || '') === 'platinum';
@@ -562,60 +412,67 @@ export function MembershipCertificateView({ cert }: { cert: any }) {
   const dates = keep([
     { icon: 'event', label: 'Date of Membership', value: certDate(cert?.memberSince || cert?.activatedAt) },
     { icon: 'event-available', label: 'Valid Till', value: validTill },
-    { icon: 'verified', label: 'Membership', value: platinum ? 'Platinum Lifetime Member' : '' },
+    { icon: 'verified', label: 'Membership', value: platinum ? 'Lifetime Member' : '' },
   ]);
-  const rows = [...identity, ...address, ...dates];
+  const columns = identity.length <= 3 ? [[...identity, ...dates], address] : [identity, [...address, ...dates]];
+  const pairs = Array.from({ length: Math.max(...columns.map(rows => rows.length)) }, (_, index) =>
+    [columns[0][index], columns[1][index]]);
   const issued = certDate(cert?.issuedAt);
 
   return (
-    <Paper>
-      <View style={f.content}>
-        <Image source={LOGO} style={f.logo} resizeMode="contain" accessibilityLabel="ACTIV" />
-        <Text style={f.assoc}>{ASSOCIATION_NAME.toUpperCase()}</Text>
-
-        <Text style={f.titleBig}>MEMBERSHIP{'\n'}CERTIFICATE</Text>
-        <Rules><Text style={f.subGold}>Empowering SC/ST Entrepreneurs</Text></Rules>
-
-        <Text style={f.certify}>This is to certify that</Text>
-        <Text style={[f.holder, company.length > 30 && { fontSize: 20, lineHeight: 25 }]} selectable>{company}</Text>
-        <View style={f.goldLine} />
-        <Text style={f.admitted}>
-          has been admitted as {platinum ? 'a Platinum Lifetime Member' : 'an official member'} of
-        </Text>
-        <Text style={f.activ}>ACTIV</Text>
-
-        {rows.length ? (
-          <View style={f.panel}>
-            {rows.map((r, i) => <FactRow key={r.label} {...r} last={i === rows.length - 1} />)}
+    <View>
+      <A4Page width={width} onPress={onPress} pdfRef={pdfRef} landscape>
+        <View testID="membership-content-block" style={[m.flow, { transformOrigin: 'top center', transform: [{ scale: fit }] }]}
+          onLayout={e => setContentHeight(Number(e?.nativeEvent?.layout?.height || 0))}>
+          <Image source={LOGO} style={m.logo} resizeMode="contain" accessibilityLabel="ACTIV" />
+          <T style={m.association}>{ASSOCIATION_NAME.toUpperCase()}</T>
+          <T style={m.title}>MEMBERSHIP CERTIFICATE</T>
+          <View style={m.rules}><View style={m.rule} /><T style={m.subtitle}>Empowering SC/ST Entrepreneurs</T><View style={m.rule} /></View>
+          <T style={m.certify}>This is to certify that</T>
+          <T style={[m.holder, company.length > 40 ? { fontSize: 29, lineHeight: 35 } : company.length > 30 ? { fontSize: 34, lineHeight: 40 } : null]}>{company}</T>
+          <View style={m.holderRule} />
+          <T style={m.admitted}>has been admitted as {platinum ? 'a Lifetime Member' : 'an official member'} of</T>
+          <T style={m.activ}>ACTIV</T>
+          <View style={m.panel}>
+            {pairs.map((pair, index) => <View key={index} testID={`membership-fact-pair-${index}`}
+              style={[m.pair, index < pairs.length - 1 && m.rowBorder]}>
+              {pair.map((row, column) => <React.Fragment key={column}>
+                {column === 1 ? <View style={m.divider} /> : null}
+                <View style={m.row}>
+                  {row ? <>
+                    <View style={m.factIcon}><Icon name={row.icon} size={20} color={NAVY_MID} /></View>
+                    <T style={m.label}>{row.label}</T>
+                    <T style={m.value}>{row.value}</T>
+                  </> : null}
+                </View>
+              </React.Fragment>)}
+            </View>)}
           </View>
-        ) : null}
-
-        <Rules><Text style={f.motto}>TOGETHER <Text style={{ color: GOLD }}>•</Text> TRADE <Text style={{ color: GOLD }}>•</Text> GROW</Text></Rules>
-
-        <View style={f.signRow}>
-          <View style={f.signCol}>
-            <Text style={f.signLabel}>Founder President</Text>
-            <Image source={SIGNATURE} style={f.signature} resizeMode="contain" accessibilityLabel="Signature of the Founder President" />
-            <View style={f.signLine} />
+          <View style={[m.rules, { marginTop: 9 }]}><View style={m.rule} /><T style={m.motto}>TOGETHER  ·  TRADE  ·  GROW</T><View style={m.rule} /></View>
+        </View>
+        <View style={m.signatures} testID="membership-signatories">
+          <View style={m.signerColumn} testID="membership-signature-block">
+            <T style={m.signerRole}>Founder and Chairperson</T>
+            <View style={m.signatureSlot} testID="membership-signature-slot">
+              <Image source={SIGNATURE} style={m.signature} resizeMode="contain" accessibilityLabel="Signature of Thamizhazhagan Nallaiyan, Founder and Chairperson" />
+            </View>
+            <View style={m.signRule} />
+            <T style={m.signerName}>THAMIZHAZHAGAN NALLAIYAN</T>
           </View>
-          <View style={f.sealCol}>
-            <Seal line="Membership" size={92} />
-            <Text style={f.sealCaption}>Official Seal</Text>
-          </View>
-          <View style={f.signCol}>
-            <Text style={f.signLabel}>Date of Issue</Text>
-            <View style={f.dateBox}><Text style={f.signDate}>{issued || '—'}</Text></View>
-            <View style={f.signLine} />
+          <View style={m.seal} testID="membership-seal-block"><Seal line="Membership" size={112} /><T style={m.sealCaption}>Official Seal</T></View>
+          <View style={m.signColumn} testID="membership-issue-block">
+            <T style={m.signLabel}>Date of Issue</T>
+            <View style={m.issueDate}><T style={m.date}>{issued || '—'}</T></View>
+            <View style={m.signRule} />
           </View>
         </View>
-      </View>
-      <View style={f.footBar}>
-        <Text style={f.footText} numberOfLines={1}>
-          <Icon name="description" size={13} color={GOLD_LIGHT} />  Certificate No: <Text style={{ fontWeight: '800' }}>{cert?.reference || '—'}</Text>
-        </Text>
-        <Text style={f.footTextSmall}>Issued by: ACTIV | Chennai, Tamil Nadu · www.activ.org.in</Text>
-      </View>
-    </Paper>
+        <View style={m.footer}>
+          <View style={m.footerReference}><T style={m.footerLabel}>Certificate No.</T><T style={m.footerText}>{cert?.reference || '—'}</T></View>
+          <View style={m.footerIssuer}><T style={[m.footerText, m.footerRight]}>Issued by: ACTIV | Chennai, Tamil Nadu</T><T style={[m.footerText, m.footerRight]}>www.activ.org.in</T></View>
+        </View>
+      </A4Page>
+      {hint ? <Text style={m.hint}>{hint}</Text> : null}
+    </View>
   );
 }
 
@@ -628,22 +485,21 @@ export function MembershipCertificateView({ cert }: { cert: any }) {
  */
 const T = (props: React.ComponentProps<typeof Text>) => <Text allowFontScaling={false} {...props} />;
 
-/** The website's `font-certificate` (Playfair Display → Georgia → serif); the app bundles no Playfair. */
-const SERIF = Platform.select({ ios: 'Georgia', android: 'serif', default: undefined });
-
 /**
  * One fixed A4 page, scaled uniformly as a picture. The wrapper holds the exact
  * 794:1123 (1 : 1.4143) aspect at whatever width it is given — `width` when the
  * caller fixes it (the zoom view), otherwise the width its parent offers.
  */
-function A4Page({ width, onPress, children }: { width?: number; onPress?: () => void; children: React.ReactNode }) {
+function A4Page({ width, onPress, children, pdfRef, landscape = false }: { width?: number; onPress?: () => void; children: React.ReactNode; pdfRef?: PdfSheetRef; landscape?: boolean }) {
+  const pageW = landscape ? A4_H : A4_W;
+  const pageH = landscape ? A4_W : A4_H;
   const fixed = typeof width === 'number' && width > 0 ? width : 0;
   const [measured, setMeasured] = useState(0);
   const w = fixed || measured;
-  const scale = w > 0 ? w / A4_W : 0;
+  const scale = w > 0 ? w / pageW : 0;
   const sheet = (
     <View
-      style={[f.a4Shadow, fixed ? { width: fixed, height: Math.round((fixed * A4_H) / A4_W) } : f.a4Fluid]}
+      style={[f.a4Shadow, fixed ? { width: fixed, height: Math.round((fixed * pageH) / pageW) } : { width: '100%', aspectRatio: pageW / pageH }]}
       onLayout={(e: LayoutChangeEvent) => {
         if (fixed) return;
         const next = Number(e?.nativeEvent?.layout?.width || 0);
@@ -652,8 +508,8 @@ function A4Page({ width, onPress, children }: { width?: number; onPress?: () => 
     >
       <View style={f.a4Clip}>
         {scale > 0 ? (
-          <View style={[f.a4Sheet, { transformOrigin: 'top left', transform: [{ scale }] }]}>
-            <TaxFrame />
+          <View ref={pdfRef} collapsable={false} style={[f.a4Sheet, { width: pageW, height: pageH, transformOrigin: 'top left', transform: [{ scale }] }]}>
+            {landscape ? <MembershipFrame w={pageW} h={pageH} /> : <TaxFrame />}
             {children}
           </View>
         ) : null}
@@ -665,7 +521,7 @@ function A4Page({ width, onPress, children }: { width?: number; onPress?: () => 
     <Pressable
       onPress={onPress}
       accessibilityRole="imagebutton"
-      accessibilityLabel="Certificate of Tax Exemption, A4 page"
+      accessibilityLabel={landscape ? "Membership certificate, A4 landscape page" : "Certificate of Tax Exemption, A4 page"}
       accessibilityHint="Opens the certificate full screen, where it can be enlarged"
     >
       {sheet}
@@ -673,276 +529,208 @@ function A4Page({ width, onPress, children }: { width?: number; onPress?: () => 
   );
 }
 
-/** A fact in the two-column card — website `Fact`. */
-function A4Fact({ icon, label, value }: { icon: string; label: string; value: string }) {
-  return (
-    <View style={f.a4Fact}>
-      <Icon name={icon} size={26} color={NAVY_MID} style={{ marginTop: 2 }} />
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <T style={f.a4FactLabel}>{label}</T>
-        <T style={f.a4FactValue}>{value}</T>
-      </View>
-    </View>
-  );
-}
-
 /**
- * The 80G certificate — website `TaxExemptionCertificate`, element for element,
- * on a true A4 page (794 x 1123, every position, padding and type size ported):
- *
- *   the frame (left wave + gold lines, three corners, skyline)
- *   the mark centred on the title axis · the ribboned medallion top right
- *   CERTIFICATE OF / Tax Exemption / UNDER SECTION 80G · INCOME TAX ACT, 1961
- *   [stamp] · the holder, PAN and eligibility sentence
- *   the card: a two-column fact grid, then the payments table + total + words
- *   the motto between gold rules · the Community seal (no signature, no QR)
- *   the foot: name, address, phone | email | web, gold rule, reference lines
- *
- * THE PAGE NEVER SPILLS. Past two payments the table and the seal tighten
- * (`dense`), past six the rows shrink again (`tight`) — every payment is listed.
- * If the flow still runs past 1123 it is measured and scaled down to fit (never
- * below 0.6), laid out wider by the same factor so the foot stays at the
- * bottom — the website's zoom-to-fit.
- *
- * `onPress` makes the page a button (the screens open the full-screen zoom).
+ * Formal A4 letter shared by member certificates, donation receipts and annual
+ * statements. The field order and wording match the website certificate.
  */
-export function TaxCertificateView({ cert, stamp = '', receiptColumn = false, amountInWords = '', width, onPress, hint = '' }: {
+export function TaxCertificateView({ cert, stamp = '', receiptColumn = false, amountInWords = '', width, onPress, hint = '', pdfRef }: {
   cert: any; stamp?: string; receiptColumn?: boolean; amountInWords?: string;
-  width?: number; onPress?: () => void; hint?: string;
+  width?: number; onPress?: () => void; hint?: string; pdfRef?: PdfSheetRef;
 }) {
   const member = cert?.member || {};
-  const contribution = cert?.contribution || null;
+  const contribution = cert?.contribution;
+  const isAmount = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
   const listed = asArray<any>(contribution?.payments);
-  const payments: any[] = listed.length
-    ? listed
-    : contribution && (contribution.amount !== null || contribution.receivedOn)
-      ? [{ date: contribution.receivedOn, amount: contribution.amount, mode: 'Online', reference: contribution.reference }]
+  const payments: any[] = listed.length ? listed
+    : contribution && (isAmount(contribution.amount) || contribution.receivedOn)
+      ? [{ date: contribution.receivedOn, amount: contribution.amount, mode: '', reference: contribution.reference }]
       : [];
-  const total = payments.some((p) => typeof p?.amount === 'number')
-    ? payments.reduce((sum, p) => sum + (typeof p?.amount === 'number' ? p.amount : 0), 0)
-    : (typeof contribution?.amount === 'number' ? contribution.amount : null);
+  const total = payments.length && payments.every(payment => isAmount(payment?.amount))
+    ? payments.reduce((sum, payment) => sum + payment.amount, 0)
+    : isAmount(contribution?.amount) ? contribution.amount : null;
+  const words = amountInWords || spellAmount(total);
   const issued = certDate(cert?.issuedAt, '-');
-  const fy = fullYear(cert?.financialYear || '');
-  const name = String(member?.name || '—');
-  const pan = String(member?.pan || '');
+  const financialYear = fullYear(cert?.financialYear || '');
+  const dense = payments.length > 6;
 
-  const facts = [
-    { icon: 'description', label: 'Certificate number', value: String(cert?.reference || '') },
-    { icon: 'date-range', label: 'Financial year', value: fy },
-    { icon: 'event', label: 'Date of issue', value: issued },
-    { icon: 'badge', label: 'Donor PAN', value: pan },
-    { icon: 'person-outline', label: 'Donor name', value: String(member?.name || '') },
-    { icon: 'currency-rupee', label: 'Total donation amount', value: total === null ? '' : certRupees(total) },
-  ].filter((r) => !!r.value);
-
-  const dense = payments.length > 2;
-  const tight = payments.length > 6;
-  const cellPad = tight ? 1 : dense ? 3 : 6;
-  const cellText = tight ? f.a4CellTight : f.a4Cell;
-  const cols = receiptColumn
-    ? [{ h: 'S.No', flex: 0.62 }, { h: 'Date', flex: 1.15 }, { h: 'Receipt No.', flex: 1.55 }, { h: 'Amount', flex: 1.3 }, { h: 'Mode', flex: 0.95 }]
-    : [{ h: 'S.No', flex: 0.7 }, { h: 'Date', flex: 1.2 }, { h: 'Amount', flex: 1.3 }, { h: 'Mode', flex: 1 }];
-  const labelFlex = cols.slice(0, receiptColumn ? 3 : 2).reduce((s, c) => s + c.flex, 0);
-  const nameSize = name.length > 38 ? 27 : name.length > 26 ? 31 : 39;
-  const lastRowStart = facts.length - (facts.length % 2 === 0 ? 2 : 1);
-
-  /* Zoom-to-fit. The flow is laid out at A4_W / fit wide and at least
-     A4_H / fit tall, then scaled by fit; when it measures taller than that,
-     fit steps down. Reset whenever what is printed changes. */
+  // Shrink the complete flow when long names or annual payment lists need more
+  // space. Measure again after all content changes so the address stays visible.
   const [fit, setFit] = useState(1);
   const tries = useRef(0);
-  const signature = [name, pan, facts.length, payments.length, stamp, receiptColumn ? 1 : 0, amountInWords, cert?.reference || ''].join('|');
-  useEffect(() => {
-    tries.current = 0;
-    setFit(1);
-  }, [signature]);
-  const onFlowLayout = (e: LayoutChangeEvent) => {
-    const h = Number(e?.nativeEvent?.layout?.height || 0);
-    const limit = A4_H / fit;
-    if (h > limit + 1 && fit > 0.6 && tries.current < 4) {
+  const signature = JSON.stringify([cert, stamp, receiptColumn, amountInWords]);
+  // Reset before native onLayout. A passive effect can overwrite the first
+  // measured scale and leave a long annual statement clipped at scale 1.
+  useLayoutEffect(() => { tries.current = 0; setFit(1); }, [signature]);
+  const onFlowLayout = (event: LayoutChangeEvent) => {
+    const height = Number(event.nativeEvent.layout.height || 0);
+    if (height > A4_H / fit + 1 && tries.current < 8) {
       tries.current += 1;
-      setFit(Math.max(0.6, Math.min(fit - 0.005, A4_H / h)));
+      setFit(Math.min(fit * 0.995, A4_H / height));
     }
   };
-
-  const cell = (i: number, flex: number, extra?: object) => [
-    f.a4Td, { flex, paddingVertical: cellPad }, i > 0 && f.a4TdLeft, extra,
+  const textStyle = [f.taxParagraph, dense && f.taxParagraphDense];
+  const onClosingLayout = (event: LayoutChangeEvent) => {
+    // An absolute flow's height can be constrained by its A4 parent even when
+    // the children overflow. Measure the footer's bottom to include all rows.
+    const { y, height } = event.nativeEvent.layout;
+    onFlowLayout({ nativeEvent: { layout: { height: y + height + 32 } } } as LayoutChangeEvent);
+  };
+  const columns = [
+    { title: 'Date', flex: 0.27 },
+    { title: 'Amount', flex: 0.32 },
+    { title: receiptColumn ? 'Receipt No.' : 'Invoice / Payment ID', flex: 0.41 },
+  ];
+  const cell = (index: number) => [
+    f.taxCell, { flex: columns[index].flex, paddingVertical: dense ? 4 : 9 },
+    index > 0 && f.taxCellBorder,
+  ];
+  const cellText = (index: number) => [
+    f.taxCellText, dense && f.taxCellTextDense, index === 0 && f.taxCellTextLeft,
   ];
 
   return (
     <View>
-      <A4Page width={width} onPress={onPress}>
-        <View
-          onLayout={onFlowLayout}
-          style={[f.a4Flow, { width: A4_W / fit, minHeight: A4_H / fit, transformOrigin: 'top left', transform: [{ scale: fit }] }]}
-        >
-          {/* ============================== head — the mark on the title axis */}
-          <View style={f.a4Header}>
-            <Image source={LOGO} style={f.a4Logo} resizeMode="contain" accessibilityLabel={ASSOCIATION_NAME} />
-          </View>
-
-          {/* the ribboned medallion, top right */}
-          <View style={f.a4Ribbon}>
-            <RibbonSeal line="Tax Exemption" />
-          </View>
-
-          {/* ============================== title */}
-          <View style={f.a4Title}>
-            <T style={f.a4CertOf}>CERTIFICATE OF</T>
-            <T style={f.a4TitleText}>Tax Exemption</T>
-          </View>
-          <View style={f.a4Section}>
-            <FadeRule width={56} height={2} fade="in" />
-            <T style={f.a4SectionText}>UNDER SECTION 80G · INCOME TAX ACT, 1961</T>
-            <FadeRule width={56} height={2} fade="out" />
-          </View>
-          {stamp ? (
-            <View style={f.a4Stamp}>
-              <T style={f.a4StampText}>{String(stamp).toUpperCase()}</T>
+      <A4Page width={width} onPress={onPress} pdfRef={pdfRef}>
+        <View onLayout={onFlowLayout} style={[
+          f.a4Flow, dense && { paddingTop: 28 },
+          { width: A4_W / fit, minHeight: A4_H / fit, transformOrigin: 'top left', transform: [{ scale: fit }] },
+        ]}>
+          <View style={f.taxHeader}>
+            <Image source={LOGO} style={[f.taxLogo, dense && { height: 64, marginBottom: 17 }]}
+              resizeMode="contain" accessibilityLabel={ASSOCIATION_NAME} />
+            <T style={f.taxAssociation}>{ASSOCIATION_NAME.toUpperCase()}</T>
+            <T style={[f.taxTitle, dense && { fontSize: 38, lineHeight: 46, marginTop: 12 }]}>Tax Exemption Certificate</T>
+            <View style={f.taxSection}>
+              <View style={f.taxRule} />
+              <T style={f.taxSectionText}>UNDER SECTION 80G - INCOME TAX ACT, 1961</T>
+              <View style={f.taxRule} />
             </View>
-          ) : null}
-
-          {/* ============================== holder */}
-          <View style={f.a4Holder}>
-            <T style={f.a4Certify}>This is to certify that</T>
-            <T style={[f.a4Name, { fontSize: nameSize, lineHeight: Math.round(nameSize * 1.25) }]}>{name}</T>
-            {pan ? (
-              <View style={f.a4PanRow}>
-                <Icon name="person" size={18} color={NAVY_MID} />
-                <T style={f.a4Pan}>PAN No: <T style={{ fontWeight: '700' }}>{pan}</T></T>
-              </View>
-            ) : null}
-            <T style={f.a4Eligible}>
-              has contributed to the {ASSOCIATION_NAME} (ACTIV), and the contribution is eligible for
-              exemption under Section 80G of the Income Tax Act, 1961.
-            </T>
+            {stamp ? <View style={f.taxStamp}><T style={f.taxStampText}>{stamp}</T></View> : null}
           </View>
 
-          {/* ============================== the card */}
-          {facts.length || payments.length ? (
-            <View style={f.a4Card}>
-              {facts.length ? (
-                <View style={f.a4Grid}>
-                  {facts.map((r, i) => (
-                    <View
-                      key={r.label}
-                      style={[
-                        f.a4GridCell,
-                        { paddingVertical: dense ? 6 : 8 },
-                        i % 2 === 0 ? f.a4GridLeft : f.a4GridRight,
-                        i < lastRowStart && f.a4GridBottom,
-                      ]}
-                    >
-                      <A4Fact icon={r.icon} label={r.label} value={r.value} />
+          <View style={[f.taxBody, dense && { marginTop: 22 }]}>
+            <T style={f.taxDetail}><T style={f.taxBold}>Certificate No. :  </T>{cert?.reference || '—'}</T>
+            <T style={f.taxDetail}><T style={f.taxBold}>Date :  </T>{issued || '—'}</T>
+            {member.pan ? <T style={f.taxDetail}><T style={f.taxBold}>Donor PAN :  </T>{member.pan}</T> : null}
+
+            <T style={[textStyle, { marginTop: dense ? 18 : 29 }]}>
+              This is to certify that <T style={f.taxBold}>{member.name || 'the donor'}</T> has contributed
+              {total !== null ? <T> a total amount of <T style={f.taxBold}>{certRupees(total)}{words ? ` (${words})` : ''}</T></T> : null}
+              {' '}to the {ASSOCIATION_NAME} (ACTIV), and the contribution is eligible for exemption under Section 80G of the Income Tax Act, 1961.
+            </T>
+
+            {payments.length ? (
+              <View style={[f.taxTable, dense && { marginTop: 18 }]} accessibilityLabel="Contribution payment details">
+                <View style={[f.taxRow, f.taxTableHead]}>
+                  {columns.map((column, index) => (
+                    <View key={column.title} style={cell(index)}>
+                      <T style={[cellText(index), f.taxBold]}>{column.title}</T>
                     </View>
                   ))}
                 </View>
-              ) : null}
-
-              {payments.length ? (
-                <View style={f.a4Payments}>
-                  <View style={f.a4PayHead}>
-                    <Icon name="link" size={22} color={NAVY_MID} />
-                    <T style={f.a4PayHeadText}>Payment details</T>
-                  </View>
-                  <View style={f.a4Table}>
-                    <View style={[f.a4Tr, f.a4Thead]}>
-                      {cols.map((c, i) => (
-                        <View key={c.h} style={cell(i, c.flex, f.a4ThBorder)}>
-                          <T style={[cellText, { fontWeight: '700' }]}>{c.h}</T>
-                        </View>
-                      ))}
+                {payments.map((payment, index) => (
+                  <View key={index} style={[f.taxRow, f.taxRowBorder]}>
+                    <View style={cell(0)}><T style={cellText(0)}>{certDate(payment?.date, '-') || '—'}</T></View>
+                    <View style={cell(1)}>
+                      <T style={cellText(1)}>{certRupees(payment?.amount)}</T>
+                      {payment?.mode ? <T style={[f.taxPaymentMode, dense && { fontSize: 9 }]}>{payment.mode}</T> : null}
                     </View>
-                    {payments.map((p, idx) => {
-                      const values = [
-                        String(idx + 1),
-                        certDate(p?.date, '-') || '—',
-                        ...(receiptColumn ? [String(p?.reference || '') || '—'] : []),
-                        certRupees(typeof p?.amount === 'number' ? p.amount : null),
-                        String(p?.mode || '') || 'Online',
-                      ];
-                      const amountAt = receiptColumn ? 3 : 2;
-                      return (
-                        <View key={`${p?.reference || ''}-${idx}`} style={[f.a4Tr, f.a4TrTop]}>
-                          {values.map((v, i) => (
-                            <View key={cols[i]?.h || i} style={cell(i, cols[i]?.flex || 1, receiptColumn && i === 2 ? f.a4TdNarrow : undefined)}>
-                              <T style={[cellText, i === amountAt && { fontWeight: '600' }]}>{v}</T>
-                            </View>
-                          ))}
-                        </View>
-                      );
-                    })}
-                    {payments.length > 1 && total !== null ? (
-                      <View style={[f.a4Tr, f.a4TotalRow]}>
-                        <View style={[f.a4Td, { flex: labelFlex, paddingVertical: cellPad, alignItems: 'flex-end' }]}>
-                          <T style={[cellText, { fontWeight: '700' }]}>Total</T>
-                        </View>
-                        <View style={[f.a4Td, f.a4TdLeft, f.a4ThBorder, { flex: cols[receiptColumn ? 3 : 2]?.flex || 1, paddingVertical: cellPad }]}>
-                          <T style={[cellText, { fontWeight: '800' }]}>{certRupees(total)}</T>
-                        </View>
-                        <View style={[f.a4Td, f.a4TdLeft, f.a4ThBorder, { flex: cols[cols.length - 1]?.flex || 1 }]} />
-                      </View>
-                    ) : null}
+                    <View style={cell(2)}><T style={cellText(2)}>{payment?.reference || '—'}</T></View>
                   </View>
-                  {amountInWords ? <T style={f.a4Words}>{amountInWords}</T> : null}
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+                ))}
+              </View>
+            ) : null}
 
-          {/* the motto */}
-          <View style={f.a4Motto}>
-            <View style={f.a4MottoRule} />
-            <T style={f.a4MottoText}>
-              Your support empowers communities and creates{'\n'}opportunities for a better tomorrow.
+            <T style={[textStyle, { marginTop: dense ? 20 : 28 }]}>
+              We thank you for your contribution to the {ASSOCIATION_NAME} and for supporting our work for community growth and empowerment.
             </T>
-            <View style={f.a4MottoRule} />
+            <T style={[f.taxOfficeAddress, dense && { marginTop: 18, fontSize: 12 }]}>
+              6&amp;7, Hayagreeva Apartment,{'\n'}
+              121, Velachery Main Road,{'\n'}
+              Chennai - 600032, India{'\n'}
+              Email: {EMAIL}
+            </T>
           </View>
 
-          {/* the seal — no signatures on this certificate */}
-          <View style={f.a4Seal}>
-            <Seal line="Community" size={dense ? 88 : 102} />
-          </View>
-
-          {/* ============================== foot, pinned to the bottom */}
-          <View style={{ flexGrow: 1 }} />
-          <View style={f.a4Foot}>
-            <T style={f.a4FootName}>{ASSOCIATION_NAME.toUpperCase()}</T>
-            <View style={f.a4Address}>
-              <Icon name="place" size={16} color={NAVY_MID} style={{ marginTop: 1 }} />
-              <T style={f.a4AddressText}>{ADDRESS}</T>
+          <View style={[f.taxClosing, dense && { paddingTop: 18 }]} onLayout={onClosingLayout}>
+            <View style={f.taxMotto}>
+              <View style={f.taxRule} />
+              <T style={f.taxMottoText}>Your support empowers communities and creates{'\n'}opportunities for a better tomorrow.</T>
+              <View style={f.taxRule} />
             </View>
-            <View style={f.a4Contact}>
-              <View style={f.a4ContactItem}><Icon name="phone" size={16} color={NAVY_MID} /><T style={f.a4ContactText} numberOfLines={1}>{PHONE}</T></View>
-              <T style={[f.a4ContactText, f.a4Pipe]}>|</T>
-              <View style={f.a4ContactItem}><Icon name="mail-outline" size={16} color={NAVY_MID} /><T style={f.a4ContactText} numberOfLines={1}>{EMAIL}</T></View>
-              <T style={[f.a4ContactText, f.a4Pipe]}>|</T>
-              <View style={f.a4ContactItem}><Icon name="language" size={16} color={NAVY_MID} /><T style={f.a4ContactText} numberOfLines={1}>{WEB}</T></View>
-            </View>
-            <View style={f.a4FootRule}>
-              <FadeRule width={494} height={1} fade="both" color={GOLD_LIGHT} />
-            </View>
-            <View style={f.a4Ref}>
-              <T style={f.a4RefText}>Certificate No: <T style={{ fontWeight: '700', letterSpacing: 0.23 }}>{cert?.reference || '—'}</T></T>
-              <T style={f.a4RefText}>
-                Issue Date: <T style={{ fontWeight: '700' }}>{issued || '—'}</T>
-                {fy ? <T><T style={{ opacity: 0.4 }}>{'   |   '}</T>Valid for Financial Year: <T style={{ fontWeight: '700' }}>{fy}</T></T> : null}
-              </T>
+            <View style={[f.taxFooter, dense && { marginTop: 16 }]}>
+              <T style={f.taxFooterName}>{ASSOCIATION_NAME.toUpperCase()}</T>
+              <View style={f.taxFooterAddress}>
+                <Icon name="place" size={15} color="#315583" />
+                <T style={f.taxFooterText}>{ADDRESS}</T>
+              </View>
+              <View style={f.taxContacts}>
+                <View style={f.taxContact}><Icon name="phone" size={14} color="#315583" /><T style={f.taxFooterText}>{PHONE}</T></View>
+                <T style={f.taxFooterText}>|</T>
+                <View style={f.taxContact}><Icon name="mail-outline" size={15} color="#315583" /><T style={f.taxFooterText}>{EMAIL}</T></View>
+                <T style={f.taxFooterText}>|</T>
+                <View style={f.taxContact}><Icon name="language" size={14} color="#315583" /><T style={f.taxFooterText}>{WEB}</T></View>
+              </View>
+              <View style={f.taxReference}>
+                <T style={f.taxReferenceText}>Certificate No: {cert?.reference || '—'}{'   |   '}Date: {issued || '—'}</T>
+                <T style={f.taxReferenceText}>Issued By: {cert?.issuedBy || 'ACTIV'}{financialYear ? `   |   Valid for Financial Year: ${financialYear}` : ''}</T>
+              </View>
             </View>
           </View>
         </View>
       </A4Page>
       {hint ? (
-        <View style={f.a4Hint}>
-          <Icon name="zoom-in" size={16} color={MUTED} />
-          <Text style={f.a4HintText}>{hint}</Text>
-        </View>
+        <View style={f.a4Hint}><Icon name="zoom-in" size={16} color={MUTED} /><Text style={f.a4HintText}>{hint}</Text></View>
       ) : null}
     </View>
   );
 }
 
 /* ------------------------------------------------------------------ styles */
+
+const m = StyleSheet.create({
+  flow: { position: 'absolute', top: MEMBERSHIP_PAGE.contentTop, left: MEMBERSHIP_PAGE.side, right: MEMBERSHIP_PAGE.side, alignItems: 'center' },
+  logo: { width: 212, height: 66 },
+  association: { fontSize: 13.5, lineHeight: 20, fontWeight: '700', letterSpacing: 1.5, color: NAVY_MID, textAlign: 'center', marginTop: 4 },
+  title: { fontFamily: 'serif', fontSize: 49, lineHeight: 59, fontWeight: '700', color: NAVY, textAlign: 'center', marginTop: 6 },
+  rules: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 4 },
+  rule: { height: 1.5, width: 150, backgroundColor: GOLD },
+  subtitle: { fontSize: 18, lineHeight: 24, fontWeight: '700', color: GOLD_DEEP },
+  certify: { fontSize: 18, lineHeight: 25, fontStyle: 'italic', color: INK, marginTop: 6 },
+  holder: { fontSize: 40, lineHeight: 46, fontWeight: '800', color: NAVY, textAlign: 'center', maxWidth: 860, marginTop: 2 },
+  holderRule: { width: 440, height: 1.5, backgroundColor: GOLD, marginTop: 4 },
+  admitted: { fontSize: 17, lineHeight: 24, color: INK, textAlign: 'center', marginTop: 4 },
+  activ: { fontSize: 20, lineHeight: 27, fontWeight: '700', color: NAVY },
+  panel: { alignSelf: 'stretch', marginTop: 8, borderRadius: 16, borderWidth: 1, borderColor: PANEL_LINE, backgroundColor: '#FFFFFFE8', paddingHorizontal: 20, paddingVertical: 6 },
+  pair: { flexDirection: 'row', alignItems: 'stretch', gap: 18 },
+  divider: { width: 2, marginVertical: 4, backgroundColor: GOLD_LIGHT },
+  row: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 8, minHeight: 33, paddingVertical: 4 },
+  factIcon: { width: 28, paddingTop: 1 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: LINE },
+  label: { width: 126, fontSize: 13.5, lineHeight: 20, color: MUTED, fontWeight: '500' },
+  value: { flex: 1, minWidth: 0, flexShrink: 1, fontSize: 15, lineHeight: 20, color: INK, fontWeight: '700' },
+  motto: { fontSize: 14, lineHeight: 22, letterSpacing: 3, color: NAVY_MID, fontWeight: '700' },
+  signatures: { position: 'absolute', top: MEMBERSHIP_PAGE.signaturesTop, left: MEMBERSHIP_PAGE.signaturesSide, right: MEMBERSHIP_PAGE.signaturesSide, height: MEMBERSHIP_PAGE.signatureHeight, flexDirection: 'row', alignItems: 'flex-start' },
+  signColumn: { flex: 1, minWidth: 0, alignItems: 'center' },
+  signerColumn: { flex: 1, minWidth: 0, alignItems: 'center' },
+  signerRole: { fontSize: 14, lineHeight: 20, fontWeight: '700', color: NAVY, textAlign: 'center' },
+  signerName: { fontSize: 12, lineHeight: 18, marginTop: 3, fontWeight: '800', color: NAVY, textAlign: 'center' },
+  signLabel: { fontSize: 14, lineHeight: 20, fontWeight: '700', color: NAVY, textAlign: 'center' },
+  signatureSlot: { width: 220, height: MEMBERSHIP_SIGNATURE.height, alignItems: 'center', justifyContent: 'center' },
+  signature: { width: MEMBERSHIP_SIGNATURE.width, height: MEMBERSHIP_SIGNATURE.height, tintColor: NAVY_MID, transform: [{ translateX: MEMBERSHIP_SIGNATURE.translateX }, { translateY: MEMBERSHIP_SIGNATURE.translateY }, { rotate: MEMBERSHIP_SIGNATURE.rotate }] },
+  signRule: { width: 220, height: 1, backgroundColor: NAVY_MID },
+  seal: { flex: 1, minWidth: 0, alignItems: 'center' },
+  sealCaption: { fontSize: 12, lineHeight: 16, color: NAVY_MID },
+  issueDate: { height: MEMBERSHIP_SIGNATURE.height, justifyContent: 'center' },
+  date: { fontSize: 24, fontWeight: '700', color: NAVY_MID },
+  footer: { position: 'absolute', left: 22, right: 22, top: MEMBERSHIP_PAGE.footerTop, height: 40, paddingHorizontal: 18, borderTopWidth: 2, borderTopColor: GOLD, backgroundColor: NAVY, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+  footerReference: { flex: 1.4, minWidth: 0 },
+  footerIssuer: { flex: 1, minWidth: 0 },
+  footerLabel: { fontSize: 9, lineHeight: 11, color: GOLD_PALE },
+  footerText: { fontSize: 11, lineHeight: 13, color: '#FFF', flexShrink: 1 },
+  footerRight: { textAlign: 'right' },
+  hint: { fontSize: 13, lineHeight: 20, textAlign: 'center', color: MUTED, marginTop: 12 },
+});
 
 const f = StyleSheet.create({
   // Shadow on the wrapper, clipping on the sheet — iOS drops a shadow on a clipped view.
@@ -985,79 +773,48 @@ const f = StyleSheet.create({
   footText: { color: '#FFFFFF', fontSize: 12 },
   footTextSmall: { color: 'rgba(255,255,255,0.8)', fontSize: 10.5, marginTop: 3 },
 
-  /* ---------------- the A4 tax page — website units (794 x 1123), ported 1:1 */
-  a4Shadow: { borderRadius: 2, backgroundColor: PAPER, ...SHADOW.lifted, shadowColor: '#0B1A45', shadowOpacity: 0.2 },
+  // Fixed A4 canvas, then scale the whole document to the available screen.
+  a4Shadow: { borderRadius: 2, backgroundColor: '#fff', ...SHADOW.lifted, shadowColor: '#0B1A45', shadowOpacity: 0.2 },
   a4Fluid: { width: '100%', aspectRatio: A4_W / A4_H },
   a4Clip: { ...StyleSheet.absoluteFillObject, borderRadius: 2, overflow: 'hidden' },
-  a4Sheet: { position: 'absolute', left: 0, top: 0, width: A4_W, height: A4_H, backgroundColor: PAPER, overflow: 'hidden' },
-  a4Flow: { position: 'absolute', left: 0, top: 0, flexDirection: 'column' },
-
-  a4Header: { paddingLeft: 120, paddingRight: 150, paddingTop: 38, alignItems: 'center' },
-  a4Logo: { height: 74, width: Math.round((74 * 899) / 277) },
-  a4Ribbon: { position: 'absolute', right: 22, top: 132, zIndex: 10 },
-
-  a4Title: { marginTop: 16, paddingLeft: 120, paddingRight: 150, alignItems: 'center' },
-  a4CertOf: { fontSize: 24, lineHeight: 36, fontWeight: '500', letterSpacing: 8.64, color: NAVY, textAlign: 'center' },
-  a4TitleText: { fontFamily: SERIF, fontSize: 64, lineHeight: 65, fontWeight: '700', color: NAVY, textAlign: 'center' },
-  a4Section: { marginTop: 8, paddingLeft: 60, paddingRight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  a4SectionText: { fontSize: 13.5, lineHeight: 20, fontWeight: '700', letterSpacing: 3.24, color: NAVY, textAlign: 'center', flexShrink: 1 },
-  a4Stamp: { alignSelf: 'center', maxWidth: 640, marginTop: 8, borderWidth: 1, borderColor: '#F3C98B', backgroundColor: '#FFF7E8', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 4 },
-  a4StampText: { fontSize: 12.5, lineHeight: 19, fontWeight: '700', letterSpacing: 1.5, color: '#92400E', textAlign: 'center' },
-
-  a4Holder: { marginTop: 14, paddingLeft: 110, paddingRight: 70, alignItems: 'center' },
-  a4Certify: { fontSize: 17, lineHeight: 26, letterSpacing: 0.43, color: INK, textAlign: 'center' },
-  a4Name: { marginTop: 4, maxWidth: 540, fontFamily: SERIF, fontWeight: '700', color: NAVY, textAlign: 'center' },
-  a4PanRow: { marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  a4Pan: { fontSize: 16, lineHeight: 24, color: INK },
-  a4Eligible: { marginTop: 8, maxWidth: 500, fontSize: 15.5, lineHeight: 24, color: INK, textAlign: 'center' },
-
-  a4Card: {
-    marginHorizontal: 88, marginTop: 14, borderRadius: 16, borderWidth: 1, borderColor: PANEL_LINE,
-    backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 24, paddingBottom: 14, paddingTop: 4,
-    boxShadow: '0px 8px 26px -16px rgba(14,31,77,0.38)',
-  },
-  a4Grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  a4GridCell: { width: '50%', borderColor: LINE },
-  a4GridLeft: { borderRightWidth: 1, paddingRight: 20 },
-  a4GridRight: { paddingLeft: 28 },
-  a4GridBottom: { borderBottomWidth: 1 },
-  a4Fact: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, minWidth: 0 },
-  a4FactLabel: { fontSize: 13, lineHeight: 16, fontWeight: '500', color: MUTED },
-  a4FactValue: { marginTop: 2, fontSize: 15.5, lineHeight: 21, fontWeight: '700', color: INK },
-
-  a4Payments: { marginTop: 2, borderTopWidth: 1, borderTopColor: LINE, paddingTop: 8 },
-  a4PayHead: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 8 },
-  a4PayHeadText: { fontSize: 14.5, lineHeight: 22, fontWeight: '700', color: INK },
-  a4Table: { borderWidth: 1, borderColor: PANEL_LINE, borderRadius: 8, overflow: 'hidden' },
-  a4Tr: { flexDirection: 'row', alignItems: 'stretch' },
-  a4Thead: { backgroundColor: '#E6EDFA' },
-  a4TrTop: { borderTopWidth: 1, borderTopColor: LINE },
-  a4TotalRow: { backgroundColor: '#F3F6FC', borderTopWidth: 1, borderTopColor: PANEL_LINE },
-  a4Td: { paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', minWidth: 0 },
-  a4TdNarrow: { paddingHorizontal: 8 },
-  a4TdLeft: { borderLeftWidth: 1, borderLeftColor: LINE },
-  a4ThBorder: { borderLeftColor: PANEL_LINE },
-  a4Cell: { fontSize: 14, lineHeight: 21, color: INK, textAlign: 'center' },
-  a4CellTight: { fontSize: 12, lineHeight: 18, color: INK, textAlign: 'center' },
-  a4Words: { marginTop: 6, fontSize: 13, lineHeight: 20, fontWeight: '600', fontStyle: 'italic', color: INK, textAlign: 'center' },
-
-  a4Motto: { marginTop: 12, paddingHorizontal: 80, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  a4MottoRule: { width: 70, height: 1.5, backgroundColor: GOLD },
-  a4MottoText: { fontSize: 14, lineHeight: 21, fontStyle: 'italic', color: NAVY_SOFT, textAlign: 'center', flexShrink: 1 },
-  a4Seal: { marginTop: 6, alignItems: 'center' },
-
-  a4Foot: { paddingHorizontal: 150, paddingBottom: 22, alignItems: 'center' },
-  a4FootName: { fontSize: 14, lineHeight: 19, fontWeight: '800', letterSpacing: 0.56, color: NAVY, textAlign: 'center' },
-  a4Address: { marginTop: 6, maxWidth: 360, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 8 },
-  a4AddressText: { flexShrink: 1, fontSize: 12.5, lineHeight: 17, color: INK, textAlign: 'center' },
-  a4Contact: { marginTop: 8, marginHorizontal: -40, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
-  a4ContactItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  a4ContactText: { fontSize: 12.5, lineHeight: 19, color: INK },
-  a4Pipe: { opacity: 0.4 },
-  a4FootRule: { marginTop: 12, alignSelf: 'stretch', alignItems: 'center' },
-  a4Ref: { marginTop: 8, maxWidth: 520, alignItems: 'center' },
-  a4RefText: { fontSize: 11.5, lineHeight: 18, color: INK, textAlign: 'center' },
-
+  a4Sheet: { position: 'absolute', left: 0, top: 0, width: A4_W, height: A4_H, backgroundColor: '#fff', overflow: 'hidden' },
+  a4Flow: { flexShrink: 0, flexDirection: 'column', paddingTop: 42, paddingHorizontal: 70, paddingBottom: 32 },
+  taxHeader: { alignItems: 'center', flexShrink: 0 },
+  taxLogo: { width: 266, height: 84, marginBottom: 28 },
+  taxAssociation: { fontSize: 15, lineHeight: 21, fontWeight: '600', letterSpacing: 0.75, color: '#182d50', textAlign: 'center' },
+  taxTitle: { marginTop: 17, marginHorizontal: -8, fontSize: 43, lineHeight: 52, letterSpacing: -1.1, fontWeight: '700', color: '#091e50', textAlign: 'center' },
+  taxSection: { marginTop: 13, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 15 },
+  taxRule: { height: 1.5, flex: 1, backgroundColor: '#c5a365' },
+  taxSectionText: { fontSize: 12.5, lineHeight: 19, fontWeight: '600', letterSpacing: 2.2, color: '#233a5c', textAlign: 'center' },
+  taxStamp: { marginTop: 13, maxWidth: '100%', borderWidth: 1, borderColor: '#ddc79c', borderRadius: 4, backgroundColor: '#fffbf0', paddingVertical: 3, paddingHorizontal: 10 },
+  taxStampText: { fontSize: 11, lineHeight: 17, color: '#705321', textAlign: 'center' },
+  taxBody: { marginTop: 40, flexShrink: 0 },
+  taxDetail: { fontSize: 16, lineHeight: 26, color: '#182d50', marginBottom: 3 },
+  taxBold: { fontWeight: '700', color: '#102c59' },
+  taxParagraph: { fontSize: 16, lineHeight: 27, color: '#182d50' },
+  taxParagraphDense: { fontSize: 14, lineHeight: 23 },
+  taxTable: { marginTop: 25, borderWidth: 1, borderColor: '#ccdaea', borderRadius: 6, overflow: 'hidden' },
+  taxRow: { flexDirection: 'row', alignItems: 'stretch' },
+  taxTableHead: { backgroundColor: '#edf1f6' },
+  taxRowBorder: { borderTopWidth: 1, borderTopColor: '#ccdaea' },
+  taxCell: { paddingHorizontal: 17, justifyContent: 'center', minWidth: 0 },
+  taxCellBorder: { borderLeftWidth: 1, borderLeftColor: '#ccdaea' },
+  taxCellText: { fontSize: 15, lineHeight: 23, color: '#182d50', textAlign: 'right' },
+  taxCellTextDense: { fontSize: 12, lineHeight: 18 },
+  taxCellTextLeft: { textAlign: 'left' },
+  taxPaymentMode: { marginTop: 1, fontSize: 10.5, lineHeight: 14, color: '#536987', textAlign: 'right' },
+  taxOfficeAddress: { marginTop: 28, fontSize: 13, lineHeight: 20, color: '#455e80' },
+  taxClosing: { marginTop: 'auto', paddingTop: 22, flexShrink: 0 },
+  taxMotto: { flexDirection: 'row', alignItems: 'center', gap: 17 },
+  taxMottoText: { fontSize: 12.5, lineHeight: 19.5, fontStyle: 'italic', color: '#455e80', textAlign: 'center' },
+  taxFooter: { marginTop: 23, borderTopWidth: 1, borderTopColor: '#cfdae8', paddingTop: 12, alignItems: 'center' },
+  taxFooterName: { fontSize: 13, lineHeight: 19.5, fontWeight: '700', letterSpacing: 0.35, color: '#12366a', textAlign: 'center' },
+  taxFooterAddress: { marginTop: 7, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 8 },
+  taxFooterText: { fontSize: 10.5, lineHeight: 16, color: '#315583', flexShrink: 1, textAlign: 'center' },
+  taxContacts: { marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 13 },
+  taxContact: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  taxReference: { marginTop: 11, paddingTop: 8, paddingHorizontal: 12, borderTopWidth: 1, borderTopColor: '#cfdae8', gap: 3 },
+  taxReferenceText: { fontSize: 10, lineHeight: 16.5, color: '#315583', textAlign: 'center' },
   a4Hint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 },
   a4HintText: { fontSize: 12, color: MUTED },
 });

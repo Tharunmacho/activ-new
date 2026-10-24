@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
-import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 import api from '../../../services/api';
 import { useStateAdminData } from './context/StateAdminContext';
 import { signOutAdmin } from '../shared/TierMenu';
 import TierSettingsView from '../shared/TierSettingsView';
+import { useAdminPhotoUpload } from '../shared/useAdminPhotoUpload';
 
 const StateSettingsScreen = ({ navigation }: any) => {
   const { adminName, adminEmail, adminPhone, currentState, updateAdminProfile, profileImageUri, setProfileImageUri, fetchDashboardData } = useStateAdminData();
@@ -31,20 +31,7 @@ const StateSettingsScreen = ({ navigation }: any) => {
     await signOutAdmin(navigation?.getParent?.() || navigation);
   };
 
-  const handlePickImage = () => {
-    const options: ImageLibraryOptions = { mediaType: 'photo', quality: 0.8, selectionLimit: 1 };
-    try {
-      if (typeof launchImageLibrary !== 'function') return;
-      launchImageLibrary(options, response => {
-        if (response?.didCancel) return;
-        if (response?.errorCode) { Alert.alert('Error', response?.errorMessage || 'Could not pick image'); return; }
-        const asset = response?.assets?.[0];
-        if (asset?.uri) setProfileImageUri(asset.uri);
-      });
-    } catch (err) {
-      console.warn('Native module call safely caught:', err);
-    }
-  };
+  const { photoBusy, handlePickImage } = useAdminPhotoUpload(setProfileImageUri);
 
   const handleSave = async () => {
     if (newPassword && !oldPassword) {
@@ -85,6 +72,7 @@ const StateSettingsScreen = ({ navigation }: any) => {
       photo={profileImageUri}
       isEditing={isEditing}
       isSaving={isSaving}
+      photoBusy={photoBusy}
       onEdit={() => setIsEditing(true)}
       onSave={handleSave}
       onBack={() => navigation.navigate('Dashboard')}

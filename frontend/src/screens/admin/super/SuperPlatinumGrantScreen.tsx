@@ -6,7 +6,7 @@ import {
   ConsoleScroll, ConsoleHeader, ConsoleCard, ConsoleButton, ConsoleNote, ConsoleSectionTitle, GlassIconButton, GradientAvatar,
   PremiumInput, BottomActionBar,
 } from '../../../ui';
-import { grantPlatinum, getPlatinumOverview, PlatinumPaymentMode, PAYMENT_MODE_LABEL, errorText } from '../../../services/superApi';
+import { grantPlatinum, getPlatinumOverview, updatePlatinumAccount, PlatinumPaymentMode, PAYMENT_MODE_LABEL, errorText } from '../../../services/superApi';
 import { ChipRow, ToggleRow, place } from './superKit';
 
 /**
@@ -41,7 +41,21 @@ function Detail({ label, value, last }: { label: string; value?: string | null; 
 const SuperPlatinumGrantScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const m = route?.params?.member || {};
+  const [m, setMember] = useState(route?.params?.member || {});
+  const accountOnly = m?.membershipTier === 'platinum';
+  const [editing, setEditing] = useState(false);
+  const [accountBusy, setAccountBusy] = useState(false);
+  const [account, setAccount] = useState({ email: m.email || '', phoneNumber: m.phoneNumber || '', whatsappNumber: m.whatsappNumber || m.phoneNumber || '', password: '' });
+  const saveAccount = async () => {
+    setAccountBusy(true); setError('');
+    try {
+      const updated = await updatePlatinumAccount(String(m.id || ''), { ...account, password: account.password || undefined });
+      if (!updated?.id) throw new Error('Account update could not be confirmed.');
+      setMember(updated); setAccount(a => ({ ...a, password: '' })); setEditing(false);
+      Alert.alert('Account saved', 'Use the saved email and password to sign in.');
+    } catch (err) { setError(errorText(err)); }
+    finally { setAccountBusy(false); }
+  };
   const passedPrice = Number(route?.params?.price);
 
   const [price, setPrice] = useState<number | null>(Number.isFinite(passedPrice) && passedPrice > 0 ? passedPrice : null);
@@ -73,7 +87,9 @@ const SuperPlatinumGrantScreen: React.FC = () => {
   const save = async () => {
     if (!memberId) { setError('This member record could not be identified. Go back and search again.'); return; }
     const rupees = Number(amount);
-    if ((amount || '').trim() === '' || !Number.isFinite(rupees) || rupees < 0) { setError('Enter the amount received'); return; }
+    if ((amount || '').trim() === '' || !Number.isFinite(rupees) || rupees <= 0) { setError('Enter the positive amount received'); return; }
+    if (m?.blockedReason) { setError(m.blockedReason); return; }
+    if (price !== null && rupees !== price && !note.trim()) { setError('Explain the difference from the Lifetime fee.'); return; }
     const day = (receivedOn || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(new Date(day).getTime())) { setError('Received on must be a date like 2026-09-29.'); return; }
     if (day > todayIso()) { setError('Received on cannot be in the future.'); return; }
@@ -88,10 +104,10 @@ const SuperPlatinumGrantScreen: React.FC = () => {
         receivedOn: day,
         note: (note || '').trim() || undefined,
       });
-      Alert.alert('Platinum granted', `${m?.fullName || 'The member'} is now a Platinum lifetime member.`);
+      Alert.alert('Lifetime granted', `${m?.fullName || 'The member'} is now a Lifetime Member.`);
       navigation?.goBack?.();
     } catch (err) {
-      Alert.alert('Could not grant Platinum', errorText(err));
+      Alert.alert('Could not grant Lifetime', errorText(err));
     } finally {
       setSaving(false);
     }
@@ -102,16 +118,16 @@ const SuperPlatinumGrantScreen: React.FC = () => {
   return (
     <ConsoleScroll
       avoidKeyboard
-      footer={(
+      footer={accountOnly ? undefined : (
         <BottomActionBar>
-          <ConsoleButton icon="diamond" label="Grant Platinum" onPress={save} loading={saving} disabled={!confirmed} style={s.flex} />
+          <ConsoleButton icon="diamond" label="Grant Lifetime" onPress={save} loading={saving} disabled={!confirmed || !!m?.blockedReason} style={s.flex} />
         </BottomActionBar>
       )}
     >
       <ConsoleHeader
         compact
-        eyebrow="Super Admin · Platinum"
-        title="Grant Platinum"
+        eyebrow="Super Admin · Lifetime"
+        title={accountOnly ? 'Lifetime member account' : 'Grant Lifetime Membership'}
         subtitle="Lifetime · paid at the office"
         left={<GlassIconButton icon="arrow-back" accessibilityLabel="Back" onPress={() => navigation?.goBack?.()} />}
       />
@@ -126,11 +142,18 @@ const SuperPlatinumGrantScreen: React.FC = () => {
         </View>
         <Detail label="Email" value={m?.email} />
         <Detail label="Phone" value={m?.phoneNumber} />
+        <ConsoleButton label="Edit login and contact details" onPress={() => setEditing(!editing)} />
+        {editing && <View>
+          <ConsoleNote text="Leave the new password blank to keep the current password." />
+          {(['email', 'phoneNumber', 'whatsappNumber', 'password'] as const).map(key => <PremiumInput key={key} tone="admin" label={{ email: 'Login email', phoneNumber: 'Mobile number', whatsappNumber: 'WhatsApp number', password: 'New password' }[key]} value={account[key]} onChangeText={value => setAccount(a => ({ ...a, [key]: value }))} autoCapitalize="none" secureTextEntry={key === 'password'} keyboardType={key === 'email' ? 'email-address' : key === 'password' ? 'default' : 'phone-pad'} />)}
+          <ConsoleButton label="Save account details" loading={accountBusy} disabled={accountBusy} onPress={saveAccount} />
+        </View>}
         <Detail label="Current membership" value={[m?.membershipStatus, m?.membershipType].filter(Boolean).join(' · ') || m?.applicationOutcome} last />
       </ConsoleCard>
 
-      <ConsoleSectionTitle title="The office receipt" icon="receipt-long" style={s.section} />
+      {!accountOnly && <><ConsoleSectionTitle title="The office receipt" icon="receipt-long" style={s.section} />
       <ConsoleCard style={s.card}>
+        {m?.blockedReason ? <ConsoleNote kind="red" text={m.blockedReason} /> : <ConsoleNote text="First-time members must complete and submit all required forms and receive approval before Lifetime can be granted." />}
         <PremiumInput tone="admin" label="Amount received (₹)" value={amount} onChangeText={(t) => setAmount((t || '').replace(/[^\d.]/g, ''))} keyboardType="numeric" icon="currency-rupee" />
         <Text style={s.label} maxFontSizeMultiplier={1.3}>Paid by</Text>
         <View style={s.bleed}>
@@ -140,7 +163,7 @@ const SuperPlatinumGrantScreen: React.FC = () => {
         <PremiumInput tone="admin" label="Received on" value={receivedOn} onChangeText={setReceivedOn} placeholder="YYYY-MM-DD" keyboardType="numbers-and-punctuation" icon="event" />
         <PremiumInput tone="admin" label="Note" value={note} onChangeText={setNote} multiline placeholder="Optional — e.g. received at the Chennai office" />
         {price !== null && amount !== '' && Number(amount) !== Number(price) ? (
-          <Text style={s.warn} maxFontSizeMultiplier={1.3}>This differs from the Platinum price of {money(price)}. That is allowed — the amount received is what is recorded.</Text>
+          <Text style={s.warn} maxFontSizeMultiplier={1.3}>This differs from the Lifetime price of {money(price)}. That is allowed — the amount received is what is recorded.</Text>
         ) : null}
         <View style={s.bleedToggle}>
           <ToggleRow
@@ -151,7 +174,7 @@ const SuperPlatinumGrantScreen: React.FC = () => {
             last
           />
         </View>
-      </ConsoleCard>
+      </ConsoleCard></>}
 
       {error ? <ConsoleNote kind="red" icon="error-outline" text={error} style={s.note} /> : null}
     </ConsoleScroll>

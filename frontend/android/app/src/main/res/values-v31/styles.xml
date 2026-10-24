@@ -1,0 +1,10 @@
+<resources>
+    <style name="AppTheme" parent="AppTheme.Base">
+        <!-- Use the same white canvas and ACTIV mark as the required JS checks. -->
+        <item name="android:windowSplashScreenBackground">@android:color/white</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/white</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

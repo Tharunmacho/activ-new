@@ -19,6 +19,8 @@ export interface ActiveCompany {
   area?: string;
   location?: string;
   logo?: string;
+  banner?: string;
+  publication?: { published: boolean; canPublish: boolean; memberActive: boolean; unlimited: boolean; paymentRequired: boolean; publishedCount: number; label: string };
   status?: string;
   isActive?: boolean;
   createdAt?: string;

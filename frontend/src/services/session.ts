@@ -73,9 +73,9 @@ export const isPaidProfile = (profile: any): boolean => {
 };
 
 /** Paid or unpaid dashboard for a signed-in member (token already stored). */
-export const memberHome = async (fallbackDetails?: any): Promise<HomeRoute> => {
+export const memberHome = async (fallbackDetails?: any, timeoutMs?: number): Promise<HomeRoute> => {
   try {
-    const res = await api.get(ENDPOINTS.MEMBERS.MY_PROFILE);
+    const res = await api.get(ENDPOINTS.MEMBERS.MY_PROFILE, timeoutMs ? { timeout: timeoutMs } : undefined);
     const profile = res?.data?.data || res?.data || {};
     return isPaidProfile(profile) ? 'PaidDashboard' : 'MemberMain';
   } catch {
@@ -84,14 +84,16 @@ export const memberHome = async (fallbackDetails?: any): Promise<HomeRoute> => {
 };
 
 /** The landing route for a role, or null when the app does not serve it. */
-export const homeForRole = async (role?: string | null, memberDetails?: any): Promise<HomeRoute | null> => {
+export const homeForRole = async (role?: string | null, memberDetails?: any, timeoutMs?: number): Promise<HomeRoute | null> => {
   const r = String(role || '').toLowerCase();
-  if (r === 'member') return memberHome(memberDetails);
+  if (r === 'member') return memberHome(memberDetails, timeoutMs);
   return ADMIN_HOME[r] || null;
 };
 
 /** Forget everything about the current session on this device. */
 export const clearSession = async (): Promise<void> => {
+  await require('./pushNotifications').detachPushDevice();
+  await require('./analytics').analyticsLogout();
   try {
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.AUTH_TOKEN,

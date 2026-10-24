@@ -1,3 +1,5 @@
+import NotificationPreferences from '../../../components/NotificationPreferences';
+import AssociationUpdatePreferences from '../../../components/AssociationUpdatePreferences';
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -6,15 +8,18 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import {
   Notice, PALETTE, SPACE, SHADOW, TYPE, SIZE, errorText,
   PremiumPage, PremiumPageHeader, PREMIUM_OVERLAP, PremiumSection, PremiumInput, GradientButton, GradientAvatar, FadeInUp,
-  SurfaceCard, GradientGlyph, GroupTitle, LinkRow, MeterBar, GLYPH_COLORS, CardSkeletons, SettingsGear3D, MailMark, WhatsAppMark,
+  SurfaceCard, GradientGlyph, GroupTitle, LinkRow, MeterBar, GLYPH_COLORS, CardSkeletons, SettingsGear3D,
 } from '../../../ui';
 import {
   getMyProfile, getMyApplications, changePassword, uploadProfilePhoto, isPaidMember, logoutOnServer,
 } from '../../../services/memberApi';
 import { resolveMediaUrl } from '../../../config/api.config';
+import { WEBSITE_PATHS } from '../../../config/website.config';
 import { clearSession } from '../../../services/session';
 import { useAuthStore } from '../../../stores/exampleStore';
 import { pickMostAdvancedApplication } from '../dashboard/memberRules';
+import { sharePublicPage } from '../../../services/contentShare';
+import { accountPasswordStatus, linkedProviderNames } from '../../../utils/authCapabilities';
 
 /**
  * ============================================================================
@@ -77,10 +82,12 @@ const AccountSettingsScreen = ({ navigation }: any) => {
   const [pw, setPw] = useState({ old: '', next: '', confirm: '' });
   const [pwBusy, setPwBusy] = useState(false);
   const [pwMsg, setPwMsg] = useState<{ kind: 'success' | 'danger'; text: string } | null>(null);
+  const [useExistingPassword, setUseExistingPassword] = useState(false);
 
   const load = useCallback(async () => {
     const [p, a] = await Promise.allSettled([getMyProfile(), getMyApplications()]);
     setProfile(p.status === 'fulfilled' ? (p.value || {}) : {});
+    setUseExistingPassword(false);
     const app = a.status === 'fulfilled' ? pickMostAdvancedApplication(a.value) : null;
     setAppStatus(String(app?.status || ''));
     setLoading(false);
@@ -92,6 +99,9 @@ const AccountSettingsScreen = ({ navigation }: any) => {
   const name = String(profile?.fullName || profile?.name || '');
   const memberId = String(profile?.membershipNumber || profile?.memberCode || '');
   const photo = resolveMediaUrl(profile?.profilePhoto);
+  const passwordStatus = accountPasswordStatus(profile);
+  const showPasswordForm = passwordStatus === 'set' || passwordStatus === 'legacy_unknown' && useExistingPassword;
+  const providers = linkedProviderNames(profile).join(', ') || 'your linked provider';
   const status = (() => {
     if (paid) return memberId ? `Active member · ${memberId}` : 'Active member';
     const st = appStatus.toLowerCase();
@@ -137,6 +147,7 @@ const AccountSettingsScreen = ({ navigation }: any) => {
   };
 
   const savePassword = async () => {
+    if (!showPasswordForm) return;
     setPwMsg(null);
     if (!pw.old) { setPwMsg({ kind: 'danger', text: 'Enter your current password' }); return; }
     if ((pw.next || '').length < 6) { setPwMsg({ kind: 'danger', text: 'The new password needs at least 6 characters' }); return; }
@@ -145,6 +156,7 @@ const AccountSettingsScreen = ({ navigation }: any) => {
     setPwBusy(true);
     try {
       await changePassword(pw.old, pw.next);
+      setProfile((previous: any) => ({ ...previous, hasPassword: true, passwordStatus: 'set' }));
       setPw({ old: '', next: '', confirm: '' });
       setPwMsg({ kind: 'success', text: 'Your password has been changed' });
     } catch (err) {
@@ -253,7 +265,14 @@ const AccountSettingsScreen = ({ navigation }: any) => {
       </FadeInUp>
 
       <FadeInUp delay={260} style={{ marginTop: SPACE.lg }}>
-        <PremiumSection icon="lock-outline" title="Password" subtitle="Use at least 6 characters.">
+        <PremiumSection icon="lock-outline" title={passwordStatus === 'set' ? 'Password' : 'Sign-in methods'} subtitle={passwordStatus === 'set' ? 'Use at least 6 characters.' : undefined}>
+          {passwordStatus !== 'set' && <>
+            <Text style={TYPE.body}>You sign in with {providers}. No ACTIV password is needed to continue using that sign-in option.</Text>
+            <Text style={[TYPE.body, { marginVertical: SPACE.md }]}>{passwordStatus === 'not_set' ? 'This account does not have an ACTIV password.' : 'If you want to use email and password, you can set or reset your ACTIV password securely by email.'}</Text>
+            <GradientButton label={passwordStatus === 'not_set' ? 'Set an ACTIV password (optional)' : 'Set or reset an ACTIV password (optional)'} variant="outline" onPress={() => navigation.navigate('ForgotPassword', { portal: 'member' })} />
+            {passwordStatus === 'legacy_unknown' && !useExistingPassword && <GradientButton label="I know my ACTIV password" variant="outline" onPress={() => setUseExistingPassword(true)} style={{ marginTop: SPACE.md }} />}
+          </>}
+          {showPasswordForm && <>
           <PasswordField label="Current password" value={pw.old} onChange={(v) => setPw((p) => ({ ...p, old: v }))} />
           <PasswordField label="New password" value={pw.next} onChange={(v) => setPw((p) => ({ ...p, next: v }))} />
           {pw.next ? (
@@ -273,32 +292,22 @@ const AccountSettingsScreen = ({ navigation }: any) => {
           <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword', { portal: 'member' })} style={styles.forgot} accessibilityRole="link">
             <Text style={styles.forgotText}>Forgot your password?</Text>
           </TouchableOpacity>
+          </>}
         </PremiumSection>
       </FadeInUp>
 
-      <GroupTitle title="How we reach you" subtitle="By email, on WhatsApp and in the bell on your dashboard." style={{ marginTop: SPACE.xs }} />
-      <FadeInUp delay={300}>
-        <SurfaceCard style={styles.gutter}>
-          <View style={styles.channels}>
-            <View style={styles.channel}><MailMark size={30} /><Text style={styles.channelText}>Email</Text></View>
-            <View style={styles.channel}><WhatsAppMark size={30} /><Text style={styles.channelText}>WhatsApp</Text></View>
-            <View style={styles.channel}><GradientGlyph icon="notifications" tone="amber" size={30} /><Text style={styles.channelText}>Bell</Text></View>
-          </View>
-          {['Application received and each admin’s review', 'Approval, with your membership fee', 'Payment confirmation and your certificates', 'Events and association updates for your region'].map((line) => (
-            <View key={line} style={styles.bullet}>
-              <Icon name="check-circle" size={SIZE.iconSm} color={PALETTE.blue} style={styles.bulletIcon} />
-              <Text style={styles.bulletText}>{line}</Text>
-            </View>
-          ))}
-        </SurfaceCard>
-      </FadeInUp>
-
+      <View style={styles.gutter}>
+        <AssociationUpdatePreferences />
+        <NotificationPreferences />
+      </View>
       <GroupTitle title="Account" />
       <FadeInUp delay={340}>
         <SurfaceCard style={styles.gutter} padded={false}>
           <LinkRow icon="person-outline" tone="blue" title="My Profile" subtitle="Your application details" onPress={profileRoute} />
           <LinkRow icon="storefront" tone="teal" title="Business Account" subtitle="Companies, catalogue and reach" onPress={() => navigation.navigate('BusinessDashboard')} />
           <LinkRow icon="support-agent" tone="green" title="Help & Support" subtitle="Contact your regional office" onPress={() => navigation.navigate('MemberHelp')} />
+          <LinkRow icon="share" tone="blue" title="Share ACTIV" subtitle="Invite others to explore the community" onPress={() => { void sharePublicPage({ path: '/', title: 'ACTIV' }); }} />
+          <LinkRow icon="person-remove" title="Delete account" subtitle="Request account and data deletion" danger onPress={() => navigation.navigate('PublicInfo', { path: WEBSITE_PATHS.deleteAccount, title: 'Delete account' })} />
           <LinkRow icon="logout" title="Sign out" subtitle="You can sign back in any time" danger onPress={signOut} last />
         </SurfaceCard>
       </FadeInUp>
@@ -332,12 +341,6 @@ const styles = StyleSheet.create({
   inlineNotice: { marginHorizontal: 0, marginTop: 0, marginBottom: SPACE.md },
   forgot: { minHeight: SIZE.touch, alignItems: 'center', justifyContent: 'center', marginTop: SPACE.xs },
   forgotText: { fontSize: 14, fontWeight: '700', color: PALETTE.blue },
-  channels: { flexDirection: 'row', gap: SPACE.sm, marginBottom: SPACE.md },
-  channel: { flex: 1, alignItems: 'center', gap: 6, paddingVertical: SPACE.md, borderRadius: 16, backgroundColor: PALETTE.fieldBg, borderWidth: 1, borderColor: PALETTE.divider },
-  channelText: { ...TYPE.caption, fontWeight: '700', color: PALETTE.textSoft },
-  bullet: { flexDirection: 'row', gap: SPACE.md, alignItems: 'flex-start', paddingVertical: 6 },
-  bulletIcon: { marginTop: 2 },
-  bulletText: { ...TYPE.body, flex: 1 },
 });
 
 export default AccountSettingsScreen;

@@ -1,4 +1,6 @@
+import { fetchSpreadsheet } from './spreadsheetDownload';
 import api from './api';
+import type { UpdateDeliveryChannels } from '../utils/updateDeliveryChannels';
 
 /**
  * ============================================================================
@@ -120,12 +122,22 @@ export type PlatinumRequestStatus = 'new' | 'contacted' | 'converted' | 'decline
 const PBASE = '/admin/super/membership/platinum';
 export const getPlatinumOverview = async () =>
   unwrap<{ plan: { name: string; price: number; active: boolean }; members: any[] }>(
-    await api.get(PBASE), { plan: { name: 'Platinum Lifetime', price: 0, active: true }, members: [] });
+    await api.get(PBASE), { plan: { name: 'Lifetime Membership', price: 0, active: true }, members: [] });
 export const searchPlatinumCandidates = async (q: string) =>
   unwrap<any[]>(await api.get(`${PBASE}/search`, { params: { q } }), []);
 export const grantPlatinum = async (memberId: string, body: {
   amount: number; paymentMode: PlatinumPaymentMode; receiptNumber?: string; receivedOn?: string; note?: string;
 }) => unwrap<any>(await api.post(`${PBASE}/${enc(memberId)}`, body), null);
+export const createPlatinumAccount = async (body: { fullName: string; email: string; password: string; phoneNumber: string; whatsappNumber: string; state: string; district: string; block: string }) =>
+  unwrap<any>(await api.post(`${PBASE}/accounts`, body), null);
+export const updatePlatinumAccount = async (id: string, body: { email: string; phoneNumber: string; whatsappNumber: string; password?: string }) =>
+  unwrap<any>(await api.patch(`${PBASE}/${enc(id)}/account`, body), null);
+
+const MBASE = '/admin/super/membership/registrations';
+export const getMembershipRegistrations = async () => unwrap<any>(await api.get(MBASE), null);
+export const getMembershipRegistration = async (id: string) => unwrap<any>(await api.get(`${MBASE}/${enc(id)}`), null);
+export const confirmMembershipRegistration = async (id: string, body: { planId: string; mode: string; amount: number; note: string; receiptNumber: string; membershipNumber?: string; commencementYear?: string }) =>
+  unwrap<any>(await api.post(`${MBASE}/${enc(id)}/confirm`, body), null);
 export const revokePlatinum = async (memberId: string) =>
   unwrap<any>(await api.delete(`${PBASE}/${enc(memberId)}`), null);
 export const listPlatinumRequests = async (status?: string) =>
@@ -160,11 +172,12 @@ export const statementUrl = (token?: string, fy?: string) =>
 export const fyLabel = (fy?: string) => String(fy || '').replace('-', '–');
 
 /* ================================================================ BOOKINGS */
-export const listBookingOverview = async (includeDrafts = false) =>
-  unwrap<{ events: any[]; totals: any }>(
-    await api.get('/events/bookings/overview', { params: includeDrafts ? { includeDrafts: 1 } : {} }),
+export type BookingHistoryCategory = 'current' | 'past' | 'deleted';
+export const listBookingOverview = async (includeDrafts = false, filters: import('./bookingFilters').BookingFiltersValue = {}) =>
+  unwrap<{ events: any[]; totals: any; historyTotals?: Record<BookingHistoryCategory, any> }>(
+    await api.get('/events/bookings/overview', { params: clean({ ...filters, ...(includeDrafts ? { includeDrafts: 1 } : {}) }) }),
     { events: [], totals: { events: 0, seats: 0, capacity: 0, bookings: 0, collected: 0, pending: 0 } });
-export const listEventBookings = async (eventId: string, params: { page?: number; limit?: number; search?: string; paymentStatus?: string; status?: string } = {}) =>
+export const listEventBookings = async (eventId: string, params: import('./bookingFilters').BookingFiltersValue & { page?: number; limit?: number } = {}) =>
   unwrap<{ bookings: any[]; summary: any; pagination: any }>(
     await api.get(`/events/${enc(eventId)}/bookings`, { params: clean({ page: params.page || 1, limit: params.limit || 50, ...params }) }),
     { bookings: [], summary: {}, pagination: {} });
@@ -175,46 +188,37 @@ export const recordBookingPayment = async (eventId: string, ref: string, mode = 
   unwrap<any>(await api.post(`/events/${enc(eventId)}/bookings/${enc(ref)}/record-payment`, { mode }), {});
 export const cancelEventBooking = async (eventId: string, ref: string, reason = '') =>
   unwrap<any>(await api.post(`/events/${enc(eventId)}/bookings/${enc(ref)}/cancel`, { reason }), {});
+/** Download the server-formatted Excel report with protected contact details. */
+export const exportBookingsCsv = async (eventId: string, _title = 'event', filters: import('./bookingFilters').BookingFiltersValue = {}) =>
+  fetchSpreadsheet('/events/' + enc(eventId) + '/bookings/export', clean(filters));
+export const exportFilteredBookings = (filters: import('./bookingFilters').BookingFiltersValue = {}) =>
+  fetchSpreadsheet('/events/bookings/export', clean(filters));
+export const exportMembershipReport = (tab: 'members' | 'payments' | 'archived', filter: string, search = '') =>
+  fetchSpreadsheet('/admin/super/membership/registrations/export', { tab, filter, search });
+
+export const listBookingPeople = async (search = '', filters: import('./bookingFilters').BookingFiltersValue = {}) =>
+  unwrap<{ people: any[]; total: number }>(await api.get('/events/bookings/people', { params: clean({ ...filters, ...(search ? { search } : {}) }) }), { people: [], total: 0 });
 /**
- * GET /events/:id/bookings/export — the same CSV the website downloads.
- * Fetched through the token-carrying instance (the route is admin-only) and
- * returned as TEXT, so the caller can hand it to the system share sheet
- * without a file-system native module. The name is derived like the website's.
- */
-export const exportBookingsCsv = async (eventId: string, title = 'event') => {
-  const res = await api.get(`/events/${enc(eventId)}/bookings/export`, {
-    responseType: 'text',
-    transformResponse: (raw: any) => raw,
-  });
-  const csv = typeof res?.data === 'string' ? res.data : String(res?.data ?? '');
-  const filename = `${String(title || 'event')
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60)
-    .toLowerCase() || 'event'}-bookings.csv`;
-  return { csv, filename };
-};
-export const listBookingPeople = async (search = '') =>
-  unwrap<{ people: any[]; total: number }>(await api.get('/events/bookings/people', { params: search ? { search } : {} }), { people: [], total: 0 });
-/**
- * The Event Bookings screen's event picker — the website's `listEvents({ limit: 200 })`
- * (GET /events). The server answers either a bare list or `{ events }`.
+ * Booking history includes retained bookings whose event was physically deleted.
  */
 export const listEventsForPicker = async () => {
-  const data = unwrap<any>(await api.get('/events', { params: { limit: 200 } }), []);
+  const data = await listBookingOverview(true);
   const rows: any[] = Array.isArray(data) ? data : (Array.isArray(data?.events) ? data.events : []);
   return rows
     .map((e) => ({
       id: String(e?.id || e?._id || ''),
       title: String(e?.title || '') || 'Untitled event',
       startAt: (e?.startAt || null) as string | null,
-      registrationFee: Number(e?.registrationFee || 0),
-      capacity: Number(e?.capacity || 0),
+      bookingHistoryOnly: !!e?.bookingHistoryOnly,
+      historyCategory: e?.historyCategory as BookingHistoryCategory,
+      archivedAt: (e?.archivedAt || null) as string | null,
+      registrationFee: Number(e?.price || 0),
+      capacity: Number(e?.totalSeats || 0),
     }))
     .filter((e) => !!e.id);
 };
-export const getBookingPerson = async (email: string) =>
-  unwrap<{ person: any; bookings: any[] }>(await api.get('/events/bookings/person', { params: { email } }), { person: null, bookings: [] });
+export const getBookingPerson = async (email: string, filters: import('./bookingFilters').BookingFiltersValue = {}) =>
+  unwrap<{ person: any; bookings: any[] }>(await api.get('/events/bookings/person', { params: clean({ ...filters, email }) }), { person: null, bookings: [] });
 
 /* ======================================================= EVENT CATEGORIES */
 export type CategoryMode = 'both' | 'online' | 'offline';
@@ -237,11 +241,13 @@ export const addStandardEventCategories = async () =>
 
 /* ================================================================= UPDATES */
 export type UpdateCategory = 'general' | 'notice' | 'policy' | 'scheme' | 'achievement' | 'urgent';
+export type AdminAnnouncement = Record<string, any> & { deliveryChannels?: UpdateDeliveryChannels };
+export type AnnouncementUpdate = Record<string, unknown> & { deliveryChannels?: UpdateDeliveryChannels };
 export const listAnnouncementsAdmin = async () =>
-  unwrap<{ announcements: any[]; total: number }>(await api.get('/announcements/admin'), { announcements: [], total: 0 });
-export const createAnnouncement = async (payload: Record<string, any>) =>
+  unwrap<{ announcements: AdminAnnouncement[]; total: number }>(await api.get('/announcements/admin'), { announcements: [], total: 0 });
+export const createAnnouncement = async (payload: AnnouncementUpdate & { deliveryChannels: UpdateDeliveryChannels }) =>
   unwrap<any>(await api.post('/announcements', payload), {});
-export const updateAnnouncement = async (id: string, payload: Record<string, any>) =>
+export const updateAnnouncement = async (id: string, payload: AnnouncementUpdate) =>
   unwrap<any>(await api.put(`/announcements/${enc(id)}`, payload), {});
 export const setAnnouncementStatus = async (id: string, status: 'draft' | 'published') =>
   unwrap<any>(await api.patch(`/announcements/${enc(id)}/status`, { status }), {});
@@ -391,3 +397,8 @@ export const updateStaffAccount = async (
   await api.put(`/admin/super/staff-accounts/${enc(String(id || ''))}`, payload),
   {},
 );
+
+export const deleteMembershipRegistration = async (id: string) => unwrap<any>(await api.delete(`${MBASE}/${enc(id)}`), null);
+export const deleteArchivedMembershipPayment = async (id: string) => unwrap<any>(await api.delete(`/admin/super/membership/payments/${enc(id)}/archived`, { data: { recordId: id, confirmation: 'DELETE' } }), null);
+export const deleteArchivedEventHistory = async (eventId: string) => unwrap<any>(await api.delete(`/events/${enc(eventId)}/bookings/history`, { data: { recordId: eventId, confirmation: 'DELETE' } }), null);
+export const deleteEventBooking = async (eventId: string, ref: string) => unwrap<any>(await api.delete(`/events/${enc(eventId)}/bookings/${enc(ref)}`), null);

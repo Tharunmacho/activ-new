@@ -27,7 +27,7 @@ import { premiumTone } from './theme';
  *
  *   BrandScrollPage ... gradient header + scrolling body; pull-to-refresh;
  *                       a scroll ref (a stepped form scrolls back to the top)
- *   BrandFrame ........ status bar, over-scroll colour, scrim, keyboard, footer
+ *   BrandFrame ........ status bar, canvas, scrim, keyboard, footer
  *                       around ANY body — put a FlatList inside (Rule 3)
  *   BrandHeaderBlock .. the gradient block with the status-bar inset applied —
  *                       a FlatList's ListHeaderComponent
@@ -73,12 +73,13 @@ function useAndroidKeyboardOverlap() {
   return { ref, onLayout: measure, overlap };
 }
 
-export function BrandFrame({ tone = 'member', children, footer, style }: {
+export function BrandFrame({ tone = 'member', children, footer, style, safeBottom = false }: {
   tone?: Tone;
   children: React.ReactNode;
   /** Pinned below the body (tab bar / BottomActionBar). */
   footer?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  safeBottom?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
@@ -94,9 +95,8 @@ export function BrandFrame({ tone = 'member', children, footer, style }: {
   );
 
   return (
-    <View ref={kb.ref} onLayout={kb.onLayout} style={[s.flex, { backgroundColor: canvas }, style]}>
-      <StatusBar barStyle="light-content" backgroundColor={p.top} />
-      <View pointerEvents="none" style={[s.overscroll, { backgroundColor: p.top }]} />
+    <View ref={kb.ref} onLayout={kb.onLayout} style={[s.flex, { backgroundColor: canvas, paddingBottom: safeBottom ? Number(insets?.bottom || 0) : 0 }, style]}>
+      <StatusBar barStyle="light-content" />
       {Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={s.flex} behavior="padding">{body}</KeyboardAvoidingView>
       ) : (
@@ -226,7 +226,6 @@ export function BrandHero({ eyebrow, title, subtitle, art, artSize = 96, childre
 
 const s = StyleSheet.create({
   flex: { flex: 1 },
-  overscroll: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%' },
   scrim: { position: 'absolute', top: 0, left: 0, right: 0 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, minHeight: 44 },
   topSpacer: { width: 44, height: 44 },

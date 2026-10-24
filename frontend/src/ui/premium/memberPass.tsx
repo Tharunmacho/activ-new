@@ -14,7 +14,7 @@ import { GradientAvatar } from './controls';
  *
  *   <MembershipPassCard name memberId planName validLabel status photoUri platinum />
  *
- * A navy→blue (or platinum slate) card with a gold hairline, a gold chip, the
+ * A navy→blue (or lifetime gold) card with a gold hairline, a gold chip, the
  * ACTIV mark on a white pill, the member's photo in a gradient ring, and a
  * holographic sheen that sweeps across it (native driver; off under reduce
  * motion). Everything printed on it is passed in — nothing is invented: an
@@ -41,14 +41,16 @@ export function MembershipPassCard({
   const cardW = Math.max(280, Math.min(Number(width || 360) - SPACE.lg * 2, 520));
   const sweep = useLoop({ duration: 5200, delay: 600 });
   const translateX = sweep.interpolate({ inputRange: [0, 1], outputRange: [-cardW, cardW * 1.4] });
-  const colors = platinum ? ['#111827', '#374151', '#6B7280'] : [BRAND.navyDeep, BRAND.navy, BRAND.blue900, BRAND.blue];
+  const colors = platinum ? ['#c8a04a', '#e9cb80', '#f8e6b2', '#e7c776', '#ccaa58'] : [BRAND.navyDeep, BRAND.navy, BRAND.blue900, BRAND.blue];
+  const goldInk = platinum ? { color: '#3e2c0e' } : undefined;
+  const goldMuted = platinum ? { color: '#674c1b' } : undefined;
   const statusText = String(status || '').trim();
   const active = statusText.toLowerCase() === 'active';
   return (
-    <View style={[s.shadow, style]} accessible accessibilityLabel={`${planName || 'Membership'} card for ${name}. Member ID ${memberId || 'not recorded'}.${validValue ? ` ${validLabel || 'Valid till'} ${validValue}.` : ''}`}>
+    <View style={[s.shadow, platinum && { backgroundColor: '#ccaa58', shadowColor: '#795617' }, style]} accessible accessibilityLabel={`${planName || 'Membership'} card for ${name}. Member ID ${memberId || 'not recorded'}.${validValue ? ` ${validLabel || 'Valid till'} ${validValue}.` : ''}`}>
       <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.card}>
         <View pointerEvents="none" style={s.orbA} />
-        <View pointerEvents="none" style={s.orbB} />
+        <View pointerEvents="none" style={[s.orbB, platinum && { backgroundColor: '#fff3cd33' }]} />
         <Animated.View pointerEvents="none" style={[s.sheen, { transform: [{ translateX }, { rotate: '18deg' }] }]}>
           <LinearGradient
             colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.16)', 'rgba(255,255,255,0)']}
@@ -63,8 +65,8 @@ export function MembershipPassCard({
             <Image source={LOGO} style={s.logo} resizeMode="contain" accessibilityIgnoresInvertColors />
           </View>
           <View style={s.tierPill}>
-            <Icon name={platinum ? 'diamond' : 'workspace-premium'} size={13} color={platinum ? '#E5E7EB' : '#FDE68A'} />
-            <Text style={s.tierText} numberOfLines={1} maxFontSizeMultiplier={1.15}>{platinum ? 'PLATINUM' : 'MEMBER'}</Text>
+            <Icon name="workspace-premium" size={13} color={platinum ? '#674c1b' : '#FDE68A'} />
+            <Text style={[s.tierText, goldInk]} numberOfLines={1} maxFontSizeMultiplier={1.15}>{platinum ? 'LIFETIME' : 'MEMBER'}</Text>
           </View>
         </View>
 
@@ -74,11 +76,11 @@ export function MembershipPassCard({
             <View style={s.chipLineV} />
           </LinearGradient>
           <View style={s.flexMin}>
-            <Text style={s.plan} numberOfLines={1} maxFontSizeMultiplier={1.2}>{planName || 'ACTIV Membership'}</Text>
+            <Text style={[s.plan, goldInk]} numberOfLines={2} maxFontSizeMultiplier={1.2}>{platinum ? 'Lifetime Membership' : planName || 'ACTIV Membership'}</Text>
             {statusText ? (
               <View style={s.statusRow}>
-                <View style={[s.statusDot, { backgroundColor: active ? '#34D399' : '#FBBF24' }]} />
-                <Text style={s.statusText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{statusText.toUpperCase()}</Text>
+                <View style={[s.statusDot, { backgroundColor: active ? (platinum ? '#25704c' : '#34D399') : '#966015' }]} />
+                <Text style={[s.statusText, goldMuted]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{statusText.toUpperCase()}</Text>
               </View>
             ) : null}
           </View>
@@ -87,14 +89,14 @@ export function MembershipPassCard({
         <View style={s.bottom}>
           <GradientAvatar name={name} uri={photoUri || undefined} size={48} status={active ? 'verified' : undefined} />
           <View style={s.flexMin}>
-            <Text style={s.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>{name || 'Member'}</Text>
-            <Text style={s.idLabel} maxFontSizeMultiplier={1.2}>MEMBER ID</Text>
-            <Text style={s.id} numberOfLines={1} selectable maxFontSizeMultiplier={1.2}>{memberId || '—'}</Text>
+            <Text style={[s.name, goldInk]} numberOfLines={2} maxFontSizeMultiplier={1.2}>{name || 'Member'}</Text>
+            <Text style={[s.idLabel, goldMuted]} maxFontSizeMultiplier={1.2}>MEMBER ID</Text>
+            <Text style={[s.id, goldInk]} numberOfLines={2} selectable maxFontSizeMultiplier={1.2}>{memberId || '—'}</Text>
           </View>
           {validValue ? (
             <View style={s.valid}>
-              <Text style={s.idLabel} maxFontSizeMultiplier={1.2}>{String(validLabel || 'Valid till').toUpperCase()}</Text>
-              <Text style={s.validValue} numberOfLines={1} maxFontSizeMultiplier={1.2}>{validValue}</Text>
+              <Text style={[s.idLabel, goldMuted]} maxFontSizeMultiplier={1.2}>{String(validLabel || 'Valid till').toUpperCase()}</Text>
+              <Text style={[s.validValue, goldInk]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{validValue}</Text>
             </View>
           ) : null}
         </View>

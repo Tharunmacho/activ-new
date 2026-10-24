@@ -21,8 +21,6 @@ import {
   Tone,
   toneOf,
   PremiumScreen,
-  PREMIUM_OVERLAP,
-  PremiumHeading,
   PremiumStepper,
   PremiumSection,
   PremiumSelect,
@@ -30,7 +28,6 @@ import {
   PremiumLabel,
   GlassIconButton,
   BrandLogo,
-  FloatingIllustration,
   FadeInUp,
   PressableScale,
   premiumTone,
@@ -66,7 +63,7 @@ const CAP = 1.3;
 /* ------------------------------------------------------------------ screen */
 
 export function FormScreen({
-  title, subtitle, onBack, children, footer, footerNote, tone = 'member', step, steps, art,
+  title, subtitle, onBack, children, footer, footerNote, tone = 'member', step, steps,
 }: {
   title: string;
   subtitle?: string;
@@ -88,7 +85,7 @@ export function FormScreen({
   return (
     <PremiumScreen
       tone={tone}
-      waveHeight={60}
+      waveHeight={20}
       footer={footer ? <BottomActionBar note={footerNote}>{footer}</BottomActionBar> : undefined}
       header={(
         <View>
@@ -104,19 +101,15 @@ export function FormScreen({
           </View>
           <View style={k.heroRow}>
             <FadeInUp delay={60} style={k.heroText}>
-              <PremiumHeading size="md" eyebrow={subtitle} title={title} />
+              <Text style={k.pageTitle} accessibilityRole="header">{title}</Text>
+              {!!subtitle && <Text style={k.pageSubtitle}>{subtitle}</Text>}
             </FadeInUp>
-            {art ? (
-              <FadeInUp delay={140} scaleFrom={0.85} distance={10}>
-                <FloatingIllustration size={88}>{art}</FloatingIllustration>
-              </FadeInUp>
-            ) : null}
           </View>
           {showStepper ? (
             <FadeInUp delay={200} distance={10}>
               <PremiumStepper step={Number(step)} labels={steps || []} tone={tone} style={k.stepper} />
             </FadeInUp>
-          ) : <View style={{ height: SPACE.xl }} />}
+          ) : <View style={{ height: SPACE.lg }} />}
         </View>
       )}
     >
@@ -419,8 +412,10 @@ export const k = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroRow: { flexDirection: 'row', alignItems: 'center', marginTop: SPACE.lg, gap: SPACE.sm },
   heroText: { flex: 1, minWidth: 0 },
-  stepper: { marginTop: SPACE.xl, marginBottom: SPACE.xl },
-  overlap: { marginTop: -PREMIUM_OVERLAP },
+  pageTitle: { color: PALETTE.white, fontSize: 28, lineHeight: 35, fontWeight: '700' },
+  pageSubtitle: { color: '#DCE7FF', fontSize: 16, lineHeight: 24, marginTop: 8 },
+  stepper: { marginTop: SPACE.lg, marginBottom: SPACE.md },
+  overlap: { marginTop: 4 },
 
   progress: {
     marginHorizontal: SPACE.lg,

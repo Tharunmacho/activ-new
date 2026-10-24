@@ -1,5 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import api, { getAuthToken, getUserRole } from '../../services/api';
 import { View, Text, StyleSheet, Linking, Alert, BackHandler } from 'react-native';
+import { usePaymentResumeCheck } from './usePaymentResumeCheck';
 import {
   BottomActionBar, Notice, PALETTE, SPACE, TYPE, money, errorText,
   PremiumPage, PremiumPageHeader, SecureCard3D, GradientButton, SurfaceCard, LinkRow, StateView, GroupTitle,
@@ -7,9 +9,10 @@ import {
 } from '../../ui';
 import { Overlap, ResultHeader, TotalBar, TrustLine, WebCheckout } from './paymentUi';
 import {
-  getPaymentConfig, startHostedPayment, payMembershipMock, payBookingMock, parseReturnUrl, getMyPlans,
-  PaymentConfig,
+  getPaymentConfig, startHostedPayment, payMembershipMock, payBookingMock, parseReturnUrl, getMyPlans, getUpgradePlans,
+  PaymentConfig, checkPaymentOrder,
 } from '../../services/paymentFlow';
+import { CheckoutContext, findPendingCheckout, getPendingPayment, getPaymentStorageOwner, sameCheckout, setPendingPayment } from '../../services/paymentRecovery';
 
 /*
  * The in-app browser. Required lazily and guarded (RULE 2.4): a build that
@@ -51,13 +54,22 @@ type Phase = 'preparing' | 'confirm' | 'webview' | 'browser' | 'paying' | 'error
 
 const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
   const params = route?.params || {};
-  const orderType: 'membership' | 'event_booking' = params?.orderType === 'event_booking' ? 'event_booking' : 'membership';
+  const orderType: 'membership' | 'event_booking' | 'company_listing' = params?.orderType === 'company_listing' ? 'company_listing' : params?.orderType === 'event_booking' ? 'event_booking' : 'membership';
+  const companyId = String(params?.companyId || '');
   const planId: string = String(params?.planId || '');
+  const upgrade = params?.upgrade === true;
+  const commencementYear = params?.commencementYear;
   const bookingRef: string = String(params?.bookingRef || '');
   const eventId: string = String(params?.eventId || '');
   const renew = params?.renew === true;
   /* The website sends the application id with the membership order when it has one. */
   const applicationId: string = String(params?.applicationId || '');
+  const resumeOrderId = String(params?.resumeOrderId || '');
+  const context = useMemo<CheckoutContext>(() => ({
+    orderType, companyId: companyId || undefined, planId: planId || undefined,
+    bookingRef: bookingRef || undefined, eventId: eventId || undefined,
+    applicationId: applicationId || undefined, upgrade, renew, commencementYear,
+  }), [orderType, companyId, planId, bookingRef, eventId, applicationId, upgrade, renew, commencementYear]);
 
   const [phase, setPhase] = useState<Phase>('preparing');
   const [config, setConfig] = useState<PaymentConfig | null>(null);
@@ -68,53 +80,105 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
   const [planName, setPlanName] = useState('');
 
   const handedOff = useRef(false);
+  const currentOrderId = useRef('');
+  const inFlight = useRef(false);
+  const mounted = useRef(true);
+  const startVersion = useRef(0);
 
   const goResult = useCallback((ret?: { orderId?: string; paymentId?: string; paymentStatus?: string }) => {
     if (handedOff.current) return;
-    handedOff.current = true;
-    const id = (ret?.orderId || orderId || '').trim();
+    const id = currentOrderId.current.trim();
+    if (ret?.orderId && ret.orderId !== id) {
+      Alert.alert('Different payment order', 'This return does not match your checkout. Please check the current order status.');
+      return;
+    }
     if (!id) {
-      handedOff.current = false;
-      setError('The payment order could not be identified. If money was taken, it will still be credited — check your dashboard shortly.');
+      setError('The payment order could not be identified. If your bank shows a debit, contact ACTIV with the bank reference before trying again.');
       setPhase('error');
       return;
     }
+    handedOff.current = true;
     navigation.replace('PaymentResult', {
+      ...context,
       orderId: id,
-      orderType,
-      bookingRef: bookingRef || undefined,
-      eventId: eventId || undefined,
       paymentId: ret?.paymentId || undefined,
       paymentStatus: ret?.paymentStatus || undefined,
     });
-  }, [navigation, orderId, orderType, bookingRef, eventId]);
+  }, [navigation, context]);
 
   /** Start the gateway order (or show the mock confirm step). */
   const start = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    const version = ++startVersion.current;
+    const isCurrent = () => mounted.current && startVersion.current === version;
     setPhase('preparing');
     setError('');
+    currentOrderId.current = '';
+    setOrderId(''); setPayUrl(''); setAmount(null); setPlanName('');
     handedOff.current = false;
     if (orderType === 'membership' && !planId) {
       setError('Choose a plan first.');
       setPhase('error');
+      inFlight.current = false;
       return;
     }
     if (orderType === 'event_booking' && !bookingRef) {
       setError('This booking could not be found.');
       setPhase('error');
+      inFlight.current = false;
       return;
     }
+    if (orderType === 'company_listing' && !companyId) {
+      setError('Choose the company to publish first.'); setPhase('error'); inFlight.current = false; return;
+    }
     try {
+      const previous = resumeOrderId ? await getPendingPayment('payment', resumeOrderId) : await findPendingCheckout(context);
+      if (!isCurrent()) return;
+      if (resumeOrderId && (!previous || !sameCheckout(previous, context))) {
+        throw new Error('This saved checkout is unavailable. Check the order status before starting another payment.');
+      }
+      if (previous) {
+        currentOrderId.current = previous.orderId;
+        setOrderId(previous.orderId); setPayUrl(previous.paymentUrl || '');
+        if (typeof previous.amount === 'number') setAmount(previous.amount);
+        const found = await checkPaymentOrder(previous.orderId).catch(() => null);
+        if (!isCurrent()) return;
+        if (found?.status === 'paid' || found?.status === 'failed' || !/^https:\/\//i.test(previous.paymentUrl || '')) {
+          goResult(); return;
+        }
+        // Reopen this order, never create another while its result is unknown.
+        setPhase(WebViewComp ? 'webview' : 'browser');
+        return;
+      }
       const cfg = await getPaymentConfig();
+      if (!isCurrent()) return;
       setConfig(cfg);
+      if (orderType === 'company_listing') {
+        const response = await api.get(`/business-profiles/${encodeURIComponent(companyId)}/publishing`);
+        if (!isCurrent()) return;
+        const quote = response.data?.data || response.data;
+        if (!quote.paymentRequired) throw new Error('This company can already be published. Return to company settings and refresh.');
+        setAmount(quote.amount); setPlanName(`Additional company · ${quote.companyName}`);
+      }
       if (orderType === 'membership') {
         // Display only — the server prices the order from the key.
-        const mine = await getMyPlans();
+        const mine = upgrade ? await getUpgradePlans() : await getMyPlans();
+        if (!isCurrent()) return;
+        if (mine.failed) throw new Error('The current membership price could not be loaded. Please try again.');
+        if (upgrade && mine.canPurchase === false) throw new Error(mine.reason || 'Your plan advances automatically. The new fee applies at renewal.');
         const p = (mine.plans || []).find((x) => x.key === planId);
+        if (!p) throw new Error('Your available plans changed. Return to membership plans and refresh your eligibility.');
         if (p) { setPlanName(p.name); setAmount(p.price); }
       }
       if (cfg.mode === 'gateway') {
-        const started = await startHostedPayment({ orderType, planId, bookingRef, applicationId: applicationId || undefined });
+        if (!cfg.configured) throw new Error('Online payments are temporarily unavailable. Please try again later.');
+        const owner = await getPaymentStorageOwner();
+        if (!isCurrent()) return;
+        const started = await startHostedPayment({ orderType, companyId, planId, bookingRef, applicationId: applicationId || undefined, upgrade, commencementYear });
+        await setPendingPayment({ ...context, ...started }, owner);
+        if (!isCurrent()) return;
+        currentOrderId.current = started.orderId;
         setPayUrl(started.paymentUrl);
         setOrderId(started.orderId);
         if (started.amount !== null) setAmount(started.amount);
@@ -126,17 +190,23 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
         setPhase('confirm');
       }
     } catch (err) {
+      if (!isCurrent()) return;
       setError(errorText(err, 'The payment could not be started. Please try again.'));
       setPhase('error');
+    } finally {
+      if (startVersion.current === version) inFlight.current = false;
     }
-  }, [orderType, planId, bookingRef, applicationId]);
+  }, [orderType, companyId, planId, bookingRef, applicationId, upgrade, commencementYear, context, goResult, resumeOrderId]);
 
-  useEffect(() => { start(); }, [start]);
+  useEffect(() => {
+    mounted.current = true; start();
+    return () => { mounted.current = false; startVersion.current += 1; inFlight.current = false; };
+  }, [start]);
 
   const cancel = useCallback(() => {
     Alert.alert(
       'Leave the payment?',
-      'If you have already paid, it will still be credited to you. You can check on your dashboard.',
+      'Check the current order before leaving so you do not start another payment by mistake.',
       [
         { text: 'Stay', style: 'cancel' },
         { text: orderId ? 'Check status' : 'Leave', onPress: () => (orderId ? goResult() : navigation.goBack()) },
@@ -147,16 +217,26 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
 
   // Android back inside the gateway = ask, never silently drop the order.
   useEffect(() => {
-    if (phase !== 'webview') return undefined;
+    if (phase !== 'webview' && phase !== 'browser') return undefined;
     const sub = BackHandler.addEventListener('hardwareBackPress', cancel);
     return () => sub.remove();
   }, [phase, cancel]);
 
+  usePaymentResumeCheck(!!orderId && (phase === 'browser' || phase === 'webview'), async () => {
+    const found = await checkPaymentOrder(orderId);
+    return found.orderId === orderId && (found.status === 'paid' || found.status === 'failed');
+  }, () => { if (navigation.isFocused?.() !== false) goResult(); });
+
   const payMock = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setPhase('paying');
     try {
-      if (orderType === 'membership') {
-        const order = await payMembershipMock(planId, applicationId || undefined);
+      if (orderType === 'company_listing') {
+        const order = await payMembershipMock('', undefined, false, undefined, companyId);
+        navigation.replace('PaymentResult', { ...context, orderId: order.orderId });
+      } else if (orderType === 'membership') {
+        const order = await payMembershipMock(planId, applicationId || undefined, upgrade, commencementYear);
         navigation.replace('PaymentSuccess', { orderId: order.orderId, planType: planName || planId, renewed: renew });
       } else {
         await payBookingMock(bookingRef);
@@ -165,20 +245,22 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
     } catch (err) {
       setError(errorText(err, 'The payment did not go through.'));
       setPhase('error');
+    } finally {
+      inFlight.current = false;
     }
   };
 
   const openBrowser = async () => {
     if (!payUrl) return;
     try {
-      await Linking.openURL(payUrl);
       setPhase('browser');
+      await Linking.openURL(payUrl);
     } catch {
       Alert.alert('Could not open the browser', 'Please try the in-app payment page instead.');
     }
   };
 
-  const title = orderType === 'event_booking' ? 'Pay for your booking' : renew ? 'Renew membership' : 'Checkout';
+  const title = orderType === 'event_booking' ? 'Pay for your booking' : upgrade ? 'Upgrade membership' : renew ? 'Renew membership' : 'Checkout';
 
   /* ---------------------------------------------------------------- webview */
   if (phase === 'webview' && WebViewComp && payUrl) {
@@ -196,7 +278,12 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
   }
 
   const goBack = () => navigation.goBack();
-  const eyebrow = orderType === 'event_booking' ? 'Event booking' : renew ? 'Renewal' : 'Membership';
+  const viewTicket = async () => {
+    const [token, role] = await Promise.all([getAuthToken(), getUserRole()]);
+    const home = token && role === 'member' ? 'MemberMain' : 'PublicExplore';
+    navigation.reset({ index: 1, routes: [{ name: home }, { name: 'EventBooking', params: { eventId, ref: bookingRef } }] });
+  };
+  const eyebrow = orderType === 'company_listing' ? 'Company publishing' : orderType === 'event_booking' ? 'Event booking' : upgrade ? 'Upgrade' : renew ? 'Renewal' : 'Membership';
 
   if (phase === 'preparing' || phase === 'paying') {
     const preparing = phase === 'preparing';
@@ -208,14 +295,14 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
             onBack={preparing ? goBack : undefined}
             eyebrow={eyebrow}
             title={preparing ? 'Preparing a secure payment' : 'Processing your payment'}
-            subtitle={preparing ? 'Opening an encrypted order with the gateway…' : 'Please keep this screen open.'}
+            subtitle={preparing ? 'Checking your order and current price…' : 'Please keep this screen open.'}
           />
         )}
       >
         <Overlap>
           <SurfaceCard style={s.gutter}>
             {[
-              { icon: 'lock', text: 'Your order is created on ACTIV’s server — the price comes from there, not this phone.', done: true },
+              { icon: 'lock', text: 'Your order uses ACTIV’s current price for this payment.', done: true },
               { icon: 'credit-card', text: 'Card, UPI and net banking are handled by Instamojo.', done: !preparing },
               { icon: 'receipt-long', text: 'Your receipt appears the moment the payment is confirmed.', done: false },
             ].map((row, i) => (
@@ -235,7 +322,7 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
       <PremiumPage header={<PremiumPageHeader onBack={goBack} eyebrow={eyebrow} title={title} art={<SecureCard3D size={84} />} />}>
         <Overlap>
           <SurfaceCard style={s.gutter}>
-            <StateView kind="error" compact title="Payment not started" message={error} onAction={start} secondary="Go back" onSecondary={goBack} />
+            <StateView kind="error" compact title="Unable to continue payment" message={error} onAction={orderId ? () => goResult() : start} action={orderId ? 'Check status' : 'Try again'} secondary="Go back" onSecondary={goBack} />
           </SurfaceCard>
         </Overlap>
       </PremiumPage>
@@ -258,8 +345,7 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
             <GradientButton
               label="View your ticket"
               icon="confirmation-number"
-              // The ticket, with the member area under it (not the checkout).
-              onPress={() => navigation.reset({ index: 1, routes: [{ name: 'MemberMain' }, { name: 'EventBooking', params: { eventId, ref: bookingRef } }] })}
+              onPress={viewTicket}
               style={s.flex}
             />
           </BottomActionBar>
@@ -280,7 +366,7 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
       <PremiumPage
         header={(
           <PremiumPageHeader
-            onBack={goBack}
+            onBack={cancel}
             eyebrow="Secure payment"
             title="Finish paying in your browser"
             subtitle="Complete the payment on Instamojo, then come back here and check the status."
@@ -288,7 +374,7 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
           />
         )}
         footer={(
-          <BottomActionBar note="Confirmed by ACTIV's server with Instamojo — you will not be charged twice.">
+          <BottomActionBar note="This reopens the same order. Check its status before starting another payment.">
             <View style={s.stack}>
               <GradientButton label="Open payment page" icon="open-in-new" onPress={openBrowser} disabled={!payUrl} />
               <GradientButton label="I have paid — check status" icon="fact-check" variant="outline" onPress={() => goResult()} disabled={!orderId} />
@@ -336,11 +422,11 @@ const PaymentCheckoutScreen: React.FC<any> = ({ navigation, route }) => {
         <Notice kind="warning" icon="science" style={s.notice} text={`Test mode (${config?.provider || 'mock'}): this server takes no real money. Production uses Instamojo.`} />
         <GroupTitle title="Order summary" style={{ marginTop: SPACE.sm }} />
         <SurfaceCard style={s.gutter}>
-          {orderType === 'membership' ? <ReceiptLine label="Plan" value={planName || planId} /> : <ReceiptLine label="Booking" value={bookingRef} />}
+          {orderType === 'event_booking' ? <ReceiptLine label="Booking" value={bookingRef} /> : <ReceiptLine label={orderType === 'company_listing' ? 'Company' : 'Plan'} value={planName || planId} />}
           <ReceiptLine label="Charged by" value="ACTIV" />
           <TotalBar label="Amount" value={amountText} />
           <View style={s.trustGap} />
-          <TrustLine icon="lock" tone="green" text="The amount is set by the server — nothing on this phone can change it." />
+          <TrustLine icon="lock" tone="green" text="Review the current amount before confirming your payment." />
         </SurfaceCard>
       </Overlap>
     </PremiumPage>

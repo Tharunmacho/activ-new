@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ShieldAlert, LayoutDashboard, LogOut } from 'lucide-react';
 import { clearSession, SESSION_EVENT } from '@/services/api';
 import { homeForSession, roleLabel, sessionKind, storedRole } from '@/lib/session';
+import { useAppThemeScope } from '@/lib/appTheme';
 
 /**
  * WHOSE AREA IS THIS — a guard for a whole group of routes.
@@ -70,6 +71,17 @@ export default function RoleGate({ area, roles }: {
     if (area === 'member' && kind === 'admin') {
         return <SignedInAsAdmin from={here} />;
     }
+    return <ThemedOutlet />;
+}
+
+/**
+ * The signed-in area's colour scheme, applied for exactly as long as one of
+ * these route groups is on screen. Leaving it (log out, a link to the public
+ * site) unmounts the scope and the document goes back to light, which is how
+ * the marketing site and the login pages stay light whatever was chosen here.
+ */
+function ThemedOutlet() {
+    useAppThemeScope();
     return <Outlet />;
 }
 

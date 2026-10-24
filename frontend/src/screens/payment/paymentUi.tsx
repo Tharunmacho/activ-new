@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Platform, StyleProp, ViewStyle, TouchableOpacity, Linking } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Platform, StyleProp, ViewStyle, TouchableOpacity, Alert } from 'react-native';
+import { checkoutLinkKind, openPaymentApp } from '../../services/paymentAppLink';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -141,12 +142,28 @@ export function WebCheckout({
 }) {
   const insets = useSafeAreaInsets();
   const [pageLoading, setPageLoading] = useState(true);
+  const launching = useRef(false);
+  const navigateCheckout = (next: string) => {
+    const ret = isReturn(next);
+    if (ret) { onReturn(ret); return false; }
+    const kind = checkoutLinkKind(next);
+    if (kind === 'web') return true;
+    if (kind === 'app' && !launching.current) {
+      launching.current = true;
+      setPageLoading(false);
+      openPaymentApp(next).catch(() => Alert.alert('Payment app unavailable', 'Choose another payment method, or open this same checkout in your browser.', [
+        { text: 'Choose another method', style: 'cancel' },
+        ...(onOpenBrowser ? [{ text: 'Open browser', onPress: onOpenBrowser }] : []),
+      ])).finally(() => { launching.current = false; });
+    }
+    return false;
+  };
   const Web = WebViewComp;
   return (
     <View style={s.webScreen}>
       <PremiumTopBar
         title={title}
-        subtitle="Instamojo · 256-bit encrypted"
+        subtitle="Instamojo · secure checkout"
         leading={<GradientGlyph icon="lock" tone="green" size={38} iconSize={19} />}
         right={<GlassIconButton icon="close" onPress={onClose} accessibilityLabel="Cancel payment" />}
       />
@@ -156,26 +173,20 @@ export function WebCheckout({
           startInLoadingState
           onLoadStart={() => setPageLoading(true)}
           onLoadEnd={() => setPageLoading(false)}
-          onShouldStartLoadWithRequest={(req: any) => {
-            const ret = isReturn(req?.url || '');
-            if (ret) { onReturn(ret); return false; }
-            const next = String(req?.url || '');
-            if (/^(upi|intent|tez|phonepe|paytmmp|gpay):/i.test(next)) {
-              try {
-                Linking.openURL(next).catch(() => null);
-              } catch (err) {
-                console.warn('Native module call safely caught:', err);
-              }
-              return false;
-            }
-            return true;
-          }}
+          originWhitelist={['*']}
+          onShouldStartLoadWithRequest={(req: any) => navigateCheckout(String(req?.url || ''))}
           onNavigationStateChange={(nav: any) => {
             const ret = isReturn(nav?.url || '');
             if (ret) onReturn(ret);
           }}
-          onError={onError}
+          onError={() => { setPageLoading(false); onError?.(); }}
+          onHttpError={(event: any) => {
+            if (event?.nativeEvent?.url === url && event?.nativeEvent?.statusCode >= 400) {
+              setPageLoading(false); onError?.();
+            }
+          }}
           setSupportMultipleWindows={false}
+          javaScriptCanOpenWindowsAutomatically
           javaScriptEnabled
           domStorageEnabled
         />

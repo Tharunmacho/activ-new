@@ -27,14 +27,14 @@ const AUDIENCE_HINT: Record<PlanAudience, string> = {
   business: 'A company — priced by years trading.',
   aspirant: 'An aspirant — no company.',
   student: 'A student — no company.',
-  platinum: 'Platinum — lifetime, granted by Super Admin (not paid online).',
+  platinum: 'Lifetime — lifetime, granted by Super Admin (not paid online).',
 };
 
 const AUDIENCES: { value: PlanAudience; label: string }[] = [
   { value: 'business', label: 'A company' },
   { value: 'aspirant', label: 'An aspirant' },
   { value: 'student', label: 'A student' },
-  { value: 'platinum', label: 'Platinum' },
+  { value: 'platinum', label: 'Lifetime' },
 ];
 
 const num = (v: string) => (String(v || '').trim() === '' ? NaN : Number(v));
@@ -180,13 +180,13 @@ const SuperPlanEditorScreen: React.FC = () => {
             </View>
           </View>
         ) : audience === 'platinum' ? (
-          <Text style={[s.hint, s.hintTop]} maxFontSizeMultiplier={1.3}>Platinum is granted by the Super Admin after an office payment. It is never offered to applicants to buy online.</Text>
+          <Text style={[s.hint, s.hintTop]} maxFontSizeMultiplier={1.3}>Lifetime is granted by the Super Admin after an office payment. It is never offered to applicants to buy online.</Text>
         ) : null}
       </ConsoleCard>
 
       <ConsoleSectionTitle title="What members get" icon="checklist" style={s.section} />
       <ConsoleCard style={s.card}>
-        <PremiumInput tone="admin" label="Benefits (one per line)" value={features} onChangeText={setFeatures} multiline placeholder={'Member directory\nEvents at member rates'} />
+        <PremiumInput tone="admin" label="Benefits (one per line)" value={features} onChangeText={setFeatures} multiline placeholder={'ACTIV Network\nEvents at member rates'} />
         <PremiumInput tone="admin" label="Display order" value={order} onChangeText={(t) => setOrder((t || '').replace(/[^\d-]/g, ''))} keyboardType="numeric" />
         <ToggleRow label="Mark as popular" value={popular} onChange={setPopular} />
         <ToggleRow label="Offered to applicants" hint="Off retires the plan: it is hidden from applicants and payment, but paid memberships keep it." value={active} onChange={setActive} last />

@@ -13,6 +13,9 @@ import SuperBookingMessagesScreen from '../../screens/admin/super/SuperBookingMe
 import SuperDonorsScreen from '../../screens/admin/super/SuperDonorsScreen';
 import SuperDonorDetailScreen from '../../screens/admin/super/SuperDonorDetailScreen';
 import SuperMembershipScreen from '../../screens/admin/super/SuperMembershipScreen';
+import SuperMembershipRegistrationsScreen from '../../screens/admin/super/SuperMembershipRegistrationsScreen';
+import SuperMembershipIdsScreen from '../../screens/admin/super/SuperMembershipIdsScreen';
+import SuperOfficeAccountScreen from '../../screens/admin/super/SuperOfficeAccountScreen';
 import SuperPlanEditorScreen from '../../screens/admin/super/SuperPlanEditorScreen';
 import SuperPlatinumGrantScreen from '../../screens/admin/super/SuperPlatinumGrantScreen';
 import SuperPlatinumRequestScreen from '../../screens/admin/super/SuperPlatinumRequestScreen';
@@ -56,6 +59,9 @@ export const superScreens = (Stack: any) => (
     <Stack.Screen name="SuperDonors" component={SuperDonorsScreen} options={NO_HEADER} />
     <Stack.Screen name="SuperDonorDetail" component={SuperDonorDetailScreen} options={NO_HEADER} />
     <Stack.Screen name="SuperMembership" component={SuperMembershipScreen} options={NO_HEADER} />
+    <Stack.Screen name="SuperMembershipRegistrations" component={SuperMembershipRegistrationsScreen} options={NO_HEADER} />
+    <Stack.Screen name="SuperMembershipIds" component={SuperMembershipIdsScreen} options={NO_HEADER} />
+    <Stack.Screen name="SuperOfficeAccount" component={SuperOfficeAccountScreen} options={NO_HEADER} />
     <Stack.Screen name="SuperPlanEditor" component={SuperPlanEditorScreen} options={NO_HEADER} />
     <Stack.Screen name="SuperPlatinumGrant" component={SuperPlatinumGrantScreen} options={NO_HEADER} />
     <Stack.Screen name="SuperPlatinumRequest" component={SuperPlatinumRequestScreen} options={NO_HEADER} />

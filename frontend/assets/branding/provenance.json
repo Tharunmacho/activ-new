@@ -1,0 +1,6 @@
+{
+  "source": "User-supplied ACTIV runner and slanted uppercase wordmark, 4 October 2026",
+  "tool": "Built-in image_gen, background extraction",
+  "prompt": "Remove the light grey rounded square and white background. Preserve the purple runner, speed lines, exact uppercase italic ACTIV lettering, proportions and layout. Transparent PNG; no redesign or added elements.",
+  "packaging": "backend/scripts/generate-mobile-icons.js"
+}

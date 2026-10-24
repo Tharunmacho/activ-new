@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import StudentNetworkingGate from '../StudentNetworkingGate';
+import { isStudentMembership } from '../../../utils/memberAudience';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -12,6 +14,8 @@ import { useLoad } from '../useLoad';
 import { useMemberAccess, useLockedCta, runMembershipCta } from '../useMemberAccess';
 import { longDate } from '../events/eventFormat';
 import { MEMBERS_ONLY_COPY } from '../messages/messageCopy';
+import { PhotoViewer } from '../../../ui/PhotoViewer';
+import CatalogueAlbum from '../../../components/CatalogueAlbum';
 
 /**
  * One member's directory card — website `DirectoryProfile.tsx`.
@@ -56,6 +60,10 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
   const [openError, setOpenError] = useState('');
   const [askedToConnect, setAskedToConnect] = useState(false);
   const [seen] = useState(() => new Set<string>());
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [albumAt, setAlbumAt] = useState<number | null>(null);
+  useEffect(() => { setPhotoOpen(false); }, [id, m?.profilePhoto]);
+  useEffect(() => { setAlbumAt(null); }, [id]);
 
   const isSelf = !!id && [profile?.memberId, profile?._id, profile?.id, profile?.userId]
     .filter(Boolean).map(String).includes(id);
@@ -88,9 +96,11 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
   );
   const fallbackName = String(route?.params?.name || 'Member');
 
+  if (isStudentMembership(profile)) return <StudentNetworkingGate navigation={navigation} />;
+
   if (loading) {
     return (
-      <PremiumPage
+      <PremiumPage safeBottom
         header={<PremiumPageHeader eyebrow="ACTIV member" title={fallbackName} subtitle="Opening their card…" onBack={() => navigation.goBack()} right={allMembers} />}
       >
         <View style={styles.overlap}><CardSkeletons rows={3} variant="media" /></View>
@@ -99,14 +109,14 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
   }
   if (error || !m) {
     return (
-      <PremiumPage
-        header={<PremiumPageHeader eyebrow="Member Directory" title={fallbackName} onBack={() => navigation.goBack()} right={allMembers} />}
+      <PremiumPage safeBottom
+        header={<PremiumPageHeader eyebrow="ACTIV Network" title={fallbackName} onBack={() => navigation.goBack()} right={allMembers} />}
       >
         <StateView
           kind={error ? 'error' : 'empty'}
           title="This member is not listed"
-          message={error || 'Only members with an active membership appear in the directory.'}
-          action={error ? 'Try again' : 'Back to the directory'}
+          message={error || 'Only members with an active membership appear in ACTIV Network.'}
+          action={error ? 'Try again' : 'Back to ACTIV Network'}
           actionIcon={error ? 'refresh' : 'groups'}
           onAction={() => (error ? reload() : navigation.navigate('MemberDirectory'))}
         />
@@ -124,7 +134,7 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
   const since = yearOf(m?.memberSince);
 
   return (
-    <PremiumPage
+    <><PremiumPage safeBottom
       refreshing={refreshing}
       onRefresh={refresh}
       header={(
@@ -136,7 +146,8 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
           right={allMembers}
           art={<GradientAvatar name={m?.fullName || 'Member'} uri={photo || undefined} size={92} status="verified" />}
           artSize={96}
-          artLabel={`${m?.fullName || 'Member'}'s photo`}
+          artLabel={photo ? `View ${m?.fullName || 'member'}'s profile photo` : `${m?.fullName || 'Member'}'s initials`}
+          onArtPress={photo ? () => setPhotoOpen(true) : undefined}
         >
           <View style={{ gap: SPACE.md }}>
             {sectors.length ? (
@@ -222,9 +233,9 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
                   key={pid || `${p?.name || 'product'}-${i}`}
                   style={styles.productCell}
                   contentStyle={styles.productShadow}
-                  onPress={() => viewProduct(pid)}
+                  onPress={() => { viewProduct(pid); setAlbumAt(i); }}
                   accessibilityRole="button"
-                  accessibilityLabel={p?.name || 'Product'}
+                  accessibilityLabel={`${p?.name || 'Product'}, view photos and details`}
                 >
                   <View style={styles.product}>
                     {image ? <FitImage uri={image} style={styles.productImg} /> : (
@@ -232,7 +243,8 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
                     )}
                     <View style={styles.productBody}>
                       <Text style={styles.itemTitle} numberOfLines={2}>{p?.name || 'Product'}</Text>
-                      {p?.category ? <Text style={styles.sub} numberOfLines={1}>{p.category}</Text> : null}
+                      <Text style={styles.sub} numberOfLines={1}>{p?.category ? `Product · ${p.category}` : 'Product'}</Text>
+                      {p?.description ? <Text style={styles.desc} numberOfLines={2} maxFontSizeMultiplier={1.3}>{p.description}</Text> : null}
                       {Number(p?.price) > 0 ? <Text style={styles.price}>{money(p.price)}</Text> : null}
                     </View>
                   </View>
@@ -247,6 +259,9 @@ const DirectoryProfileScreen = ({ navigation, route }: any) => {
         )}
       </FadeInUp>
     </PremiumPage>
+      <PhotoViewer url={photo} visible={photoOpen} onClose={() => setPhotoOpen(false)} title={m?.fullName || 'Profile photo'} />
+      <CatalogueAlbum items={products} startIndex={albumAt} onClose={() => setAlbumAt(null)} onProductShown={(it) => viewProduct(it.key)} />
+    </>
   );
 };
 
@@ -277,6 +292,7 @@ const styles = StyleSheet.create({
   productImg: { width: '100%', aspectRatio: 4 / 3, backgroundColor: PALETTE.field },
   productFallback: { alignItems: 'center', justifyContent: 'center' },
   productBody: { padding: SPACE.md },
+  desc: { ...TYPE.caption, fontSize: 11, lineHeight: 15, marginTop: SPACE.xs },
   price: { ...TYPE.bodyStrong, color: PALETTE.blueDark, marginTop: SPACE.xs, fontVariant: ['tabular-nums'] },
 });
 

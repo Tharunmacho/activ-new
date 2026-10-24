@@ -1,3 +1,5 @@
+import { analyticsLogin, analyticsLogout } from '../services/analytics';
+import { detachPushDevice } from '../services/pushNotifications';
 import { create } from 'zustand';
 import { User, UserRole } from '../types';
 import {
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await setAuthToken(token);
       await setUserData(user);
       await setUserRole(role);
+      void analyticsLogin(user);
       set({
         user,
         token,
@@ -56,6 +59,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   logout: async () => {
+    await detachPushDevice();
+    await analyticsLogout();
     try {
       await AsyncStorage.multiRemove([
         STORAGE_KEYS.AUTH_TOKEN,

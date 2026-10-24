@@ -7,12 +7,13 @@ import { homeForRole, clearSession, sanitizeUser, isAdminRole, UNSUPPORTED_ACCOU
 import { ENDPOINTS, API_BASE_URL } from '../../config/api.config';
 import { useAuthStore } from '../../stores/exampleStore';
 import {
-  PALETTE, SPACE, TYPE,
-  PremiumScreen, PREMIUM_OVERLAP, PremiumSheet, PremiumHeading, PremiumInput, PremiumDivider,
-  GradientButton, SocialMark, PortalSwitchCard, BrandLogo, FloatingIllustration, SecureLogin3D, FadeInUp,
+  BRAND, PALETTE, SPACE, TYPE, PressableScale,
+  PremiumScreen, PREMIUM_OVERLAP, PremiumSheet, PremiumInput, PremiumDivider,
+  GradientButton, SocialMark, PortalSwitchCard, BrandLogo, FadeInUp,
 } from '../../ui';
 import { EyeToggle } from '../profile/formKit';
-import { TextLink } from './authKit';
+import { AuthTitle, TextLink } from './authKit';
+import { clearPublicAction, takePublicAction } from '../../services/publicNavigation';
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -106,7 +107,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         Alert.alert('Use the website', UNSUPPORTED_ACCOUNT_MESSAGE);
         return;
       }
-      navigation.reset({ index: 0, routes: [{ name: home }] });
+      const resume = takePublicAction();
+      navigation.reset(resume ? { index: 1, routes: [{ name: home }, resume] } : { index: 0, routes: [{ name: home }] });
     } catch (error: any) {
       let errorMessage = 'Login failed. Please try again.';
       if (error.response?.data?.message) {
@@ -146,6 +148,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
    *   POST /auth/oauth/exchange { code }        in SocialSignInScreen
    */
   const [providers, setProviders] = useState<Record<string, boolean> | null>(null);
+  const [providersLoading, setProvidersLoading] = useState(true);
   useEffect(() => {
     let cancelled = false;
     api.get('/auth/oauth/providers')
@@ -158,7 +161,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         });
         if (!cancelled) setProviders(map);
       })
-      .catch(() => { if (!cancelled) setProviders(null); });
+      .catch(() => { if (!cancelled) setProviders(null); })
+      .finally(() => { if (!cancelled) setProvidersLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -188,26 +192,30 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     navigation.navigate('ForgotPassword', { portal: 'member' });
   };
 
+  const exploreActiv = () => {
+    clearPublicAction();
+    navigation.reset({ index: 0, routes: [{ name: 'PublicExplore' }] });
+  };
+
   return (
     <PremiumScreen
+      waveHeight={44}
       tone="member"
       header={(
         <View>
-          <FadeInUp distance={10}>
+          <FadeInUp distance={10} style={styles.topbar}>
             <BrandLogo />
+            <PressableScale onPress={exploreActiv} disabled={isLoading} accessibilityRole="button" accessibilityLabel="Skip sign-in" contentStyle={styles.skip}>
+              <Text style={styles.skipText}>Skip</Text>
+            </PressableScale>
           </FadeInUp>
           <View style={styles.heroRow}>
             <FadeInUp delay={80} style={styles.heroText}>
-              <PremiumHeading
+              <AuthTitle
                 eyebrow="Welcome back"
                 title="Log in to your account"
                 subtitle="Members sign in here."
               />
-            </FadeInUp>
-            <FadeInUp delay={160} scaleFrom={0.85} distance={10}>
-              <FloatingIllustration size={108}>
-                <SecureLogin3D size={108} />
-              </FloatingIllustration>
             </FadeInUp>
           </View>
         </View>
@@ -261,6 +269,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           </View>
 
           <GradientButton label="Sign in" onPress={handleLogin} loading={isLoading} size="lg" iconRight="arrow-forward" />
+          <GradientButton label="Explore ACTIV" variant="outline" icon="public"
+            onPress={exploreActiv} disabled={isLoading}
+            style={{ marginTop: SPACE.md }} />
 
           {/* Don't have an account? Register as member */}
           <View style={styles.promptRow}>
@@ -282,16 +293,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Pressable
               key={name}
               onPress={() => handleSocialLogin(name)}
-              disabled={isLoading}
+              disabled={isLoading || providersLoading}
               accessibilityRole="button"
               accessibilityLabel={`Sign in with ${name}`}
               android_ripple={{ color: 'rgba(15,23,42,0.08)', borderless: true, radius: 34 }}
-              style={({ pressed }) => [styles.socialCircle, pressed && styles.socialPressed, isLoading && styles.socialDim]}
+              style={({ pressed }) => [styles.socialCircle, pressed && styles.socialPressed, (isLoading || providersLoading) && styles.socialDim]}
             >
               <SocialMark provider={name} size={28} />
             </Pressable>
           ))}
         </View>
+        <Text style={{ color: PALETTE.textMuted, fontSize: 14, lineHeight: 21, textAlign: 'center', marginBottom: SPACE.lg }}>Signed up with Google, LinkedIn or Facebook? Use the same sign-in option. No ACTIV password is needed.</Text>
 
         {/* The way to the admin sign-in, below everything a member needs.
             Pads itself clear of the Android navigation bar. */}
@@ -314,8 +326,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 const SOCIAL = ['Google', 'LinkedIn', 'Facebook'];
 
 const styles = StyleSheet.create({
-  heroRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: SPACE.lg, gap: SPACE.sm },
-  heroText: { flex: 1, minWidth: 0, paddingBottom: SPACE.lg },
+  heroRow: { marginTop: SPACE.lg, marginBottom: SPACE.lg },
+  heroText: { minWidth: 0 },
+  topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.md },
+  skip: { minHeight: 44, minWidth: 64, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: BRAND.glass, borderWidth: 1, borderColor: BRAND.glassBorder },
+  skipText: { color: PALETTE.white, fontSize: 14, fontWeight: '700' },
   sheetWrap: { marginTop: -PREMIUM_OVERLAP },
   lastField: { marginBottom: SPACE.xs },
   optionsRow: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: SPACE.md },

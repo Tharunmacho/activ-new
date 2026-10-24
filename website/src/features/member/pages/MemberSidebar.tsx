@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaSearch, FaUser, FaClipboardList, FaQuestionCircle, FaCalendarAlt, FaSignOutAlt, FaTimes, FaBriefcase, FaCog } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -501,7 +502,7 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
                     <img
                         src="/logo_ACTIVian-removebg-preview.png"
                         alt="ACTIV"
-                        className={`w-auto object-contain ${collapsed ? 'h-8' : 'h-12'}`}
+                        className={`w-auto object-contain dark:brightness-0 dark:invert ${collapsed ? 'h-8' : 'h-12'}`}
                     />
                 </Link>
 
@@ -684,6 +685,11 @@ export default function MemberSidebar({ isOpen, onClose }: Props) {
               destinations and closes on "who am I, and how do I leave".
             */}
             <div className={`pt-3 pb-8 bg-white border-t border-slate-200 flex-shrink-0 ${collapsed ? 'px-2' : 'px-3'}`}>
+              {/* Light / dark. The labelled pair when the rail is open, a single
+                  tile when it is collapsed to icons. */}
+              <div className={collapsed ? 'mb-2 flex justify-center' : 'mb-2'}>
+                <ThemeToggle variant={collapsed ? 'icon' : 'segmented'} />
+              </div>
               <div className="relative">
                 {/*
                   THE AVATAR IS ITS OWN BUTTON: tapping it opens the photo full

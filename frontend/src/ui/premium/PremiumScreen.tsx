@@ -76,7 +76,7 @@ export function PremiumScreen({
 
   return (
     <View style={[s.flex, { backgroundColor: canvas }]}>
-      <StatusBar barStyle="light-content" backgroundColor={p.top} />
+      <StatusBar barStyle="light-content" />
       <View pointerEvents="none" style={[s.overscroll, { backgroundColor: p.top }]} />
       {Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={s.flex} behavior="padding">{body}</KeyboardAvoidingView>

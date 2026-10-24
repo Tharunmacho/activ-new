@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, StyleSheet, Linking, Alert, BackHandler,
 } from 'react-native';
+import { usePaymentResumeCheck } from './usePaymentResumeCheck';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -10,7 +11,9 @@ import {
   DonateHeart3D, SecureCard3D, HeaderStat, HeaderStatRow, SurfaceCard, LinkRow, GroupTitle,
 } from '../../ui';
 import { Overlap, WebCheckout } from './paymentUi';
-import { createDonation, mockCompleteDonation, parseDonationReturnUrl, DonorType } from '../../services/paymentFlow';
+import { createDonation, mockCompleteDonation, parseDonationReturnUrl, getDonationReturn, DonorType } from '../../services/paymentFlow';
+import { getAuthToken } from '../../services/api';
+import { getPendingPayment, getPaymentStorageOwner, setPendingPayment, PendingPayment } from '../../services/paymentRecovery';
 import { getMyProfile } from '../../services/memberApi';
 import { readSavedDonor, writeSavedDonor, forgetSavedDonor } from './donationStore';
 
@@ -79,13 +82,23 @@ const DonateScreen = ({ navigation }: any) => {
   const [formError, setFormError] = useState('');
   const [payUrl, setPayUrl] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [browserMode, setBrowserMode] = useState(false);
+  const [pending, setPending] = useState<PendingPayment | null>(null);
 
   const handedOff = useRef(false);
   const hydrated = useRef(false);
+  const currentOrderId = useRef('');
+  const submitting = useRef(false);
+  const mounted = useRef(true);
 
   // Saved details first; otherwise the member's own profile.
   useEffect(() => {
     let cancelled = false;
+    mounted.current = true;
+    getPendingPayment('donation').then(saved => {
+      if (cancelled || !saved) return;
+      setPending(saved); setOrderId(saved.orderId); currentOrderId.current = saved.orderId;
+    });
     (async () => {
       const saved = await readSavedDonor();
       if (cancelled) return;
@@ -100,7 +113,7 @@ const DonateScreen = ({ navigation }: any) => {
         setRestored(true);
       } else {
         try {
-          const me: any = await getMyProfile();
+          const me: any = await getAuthToken() ? await getMyProfile() : null;
           if (!cancelled && me) {
             setForm((f) => ({
               ...f,
@@ -116,7 +129,7 @@ const DonateScreen = ({ navigation }: any) => {
       }
       hydrated.current = true;
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; mounted.current = false; };
   }, []);
 
   // Keep the saved copy current as they type (never the amount or message).
@@ -148,23 +161,39 @@ const DonateScreen = ({ navigation }: any) => {
 
   const goResult = useCallback((ret?: { orderId?: string; paymentId?: string; paymentStatus?: string }) => {
     if (handedOff.current) return;
-    const id = String(ret?.orderId || orderId || '').trim();
+    const id = currentOrderId.current.trim();
+    if (ret?.orderId && ret.orderId !== id) {
+      Alert.alert('Different donation order', 'This return does not match your donation. Please check the current order status.');
+      return;
+    }
     if (!id) return;
     handedOff.current = true;
     navigation.replace('DonationResult', { orderId: id, paymentId: ret?.paymentId || undefined, paymentStatus: ret?.paymentStatus || undefined });
-  }, [navigation, orderId]);
+  }, [navigation]);
 
   const submit = async () => {
+    if (submitting.current) return;
+    submitting.current = true;
+    const previous = await getPendingPayment('donation');
+    if (!mounted.current) { submitting.current = false; return; }
+    if (previous || currentOrderId.current) {
+      if (previous) currentOrderId.current = previous.orderId;
+      submitting.current = false;
+      goResult(); return;
+    }
     const found = validate(form, amount);
     setErrors(found);
     if (Object.values(found).some(Boolean)) {
       setFormError('Please check the highlighted fields.');
+      submitting.current = false;
       return;
     }
     setBusy(true);
     setFormError('');
     handedOff.current = false;
     try {
+      const owner = await getPaymentStorageOwner();
+      if (!mounted.current) return;
       const res = await createDonation({
         amount,
         fullName: form.fullName.trim(),
@@ -178,9 +207,16 @@ const DonateScreen = ({ navigation }: any) => {
         message: form.message.trim() || undefined,
       });
       const id = String(res?.orderId || '');
+      if (!id) throw new Error('The donation order could not be identified. Please try again.');
+      currentOrderId.current = id;
+      await setPendingPayment({ orderId: id, orderType: 'donation', paymentUrl: res.paymentUrl, amount: res.amount }, owner);
+      if (!mounted.current) return;
+      setOrderId(id);
+      setPending({ orderId: id, orderType: 'donation', paymentUrl: res.paymentUrl, amount: res.amount });
       if (res?.paymentUrl) {
-        setOrderId(id);
+        if (!/^https:\/\//i.test(res.paymentUrl)) throw new Error('The secure donation page is unavailable. Check this order before trying again.');
         setPayUrl(String(res.paymentUrl));
+        setBrowserMode(!WebViewComp);
         if (!WebViewComp) {
           try { await Linking.openURL(String(res.paymentUrl)); } catch { /* the button retries */ }
         }
@@ -188,19 +224,20 @@ const DonateScreen = ({ navigation }: any) => {
       }
       if (res?.mock && id) {
         await mockCompleteDonation(id);
-        navigation.replace('DonationResult', { orderId: id });
+        if (mounted.current) goResult();
         return;
       }
       setFormError('The payment could not be started. Please try again.');
     } catch (err) {
-      setFormError(errorText(err, 'The donation could not be started. Please try again.'));
+      if (mounted.current) setFormError(errorText(err, 'The donation could not be started. Please try again.'));
     } finally {
-      setBusy(false);
+      submitting.current = false;
+      if (mounted.current) setBusy(false);
     }
   };
 
   const cancelPayment = useCallback(() => {
-    Alert.alert('Leave the payment?', 'If you have already paid, your receipt will still reach your email.', [
+    Alert.alert('Leave the payment?', 'Check this donation before leaving. Your receipt is available once payment is confirmed.', [
       { text: 'Stay', style: 'cancel' },
       { text: orderId ? 'Check status' : 'Leave', onPress: () => (orderId ? goResult() : setPayUrl('')) },
     ]);
@@ -208,13 +245,25 @@ const DonateScreen = ({ navigation }: any) => {
   }, [orderId, goResult]);
 
   useEffect(() => {
-    if (!payUrl || !WebViewComp) return undefined;
+    if (!payUrl) return undefined;
     const sub = BackHandler.addEventListener('hardwareBackPress', cancelPayment);
     return () => sub.remove();
   }, [payUrl, cancelPayment]);
 
+  const openBrowser = async () => {
+    if (!payUrl) return;
+    setBrowserMode(true);
+    try { await Linking.openURL(payUrl); }
+    catch { Alert.alert('Could not open the browser', 'Retry the payment page or check this order status.'); }
+  };
+
+  usePaymentResumeCheck(!!orderId && !!payUrl, async () => {
+    const found = await getDonationReturn(orderId);
+    return found?.status === 'paid' || found?.status === 'failed';
+  }, () => { if (navigation.isFocused?.() !== false) goResult(); });
+
   /* ---------------------------------------------------------------- gateway */
-  if (payUrl && WebViewComp) {
+  if (payUrl && WebViewComp && !browserMode) {
     return (
       <WebCheckout
         WebViewComp={WebViewComp}
@@ -222,18 +271,19 @@ const DonateScreen = ({ navigation }: any) => {
         isReturn={parseDonationReturnUrl}
         onReturn={goResult}
         onClose={cancelPayment}
-        onOpenBrowser={() => { Linking.openURL(payUrl).catch(() => null); }}
+        onOpenBrowser={openBrowser}
+        onError={() => setBrowserMode(true)}
         title="Secure donation"
       />
     );
   }
 
-  if (payUrl && !WebViewComp) {
+  if (payUrl && (browserMode || !WebViewComp)) {
     return (
       <PremiumPage
         header={(
           <PremiumPageHeader
-            onBack={() => setPayUrl('')}
+            onBack={cancelPayment}
             eyebrow="Secure payment"
             title="Finish paying in your browser"
             subtitle="Complete the payment on Instamojo, then come back here and check the status."
@@ -243,7 +293,7 @@ const DonateScreen = ({ navigation }: any) => {
         footer={(
           <BottomActionBar>
             <View style={s.stack}>
-              <GradientButton label="Open payment page" icon="open-in-new" onPress={() => { Linking.openURL(payUrl).catch(() => null); }} />
+              <GradientButton label="Open payment page" icon="open-in-new" onPress={openBrowser} />
               <GradientButton label="I have paid — check status" icon="fact-check" variant="outline" onPress={() => goResult()} disabled={!orderId} />
             </View>
           </BottomActionBar>
@@ -275,11 +325,16 @@ const DonateScreen = ({ navigation }: any) => {
       )}
       footer={(
         <BottomActionBar note="The amount is checked by ACTIV's server before any payment is taken.">
-          <GradientButton label={amount ? `Donate ${inr(amount)}` : 'Donate'} icon="favorite" onPress={submit} loading={busy} style={s.flex} />
+          <GradientButton label={pending ? 'Check previous donation' : amount ? `Donate ${inr(amount)}` : 'Donate'} icon={pending ? 'fact-check' : 'favorite'} onPress={submit} loading={busy} style={s.flex} />
         </BottomActionBar>
       )}
     >
       <Overlap>
+        {pending ? <SurfaceCard style={s.gutter}>
+          <GroupTitle title="Your previous donation" subtitle="Check its status before making another payment." />
+          <GradientButton label="Check donation status" icon="fact-check" onPress={() => goResult()} />
+          {pending.paymentUrl && /^https:\/\//i.test(pending.paymentUrl) ? <GradientButton label="Continue the same payment" variant="outline" onPress={() => { setPayUrl(pending.paymentUrl || ''); setBrowserMode(!WebViewComp); }} style={{ marginTop: SPACE.sm }} /> : null}
+        </SurfaceCard> : null}
         <PremiumSection icon="volunteer-activism" title="Choose an amount" subtitle={`Any amount from ${inr(MIN)}`}>
           <View style={s.presets} accessibilityRole="radiogroup">
             {PRESETS.map((n) => {

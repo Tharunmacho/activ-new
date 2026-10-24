@@ -43,6 +43,7 @@ interface Props {
   photo?: string | null;
   isEditing: boolean;
   isSaving: boolean;
+  photoBusy?: boolean;
   onEdit: () => void;
   onSave: () => void;
   onBack: () => void;
@@ -62,7 +63,7 @@ const photoOf = (photo?: string | null) => {
 
 export default function TierSettingsView({
   tier, name, email, roleLine, photo, isEditing, isSaving, onEdit, onSave, onBack, onPickImage, onLogout,
-  fields, passwordFields,
+  fields, passwordFields, photoBusy = false,
 }: Props) {
   // Keyed by label, so revealing one password never reveals the one beside it.
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
@@ -124,7 +125,7 @@ export default function TierSettingsView({
       <FadeInUp style={styles.overlap}>
         <ConsoleCard>
           <View style={styles.profileRow}>
-            <PressableScale onPress={onPickImage} scaleTo={0.94} accessibilityRole="button" accessibilityLabel="Change photo">
+            <PressableScale onPress={onPickImage} disabled={photoBusy} scaleTo={0.94} accessibilityRole="button" accessibilityLabel={photoBusy ? 'Saving photo' : 'Change photo'}>
               <GradientAvatar name={name} uri={photoOf(photo)} size={AVATAR} tone="admin" />
               <LinearGradient colors={ADMIN.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cameraBadge}>
                 <Icon name="camera-alt" size={14} color={PALETTE.white} />
@@ -141,7 +142,7 @@ export default function TierSettingsView({
             </View>
           </View>
           <View style={styles.photoRow}>
-            <ConsolePill icon="photo-camera" label="Change photo" onPress={onPickImage} />
+            <ConsolePill icon="photo-camera" label={photoBusy ? 'Saving photo…' : 'Change photo'} onPress={photoBusy ? undefined : onPickImage} />
           </View>
         </ConsoleCard>
       </FadeInUp>

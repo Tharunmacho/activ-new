@@ -15,6 +15,7 @@ import useApplicantDetail from './useApplicantDetail';
 import ProfileViewModal from '@/components/ui/profile-view-modal';
 
 import { PAGE_SUBTITLE, PAGE_TITLE } from '@/components/layout/appTypography';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 /**
  * The Hub, for a tier that runs a patch: their regions, and the work inside them.
  *
@@ -312,6 +313,8 @@ export default function AdminHubScreen({ tier }: { tier: AdminTier }) {
                                 .filter(Boolean).join(', ') || '')}
                         </p>
                     </div>
+                    {/* Light / dark, at the same corner as every other admin header. */}
+                    <ThemeToggle className="ml-auto" />
                   </div>
                 </header>
 

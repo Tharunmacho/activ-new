@@ -211,7 +211,7 @@ function AdjustPanel({ product, history, onDone }: { product: Product; history: 
 
         <ToggleRow tone="business"
           title="Published"
-          subtitle={product?.isActive === false ? 'Hidden from other members' : 'Visible to other members in Discover'}
+          subtitle={product?.isActive === false ? 'Hidden from other members' : 'Visible to other members in ACTIV Network'}
           value={product?.isActive !== false}
           onValueChange={togglePublished}
           disabled={publishing}

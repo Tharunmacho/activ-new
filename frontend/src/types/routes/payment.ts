@@ -12,23 +12,37 @@
  */
 export type PaymentRoutes = {
   /** Plans the signed-in member is offered (GET /membership/plans/mine). `renew` = renewal. */
-  MembershipPlans: { renew?: boolean } | undefined;
+  MembershipPlans: { renew?: boolean; upgrade?: boolean } | undefined;
   /** Opens the gateway for one order and waits for the result. Never takes an amount. */
   PaymentCheckout: {
-    orderType: 'membership' | 'event_booking';
+    upgrade?: boolean;
+    commencementYear?: string;
+    orderType: 'membership' | 'event_booking' | 'company_listing';
+    companyId?: string;
     /** membership: the plan key from /membership/plans/mine */
     planId?: string;
     /** event_booking: the booking reference from POST /event-bookings/event/:eventId */
     bookingRef?: string;
     eventId?: string;
     renew?: boolean;
+    applicationId?: string;
+    /** Resume a retained order; never create another charge for a pending order. */
+    resumeOrderId?: string;
   };
   /** Result after the gateway (GET /payment/return/:orderId). */
   PaymentResult: {
     orderId: string;
-    orderType?: 'membership' | 'event_booking';
+    /** Browser Dashboard action; applied only after server confirmation. */
+    returnToDashboard?: boolean;
+    orderType?: 'membership' | 'event_booking' | 'company_listing';
     bookingRef?: string;
     eventId?: string;
+    companyId?: string;
+    planId?: string;
+    applicationId?: string;
+    upgrade?: boolean;
+    renew?: boolean;
+    commencementYear?: string;
     /** From the gateway's return URL — passed to /payment/return, never trusted on its own. */
     paymentId?: string;
     paymentStatus?: string;

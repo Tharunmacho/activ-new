@@ -24,6 +24,11 @@ jest.mock('@react-navigation/native', () => {
 let mockFailAll = false;
 const mockCalls: { method: string; url: string; body: any }[] = [];
 let mockLookupBody: any = null;
+const ATTENDANCE_REPORT = {
+  filename: 'attendance-business-conclave.xlsx',
+  base64: 'UEsDBAoAAAA=',
+  contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+};
 
 const SEAT = {
   registrationNo: 'ACTIVB-MF3K2L-1234-P2', bookingRef: 'ACTIVB-MF3K2L-1234', participantIndex: 1, participantNumber: 2, seats: 2,
@@ -52,7 +57,7 @@ const mockByUrl = (method: string, url: string): any => {
       { id: 'e4', title: 'Old meet', status: 'published', startAt: '2020-01-01T04:30:00.000Z' },
     ];
   }
-  if (url.includes('/attendance/export')) return 'Registration no,Attendee\r\nR-P1,Priya\r\n';
+  if (url.includes('/attendance/export')) return ATTENDANCE_REPORT;
   if (url.includes('/event-checkin/lookup')) {
     return mockLookupBody?.bookingRef && !mockLookupBody?.registrationNo
       ? { method: 'manual', bookingRef: SEAT.bookingRef, seats: [{ ...SEAT, participantIndex: 0, participantNumber: 1, registrationNo: 'ACTIVB-MF3K2L-1234-P1', attendee: { name: 'Priya', phoneMasked: '' } }, SEAT] }
@@ -77,12 +82,10 @@ jest.mock('../src/services/api', () => {
     mockCalls.push({ method, url: String(url || ''), body });
     mockLookupBody = body;
     if (mockFailAll) return Promise.reject(Object.assign(new Error('offline'), { response: undefined }));
-    // The CSV export answers the raw file, not the { success, data } envelope.
-    if (String(url || '').includes('/export')) return Promise.resolve({ data: mockByUrl(method, String(url || '')) });
     return Promise.resolve({ data: { success: true, data: mockByUrl(method, String(url || '')) } });
   };
   const inst = {
-    get: jest.fn((url: string) => respond('get', url)),
+    get: jest.fn((url: string, config?: any) => respond('get', url, config)),
     post: jest.fn((url: string, body: any) => respond('post', url, body)),
     put: jest.fn((url: string, body: any) => respond('put', url, body)),
     delete: jest.fn((url: string) => respond('delete', url)),
@@ -161,10 +164,11 @@ describe.each([false, true])('events admin screens (api failing: %s)', (failing)
 describe('events admin behaviour', () => {
   beforeAll(() => { mockFailAll = false; });
 
-  test('the events admin is served by the app', () => {
+  test('attendance admin opens the mobile door console; website staff stay on the website', () => {
     const { ADMIN_HOME, isAdminRole } = require('../src/services/session');
-    expect(ADMIN_HOME.events_admin).toBe('EventsAdminHome');
-    expect(isAdminRole('events_admin')).toBe(true);
+    expect(ADMIN_HOME.attendance_admin).toBe('EventsAdminHome');
+    expect(isAdminRole('attendance_admin')).toBe(true);
+    expect(ADMIN_HOME.events_admin).toBeUndefined();
     expect(ADMIN_HOME.cms_admin).toBeUndefined();
   });
 
@@ -322,15 +326,17 @@ describe('events admin console', () => {
     await ReactTestRenderer.act(async () => { att.unmount(); });
   });
 
-  test('attendance export hands the server CSV to the share sheet', async () => {
-    const { Share } = require('react-native');
-    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' } as any);
+  test('attendance export downloads and saves the server Excel workbook', async () => {
+    const save = jest.spyOn(require('../src/services/reportExport'), 'saveSpreadsheetReport').mockResolvedValue(true);
     mockCalls.length = 0;
     const tree = await mount(() => require('../src/screens/eventsAdmin/EventAttendanceScreen').default, { params: { eventId: 'e1', eventTitle: 'Business Conclave' } });
-    expect(await press(tree, 'Export attendance CSV')).toBe(true);
-    expect(mockCalls.some((c) => c.url.includes('/events/e1/attendance/export'))).toBe(true);
-    expect(share).toHaveBeenCalledWith(expect.objectContaining({ title: 'attendance-business-conclave.csv', message: expect.stringContaining('R-P1,Priya') }));
-    share.mockRestore();
+    expect(await press(tree, 'Export attendance Excel report')).toBe(true);
+    expect(mockCalls).toContainEqual(expect.objectContaining({
+      method: 'get', url: '/events/e1/attendance/export',
+      body: expect.objectContaining({ params: { format: 'xlsx', encoding: 'base64' } }),
+    }));
+    expect(save).toHaveBeenCalledWith(ATTENDANCE_REPORT);
+    save.mockRestore();
     await ReactTestRenderer.act(async () => { tree.unmount(); });
   });
 

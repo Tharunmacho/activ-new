@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Share } from 'react-native';
+import { View, StyleSheet, Share, Alert } from 'react-native';
 import {
   Notice, BottomActionBar, FilterChips, Skeleton, SPACE, asArray, errorText,
   PremiumPage, PremiumPageHeader, CertificateSeal3D, GlassIconButton, GradientButton, SurfaceCard, StateView,
@@ -9,6 +9,7 @@ import { Overlap } from './paymentUi';
 
 import { getDonationReceipt, getDonationStatement, fyLabel } from '../../services/paymentFlow';
 import { TaxCertificateView, certRupees } from '../member/certificates/CertificateViews';
+import { saveCertificatePdf } from '../../services/certificateExport';
 
 /**
  * A donor's 80G documents — website `pages/donate/DonationDocumentPage.tsx`.
@@ -77,6 +78,8 @@ const DonationDocumentScreen = ({ navigation, route }: any) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const alive = useRef(true);
+  const pdfRef = useRef<View>(null);
+  const [savingPdf, setSavingPdf] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -102,6 +105,19 @@ const DonationDocumentScreen = ({ navigation, route }: any) => {
 
   const cert = useMemo(() => (data ? (kind === 'statement' ? statementToCertificate(data) : receiptToCertificate(data)) : null), [data, kind]);
   const years = asArray<string>(data?.availableYears);
+
+  const downloadPdf = async () => {
+    if (!cert || savingPdf) return;
+    setSavingPdf(true);
+    try {
+      const saved = await saveCertificatePdf(pdfRef.current, `ACTIV-${cert.reference || kind}.pdf`);
+      if (saved) Alert.alert('PDF saved', 'Your document has been saved in Downloads on this device.');
+    } catch (err) {
+      Alert.alert('PDF could not be saved', errorText(err, 'Please try again.'));
+    } finally {
+      if (alive.current) setSavingPdf(false);
+    }
+  };
 
   /* The same three sheet props feed the page here and the full-screen zoom. */
   const sheetProps = {
@@ -195,8 +211,8 @@ const DonationDocumentScreen = ({ navigation, route }: any) => {
     <PremiumPage
       header={header}
       footer={(
-        <BottomActionBar note="The shared link opens this document on activ.org.in, where it prints or saves as a PDF.">
-          <GradientButton label="Share" icon="share" onPress={share} style={s.flex} />
+        <BottomActionBar note="Your PDF saves directly to Downloads on this device.">
+          <GradientButton label="Download PDF" icon="download" onPress={downloadPdf} loading={savingPdf} style={s.flex} />
         </BottomActionBar>
       )}
     >
@@ -226,6 +242,7 @@ const DonationDocumentScreen = ({ navigation, route }: any) => {
         <View style={s.gutter}>
           <TaxCertificateView
             cert={cert}
+            pdfRef={pdfRef}
             receiptColumn={sheetProps.receiptColumn}
             amountInWords={sheetProps.amountInWords}
             stamp={sheetProps.stamp}

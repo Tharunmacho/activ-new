@@ -58,7 +58,7 @@ const BUSINESS_BENEFITS: { icon: string; title: string; detail: string; tone: Ch
 const MEMBERSHIP_BENEFITS: { icon: string; title: string; detail: string; tone: ChipTone }[] = [
   { icon: 'chat', title: 'Message any member', detail: 'Reach members directly from their directory card.', tone: 'blue' },
   { icon: 'handshake', title: 'Business introductions', detail: 'Be introduced to members trading in your own sector.', tone: 'teal' },
-  { icon: 'groups', title: 'Listed in the directory', detail: 'Your name and business visible to the whole association.', tone: 'sky' },
+  { icon: 'groups', title: 'Listed in ACTIV Network', detail: 'Your name and business visible to the whole association.', tone: 'sky' },
   { icon: 'event', title: 'Members-only events', detail: 'Conclaves and networking meets held for members alone.', tone: 'rose' },
   { icon: 'campaign', title: 'Schemes and tenders', detail: 'Notices the association publishes to active members first.', tone: 'amber' },
   { icon: 'verified', title: 'Your certificates', detail: 'Membership and tax exemption certificates in your name.', tone: 'green' },
@@ -386,8 +386,35 @@ const DashboardScreen = ({ navigation }: any) => {
     <PremiumScrollScreen ref={scrollRef} header={header} refreshing={refreshing} onRefresh={refresh}>
       {loading ? <PremiumDashboardSkeleton style={styles.overlap} /> : (
         <>
+          <ExploreActiv navigation={navigation} refreshKey={exploreKey} sections={['events']} showEmpty />
+
+          <PremiumSectionHeader title="Quick actions" subtitle="Everything you need on the way to membership" />
+          <ActionGrid>
+            <ActionTile
+              icon={access.applicationSubmitted ? 'fact-check' : 'edit-note'}
+              label={access.applicationSubmitted ? 'Application status' : 'Continue profile'}
+              detail={access.applicationSubmitted ? statusLabel : `${completion.percent}% complete`}
+              tone="blue"
+              onPress={() => (access.applicationSubmitted ? navigation.navigate('ApplicationStatus') : openForms(completion.percent >= 100 ? 3 : 1))}
+            />
+            <ActionTile icon="storefront" label="Business account" detail={hasBusiness ? 'Created' : 'Draft mode'} tone="teal" onPress={() => navigation.navigate(hasBusiness ? 'BusinessDashboard' : 'BusinessProfile')} />
+            <ActionTile icon="event" label="Events" detail="Upcoming & your tickets" tone="rose" onPress={() => navigation.navigate('MemberEvents')} />
+            <ActionTile icon="campaign" label="Updates" detail="News for your region" tone="amber" onPress={() => navigation.navigate('AssociationUpdates')} />
+          </ActionGrid>
+
+          <ExploreActiv navigation={navigation} refreshKey={exploreKey} sections={['gallery']} showEmpty />
+          <ExploreActiv navigation={navigation} refreshKey={exploreKey} sections={['news']} showEmpty />
+          <ExploreActiv navigation={navigation} refreshKey={exploreKey} sections={['schemes', 'zones', 'nav']} />
+
+          <PremiumSectionHeader title="My Documents" subtitle="Your application records and certificates" />
+          <PremiumCard style={styles.gutter} onPress={() => navigation.navigate('MemberDocuments')} accessibilityLabel="View documents and application records">
+            <Text style={styles.documentTitle}>Application records</Text>
+            <Text style={styles.documentHint}>Review your submitted forms. Membership certificates and your payment receipt become available after activation.</Text>
+            <GradientButton label="View documents" variant="outline" icon="folder-open" onPress={() => navigation.navigate('MemberDocuments')} style={{ marginTop: SPACE.md }} />
+          </PremiumCard>
+
           {/* ---------------- the application, as a card */}
-          <FadeInUp delay={200} style={[styles.overlap, styles.gutter]}>
+          <FadeInUp delay={200} style={[styles.gutter, { marginTop: SPACE.xl }]}>
             <ApprovalJourneyCard
               name={name}
               reference={access.applicationSubmitted ? appRef : ''}
@@ -412,21 +439,6 @@ const DashboardScreen = ({ navigation }: any) => {
               <StatPill value={`${formsDone}/${TOTAL_FORMS}`} label="Forms done" icon="assignment-turned-in" tone="amber" onPress={() => openForms(1)} />
             </StatRow>
           </FadeInUp>
-
-          {/* ---------------- quick actions */}
-          <PremiumSectionHeader title="Quick actions" subtitle="Everything you need on the way to membership" />
-          <ActionGrid>
-            <ActionTile
-              icon={access.applicationSubmitted ? 'fact-check' : 'edit-note'}
-              label={access.applicationSubmitted ? 'Application status' : 'Continue profile'}
-              detail={access.applicationSubmitted ? statusLabel : `${completion.percent}% complete`}
-              tone="blue"
-              onPress={() => (access.applicationSubmitted ? navigation.navigate('ApplicationStatus') : openForms(completion.percent >= 100 ? 3 : 1))}
-            />
-            <ActionTile icon="storefront" label="Business account" detail={hasBusiness ? 'Created' : 'Draft mode'} tone="teal" onPress={() => navigation.navigate(hasBusiness ? 'BusinessDashboard' : 'BusinessProfile')} />
-            <ActionTile icon="event" label="Events" detail="Upcoming & your tickets" tone="rose" onPress={() => navigation.navigate('MemberEvents')} />
-            <ActionTile icon="campaign" label="Updates" detail="News for your region" tone="amber" onPress={() => navigation.navigate('AssociationUpdates')} />
-          </ActionGrid>
 
           {/* ---------------- Complete Your Profile / Profile Complete */}
           <FadeInUp delay={80}>
@@ -593,7 +605,7 @@ const DashboardScreen = ({ navigation }: any) => {
           </PremiumCard>
 
           {/* ---------------- Explore ACTIV (the public website) */}
-          <ExploreActiv navigation={navigation} refreshKey={exploreKey} />
+          <ExploreActiv navigation={navigation} refreshKey={exploreKey} sections={['contact', 'legal']} />
 
           {/* ---------------- What your membership unlocks */}
           <PremiumSectionHeader title="What your membership unlocks" />
@@ -645,7 +657,7 @@ const DashboardScreen = ({ navigation }: any) => {
             {supportEmail ? <SupportRow icon="mail-outline" tone="sky" label={supportEmail} link onPress={emailSupport} /> : null}
             {!supportHours.length && !supportEmail && !supportPhone ? (
               // Website parity: the fallback line when the office has published no channel.
-              <Text style={styles.small}>In-app support is coming soon. Meanwhile, send us a message and the team will get back to you.</Text>
+              <Text style={styles.small}>Open Help &amp; Support to send a message to the ACTIV team.</Text>
             ) : null}
             <View style={styles.helpBtns}>
               {supportEmail ? <GradientButton label="Email Support" icon="mail-outline" onPress={emailSupport} /> : null}
@@ -674,6 +686,8 @@ const DashboardScreen = ({ navigation }: any) => {
 
 const styles = StyleSheet.create({
   gutter: { marginHorizontal: SPACE.lg },
+  documentTitle: { ...TYPE.subheading },
+  documentHint: { ...TYPE.caption, marginTop: SPACE.sm },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   headChips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.lg, marginBottom: SPACE.xl },
 

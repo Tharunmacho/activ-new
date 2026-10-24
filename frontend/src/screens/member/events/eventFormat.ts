@@ -1,24 +1,22 @@
+import { eventPhase, isPastEvent } from '../../../utils/eventLifecycle';
+export { eventPhase, isPastEvent } from '../../../utils/eventLifecycle';
 import { money } from '../../../ui';
 
 /** Shared event formatting for the member event screens (website eventFormat.ts). */
 
-export const isPastEvent = (e: any) => {
-  const end = e?.endAt || e?.startAt;
-  return !!end && new Date(end).getTime() < Date.now();
-};
-
 export const eventTime = (e: any) => (e?.startAt ? new Date(e.startAt).getTime() : 0);
 
+const inIndia = (date: Date) => new Date(date.getTime() + 330 * 60000);
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 export const dateParts = (iso?: string | null) => {
   if (!iso) return { day: '--', month: 'TBC', time: '' };
-  const d = new Date(iso);
+  const d = inIndia(new Date(iso));
   if (Number.isNaN(d.getTime())) return { day: '--', month: 'TBC', time: '' };
-  const h = d.getHours();
+  const h = d.getUTCHours();
   return {
-    day: String(d.getDate()),
-    month: MONTHS[d.getMonth()],
-    time: `${((h + 11) % 12) + 1}:${String(d.getMinutes()).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`,
+    day: String(d.getUTCDate()),
+    month: MONTHS[d.getUTCMonth()],
+    time: `${((h + 11) % 12) + 1}:${String(d.getUTCMinutes()).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`,
   };
 };
 
@@ -56,16 +54,26 @@ const parseDate = (v?: string | null): Date | null => {
 
 /** "14 September 2026" (website formatDate, en-GB long). */
 export const longDate = (v?: string | null) => {
-  const d = parseDate(v);
-  return d ? `${d.getDate()} ${MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}` : '';
+  const parsed = parseDate(v);
+  const d = parsed ? inIndia(parsed) : null;
+  return d ? `${d.getUTCDate()} ${MONTHS_LONG[d.getUTCMonth()]} ${d.getUTCFullYear()}` : '';
 };
 
 /** "9:30 AM". */
 export const clockTime = (v?: string | null) => {
-  const d = parseDate(v);
-  if (!d) return '';
-  const h = d.getHours();
-  return `${((h + 11) % 12) + 1}:${String(d.getMinutes()).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+  const parsed = parseDate(v);
+  if (!parsed) return '';
+  const d = inIndia(parsed);
+  const h = d.getUTCHours();
+  return `${((h + 11) % 12) + 1}:${String(d.getUTCMinutes()).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+};
+
+/** CMS programme times are Indian wall-clock HH:mm values, not UTC instants. */
+export const programmeTime = (value?: string) => {
+  const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match || Number(match[1]) > 23 || Number(match[2]) > 59) return value || '';
+  const hour = Number(match[1]);
+  return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? 'PM' : 'AM'}`;
 };
 
 /** Website formatWhen: "14 September 2026, 9:30 AM – 5:00 PM", multi-day prints both dates. */
@@ -74,19 +82,9 @@ export const formatWhen = (e: any): string => {
   if (!start) return 'Date to be confirmed';
   const end = parseDate(e?.endAt);
   const startDate = longDate(e.startAt);
-  if (!end) return `${startDate}, ${clockTime(e.startAt)}`;
-  if (start.toDateString() !== end.toDateString()) return `${startDate} – ${longDate(e.endAt)}`;
-  return `${startDate}, ${clockTime(e.startAt)} – ${clockTime(e.endAt)}`;
-};
-
-/** Website eventPhase: an undated event is upcoming; no end → 12h assumed. */
-export const eventPhase = (e: any, now = Date.now()): 'upcoming' | 'live' | 'past' => {
-  const start = parseDate(e?.startAt);
-  if (!start) return 'upcoming';
-  if (now < start.getTime()) return 'upcoming';
-  const declared = parseDate(e?.endAt);
-  const end = declared && declared.getTime() > start.getTime() ? declared.getTime() : start.getTime() + 12 * 3600000;
-  return now <= end ? 'live' : 'past';
+  if (!end) return `${startDate}, ${clockTime(e.startAt)} IST`;
+  if (inIndia(start).toISOString().slice(0, 10) !== inIndia(end).toISOString().slice(0, 10)) return `${startDate} – ${longDate(e.endAt)}`;
+  return `${startDate}, ${clockTime(e.startAt)} – ${clockTime(e.endAt)} IST`;
 };
 
 /** Website countdownLabel. */
@@ -154,9 +152,26 @@ export const directionsUrl = (e: any): string => {
 
 /** Website shareLine: "Title · Sat 14 Sep, 09:30 · Venue". */
 export const shareLine = (e: any): string => {
-  const d = parseDate(e?.startAt);
-  const when = d ? `${DAYS[d.getDay()].slice(0, 3)} ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}, ${clockTime(e.startAt)}` : '';
+  const parsed = parseDate(e?.startAt);
+  const d = parsed ? inIndia(parsed) : null;
+  const when = d ? `${DAYS[d.getUTCDay()].slice(0, 3)} ${d.getUTCDate()} ${MONTHS_SHORT[d.getUTCMonth()]}, ${clockTime(e.startAt)}` : '';
   return [e?.title || 'ACTIV event', when, eventPlace(e)].filter(Boolean).join(' · ');
+};
+
+/** Member responses can include a private programme. Only explicitly public
+ * events use public titles/URLs; other shares stay behind the member gate. */
+export const eventShareContent = (event: any, publicAccess = false): { path: string; title: string } => {
+  const id = String(event?.id || event?._id || '').trim();
+  const slug = String(event?.slug || id).trim();
+  const untargeted = event?.reachEveryone === true || (
+    ![event?.state, event?.district, event?.block].some(value => String(value || '').trim())
+    && (!Array.isArray(event?.targets) || event.targets.length === 0)
+  );
+  const publishedPublic = event?.status === 'published' && event?.audience !== 'paid' && !isPastEvent(event)
+    && (event?.showOnOnboarding === true || (event?.channel === 'public' && untargeted));
+  return publicAccess || publishedPublic
+    ? { path: slug ? '/events/' + encodeURIComponent(slug) : '', title: String(event?.title || 'ACTIV event') }
+    : { path: id ? '/member/events/' + encodeURIComponent(id) : '', title: 'ACTIV member event' };
 };
 
 /** The member's seat state, as the website EventRow labels it. */

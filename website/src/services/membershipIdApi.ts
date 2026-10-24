@@ -7,7 +7,15 @@ export interface MembershipIdRecord {
     planName: string; categoryCode: string; lifetime: boolean; status: string; updatedAt: string | null; editable: boolean;
     history: { at: string; by: string; note: string; changes: Record<string, { before: unknown; after: unknown }> }[];
 }
-export interface MembershipIdPage { rows: MembershipIdRecord[]; total: number; page: number; limit: number }
+export interface MembershipIdPage { rows: MembershipIdRecord[]; total: number; page: number; limit: number; categories?: { code: string; name: string }[]; exampleCategory?: string }
+export interface MembershipIdCategory { code: string; name: string }
+/** The legend line, built from the plan table the server sent — never typed in. */
+export function idLegend(data: MembershipIdPage | null): string {
+    const list = (data?.categories || []).filter(c => c?.code);
+    return list.map(c => `${c.code} ${c.name}`).join(' · ');
+}
+export function idExample(data: MembershipIdPage | null): string { return `ACTIV-${data?.exampleCategory || 'XXX'}-YYYYMMDD-001`; }
+
 // Also handle older API responses during a rolling deployment.
 export function visibleMembershipIds(data: MembershipIdPage): MembershipIdPage {
     const rows = data.rows.filter(row => !['archived', 'deleted'].includes(String(row.status).toLowerCase()));

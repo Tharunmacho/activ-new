@@ -60,7 +60,7 @@ export const PAGE_WAVE = 52;
  * (live stats, a search bar, tabs) under it.
  */
 export function PremiumPageHeader({
-  title, eyebrow, subtitle, onBack, backIcon, right, art, artSize = 88, children, artLabel,
+  title, eyebrow, subtitle, onBack, backIcon, right, art, artSize = 88, children, artLabel, onArtPress,
 }: {
   title: string;
   eyebrow?: string;
@@ -73,6 +73,7 @@ export function PremiumPageHeader({
   art?: React.ReactNode;
   artSize?: number;
   artLabel?: string;
+  onArtPress?: () => void;
   children?: React.ReactNode;
 }) {
   const hasTop = !!onBack || !!right;
@@ -96,7 +97,9 @@ export function PremiumPageHeader({
         </FadeInUp>
         {art ? (
           <FadeInUp delay={120} scaleFrom={0.85} distance={10}>
-            <FloatingIllustration size={artSize} accessibilityLabel={artLabel}>{art}</FloatingIllustration>
+            {onArtPress ? <PressableScale onPress={onArtPress} accessibilityRole="button" accessibilityLabel={artLabel || 'Open image'}>
+              <FloatingIllustration size={artSize}>{art}</FloatingIllustration>
+            </PressableScale> : <FloatingIllustration size={artSize} accessibilityLabel={artLabel}>{art}</FloatingIllustration>}
           </FadeInUp>
         ) : null}
       </View>
@@ -124,15 +127,14 @@ export function GlassCountButton({ icon, count = 0, onPress, accessibilityLabel 
 
 /* ================================================================ chrome */
 
-function Chrome({ tone, children }: { tone: Tone; children: React.ReactNode }) {
+function Chrome({ tone, children, safeBottom = false }: { tone: Tone; children: React.ReactNode; safeBottom?: boolean }) {
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const top = Number(insets?.top || 0);
   const canvas = toneOf(tone).canvas;
   return (
-    <View style={[s.flex, { backgroundColor: canvas }]}>
-      <StatusBar barStyle="light-content" backgroundColor={p.top} />
-      <View pointerEvents="none" style={[s.overscroll, { backgroundColor: p.top }]} />
+    <View style={[s.flex, { backgroundColor: canvas, paddingBottom: safeBottom ? Number(insets?.bottom || 0) : 0 }]}>
+      <StatusBar barStyle="light-content" />
       {Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={s.flex} behavior="padding">{children}</KeyboardAvoidingView>
       ) : children}
@@ -160,7 +162,7 @@ function HeaderBand({ tone, header, waveHeight }: { tone: Tone; header: React.Re
 
 /** A scrolling inner page under a short brand header. */
 export function PremiumPage({
-  tone = 'member', header, children, footer, refreshing, onRefresh, waveHeight = PAGE_WAVE, contentStyle, scrollRef,
+  tone = 'member', header, children, footer, refreshing, onRefresh, waveHeight = PAGE_WAVE, contentStyle, scrollRef, safeBottom = false,
 }: {
   tone?: Tone;
   header: React.ReactNode;
@@ -171,6 +173,8 @@ export function PremiumPage({
   waveHeight?: number;
   contentStyle?: StyleProp<ViewStyle>;
   scrollRef?: React.Ref<ScrollView>;
+  /** Standalone screens can keep their viewport above Android's system buttons. */
+  safeBottom?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
@@ -178,7 +182,7 @@ export function PremiumPage({
   const top = Number(insets?.top || 0);
   const bottom = Number(insets?.bottom || 0);
   return (
-    <Chrome tone={tone}>
+    <Chrome tone={tone} safeBottom={safeBottom}>
       <ScrollView
         ref={scrollRef}
         style={s.flex}
@@ -307,7 +311,7 @@ export function PremiumTopBar({
   );
   return (
     <View style={[s.barWrap, { shadowColor: p.shadow }]}>
-      <StatusBar barStyle="light-content" backgroundColor={p.top} />
+      <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={p.header}
         locations={p.header.length === 4 ? [0, 0.38, 0.72, 1] : undefined}
@@ -358,7 +362,6 @@ export function HeaderStatRow({ children, style }: { children: React.ReactNode; 
 const s = StyleSheet.create({
   flex: { flex: 1 },
   flexMin: { flex: 1, minWidth: 0 },
-  overscroll: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%' },
   scrim: { position: 'absolute', top: 0, left: 0, right: 0 },
   row: { paddingHorizontal: SPACE.lg, marginBottom: SPACE.md },
 

@@ -45,7 +45,7 @@ export const authStyles = StyleSheet.create({
 
   /* ---- heading block */
   header: { alignItems: 'center', marginBottom: SPACE.xl },
-  title: { ...TYPE.display, textAlign: 'center' },
+  title: { fontSize: 28, lineHeight: 35, fontWeight: '700', color: PALETTE.text, textAlign: 'center' },
   subtitle: { ...TYPE.body, color: PALETTE.textMuted, textAlign: 'center', marginTop: SPACE.xs },
   badge: {
     flexDirection: 'row',
@@ -123,7 +123,7 @@ export const authStyles = StyleSheet.create({
   },
   portalText: { ...TYPE.label, flexShrink: 1 },
 
-  note: { ...TYPE.caption, textAlign: 'center', marginTop: SPACE.lg },
+  note: { fontSize: 14, lineHeight: 21, color: PALETTE.textMuted, textAlign: 'center', marginTop: SPACE.lg },
 
   /* ---- intro of a recovery step (icon tile + heading, left-aligned) */
   introIcon: {
@@ -134,25 +134,25 @@ export const authStyles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: SPACE.lg,
   },
-  introTitle: { ...TYPE.display },
+  introTitle: { fontSize: 24, lineHeight: 32, fontWeight: '700', color: PALETTE.text },
   introText: { ...TYPE.body, color: PALETTE.textMuted, marginTop: SPACE.sm },
 
   /* ---- a finished / failed step (sent, changed, expired) */
   statusWrap: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACE.lg, paddingVertical: SPACE.xxl },
   statusHalo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     marginBottom: SPACE.xl,
   },
-  statusIcon: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
+  statusIcon: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   statusTitle: { ...TYPE.display, fontSize: 24, lineHeight: 30, textAlign: 'center' },
   statusText: { ...TYPE.body, color: PALETTE.textMuted, textAlign: 'center', marginTop: SPACE.sm },
   statusActions: { marginTop: SPACE.xl, gap: SPACE.sm },
   statusStrong: { fontWeight: '700', color: PALETTE.text },
 
-  footNote: { ...TYPE.caption, color: PALETTE.textFaint, textAlign: 'center', marginTop: SPACE.sm },
+  footNote: { fontSize: 14, lineHeight: 21, color: PALETTE.textMuted, textAlign: 'center', marginTop: SPACE.sm },
 });

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, BackHandler, Easing, Linking, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, BackHandler, Easing, Linking, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -7,7 +7,14 @@ import {
   PALETTE, SPACE, TYPE,
   BRAND, PREMIUM_GRADIENTS, GlassIconButton, GradientButton, FloatingIllustration, FadeInUp, WebsiteGlobe3D,
 } from '../../../ui';
-import { WEBSITE_ORIGIN, isWebsiteUrl, websiteUrl } from '../../../config/website.config';
+import { WEBSITE_ORIGIN, isWebsiteUrl, publicWebsiteUrl, websiteUrl } from '../../../config/website.config';
+import { publicActionFor, publicWebsitePath } from '../../../utils/publicBrowse';
+import { openPublicAction } from '../../../services/publicNavigation';
+import PublicContentScreen from '../../public/PublicContentScreen';
+import PublicInfoScreen from '../../public/PublicInfoScreen';
+import PublicExploreScreen from '../../public/PublicExploreScreen';
+import PublicEventDetailScreen from '../../public/PublicEventDetailScreen';
+import { nativeContentRoute } from '../../../services/nativeContentRoute';
 
 /*
  * The in-app browser, required lazily and guarded (RULE 2.4): a build without
@@ -36,7 +43,8 @@ try {
  *   (a news story's source, a social profile, tel:/mailto:/WhatsApp) is handed
  *   to the phone, so the viewer never becomes a general browser.
  * - Android back walks the page history first, then leaves the screen.
- * - Nothing is injected and no session is passed: it is the public website.
+ * - No member session is passed. Public browsing uses an isolated web session;
+ *   its small message bridge hands account actions back to native navigation.
  */
 
 const hostOf = (url: string) => {
@@ -47,12 +55,14 @@ const hostOf = (url: string) => {
 const WebsiteViewerScreen = ({ navigation, route }: any) => {
   const insets = useSafeAreaInsets();
   const params = route?.params || {};
+  const publicMode = params.publicAccess === true;
   const startUrl = useMemo(() => {
     const raw = String(params?.url || params?.path || '').trim();
-    const url = websiteUrl(raw || '/');
+    const base = websiteUrl(raw || '/');
+    const url = publicMode ? publicWebsiteUrl(base) : base;
     // Only the association's own site is ever loaded here.
     return isWebsiteUrl(url) ? url : `${WEBSITE_ORIGIN}/`;
-  }, [params?.url, params?.path]);
+  }, [params?.url, params?.path, publicMode]);
   const fallbackTitle = String(params?.title || 'ACTIV');
 
   const web = useRef<any>(null);
@@ -63,6 +73,24 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const progress = useRef(new Animated.Value(0)).current;
+  const openingAction = useRef(false);
+  useEffect(() => {
+    setCurrentUrl(startUrl);
+    setPageTitle(fallbackTitle);
+    setCanGoBack(false);
+    setFailed(false);
+    setLoading(true);
+    setReloadKey(0);
+    progress.setValue(0);
+  }, [startUrl, fallbackTitle, progress]);
+  const memberAction = useCallback(async (path: string) => {
+    const action = publicActionFor(path);
+    if (!action || openingAction.current) return;
+    openingAction.current = true;
+    try { await openPublicAction(navigation, action); }
+    catch (err: any) { Alert.alert('ACTIV', err?.response?.data?.message || err?.message || 'Please try again.'); }
+    finally { openingAction.current = false; }
+  }, [navigation]);
 
   const openInBrowser = useCallback(async (url?: string) => {
     try {
@@ -75,11 +103,11 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
   const close = useCallback(() => {
     try {
       if (navigation?.canGoBack?.()) navigation.goBack();
-      else navigation?.reset?.({ index: 0, routes: [{ name: 'MemberMain' }] });
+      else navigation?.reset?.({ index: 0, routes: [{ name: publicMode ? 'PublicExplore' : 'MemberMain' }] });
     } catch (err) {
       console.warn('Closing the viewer safely caught:', err);
     }
-  }, [navigation]);
+  }, [navigation, publicMode]);
 
   // Android back: the page's own history first.
   useEffect(() => {
@@ -115,7 +143,10 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
     // Embedded frames (a map, a video) load inside the page; only top-level navigations are routed.
     if (req?.isTopFrame === false) return true;
     if (!url || url.startsWith('about:') || url.startsWith('data:') || url.startsWith('blob:')) return true;
-    if (isWebsiteUrl(url)) return true;
+    if (isWebsiteUrl(url)) {
+      if (publicMode && publicActionFor(url)) { memberAction(url); return false; }
+      return true;
+    }
     // Anything else leaves the app: other sites, tel:, mailto:, whatsapp:, intent:.
     openInBrowser(url);
     return false;
@@ -188,7 +219,7 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={BRAND.navyDeep} />
+      <StatusBar barStyle="light-content" />
       {bar}
       {progressLine}
       {!WebViewComp ? errorView : failed ? errorView : (
@@ -200,6 +231,17 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
           originWhitelist={['https://*', 'http://*']}
           javaScriptEnabled
           domStorageEnabled
+          incognito={publicMode}
+          sharedCookiesEnabled={false}
+          thirdPartyCookiesEnabled={false}
+          injectedJavaScriptBeforeContentLoaded={publicMode ? 'window.__ACTIV_PUBLIC_APP__ = true; true;' : undefined}
+          onMessage={(event: any) => {
+            if (!publicMode || !publicWebsitePath(String(event?.nativeEvent?.url || ''))) return;
+            try {
+              const message = JSON.parse(event.nativeEvent.data);
+              if (message?.type === 'ACTIV_MEMBER_ACTION' && typeof message.path === 'string' && message.path.length < 2048) memberAction(message.path);
+            } catch { /* Unrecognised web messages never become app commands. */ }
+          }}
           startInLoadingState={false}
           allowsBackForwardNavigationGestures
           setSupportMultipleWindows={false}
@@ -247,4 +289,9 @@ const s = StyleSheet.create({
   errorText: { ...TYPE.body, color: PALETTE.textMuted, textAlign: 'center', marginTop: SPACE.sm },
 });
 
-export default WebsiteViewerScreen;
+export default function WebsiteOrArticleScreen(props: any) {
+  const destination = nativeContentRoute(String(props.route?.params?.path || props.route?.params?.url || '/'), props.route?.params?.title);
+  const Screen = destination?.name === 'PublicContent' ? PublicContentScreen : destination?.name === 'PublicInfo' ? PublicInfoScreen
+    : destination?.name === 'PublicExplore' ? PublicExploreScreen : destination?.name === 'PublicEventDetail' ? PublicEventDetailScreen : null;
+  return Screen ? <Screen {...props} route={{ ...props.route, params: destination?.params }} /> : <WebsiteViewerScreen {...props} />;
+}

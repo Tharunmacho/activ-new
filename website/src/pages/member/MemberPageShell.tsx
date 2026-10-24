@@ -3,6 +3,8 @@ import { ArrowLeft } from 'lucide-react';
 import { MenuTile } from '@/components/shared/MenuTile';
 import MemberSidebar from './MemberSidebar';
 import MemberTopBar from '@/features/member/components/MemberTopBar';
+import ThemeToggle from '@/components/shared/ThemeToggle';
+import ForceLightTheme from '@/components/shared/ForceLightTheme';
 import { useNavigate } from 'react-router-dom';
 /*
  * The same two constants the dashboard's header band uses. This shell draws the
@@ -107,9 +109,13 @@ export default function MemberPageShell({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
+    /* The platinum (lifetime) dashboard is a gold-on-ivory design with its own
+       stylesheet; it stays light, and so does not offer the switch. */
+    const gold = appearance === 'gold';
 
     return (
         <div className={`min-h-screen flex bg-white font-sans ${appearance === 'gold' ? 'member-shell--gold' : ''}`}>
+            {gold ? <ForceLightTheme /> : null}
             {sidebar ? (
                 <MemberSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             ) : null}
@@ -194,6 +200,10 @@ export default function MemberPageShell({
                       */}
                     <div className="ml-auto flex items-center gap-2 shrink-0">
                         {actions}
+                        {/* Light / dark — on every member screen, linear flows
+                            included, because it is a viewing preference rather than
+                            a way out. */}
+                        {gold ? null : <ThemeToggle />}
                         {sidebar ? <MemberTopBar /> : null}
                     </div>
                 </header>
@@ -248,7 +258,7 @@ export default function MemberPageShell({
                   *
                   * The public pages keep `.dot-band`. It is still their voice.
                   */}
-                <main className="relative flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-6">
+                <main className="relative flex-1 overflow-y-auto bg-slate-100 dark:bg-[#0a0a0a] p-4 sm:p-6">
                     {/*
                       * `mx-auto` IN BOTH CASES, and that is the load-bearing half.
                       *

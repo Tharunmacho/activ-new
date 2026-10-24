@@ -7,13 +7,16 @@
 export type SuperRoutes = {
   SuperApprovals: undefined;
   SuperMembers: undefined;
+  SuperMembershipRegistrations: undefined;
+  SuperMembershipIds: undefined;
+  SuperOfficeAccount: undefined;
   SuperEventAttendance: undefined;
   /** No `event` = a new event. */
   SuperEventEditor: { event?: any } | undefined;
   SuperEventQr: { event: any; justCreated?: boolean };
   SuperEventCategories: undefined;
   SuperBookings: undefined;
-  SuperEventBookings: { eventId: string; title?: string; capacity?: number };
+  SuperEventBookings: { eventId: string; title?: string; capacity?: number; filters?: import('../../services/bookingFilters').BookingFiltersValue };
   SuperBookingPeople: undefined;
   SuperBookingDetail: { eventId: string; booking: any; event?: { title?: string; capacity?: number; startAt?: string | null } };
   SuperBookingMessages: { bookingRef: string; title?: string };
