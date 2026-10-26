@@ -202,7 +202,7 @@ try {
     await until('document.querySelector("output").textContent==="100%"');
     await close();
     await evaluate('window.fixture={...window.fixture,logo:""};window.showPage("/network/company/company-one")');
-    await until('document.querySelector("nav[aria-label=\\\"Company sections\\\"]")');
+    await until('document.querySelector("nav[aria-label=\\\"Company sections\\\"]") && !document.querySelector("button[aria-label=\\\"Open company logo photo\\\"]")');
     await evaluate('[...document.querySelectorAll("nav button")].find(b=>b.textContent.startsWith("Photos")).click()');
     await until('document.body.innerText.includes("No photos have been added yet.")');
     assert(await evaluate('!document.querySelector("[role=dialog]")'), 'empty album does not open an invalid viewer');
