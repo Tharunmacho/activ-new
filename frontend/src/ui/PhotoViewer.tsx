@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { GlassIconButton } from './premium/controls';
@@ -15,6 +15,7 @@ export function PhotoViewer({ url, visible, onClose, title = 'Photo', closeLabel
   const insets = useSafeAreaInsets();
   const uri = resolveMediaUrl(url || '');
   return <Modal visible={visible && !!uri} animationType="slide" onRequestClose={onClose}>
+    {visible && !!uri ? <StatusBar barStyle="light-content" /> : null}
     <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.bar}>
         <View style={styles.text}><Text numberOfLines={1} style={styles.title}>{title}</Text><Text style={styles.hint}>Pinch to zoom</Text></View>

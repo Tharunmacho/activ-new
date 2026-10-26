@@ -1,9 +1,10 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, LayoutChangeEvent, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { PALETTE, SIZE, SPACE, TYPE, Tone } from '../tokens';
-import { BRAND, PREMIUM_RADIUS, premiumTone } from './theme';
+import { SIZE, SPACE, Tone } from '../tokens';
+import { PREMIUM_RADIUS } from './theme';
 import { PressableScale, prefersReducedMotion } from './motion';
 
 /**
@@ -46,6 +47,8 @@ export type ChipTone = keyof typeof CHIP_GRADIENTS;
 export function GlassIconBadgeButton({ icon, onPress, accessibilityLabel, badge, style }: {
   icon: string; onPress: () => void; accessibilityLabel: string; badge?: number; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const count = Math.max(0, Number(badge || 0));
   return (
     <PressableScale
@@ -74,6 +77,8 @@ export function PremiumCard({ children, style, onPress, tone = 'member', padded 
   accessibilityLabel?: string;
   stretch?: boolean;
 }) {
+  const { premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const box = [s.card, padded && s.cardPad, { shadowColor: p.shadow }, stretch && { flex: 1 }];
   if (!onPress) return <View style={[box, style]}>{children}</View>;
@@ -94,6 +99,8 @@ export function PremiumCard({ children, style, onPress, tone = 'member', padded 
 export function PremiumSectionHeader({ title, subtitle, action, onAction, tone = 'member', style }: {
   title: string; subtitle?: string; action?: string; onAction?: () => void; tone?: Tone; style?: StyleProp<ViewStyle>;
 }) {
+  const { premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   return (
     <View style={[s.sh, style]}>
@@ -123,6 +130,8 @@ export function PremiumSectionHeader({ title, subtitle, action, onAction, tone =
 export function GradientIconChip({ icon, tone = 'blue', size = SIZE.iconChip, colors, style }: {
   icon: string; tone?: ChipTone; size?: number; colors?: string[]; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const grad = colors && colors.length >= 2 ? colors : (CHIP_GRADIENTS[tone] || CHIP_GRADIENTS.blue);
   const box = Math.max(24, Number(size || 0));
   return (
@@ -145,6 +154,8 @@ export function GradientIconChip({ icon, tone = 'blue', size = SIZE.iconChip, co
 export function AnimatedProgressBar({ percent, onDark = false, colors, height = 8, delay = 200, style }: {
   percent: number; onDark?: boolean; colors?: string[]; height?: number; delay?: number; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE, brand: BRAND } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const pct = Math.max(0, Math.min(100, Number(percent || 0)));
   const [w, setW] = useState(0);
   const v = useRef(new Animated.Value(prefersReducedMotion() ? pct : 0)).current;
@@ -183,6 +194,8 @@ export function ActionTile({ icon, label, detail, tone = 'blue', onPress, badge,
   icon: string; label: string; detail?: string; tone?: ChipTone; onPress: () => void; badge?: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <PressableScale
       onPress={onPress}
@@ -205,12 +218,14 @@ export function ActionTile({ icon, label, detail, tone = 'blue', onPress, badge,
 
 /** A 2-up grid on the gutter for ActionTiles. */
 export function ActionGrid({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  const s = useThemeStyles(makeStyles);
   return <View style={[s.grid, style]}>{children}</View>;
 }
 
 export function StatPill({ value, label, icon, tone = 'blue', onPress }: {
   value: string | number; label: string; icon: string; tone?: ChipTone; onPress?: () => void;
 }) {
+  const s = useThemeStyles(makeStyles);
   const body = (
     <>
       <GradientIconChip icon={icon} tone={tone} size={30} />
@@ -235,6 +250,7 @@ export function StatPill({ value, label, icon, tone = 'blue', onPress }: {
 }
 
 export function StatRow({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  const s = useThemeStyles(makeStyles);
   return <View style={[s.statRow, style]}>{children}</View>;
 }
 
@@ -243,6 +259,8 @@ export function StatRow({ children, style }: { children: React.ReactNode; style?
 export function PremiumEmptyState({ art, icon = 'inbox', title, text, action, onAction, tone = 'member' }: {
   art?: React.ReactNode; icon?: string; title: string; text?: string; action?: string; onAction?: () => void; tone?: Tone;
 }) {
+  const { premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   return (
     <View style={s.empty}>
@@ -262,7 +280,7 @@ export function PremiumEmptyState({ art, icon = 'inbox', title, text, action, on
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   glass: {
     width: SIZE.touch, height: SIZE.touch, borderRadius: SIZE.touch / 2, alignItems: 'center', justifyContent: 'center',
     backgroundColor: BRAND.glass, borderWidth: 1, borderColor: BRAND.glassBorder,
@@ -274,7 +292,7 @@ const s = StyleSheet.create({
   badgeText: { color: PALETTE.white, fontSize: 10, lineHeight: 12, fontWeight: '800' },
 
   card: {
-    backgroundColor: PALETTE.white, borderRadius: PREMIUM_RADIUS.section - 2, borderWidth: 1, borderColor: 'rgba(226,232,240,0.85)',
+    backgroundColor: PALETTE.card, borderRadius: PREMIUM_RADIUS.section - 2, borderWidth: 1, borderColor: PALETTE.border,
     shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.09, shadowRadius: 20, elevation: 4,
   },
   cardPad: { padding: SPACE.lg + 2 },
@@ -294,8 +312,8 @@ const s = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: SPACE.lg },
   tileCell: { width: '48.5%', marginBottom: SPACE.md },
   tile: {
-    flex: 1, minHeight: 124, padding: SPACE.lg, backgroundColor: PALETTE.white, borderRadius: 20, borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.9)', shadowColor: BRAND.shadowNavy, shadowOffset: { width: 0, height: 8 },
+    flex: 1, minHeight: 124, padding: SPACE.lg, backgroundColor: PALETTE.card, borderRadius: 20, borderWidth: 1,
+    borderColor: PALETTE.border, shadowColor: BRAND.shadowNavy, shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08, shadowRadius: 16, elevation: 3,
   },
   tileHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: SPACE.md },
@@ -307,8 +325,8 @@ const s = StyleSheet.create({
   statRow: { flexDirection: 'row', gap: SPACE.sm, marginHorizontal: SPACE.lg },
   statFlex: { flex: 1, minWidth: 0 },
   stat: {
-    flexGrow: 1, alignItems: 'flex-start', padding: SPACE.md, backgroundColor: PALETTE.white, borderRadius: 18, borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.9)', shadowColor: BRAND.shadowNavy, shadowOffset: { width: 0, height: 6 },
+    flexGrow: 1, alignItems: 'flex-start', padding: SPACE.md, backgroundColor: PALETTE.card, borderRadius: 18, borderWidth: 1,
+    borderColor: PALETTE.border, shadowColor: BRAND.shadowNavy, shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.07, shadowRadius: 12, elevation: 2, minHeight: 104,
   },
   statValue: { ...TYPE.number, fontSize: 22, lineHeight: 28, marginTop: SPACE.sm, alignSelf: 'stretch' },

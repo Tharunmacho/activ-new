@@ -1,3 +1,5 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 // Analytics — scoped strictly to the ACTIVE company (premium, member tone).
 // There is no company switcher here on purpose: switching happens once, on the
 // Business dashboard / Manage Companies.
@@ -13,11 +15,7 @@ import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompany, useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import { useMembershipPaid, MembershipLocked } from './MembershipGate';
 import { BusinessTabBar } from './BusinessTabBar';
-import {
-  Skeleton, PALETTE, SPACE, TYPE, BRAND,
-  BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, LiftCard, MetricGrid, MetricTile, RingGauge, GrowBar,
-  CountUpText, CompanyLogoTile, ArtEmptyState, GrowthChart3D,
-} from '../../ui';
+import { Skeleton, SPACE, BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, LiftCard, MetricGrid, MetricTile, RingGauge, GrowBar, CountUpText, CompanyLogoTile, ArtEmptyState, GrowthChart3D } from '../../ui';
 import { BizSectionTitle, CHIP } from './businessKit';
 
 type AnalyticsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Analytics'>;
@@ -36,6 +34,7 @@ const EMPTY_STATS = {
 };
 
 const AnalyticsScreen: React.FC<Props> = ({ navigation }) => {
+  const styles = useThemeStyles(makeStyles);
   const activeCompany = useActiveCompany();
   const loadCompanies = useActiveCompanyStore((state) => state.loadCompanies);
 
@@ -71,7 +70,7 @@ const AnalyticsScreen: React.FC<Props> = ({ navigation }) => {
             windowDays: Number(payload?.windowDays || 30),
           });
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) setReach(null);
       }
     })();
@@ -251,6 +250,7 @@ const AnalyticsScreen: React.FC<Props> = ({ navigation }) => {
 
 /** Placeholder shaped like a MetricTile. */
 function SkeletonTile() {
+  const styles = useThemeStyles(makeStyles);
   return (
     <View style={styles.skeletonTile}>
       <Skeleton width={40} height={40} radius={13} />
@@ -262,6 +262,8 @@ function SkeletonTile() {
 
 /** One labelled figure — gradient chip, label wraps, a counted number on the right. */
 function MetricRow({ icon, label, value, colors, last }: { icon: string; label: string; value: number; colors: string[]; last?: boolean }) {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   return (
     <View style={[styles.metricRow, !last && styles.metricDivider]}>
       <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.metricIcon}>
@@ -275,6 +277,8 @@ function MetricRow({ icon, label, value, colors, last }: { icon: string; label: 
 
 /** A ranked horizontal bar: rank, name + value on one line, a growing gradient bar below. */
 function BarRow({ rank, label, value, max, delay }: { rank: number; label: string; value: number; max: number; delay: number }) {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const share = Math.max(0.04, Number(value || 0) / Math.max(1, Number(max || 1)));
   return (
     <View accessible accessibilityLabel={`${label}: ${value} views`}>
@@ -292,7 +296,7 @@ function BarRow({ rank, label, value, max, delay }: { rank: number; label: strin
 
 const NUMBER_COL = 48;
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   headerPad: { paddingBottom: SPACE.lg },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   gutter: { marginHorizontal: SPACE.lg },
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
   rank: { width: 24, height: 24, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   rankText: { color: PALETTE.white, fontSize: 12, fontWeight: '800' },
   barLabel: { ...TYPE.bodyStrong, flex: 1, minWidth: 0 },
-  barValue: { ...TYPE.bodyStrong, color: PALETTE.violet, minWidth: NUMBER_COL, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  barValue: { ...TYPE.bodyStrong, color: PALETTE.violetDark, minWidth: NUMBER_COL, textAlign: 'right', fontVariant: ['tabular-nums'] },
 });
 
 export default AnalyticsScreen;

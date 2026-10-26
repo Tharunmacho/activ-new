@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Pencil, Trash2, Building2, Phone, MapPin, Mail, Package,
-  CheckCircle, Clock, Ban, Compass, Star, CheckCircle2, type LucideIcon,
+  CheckCircle, Clock, Ban, Compass, Star, CheckCircle2, Users, type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +21,7 @@ import { Card, SectionHeading, StatTile, Loading, Chip, companyName, CARD_TITLE 
 import { apiFetch } from "@/services/activApi";
 import { resolveMediaUrl } from "@/config/api.config";
 import { useActiveCompanyStore } from "@/contexts/ActiveCompanyContext";
+import { businessPhotos, useBusinessPhotoGallery } from './BusinessPhotoGallery';
 
 interface Company {
   _id: string;
@@ -32,6 +33,7 @@ interface Company {
   area: string;
   location: string;
   logo: string;
+  banner?: string;
   /** What the company makes or does, as NIC categories. */
   productCategories?: { code?: string; description?: string; industryType?: string }[];
   /**
@@ -59,19 +61,25 @@ const CompanyDetails = () => {
   const { activeCompanyId, setActiveCompany, loadCompanies } = useActiveCompanyStore();
 
   const [company, setCompany] = useState<Company | null>(null);
-  const [stats, setStats] = useState({ total: 0, active: 0, featured: 0 });
+  const [stats, setStats] = useState<{ total: number; active: number; featured: number; trustedBy: number | null }>({ total: 0, active: 0, featured: 0, trustedBy: null });
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { openPhoto, viewer } = useBusinessPhotoGallery(businessPhotos(company || {}), `${company?.businessName || 'Company'} photos`);
 
   useEffect(() => {
-    fetchCompany();
+    let cancelled = false;
+    fetchCompany(() => cancelled);
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const fetchCompany = async () => {
+  const fetchCompany = async (isCancelled: () => boolean) => {
+    setLoading(true);
+    setStats({ total: 0, active: 0, featured: 0, trustedBy: null });
     try {
       const response = await apiFetch(`/business-profiles/${id}`);
       const result = await response.json();
+      if (isCancelled()) return;
 
       if (result.success) {
         setCompany(result.data);
@@ -81,12 +89,13 @@ const CompanyDetails = () => {
         return;
       }
     } catch (error) {
+      if (isCancelled()) return;
       console.error('Error fetching company:', error);
       toast.error('Failed to fetch company details');
       navigate('/business/companies');
       return;
     } finally {
-      setLoading(false);
+      if (!isCancelled()) setLoading(false);
     }
 
     // Real catalog figures, from the endpoint that serves them. Three hardcoded
@@ -95,11 +104,14 @@ const CompanyDetails = () => {
     try {
       const res = await apiFetch(`/products/stats?companyId=${encodeURIComponent(String(id))}`);
       const body = await res.json();
+      if (isCancelled()) return;
       const data = body?.data || {};
       setStats({
         total: Number(data.total || 0),
         active: Number(data.active || 0),
         featured: Number(data.featured || 0),
+        trustedBy: body?.success !== false && typeof data.trustedBy === 'number' && Number.isFinite(data.trustedBy)
+          ? Math.max(0, data.trustedBy) : null,
       });
     } catch (err) {
       console.warn('Catalog stats safely caught:', err);
@@ -224,11 +236,13 @@ const CompanyDetails = () => {
           <span className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
             {/* Re-anchored to the API origin — see resolveMediaUrl. */}
             {company.logo ? (
+              <button type="button" onClick={() => openPhoto('logo')} aria-label="Open company logo photo" className="h-full w-full cursor-zoom-in">
               <img
                 src={resolveMediaUrl(company.logo)}
                 alt={companyName(company)}
                 className="w-full h-full object-contain"
               />
+              </button>
             ) : (
               <Building2 className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400" />
             )}
@@ -258,10 +272,11 @@ const CompanyDetails = () => {
         </Card>
 
         {/* Catalog figures */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           <StatTile label="Catalog Products" value={stats.total} unit="Total listed" icon={Package} />
           <StatTile label="Live Products" value={stats.active} unit="Visible in ACTIV Network" icon={CheckCircle2} />
           <StatTile label="Featured" value={stats.featured} unit="Promoted items" icon={Star} />
+          <StatTile label="Trusted by" value={stats.trustedBy ?? '—'} unit={stats.trustedBy === null ? 'Unavailable' : stats.trustedBy === 1 ? 'member' : 'members'} icon={Users} />
         </div>
 
         {/*
@@ -373,6 +388,7 @@ const CompanyDetails = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {viewer}
     </BusinessPageShell>
   );
 };

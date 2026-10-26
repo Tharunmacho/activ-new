@@ -1,3 +1,5 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -5,11 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { RootStackParamList } from '../../types';
-import {
-  Badge, SegmentedTabs, ToggleRow, PALETTE, SPACE, TYPE, timeAgo, money,
-  BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassFigure, PREMIUM_OVERLAP, FadeInUp, LiftCard,
-  LiftSearchBar, PremiumInput, GradientButton, GrowBar, RingGauge, CountUpText, ArtEmptyState, StockColumns3D,
-  SearchLens3D, PressableScale, premiumTone, FitImage } from '../../ui';
+import { Badge, SegmentedTabs, ToggleRow, SPACE, timeAgo, money, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassFigure, PREMIUM_OVERLAP, FadeInUp, LiftCard, LiftSearchBar, PremiumInput, GradientButton, GrowBar, RingGauge, CountUpText, ArtEmptyState, StockColumns3D, SearchLens3D, PressableScale, FitImage } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompany, useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import {
@@ -62,13 +60,15 @@ const stateOf = (p: Product): 'ok' | 'low' | 'out' => {
   return 'ok';
 };
 
-const STATE_BADGE = {
+const stateBadges = (PALETTE: AppTheme['palette']) => ({
   ok: { label: 'In stock', fg: PALETTE.successText, bg: PALETTE.successSoft, bar: ['#34D399', '#047857'] },
   low: { label: 'Low', fg: PALETTE.warningText, bg: PALETTE.warningSoft, bar: ['#FBBF24', '#B45309'] },
   out: { label: 'Out of stock', fg: PALETTE.dangerText, bg: PALETTE.dangerSoft, bar: ['#F87171', '#B91C1C'] },
-};
+});
 
 function MoveRow({ m, last }: { m: StockMovement; last?: boolean }) {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const up = Number(m?.delta) > 0;
   return (
     <View style={[styles.move, !last && styles.moveDivider]}>
@@ -81,7 +81,7 @@ function MoveRow({ m, last }: { m: StockMovement; last?: boolean }) {
           {REASON_LABEL[(m?.reason as StockReason) || 'other'] || 'Other'}{m?.note ? ` · ${m.note}` : ''} · {timeAgo(m?.at)}
         </Text>
       </View>
-      <Text style={[styles.moveDelta, { color: up ? PALETTE.green : PALETTE.red }]} maxFontSizeMultiplier={1.2}>
+      <Text style={[styles.moveDelta, { color: up ? PALETTE.successText : PALETTE.dangerText }]} maxFontSizeMultiplier={1.2}>
         {up ? '+' : ''}{Number(m?.delta || 0)}
       </Text>
     </View>
@@ -89,6 +89,7 @@ function MoveRow({ m, last }: { m: StockMovement; last?: boolean }) {
 }
 
 function AdjustPanel({ product, history, onDone }: { product: Product; history: StockMovement[]; onDone: (p: Product) => void }) {
+  const styles = useThemeStyles(makeStyles);
   const [mode, setMode] = useState<'delta' | 'setTo'>('delta');
   // Website Stock.tsx keeps the low-stock threshold and the publish switch on
   // the line itself — they are stock decisions, made while reviewing stock.
@@ -232,8 +233,10 @@ function AdjustPanel({ product, history, onDone }: { product: Product; history: 
 function ProductStockRow({ item, open, onToggle, onChanged, scale, history }: {
   item: Product; open: boolean; onToggle: () => void; onChanged: (p: Product) => void; scale: number; history: StockMovement[];
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const p = premiumTone('business');
-  const st = STATE_BADGE[stateOf(item)];
+  const st = stateBadges(PALETTE)[stateOf(item)];
   const img = item?.imageUrl ? resolveMediaUrl(item.imageUrl) : '';
   const stock = Number(item?.stock || 0);
   const min = Number(item?.minStock || 0);
@@ -273,6 +276,8 @@ function ProductStockRow({ item, open, onToggle, onChanged, scale, history }: {
 }
 
 const StockCentreScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const company = useActiveCompany();
   const loadCompanies = useActiveCompanyStore((s) => s.loadCompanies);
   const companyId = company?._id || '';
@@ -497,6 +502,7 @@ const StockCentreScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 function LegendRow({ color, label, value, onPress }: { color: string; label: string; value: number; onPress: () => void }) {
+  const styles = useThemeStyles(makeStyles);
   return (
     <PressableScale onPress={onPress} contentStyle={styles.legendRow} accessibilityRole="button" accessibilityLabel={`Show ${label}: ${value}`}>
       <View style={[styles.legendDot, { backgroundColor: color }]} />
@@ -506,7 +512,7 @@ function LegendRow({ color, label, value, onPress }: { color: string; label: str
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   gutter: { marginHorizontal: SPACE.lg },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   figures: { flexDirection: 'row', gap: SPACE.sm, marginTop: SPACE.lg, marginBottom: SPACE.sm },

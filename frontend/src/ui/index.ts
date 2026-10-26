@@ -116,6 +116,8 @@
  * Member = navy→blue, business = violet, admin = deep indigo (premiumTone). Never purple on the member side.
  */
 export * from './tokens';
+export * from './AppTheme';
+export * from './AppearancePicker';
 export * from './components';
 export * from './data';
 export * from './premium';

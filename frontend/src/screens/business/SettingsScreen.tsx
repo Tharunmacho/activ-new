@@ -1,3 +1,5 @@
+import { AppearancePicker } from '../../ui/AppearancePicker';
+import { AppTheme, useAppTheme, useThemeStyles } from '../../ui/AppTheme';
 // Business Settings — premium (business tone, violet).
 //
 // Everything here maps to a real capability of a business account:
@@ -16,11 +18,7 @@ import {
 } from '../../stores/activeCompanyStore';
 import api from '../../services/api';
 import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
-import {
-  ListRow, ToggleRow, PALETTE, SPACE, TYPE,
-  BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, FadeInUp, PremiumSection, LiftCard, CountUpText,
-  ControlPanel3D, PressableScale,
-} from '../../ui';
+import { ListRow, ToggleRow, SPACE, BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, FadeInUp, PremiumSection, LiftCard, CountUpText, ControlPanel3D, PressableScale } from '../../ui';
 import { BusinessTabBar, BusinessTabKey } from './BusinessTabBar';
 import { CompanyGlassCard, GlassTag } from './businessKit';
 
@@ -38,13 +36,16 @@ type StatusTone = {
 };
 
 // The company record carries `status` (pending until an admin activates it).
-const STATUS_TONES: Record<string, StatusTone> = {
+const statusTones = (PALETTE: AppTheme['palette']): Record<string, StatusTone> => ({
   active: { label: 'Published', background: PALETTE.successSoft, color: PALETTE.successText, icon: 'verified' },
   pending: { label: 'Not published', background: PALETTE.warningSoft, color: PALETTE.warningText, icon: 'schedule' },
   inactive: { label: 'Not published', background: PALETTE.dangerSoft, color: PALETTE.dangerText, icon: 'block' },
-};
+});
 
 const SettingsScreen: React.FC<Props> = ({ navigation }) => {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
+  const STATUS_TONES = statusTones(PALETTE);
   const { logout } = useAuthStore();
   const activeCompany = useActiveCompany();
   const companies = useActiveCompanyStore((state) => state.companies);
@@ -330,6 +331,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </PremiumSection>
       </FadeInUp>
 
+      <PremiumSection tone="business" icon="contrast" title="Appearance" subtitle="Choose how ACTIV looks on this phone">
+        <AppearancePicker tone="business" />
+      </PremiumSection>
+
       {/* Session */}
       <PremiumSection tone="business" icon="dashboard" title="Session">
         <ListRow iconColor={PALETTE.violet} iconBg={PALETTE.violetSoft} icon="dashboard" title="Exit to member dashboard" subtitle="Leave the business area, stay signed in"
@@ -353,7 +358,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   headerPad: { paddingBottom: SPACE.md },
   headTags: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md },
   overlap: { marginTop: -PREMIUM_OVERLAP },
@@ -370,8 +375,8 @@ const styles = StyleSheet.create({
 
   danger: { marginHorizontal: SPACE.lg, marginTop: SPACE.xs },
   dangerTitle: { ...TYPE.eyebrow, color: PALETTE.redDark, marginBottom: SPACE.sm },
-  dangerCard: { paddingHorizontal: SPACE.lg, borderColor: '#FECACA' },
-  logout: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm, minHeight: 52, borderRadius: 999, borderWidth: 1.5, borderColor: '#FECACA', backgroundColor: '#FEF2F2', marginTop: SPACE.md },
+  dangerCard: { paddingHorizontal: SPACE.lg, borderColor: PALETTE.border },
+  logout: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm, minHeight: 52, borderRadius: 999, borderWidth: 1.5, borderColor: PALETTE.border, backgroundColor: PALETTE.dangerSoft, marginTop: SPACE.md },
   logoutText: { color: PALETTE.redDark, fontSize: 15, lineHeight: 20, fontWeight: '700' },
 });
 

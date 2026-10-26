@@ -1,3 +1,5 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, Linking, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -5,11 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { RootStackParamList } from '../../types';
-import {
-  SegmentedTabs, Badge, PALETTE, SPACE, SIZE, TYPE, money, BRAND,
-  BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, PREMIUM_OVERLAP, FadeInUp, LiftCard,
-  LiftSearchBar, CompanyLogoTile, TrustStar, ArtEmptyState, MarketGlobe3D, SearchLens3D, VaultLock3D,
-  PressableScale, premiumTone, FitImage } from '../../ui';
+import { SegmentedTabs, Badge, SPACE, SIZE, money, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, PREMIUM_OVERLAP, FadeInUp, LiftCard, LiftSearchBar, CompanyLogoTile, TrustStar, ArtEmptyState, MarketGlobe3D, SearchLens3D, VaultLock3D, PressableScale, FitImage } from '../../ui';
 import api from '../../services/api';
 import { resolveMediaUrl } from '../../config/api.config';
 import { getGeography } from '../../services/regions';
@@ -96,6 +94,8 @@ const listOf = (res: any): any[] => {
 function RegionPill({ level, value, disabled, open, onPress }: {
   level: Level; value: string; disabled: boolean; open: boolean; onPress: () => void;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const set = !!value;
   const inner = (
@@ -127,6 +127,8 @@ function RegionPill({ level, value, disabled, open, onPress }: {
 function RegionPanel({ level, options, value, onPick }: {
   level: Level; options: string[]; value: string; onPick: (v: string) => void;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const [q, setQ] = useState('');
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -166,6 +168,8 @@ function CompanyCard({ item, ordered, highlightIds, matchedOnly, own, trusted, b
   own: boolean; trusted: boolean; busy: boolean; onOpen: () => void; onTrust: () => void;
   onViewProduct?: (id: string) => void;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const logo = item?.logo ? resolveMediaUrl(item.logo) : '';
   const trustedBy = Number(item?.trustedBy || 0);
@@ -176,7 +180,7 @@ function CompanyCard({ item, ordered, highlightIds, matchedOnly, own, trusted, b
   return (
     <FadeInUp distance={12} style={s.cardWrap}>
       <LiftCard tone="business">
-        {item.banner ? <PressableScale onPress={onOpen} accessibilityLabel={`View ${item.businessName || 'company'} banner`}><FitImage uri={resolveMediaUrl(item.banner)} style={{ width: '100%', height: 132, backgroundColor: '#fff', borderRadius: 14 }} /></PressableScale> : null}
+        {item.banner ? <PressableScale onPress={onOpen} accessibilityLabel={`View ${item.businessName || 'company'} banner`}><FitImage uri={resolveMediaUrl(item.banner)} style={{ width: '100%', height: 132, backgroundColor: PALETTE.card, borderRadius: 14 }} /></PressableScale> : null}
         <View style={s.cardHead}>
           <PressableScale onPress={onOpen} scaleTo={0.98} style={{ flex: 1, minWidth: 0 }} contentStyle={s.cardHeadMain} accessibilityRole="button" accessibilityLabel={`Open ${item?.businessName || 'company'}`}>
             <CompanyLogoTile tone="business" uri={logo} name={item?.businessName} size={56} ring={trusted} />
@@ -296,6 +300,8 @@ function CompanyCard({ item, ordered, highlightIds, matchedOnly, own, trusted, b
  * the catalogue, write-up and trust count, so a screen holds many at once.
  */
 function CompanyRow({ item, onOpen }: { item: CompanyItem; onOpen: () => void }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const logo = item?.logo ? resolveMediaUrl(item.logo) : '';
   const phone = String(item?.mobileNumber || '');
@@ -334,6 +340,8 @@ function CompanyRow({ item, onOpen }: { item: CompanyItem; onOpen: () => void })
 function CountOnly({ companies, products, term, regionLabel, onJoin }: {
   companies: number; products: number; term: string; regionLabel: string; onJoin: () => void;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const title = `${companies} ${companies === 1 ? 'company' : 'companies'}${products > 0 ? ` · ${products} ${products === 1 ? 'product' : 'products'}` : ''}`;
   return (
     <LiftCard tone="business" style={s.gutter}>
@@ -355,6 +363,8 @@ function CountOnly({ companies, products, term, regionLabel, onJoin }: {
 /* ------------------------------------------------------------------ screen */
 
 const DiscoverScreen: React.FC<Props> = ({ navigation }) => {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const paid = useMembershipPaid();
 
   // A product tapped in a result card feeds the seller's catalogue analytics —
@@ -726,7 +736,7 @@ const DiscoverScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   gutter: { marginHorizontal: SPACE.lg },
   headerGap: { height: SPACE.md },
   overlap: { marginTop: -PREMIUM_OVERLAP },
@@ -739,7 +749,7 @@ const s = StyleSheet.create({
   regionRow: { flexDirection: 'row', gap: SPACE.xs + 2, paddingHorizontal: SPACE.lg },
   regionCell: { flex: 1, minWidth: 0 },
   regionPill: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: SIZE.touch, paddingLeft: SPACE.sm + 2, paddingRight: SPACE.xs, borderRadius: 14 },
-  regionPillIdle: { backgroundColor: PALETTE.white, borderWidth: 1, borderColor: PALETTE.border },
+  regionPillIdle: { backgroundColor: PALETTE.card, borderWidth: 1, borderColor: PALETTE.border },
   regionPillOpen: { borderWidth: 1.5, borderColor: BRAND.violetGlow },
   regionPillOpenIdle: { borderColor: PALETTE.violet, borderWidth: 1.5 },
   regionPillText: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16, fontWeight: '700', color: PALETTE.textSoft },
@@ -763,7 +773,7 @@ const s = StyleSheet.create({
   listRowWrap: { marginHorizontal: SPACE.lg, marginBottom: SPACE.sm },
   listRow: {
     flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingHorizontal: SPACE.md, paddingVertical: SPACE.md,
-    minHeight: SIZE.row + SPACE.sm, backgroundColor: PALETTE.card, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,232,240,0.9)',
+    minHeight: SIZE.row + SPACE.sm, backgroundColor: PALETTE.card, borderRadius: 18, borderWidth: 1, borderColor: PALETTE.border,
     shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   listName: { ...TYPE.bodyStrong, flexShrink: 1 },

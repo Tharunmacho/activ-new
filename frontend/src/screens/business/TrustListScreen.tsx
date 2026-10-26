@@ -1,15 +1,12 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, Linking, TextInput } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RootStackParamList } from '../../types';
-import {
-  PALETTE, SPACE, TYPE, shortDate,
-  BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, GlassFigure, PREMIUM_OVERLAP, FadeInUp,
-  LiftCard, LiftSearchBar, CompanyLogoTile, ContactMark, ArtEmptyState, TrustShield3D, SearchLens3D, PressableScale,
-  GradientButton,
-} from '../../ui';
+import { SPACE, shortDate, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, GlassFigure, PREMIUM_OVERLAP, FadeInUp, LiftCard, LiftSearchBar, CompanyLogoTile, ContactMark, ArtEmptyState, TrustShield3D, SearchLens3D, PressableScale, GradientButton } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
 import { getTrustList, addToTrustList, removeFromTrustList, errorMessage, Company } from '../../services/businessApi';
 import { useMembershipPaid, MembershipLocked } from './MembershipGate';
@@ -38,6 +35,8 @@ function TrustRow({ item, onOpen, onRemove, removing, onSaveNote }: {
   item: Company; onOpen: () => void; onRemove: () => void; removing: boolean;
   onSaveNote: (note: string) => Promise<boolean>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const logo = item?.logo ? resolveMediaUrl(item.logo) : '';
   const place = [item?.area, item?.location].filter(Boolean).join(', ');
   const phone = String(item?.mobileNumber || '').replace(/[^\d+]/g, '');
@@ -151,6 +150,7 @@ function TrustRow({ item, onOpen, onRemove, removing, onSaveNote }: {
 }
 
 const TrustListScreen: React.FC<Props> = ({ navigation }) => {
+  const styles = useThemeStyles(makeStyles);
   const [rows, setRows] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -314,7 +314,7 @@ const TrustListScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   gutter: { marginHorizontal: SPACE.lg },
   overlap: { marginTop: -PREMIUM_OVERLAP, marginBottom: SPACE.md },
   figures: { flexDirection: 'row', gap: SPACE.sm, marginTop: SPACE.lg, marginBottom: SPACE.sm },
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   sub: { ...TYPE.caption, marginTop: SPACE.xxs },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, marginTop: SPACE.xs },
   meta: { ...TYPE.caption, color: PALETTE.amberDark, fontWeight: '700', flexShrink: 1 },
-  remove: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
+  remove: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.dangerSoft, borderWidth: 1, borderColor: PALETTE.dangerSoft },
   contactRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md },
   contactChip: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs + 2, minHeight: 40, maxWidth: '100%', paddingLeft: 6, paddingRight: SPACE.md, borderRadius: 999, backgroundColor: PALETTE.fieldBg, borderWidth: 1, borderColor: PALETTE.border },
   contactText: { ...TYPE.caption, fontWeight: '700', color: PALETTE.textSoft, flexShrink: 1 },
@@ -337,10 +337,10 @@ const styles = StyleSheet.create({
   noteBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.xs, marginTop: SPACE.md, backgroundColor: PALETTE.warningSoft, borderRadius: 14, paddingHorizontal: SPACE.md, paddingVertical: SPACE.sm },
   note: { ...TYPE.body, flex: 1, minWidth: 0, fontStyle: 'italic', color: PALETTE.warningText },
   addNote: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, minHeight: 40, marginTop: SPACE.sm, alignSelf: 'flex-start' },
-  addNoteText: { fontSize: 13, lineHeight: 18, fontWeight: '700', color: PALETTE.violet },
+  addNoteText: { fontSize: 13, lineHeight: 18, fontWeight: '700', color: PALETTE.violetDark },
   noteEdit: { marginTop: SPACE.md, paddingTop: SPACE.md, borderTopWidth: 1, borderTopColor: PALETTE.divider },
   noteLabel: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: PALETTE.textSoft, marginBottom: SPACE.sm },
-  noteInput: { minHeight: 96, borderRadius: 14, borderWidth: 1.5, borderColor: PALETTE.violet, backgroundColor: PALETTE.white, paddingHorizontal: SPACE.md, paddingTop: SPACE.md, paddingBottom: SPACE.md, fontSize: 15, color: PALETTE.text, textAlignVertical: 'top' },
+  noteInput: { minHeight: 96, borderRadius: 14, borderWidth: 1.5, borderColor: PALETTE.violet, backgroundColor: PALETTE.card, paddingHorizontal: SPACE.md, paddingTop: SPACE.md, paddingBottom: SPACE.md, fontSize: 15, color: PALETTE.text, textAlignVertical: 'top' },
   noteCount: { ...TYPE.caption, textAlign: 'right', marginTop: SPACE.xs },
   noteActions: { flexDirection: 'row', gap: SPACE.md, marginTop: SPACE.sm },
 });

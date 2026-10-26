@@ -1,14 +1,12 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { RootStackParamList } from '../../types';
-import {
-  BottomActionBar, Notice, ToggleRow, PALETTE, SPACE, TYPE, money,
-  BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, FadeInUp, PremiumSection, PremiumInput,
-  GradientButton, PressableScale, GrowBar, ProductCrate3D,
-} from '../../ui';
+import { BottomActionBar, Notice, ToggleRow, SPACE, money, BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, FadeInUp, PremiumSection, PremiumInput, GradientButton, PressableScale, GrowBar, ProductCrate3D } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
 import {
   getProduct, updateProduct, deleteProduct, setProductPublished, errorMessage, Product,
@@ -47,6 +45,8 @@ const normalizeCategory = (value?: string | null) => {
 type PickedImage = { uri: string; type?: string; name?: string } | null;
 
 const EditProductScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const productId = route?.params?.productId || '';
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -302,7 +302,7 @@ const EditProductScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   headerPad: { paddingBottom: SPACE.sm },
   headTags: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md, marginBottom: SPACE.sm },
   overlap: { marginTop: -PREMIUM_OVERLAP },
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   stockTitle: { ...TYPE.bodyStrong, fontVariant: ['tabular-nums'] },
   stockState: { ...TYPE.caption, fontWeight: '700' },
   stockSub: { ...TYPE.caption, marginTop: SPACE.sm },
-  danger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm, minHeight: 52, borderRadius: 999, borderWidth: 1.5, borderColor: '#FECACA', backgroundColor: '#FEF2F2' },
+  danger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm, minHeight: 52, borderRadius: 999, borderWidth: 1.5, borderColor: PALETTE.dangerSoft, backgroundColor: PALETTE.dangerSoft },
   dangerText: { color: PALETTE.redDark, fontSize: 15, lineHeight: 20, fontWeight: '700' },
 });
 

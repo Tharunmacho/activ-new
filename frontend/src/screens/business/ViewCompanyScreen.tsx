@@ -1,18 +1,20 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RootStackParamList } from '../../types';
 import {
-  InfoRow, KeyValueGrid, ListRow, Divider, PALETTE, SPACE, TYPE, shortDate,
+  InfoRow, KeyValueGrid, ListRow, Divider, SPACE, shortDate,
   BrandScrollPage, BrandTopBar, PREMIUM_OVERLAP, FadeInUp, LiftCard, GradientButton, MetricGrid, MetricTile,
-  GlassIconButton, premiumTone,
+  GlassIconButton,
 } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import { getCompany, getProductStats, errorMessage, Company } from '../../services/businessApi';
 import { CompanyShareButton } from '../../components/BusinessShareButton';
+import { BusinessTrustCount } from './BusinessTrustCount';
+import { useAppTheme, useThemeStyles, type AppTheme } from '../../ui/AppTheme';
 import api from '../../services/api';
 import { BizSectionTitle, BizStatePage, CoverHero, GlassStatus, GlassTag, CHIP } from './businessKit';
 
@@ -29,44 +31,55 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ViewCompany'>;
  * website's switcher, same store.
  */
 
-interface Stats { total: number; active: number; featured: number; views: number; trustedBy: number }
+interface Stats { total: number; active: number; featured: number; views: number; trustedBy: number | null }
 
 const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   const companyId = route?.params?.companyId || '';
   const activeId = useActiveCompanyStore((s) => s.activeCompanyId);
   const setActive = useActiveCompanyStore((s) => s.setActiveCompany);
   const loadCompanies = useActiveCompanyStore((s) => s.loadCompanies);
 
   const [company, setCompany] = useState<Company | null>(null);
-  const [stats, setStats] = useState<Stats>({ total: 0, active: 0, featured: 0, views: 0, trustedBy: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, active: 0, featured: 0, views: 0, trustedBy: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const dataRequest = useRef(0);
 
   const load = useCallback(async () => {
+    const request = ++dataRequest.current;
     if (!companyId) { setError('No company selected.'); setLoading(false); return; }
     setLoading(true);
+    setStats({ total: 0, active: 0, featured: 0, views: 0, trustedBy: null });
     setError('');
     try {
       const c = await getCompany(companyId);
+      if (request !== dataRequest.current) return;
       if (!c) throw new Error('Company not found.');
       setCompany(c);
       try {
         const d = await getProductStats(companyId);
+        if (request !== dataRequest.current) return;
         setStats({
           total: Number(d?.total || 0), active: Number(d?.active || 0), featured: Number(d?.featured || 0),
-          views: Number(d?.views || 0), trustedBy: Number(d?.trustedBy || 0),
+          views: Number(d?.views || 0), trustedBy: typeof d?.trustedBy === 'number' && Number.isFinite(d.trustedBy) ? Math.max(0, d.trustedBy) : null,
         });
       } catch (err) {
         console.warn('Catalog stats safely caught:', err);
       }
     } catch (err: any) {
+      if (request !== dataRequest.current) return;
       setError(err?.response ? errorMessage(err, 'Could not load this company.') : String(err?.message || 'Could not load this company.'));
     } finally {
-      setLoading(false);
+      if (request === dataRequest.current) setLoading(false);
     }
   }, [companyId]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => {
+    load();
+    return () => { dataRequest.current += 1; };
+  }, [load]));
 
   const remove = () => {
     Alert.alert('Delete company', `Delete ${company?.businessName || 'this company'} and its catalogue? This cannot be undone.`, [
@@ -153,6 +166,7 @@ const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
       </FadeInUp>
 
       <BizSectionTitle title="Catalogue" caption="From your products" />
+      <BusinessTrustCount count={stats.trustedBy} />
       <MetricGrid>
         <MetricTile tone="business" label="Catalogue products" value={stats.total} icon="inventory-2" hint="Total listed" colors={CHIP.violet} delay={100} />
         <MetricTile tone="business" label="Live products" value={stats.active} icon="check-circle" colors={CHIP.green} hint="Visible in ACTIV Network" delay={160} />
@@ -168,7 +182,6 @@ const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
             { label: 'Business type', value: company?.businessType },
             { label: 'Constitution', value: company?.constitutionType },
             { label: 'Employees', value: company?.numberOfEmployees },
-            { label: 'Trusted by', value: `${stats.trustedBy} ${stats.trustedBy === 1 ? 'member' : 'members'}` },
             { label: 'Registered', value: shortDate(company?.createdAt) },
             { label: 'Last updated', value: shortDate(company?.updatedAt) },
           ]}
@@ -213,7 +226,7 @@ const ViewCompanyScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   headerPad: { paddingBottom: SPACE.sm },
   headTags: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md, marginBottom: SPACE.sm },
   overlap: { marginTop: -PREMIUM_OVERLAP },

@@ -77,6 +77,33 @@ html[data-app-theme='dark'] body {
   color: #f4f4f5;
 }
 
+/* Shared admin navigation follows the selected theme, including its drawer.
+   Keep the branded gradient in light mode and use the same neutral surface as
+   member/business navigation in dark mode. Blue remains the active accent. */
+html[data-app-theme='dark'] .app-sidebar-rail {
+  background-color: #121212;
+  background-image: none;
+  border-right: 1px solid #262626;
+}
+
+html[data-app-theme='dark'] .app-sidebar-rail [aria-current='page'] {
+  background-color: rgb(59 130 246 / 0.15);
+  color: #93c5fd;
+  box-shadow: none;
+}
+
+html[data-app-theme='dark'] .app-sidebar-rail [aria-current='page'] .text-blue-600 {
+  color: inherit;
+}
+
+html[data-app-theme='dark'] .app-sidebar-rail .text-blue-100 {
+  color: #a1a1aa;
+}
+
+html[data-app-theme='dark'] .app-sidebar-rail .text-blue-50 {
+  color: #e4e4e7;
+}
+
 /* The page behind the cards where a screen paints it with an arbitrary value. */
 :where(html[data-app-theme='dark']) .dot-band {
   background-color: #0a0a0a;

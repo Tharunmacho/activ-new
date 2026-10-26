@@ -1,3 +1,5 @@
+import { AppearancePicker } from '../../../ui/AppearancePicker';
+import { AppTheme, useAppTheme, useThemeStyles } from '../../../ui/AppTheme';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
@@ -17,10 +19,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../../services/api';
 import { clearSession } from '../../../services/session';
 import { resolveMediaUrl } from '../../../config/api.config';
-import {
-  PALETTE, SPACE, TYPE, SIZE, BRAND,
-  BrandBackdrop, GradientAvatar, GlassIconButton, PressableScale, premiumTone, prefersReducedMotion,
-} from '../../../ui';
+import { SPACE, SIZE, BrandBackdrop, GradientAvatar, GlassIconButton, PressableScale, premiumTone, prefersReducedMotion } from '../../../ui';
 
 /**
  * ============================================================================
@@ -128,6 +127,8 @@ function DrawerPanel({
   tier: AdminTier; adminName: string; roleTitle: string; region: string; photo?: string | null;
   rootNavigation: any; stackRoute: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const { close, active } = useTierMenu();
   const slide = useRef(new Animated.Value(prefersReducedMotion() ? 1 : 0)).current;
@@ -211,25 +212,28 @@ function DrawerPanel({
                   </LinearGradient>
                 ) : (
                   <View style={[s.itemIcon, s.itemIconOff]}>
-                    <Icon name={item.icon} size={20} color={PALETTE.indigo} />
+                    <Icon name={item.icon} size={20} color={PALETTE.indigoDark} />
                   </View>
                 )}
                 <View style={s.itemText}>
-                  <Text style={[s.itemLabel, on && { color: PALETTE.indigo }]}>{item.label}</Text>
+                  <Text style={[s.itemLabel, on && { color: PALETTE.indigoDark }]}>{item.label}</Text>
                   <Text style={s.itemHint} numberOfLines={1}>{item.hint}</Text>
                 </View>
-                <Icon name="chevron-right" size={20} color={on ? PALETTE.indigo : PALETTE.textFaint} />
+                <Icon name="chevron-right" size={20} color={on ? PALETTE.indigoDark : PALETTE.textFaint} />
               </PressableScale>
             );
           })}
 
+          <View style={s.rule} />
+          <Text style={s.section}>Appearance</Text>
+          <AppearancePicker tone="admin" />
           <View style={s.rule} />
           <PressableScale onPress={confirmSignOut} scaleTo={0.98} contentStyle={s.item} accessibilityRole="button" accessibilityLabel="Sign out">
             <View style={[s.itemIcon, { backgroundColor: PALETTE.redSoft }]}>
               <Icon name="logout" size={20} color={PALETTE.red} />
             </View>
             <View style={s.itemText}>
-              <Text style={[s.itemLabel, { color: PALETTE.red }]}>Sign out</Text>
+              <Text style={[s.itemLabel, { color: PALETTE.dangerText }]}>Sign out</Text>
               <Text style={s.itemHint} numberOfLines={1}>End the admin session on this phone</Text>
             </View>
           </PressableScale>
@@ -239,7 +243,7 @@ function DrawerPanel({
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(11,10,40,0.55)' },
   drawer: {
     position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: PALETTE.canvasAdmin,
@@ -259,7 +263,7 @@ const s = StyleSheet.create({
   section: { ...TYPE.eyebrow, color: PALETTE.textFaint, marginHorizontal: SPACE.sm, marginTop: SPACE.xs, marginBottom: SPACE.sm },
   item: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.md, borderRadius: 18, marginBottom: SPACE.xs, minHeight: SIZE.row + SPACE.xs },
   itemOn: {
-    backgroundColor: PALETTE.white, borderWidth: 1, borderColor: 'rgba(84,64,212,0.16)',
+    backgroundColor: PALETTE.card, borderWidth: 1, borderColor: 'rgba(84,64,212,0.16)',
     shadowColor: BRAND.indigoDeep, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 2,
   },
   itemIcon: { width: SIZE.iconChip + 2, height: SIZE.iconChip + 2, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },

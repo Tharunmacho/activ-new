@@ -14,6 +14,7 @@ import {
     type PublicCompany,
 } from '@/services/activApi';
 import { recordProductView } from '@/services/memberHubApi';
+import { businessPhotos, BusinessPhotoGrid, useBusinessPhotoGallery } from './BusinessPhotoGallery';
 
 /**
  * VIEW AS MEMBER — a company exactly as the rest of the network sees it.
@@ -41,12 +42,13 @@ import { recordProductView } from '@/services/memberHubApi';
  * what do they sell" in that order without scrolling.
  */
 
-type Tab = 'home' | 'about' | 'products';
+type Tab = 'home' | 'about' | 'products' | 'photos';
 
 const TABS: { key: Tab; label: string }[] = [
     { key: 'home', label: 'Home' },
     { key: 'about', label: 'About' },
     { key: 'products', label: 'Products' },
+    { key: 'photos', label: 'Photos' },
 ];
 
 const money = (value?: number) =>
@@ -86,9 +88,10 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 );
 
 /** One product tile, used by both the Home preview and the Products grid. */
-const ProductTile = ({ product, onView }: {
+const ProductTile = ({ product, onView, onOpenPhoto }: {
     product: NonNullable<PublicCompany['products']>[number];
     onView?: (id: string) => void;
+    onOpenPhoto: (id: string) => void;
 }) => (
     <div
         onClick={() => onView?.(String(product?._id || ''))}
@@ -96,11 +99,14 @@ const ProductTile = ({ product, onView }: {
     >
         <div className="h-28 sm:h-36 bg-slate-50 flex items-center justify-center overflow-hidden">
             {product.imageUrl ? (
+                <button type="button" onClick={() => onOpenPhoto(`product:${product._id}`)}
+                    aria-label={`Open photo: ${product.name || 'Product'}`} className="h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
                 <img
                     src={resolveMediaUrl(product.imageUrl)}
                     alt={product.name || 'Product'}
                     className="w-full h-full object-cover"
                 />
+                </button>
             ) : (
                 <Package className="h-8 w-8 sm:h-9 sm:w-9 text-slate-300" />
             )}
@@ -169,18 +175,18 @@ export default function CompanyPublicView() {
     */
     const cameFromOwner = searchParams.get('preview') === '1';
 
-    const load = useCallback(async () => {
+    const load = useCallback(async (refresh = false) => {
         if (!id) return;
-        setLoading(true);
+        if (!refresh) setLoading(true);
         try {
             const data = await getPublicCompany(id);
-            if (!data) { setNotFound(true); return; }
+            if (!data) { if (!refresh) setNotFound(true); return; }
             setCompany(data);
         } catch (error) {
             console.warn('Could not load the company:', error);
-            setNotFound(true);
+            if (!refresh) setNotFound(true);
         } finally {
-            setLoading(false);
+            if (!refresh) setLoading(false);
         }
     }, [id]);
 
@@ -197,7 +203,8 @@ export default function CompanyPublicView() {
      * for the edit that happened somewhere that does not announce.
      */
     useEffect(() => {
-        const refresh = () => { load(); };
+        // Keep an open album mounted when returning to this browser window.
+        const refresh = () => { load(true); };
         window.addEventListener('companyUpdated', refresh);
         window.addEventListener('companyDataUpdated', refresh);
         window.addEventListener('focus', refresh);
@@ -255,6 +262,9 @@ export default function CompanyPublicView() {
     };
 
     const products = useMemo(() => company?.products || [], [company]);
+    const photos = useMemo(() => businessPhotos(company || {}), [company]);
+    const { openPhoto, viewer } = useBusinessPhotoGallery(photos, `${company?.businessName || 'Company'} photos`,
+        photo => { if (photo.productId) viewProduct(photo.productId); });
 
     useEffect(() => {
         if (tab !== 'products' || company?.isOwner === true) return;
@@ -349,12 +359,15 @@ export default function CompanyPublicView() {
                         name be the only colour in the header.
                     */}
                     {company.banner ? (
+                        <button type="button" onClick={() => openPhoto('banner')} aria-label="Open company cover photo"
+                            className={`block w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 ${bannerFailed ? 'hidden' : ''}`}>
                         <img
                             src={resolveMediaUrl(company.banner)}
                             alt=""
                             onError={() => setBannerFailed(true)}
                             className={`w-full max-h-80 object-contain bg-white ${bannerFailed ? 'hidden' : ''}`}
                         />
+                        </button>
                     ) : null}
 
                     {(!company.banner || bannerFailed) && (
@@ -373,12 +386,14 @@ export default function CompanyPublicView() {
                             <span className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-white border-4 border-white
                                              shadow-sm overflow-hidden flex items-center justify-center shrink-0">
                                 {company.logo && !logoFailed ? (
+                                    <button type="button" onClick={() => openPhoto('logo')} aria-label="Open company logo photo" className="h-full w-full cursor-zoom-in">
                                     <img
                                         src={resolveMediaUrl(company.logo)}
                                         alt={company.businessName || 'Company'}
                                         onError={() => setLogoFailed(true)}
                                         className="w-full h-full object-contain"
                                     />
+                                    </button>
                                 ) : (
                                     <Building2 className="h-9 w-9 sm:h-11 sm:w-11 text-slate-300" />
                                 )}
@@ -503,6 +518,7 @@ export default function CompanyPublicView() {
                                                 {products.length}
                                             </span>
                                         ) : null}
+                                        {entry.key === 'photos' && photos.length > 0 ? <span className="ml-1.5 text-ui-small text-slate-400 tabular-nums">{photos.length}</span> : null}
                                     </button>
                                 );
                             })}
@@ -583,7 +599,7 @@ export default function CompanyPublicView() {
                                     ) : (
                                         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                                             {products.slice(0, 3).map((product) => (
-                                                <ProductTile key={product._id} product={product} onView={viewProduct} />
+                                                <ProductTile key={product._id} product={product} onView={viewProduct} onOpenPhoto={openPhoto} />
                                             ))}
                                         </div>
                                     )}
@@ -724,12 +740,16 @@ export default function CompanyPublicView() {
                                 ) : (
                                     <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                                         {products.map((product) => (
-                                            <ProductTile key={product._id} product={product} onView={viewProduct} />
+                                            <ProductTile key={product._id} product={product} onView={viewProduct} onOpenPhoto={openPhoto} />
                                         ))}
                                     </div>
                                 )}
                             </Card>
                         )}
+                        {tab === 'photos' && <Card>
+                            <SectionTitle>Photos</SectionTitle>
+                            <BusinessPhotoGrid photos={photos} onOpen={openPhoto} />
+                        </Card>}
                     </div>
 
                     {/* ------------------------------------------- right rail */}
@@ -792,6 +812,7 @@ export default function CompanyPublicView() {
                     </div>
                 </div>
             </div>
+            {viewer}
         </BusinessPageShell>
     );
 }

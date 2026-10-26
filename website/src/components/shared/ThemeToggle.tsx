@@ -11,8 +11,8 @@ import { useAppTheme, useThemeLocked } from '@/lib/appTheme';
  *   `segmented`  Light | Dark side by side — for a sidebar, where there is room
  *                to say which theme is active without pressing anything.
  *
- * `tone="rail"` is for the admin rail, which is a blue gradient in BOTH themes:
- * it is drawn in translucent white so it reads on that gradient, and so the
+ * `tone="rail"` is for the admin rail's blue/light and neutral/dark surfaces:
+ * it is drawn in translucent white so it reads on either surface, and so the
  * dark-mode remap of `bg-white` / `text-slate-*` never touches it.
  *
  * ACCESSIBLE AS A TOGGLE. The icon button keeps one stable name ("Dark mode")

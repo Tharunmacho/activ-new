@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -13,12 +14,12 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PALETTE, SPACE, Tone, toneOf } from '../tokens';
+import { SPACE, Tone } from '../tokens';
 import { BrandBackdrop } from './BrandBackdrop';
 import { GlassIconButton, PremiumHeading } from './controls';
 import { FloatingIllustration } from './illustrations';
 import { FadeInUp } from './motion';
-import { premiumTone } from './theme';
+
 
 /**
  * ============================================================================
@@ -81,6 +82,8 @@ export function BrandFrame({ tone = 'member', children, footer, style, safeBotto
   style?: StyleProp<ViewStyle>;
   safeBottom?: boolean;
 }) {
+  const { toneOf, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const canvas = toneOf(tone).canvas;
@@ -114,6 +117,7 @@ export function BrandHeaderBlock({ tone = 'member', children, waveHeight = 64, m
   minHeight?: number;
   contentStyle?: StyleProp<ViewStyle>;
 }) {
+  const { toneOf } = useAppTheme();
   const insets = useSafeAreaInsets();
   const top = Number(insets?.top || 0);
   return (
@@ -145,6 +149,8 @@ export function BrandScrollPage({
   contentStyle?: StyleProp<ViewStyle>;
   headerContentStyle?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE, toneOf, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const canvas = toneOf(tone).canvas;
@@ -181,6 +187,7 @@ export function BrandTopBar({ onBack, title, right }: {
   title?: string;
   right?: React.ReactNode;
 }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={s.topBar}>
       {onBack ? (
@@ -207,6 +214,7 @@ export function BrandHero({ eyebrow, title, subtitle, art, artSize = 96, childre
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.hero, style]}>
       <View style={s.heroRow}>
@@ -224,7 +232,7 @@ export function BrandHero({ eyebrow, title, subtitle, art, artSize = 96, childre
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE }: AppTheme) => StyleSheet.create({
   flex: { flex: 1 },
   scrim: { position: 'absolute', top: 0, left: 0, right: 0 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, minHeight: 44 },

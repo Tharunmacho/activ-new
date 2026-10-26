@@ -216,6 +216,7 @@ export default function BusinessSidebar({
             )}
 
             <aside
+                aria-label="Business navigation"
                 className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 lg:h-screen w-72 max-w-[85vw] lg:max-w-none shrink-0
                             bg-white border-r border-slate-200 flex flex-col
                             transition-transform duration-200 transition-[width]
@@ -248,6 +249,7 @@ export default function BusinessSidebar({
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
+                        aria-label="Close menu"
                         className="lg:hidden absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 text-slate-500"
                     >
                         <X className="h-5 w-5" />
@@ -301,6 +303,8 @@ export default function BusinessSidebar({
                                         <Link
                                             key={to}
                                             to={to}
+                                            aria-current={active && !isDisabled ? 'page' : undefined}
+                                            aria-disabled={isDisabled || undefined}
                                             title={label}
                                             onClick={(e: React.MouseEvent) => {
                                                 if (isDisabled) {

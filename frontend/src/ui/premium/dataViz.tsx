@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -13,9 +14,9 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { PALETTE, SIZE, SPACE, TYPE, Tone } from '../tokens';
+import { SIZE, SPACE, Tone } from '../tokens';
 import { PressableScale, prefersReducedMotion } from './motion';
-import { premiumTone } from './theme';
+
 
 /**
  * ============================================================================
@@ -115,6 +116,7 @@ const StatColumns = React.createContext<2 | 3>(2);
 export function MetricGrid({ children, columns = 2, style }: {
   children: React.ReactNode; columns?: 2 | 3; style?: StyleProp<ViewStyle>;
 }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <StatColumns.Provider value={columns}>
       <View style={[s.grid, style]}>{children}</View>
@@ -141,6 +143,8 @@ export function MetricTile({
   tone?: Tone;
   delay?: number;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const cols = React.useContext(StatColumns);
   const p = premiumTone(tone);
   const chip = colors && colors.length > 1 ? colors : p.button;
@@ -187,7 +191,7 @@ export function MetricTile({
  * A rounded bar that grows from 0 to `progress` (0–1). The fill is a
  * gradient inside a clipped track, moved by translateX on the native driver.
  */
-export function GrowBar({ progress, colors, trackColor = PALETTE.divider, height = 8, delay = 0, style }: {
+export function GrowBar({ progress, colors, trackColor, height = 8, delay = 0, style }: {
   progress: number;
   colors?: string[];
   trackColor?: string;
@@ -195,6 +199,7 @@ export function GrowBar({ progress, colors, trackColor = PALETTE.divider, height
   delay?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
   const target = Math.max(0, Math.min(1, finite(progress)));
   const [width, setWidth] = useState(0);
   const v = useRef(new Animated.Value(prefersReducedMotion() ? target : 0)).current;
@@ -215,7 +220,7 @@ export function GrowBar({ progress, colors, trackColor = PALETTE.divider, height
   const fill = colors && colors.length > 1 ? colors : [PALETTE.blue, PALETTE.blueDark];
   return (
     <View
-      style={[{ height, borderRadius: height / 2, backgroundColor: trackColor, overflow: 'hidden' }, style]}
+      style={[{ height, borderRadius: height / 2, backgroundColor: trackColor ?? PALETTE.divider, overflow: 'hidden' }, style]}
       onLayout={(e: LayoutChangeEvent) => setWidth(Math.round(e?.nativeEvent?.layout?.width || 0))}
     >
       {width > 0 ? (
@@ -236,7 +241,7 @@ let ringSeq = 0;
  * An SVG ring that sweeps to `progress` (0–1) with a gradient stroke and a
  * centred label. The sweep animates strokeDashoffset once (JS driver, ~0.9s).
  */
-export function RingGauge({ progress, size = 112, stroke = 12, colors, label, value, trackColor = PALETTE.divider, delay = 0 }: {
+export function RingGauge({ progress, size = 112, stroke = 12, colors, label, value, trackColor, delay = 0 }: {
   progress: number;
   size?: number;
   stroke?: number;
@@ -248,6 +253,8 @@ export function RingGauge({ progress, size = 112, stroke = 12, colors, label, va
   trackColor?: string;
   delay?: number;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const idRef = useRef(`ring${(ringSeq += 1)}`);
   const target = Math.max(0, Math.min(1, finite(progress)));
   const r = (size - stroke) / 2;
@@ -278,7 +285,7 @@ export function RingGauge({ progress, size = 112, stroke = 12, colors, label, va
             <Stop offset="1" stopColor={stops[stops.length - 1]} />
           </SvgLinearGradient>
         </Defs>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={trackColor} strokeWidth={stroke} fill="none" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={trackColor ?? PALETTE.divider} strokeWidth={stroke} fill="none" />
         <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
@@ -298,7 +305,7 @@ export function RingGauge({ progress, size = 112, stroke = 12, colors, label, va
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   flex: { flex: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'stretch', paddingHorizontal: SPACE.lg },
   cell: { marginBottom: SPACE.md },
@@ -307,7 +314,7 @@ const s = StyleSheet.create({
     minHeight: 128,
     padding: SPACE.lg,
     borderRadius: 20,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     borderWidth: 1,
     borderColor: 'rgba(226,232,240,0.8)',
     shadowOffset: { width: 0, height: 8 },

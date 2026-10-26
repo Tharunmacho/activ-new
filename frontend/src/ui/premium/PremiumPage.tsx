@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React from 'react';
 import {
   FlatList,
@@ -17,9 +18,9 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PALETTE, SPACE, Tone, toneOf } from '../tokens';
+import { SPACE, Tone } from '../tokens';
 import { BrandBackdrop } from './BrandBackdrop';
-import { BRAND, PREMIUM_TYPE, premiumTone } from './theme';
+import { PREMIUM_TYPE } from './theme';
 import { FadeInUp, PressableScale } from './motion';
 import { FloatingIllustration } from './illustrations';
 import { GlassIconButton, PremiumHeading } from './controls';
@@ -76,6 +77,7 @@ export function PremiumPageHeader({
   onArtPress?: () => void;
   children?: React.ReactNode;
 }) {
+  const s = useThemeStyles(makeStyles);
   const hasTop = !!onBack || !!right;
   return (
     <View>
@@ -112,6 +114,7 @@ export function PremiumPageHeader({
 export function GlassCountButton({ icon, count = 0, onPress, accessibilityLabel }: {
   icon: string; count?: number; onPress: () => void; accessibilityLabel: string;
 }) {
+  const s = useThemeStyles(makeStyles);
   const n = Math.max(0, Number(count || 0));
   return (
     <View>
@@ -128,6 +131,8 @@ export function GlassCountButton({ icon, count = 0, onPress, accessibilityLabel 
 /* ================================================================ chrome */
 
 function Chrome({ tone, children, safeBottom = false }: { tone: Tone; children: React.ReactNode; safeBottom?: boolean }) {
+  const { toneOf, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const top = Number(insets?.top || 0);
@@ -144,6 +149,7 @@ function Chrome({ tone, children, safeBottom = false }: { tone: Tone; children: 
 }
 
 function HeaderBand({ tone, header, waveHeight }: { tone: Tone; header: React.ReactNode; waveHeight: number }) {
+  const { toneOf } = useAppTheme();
   const insets = useSafeAreaInsets();
   const top = Number(insets?.top || 0);
   return (
@@ -176,6 +182,8 @@ export function PremiumPage({
   /** Standalone screens can keep their viewport above Android's system buttons. */
   safeBottom?: boolean;
 }) {
+  const { palette: PALETTE, toneOf, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const canvas = toneOf(tone).canvas;
@@ -232,6 +240,8 @@ export function PremiumListPage<T>({
   tone = 'member', header, listHeader, renderItem, gutter = true, footer, refreshing, onRefresh,
   waveHeight = PAGE_WAVE, listRef, ...list
 }: ListPageProps<T>) {
+  const { palette: PALETTE, toneOf, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const canvas = toneOf(tone).canvas;
@@ -297,6 +307,8 @@ export function PremiumTopBar({
   children?: React.ReactNode;
   onTitlePress?: () => void;
 }) {
+  const { premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const top = Number(insets?.top || 0);
@@ -343,6 +355,8 @@ export function PremiumTopBar({
 
 /** A small uppercase line + white value, in glass — a live figure on the header. */
 export function HeaderStat({ value, label, icon, style }: { value: string | number; label: string; icon?: string; style?: StyleProp<ViewStyle> }) {
+  const { brand: BRAND } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.glassStat, style]} accessible accessibilityLabel={`${label}: ${value}`}>
       <View style={s.glassStatTop}>
@@ -356,10 +370,11 @@ export function HeaderStat({ value, label, icon, style }: { value: string | numb
 
 /** A row of HeaderStat, equal widths. */
 export function HeaderStatRow({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  const s = useThemeStyles(makeStyles);
   return <View style={[s.glassRow, style]}>{children}</View>;
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, brand: BRAND }: AppTheme) => StyleSheet.create({
   flex: { flex: 1 },
   flexMin: { flex: 1, minWidth: 0 },
   scrim: { position: 'absolute', top: 0, left: 0, right: 0 },

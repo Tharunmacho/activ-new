@@ -1,11 +1,10 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React from 'react';
 import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {
-  PALETTE, SPACE, SIZE, TYPE, BRAND, Skeleton, PressableScale, CompanyLogoTile, premiumTone,
-  BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, LiftCard, ArtEmptyState, Unplugged3D, FitImage,
-} from '../../ui';
+import { SPACE, SIZE, Skeleton, PressableScale, CompanyLogoTile, BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, LiftCard, ArtEmptyState, Unplugged3D, FitImage } from '../../ui';
 import { BusinessTabKey } from './BusinessTabBar';
 
 /**
@@ -43,6 +42,7 @@ export function companyStatus(status?: string | null) {
 
 /** A status pill for the gradient header. */
 export function GlassStatus({ status, style }: { status?: string | null; style?: StyleProp<ViewStyle> }) {
+  const s = useThemeStyles(makeStyles);
   const st = companyStatus(status);
   return (
     <View style={[s.glassStatus, style]} accessibilityLabel={`Status: ${st.label}`}>
@@ -54,6 +54,8 @@ export function GlassStatus({ status, style }: { status?: string | null; style?:
 
 /** A translucent pill on the gradient ("12 products", "Listed"). */
 export function GlassTag({ icon, label, style }: { icon?: string; label: string; style?: StyleProp<ViewStyle> }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.glassStatus, style]}>
       {icon ? <Icon name={icon} size={13} color={PALETTE.white} /> : null}
@@ -75,6 +77,8 @@ export function CompanyGlassCard({ name, type, logo, status, facts, right, style
   right?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { brand: BRAND } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const list = (facts || []).filter((f) => f && f.text);
   return (
     <View style={[s.glassCard, style]}>
@@ -117,6 +121,8 @@ export function CoverHero({ banner, logo, name, subtitle, badges, onPickBanner, 
   onPickLogo?: () => void;
   pickHint?: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const [failed, setFailed] = React.useState(false);
   const src = typeof banner === 'string' ? banner.trim() : '';
   React.useEffect(() => { setFailed(false); }, [src]);
@@ -182,6 +188,8 @@ export function CoverHero({ banner, logo, name, subtitle, badges, onPickBanner, 
 
 /** A 4:3 product photo well — the picked/real photo, or an inviting empty state. */
 export function PhotoWell({ uri, onPress, hint = 'JPG or PNG, up to 5 MB' }: { uri?: string; onPress: () => void; hint?: string }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const [failed, setFailed] = React.useState(false);
   const src = typeof uri === 'string' ? uri.trim() : '';
@@ -216,6 +224,8 @@ export function PhotoWell({ uri, onPress, hint = 'JPG or PNG, up to 5 MB' }: { u
 export function ToolTile({ icon, label, colors, onPress, badge }: {
   icon: string; label: string; colors: string[]; onPress: () => void; badge?: string;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   return (
     <View style={s.toolCell}>
@@ -232,6 +242,7 @@ export function ToolTile({ icon, label, colors, onPress, badge }: {
 }
 
 export function ToolGrid({ children }: { children: React.ReactNode }) {
+  const s = useThemeStyles(makeStyles);
   return <View style={s.toolGrid}>{children}</View>;
 }
 
@@ -240,6 +251,8 @@ export function SoftAction({ icon, label, onPress, danger, primary, style, acces
   icon: string; label: string; onPress: () => void; danger?: boolean; primary?: boolean;
   style?: StyleProp<ViewStyle>; accessibilityLabel?: string; disabled?: boolean;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const fg = danger ? PALETTE.redDark : primary ? PALETTE.white : p.accentDark;
   const inner = (
@@ -270,6 +283,8 @@ export function SoftAction({ icon, label, onPress, danger, primary, style, acces
 export function BizSectionTitle({ title, caption, action, onAction, style }: {
   title: string; caption?: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.secRow, style]}>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -333,6 +348,7 @@ export function BizStatePage({ title, eyebrow, onBack, error, onRetry, footer, r
 
 /** Skeleton shaped like a list of white cards (under an overlapping header). */
 export function CardSkeletons({ rows = 3, tall }: { rows?: number; tall?: boolean }) {
+  const s = useThemeStyles(makeStyles);
   const n = Math.max(1, Math.min(Number(rows || 3), 8));
   return (
     <View style={s.skWrap} accessibilityLabel="Loading">
@@ -352,7 +368,7 @@ export function CardSkeletons({ rows = 3, tall }: { rows?: number; tall?: boolea
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   glassStatus: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -391,7 +407,7 @@ const s = StyleSheet.create({
   coverChip: { position: 'absolute', right: SPACE.md, top: SPACE.md, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: SPACE.md, minHeight: 32, borderRadius: 999, backgroundColor: 'rgba(46,16,101,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   coverChipText: { color: PALETTE.white, fontSize: 12, lineHeight: 16, fontWeight: '700' },
   coverRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: SPACE.md, marginTop: -40 },
-  logoFrame: { padding: 3, borderRadius: 26, backgroundColor: PALETTE.white },
+  logoFrame: { padding: 3, borderRadius: 26, backgroundColor: PALETTE.card },
   logoCam: { position: 'absolute', right: -4, bottom: -4, width: 28, height: 28, borderRadius: 14, backgroundColor: PALETTE.violet, borderWidth: 2, borderColor: PALETTE.white, alignItems: 'center', justifyContent: 'center' },
   coverBadges: { flex: 1, minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: SPACE.xs + 2, marginLeft: SPACE.md, paddingBottom: SPACE.xs },
   coverName: { color: PALETTE.white, fontSize: 22, lineHeight: 28, fontWeight: '800', letterSpacing: -0.4, marginTop: SPACE.md },
@@ -399,7 +415,7 @@ const s = StyleSheet.create({
   coverHint: { color: BRAND.onBrandFaint, fontSize: 12, lineHeight: 16, marginTop: SPACE.xs },
 
   well: { width: '100%', aspectRatio: 4 / 3, borderRadius: 18, overflow: 'hidden', backgroundColor: PALETTE.violetTint },
-  wellEmpty: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D4C6F7' },
+  wellEmpty: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: PALETTE.violetBorder },
   wellInner: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACE.lg },
   wellIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   wellTitle: { ...TYPE.subheading, marginTop: SPACE.md, color: PALETTE.violetDark },
@@ -414,7 +430,7 @@ const s = StyleSheet.create({
     paddingVertical: SPACE.lg,
     minHeight: 108,
     borderRadius: 20,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     borderWidth: 1,
     borderColor: 'rgba(226,232,240,0.8)',
     shadowOffset: { width: 0, height: 8 },
@@ -430,15 +446,15 @@ const s = StyleSheet.create({
 
   soft: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, paddingHorizontal: SPACE.md, borderRadius: 999 },
   softPlain: { backgroundColor: PALETTE.violetTint, borderWidth: 1, borderColor: PALETTE.violetBorder },
-  softDanger: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
+  softDanger: { backgroundColor: PALETTE.dangerSoft, borderWidth: 1, borderColor: PALETTE.dangerSoft },
   softText: { fontSize: 13, lineHeight: 18, fontWeight: '700', flexShrink: 1 },
 
   secRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACE.lg, marginTop: SPACE.xl, marginBottom: SPACE.md, minHeight: 24 },
   secTitle: { ...TYPE.heading, fontSize: 17, lineHeight: 22 },
   secCaption: { ...TYPE.caption, marginTop: 2 },
   secAction: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingLeft: SPACE.sm },
-  secActionText: { fontSize: 13, fontWeight: '700', color: PALETTE.violet },
+  secActionText: { fontSize: 13, fontWeight: '700', color: PALETTE.violetDark },
 
   skWrap: { paddingHorizontal: SPACE.lg, gap: SPACE.md },
-  skCard: { padding: SPACE.lg, borderRadius: 20, backgroundColor: PALETTE.white, borderWidth: 1, borderColor: PALETTE.border },
+  skCard: { padding: SPACE.lg, borderRadius: 20, backgroundColor: PALETTE.card, borderWidth: 1, borderColor: PALETTE.border },
 });

@@ -25,6 +25,7 @@ jest.mock('@react-navigation/native', () => {
 
 /* ---- the api: canned answers by URL, or everything failing ------------------ */
 let mockFailAll = false;
+let mockTrustedBy: number | null = 2;
 const COMPANY = {
   _id: 'c1', businessName: 'Sri Lakshmi Engineering', businessType: 'Manufacturing', mobileNumber: '9876543210',
   email: 'hello@slengg.in', area: 'Guindy', location: 'Chennai', logo: '/uploads/logo.png', banner: '/uploads/banner.jpg',
@@ -54,7 +55,7 @@ const mockByUrl = (url: string): any => {
   if (url.includes('/business-profiles/me')) return null;
   if (url.includes('/business-profiles')) return COMPANY;
   if (url.includes('/products/discover')) return [{ ...OTHER.products[0], companyId: { _id: 'c2', businessName: 'Kaveri Traders' } }];
-  if (url.includes('/products/stats')) return { total: 3, active: 2, featured: 1, views: 40, trustedBy: 2, topViewed: [{ name: 'CNC bracket', views: 30 }, { name: 'Flange', views: 10 }] };
+  if (url.includes('/products/stats')) return { total: 3, active: 2, featured: 1, views: 40, trustedBy: mockTrustedBy, topViewed: [{ name: 'CNC bracket', views: 30 }, { name: 'Flange', views: 10 }] };
   if (url.includes('/products/activities')) return [{ productId: 'p1', label: 'Product created', description: 'CNC bracket', time: '2026-09-29T10:00:00.000Z' }];
   if (url.includes('/products/stock-movements')) return [{ id: 'm1', productId: 'p1', productName: 'CNC bracket', delta: 5, reason: 'restock', at: '2026-09-29T10:00:00.000Z' }, { id: 'm2', productId: 'zz', productName: 'Other company item', delta: -1, reason: 'sale' }];
   if (url.includes('/products/p1')) return PRODUCT;
@@ -144,6 +145,61 @@ const textOf = (tree: any) => {
   walk(tree.toJSON());
   return out.join(' ');
 };
+
+describe('business owner trust count', () => {
+  beforeEach(() => { mockFailAll = false; });
+  afterEach(() => { mockTrustedBy = 2; });
+  test.each([0, 1, 8, null])('dashboard shows the server count %s', async (count) => {
+    mockTrustedBy = count;
+    const Screen = require('../src/screens/business/BusinessDashboardScreen').default;
+    const tree = await mount(Screen, {});
+    const expected = count === null ? 'Count unavailable' : `${count} ${count === 1 ? 'member' : 'members'}`;
+    expect(textOf(tree)).toContain(`Trusted by ${expected}`);
+    await ReactTestRenderer.act(async () => { tree.unmount(); });
+  });
+  test('company details do not turn an unavailable count into zero', async () => {
+    mockTrustedBy = null;
+    const Screen = require('../src/screens/business/ViewCompanyScreen').default;
+    const tree = await mount(Screen, { params: { companyId: 'c1' } });
+    expect(textOf(tree)).toContain('Trusted by Count unavailable');
+    await ReactTestRenderer.act(async () => { tree.unmount(); });
+  });
+  test('refresh follows a company switched while the profile request is pending', async () => {
+    const api = require('../src/services/api').default;
+    const { useActiveCompanyStore } = require('../src/stores/activeCompanyStore');
+    const { BrandScrollPage } = require('../src/ui');
+    const Screen = require('../src/screens/business/BusinessDashboardScreen').default;
+    const tree = await mount(Screen, {});
+    await ReactTestRenderer.act(async () => { useActiveCompanyStore.getState().setActiveCompany('c1'); await flush(); });
+    const originalGet = api.get.getMockImplementation();
+    let release: (() => void) | undefined;
+    api.get.mockImplementation((url: string, options: any) => {
+      if (url.includes('/auth/me')) return new Promise(resolve => {
+        release = () => resolve({ data: { data: { fullName: 'Tharun' } } });
+      });
+      return originalGet(url, options);
+    });
+    let refreshing: Promise<void> | undefined;
+    try {
+      await ReactTestRenderer.act(async () => {
+        refreshing = tree.root.findByType(BrandScrollPage).props.onRefresh();
+        await flush(); await flush();
+      });
+      expect(release).toBeDefined();
+      await ReactTestRenderer.act(async () => {
+        useActiveCompanyStore.getState().setActiveCompany('c3');
+        await flush();
+      });
+      await ReactTestRenderer.act(async () => { release?.(); await refreshing; await flush(); });
+      const requests = api.get.mock.calls.filter((call: any[]) => call[0].includes('/products/stats'));
+      expect(requests.at(-1)?.[1]?.params.companyId).toBe('c3');
+      expect(textOf(tree)).toContain('SL Exports');
+    } finally {
+      api.get.mockImplementation(originalGet);
+      await ReactTestRenderer.act(async () => { tree.unmount(); });
+    }
+  });
+});
 
 describe('the business round trip', () => {
   beforeAll(() => { mockFailAll = false; });

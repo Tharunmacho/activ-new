@@ -318,14 +318,15 @@ export default function AdminSidebar({
                                                     <Link
                                                         key={child.to + child.label}
                                                         to={child.to}
+                                                        aria-current={active ? 'page' : undefined}
                                                         onClick={() => onClose?.()}
                                                         className={`flex items-center gap-3 px-3.5 py-3 rounded-xl
                                                                     transition-all duration-200 ${active
-                                                                ? 'bg-white text-blue-600 shadow-md font-semibold dark:bg-white dark:text-blue-600'
+                                                                ? 'bg-white text-blue-600 shadow-md font-semibold'
                                                                 : 'text-blue-50 hover:bg-white/15 font-medium'}`}
                                                     >
                                                         <span className={`w-5 h-5 text-ui-body flex items-center justify-center
-                                                                          ${active ? 'text-blue-600 dark:text-blue-600' : 'text-blue-100'}`}>
+                                                                          ${active ? 'text-blue-600' : 'text-blue-100'}`}>
                                                             {ICONS[child.icon]}
                                                         </span>
                                                         {/* One step under its parent, not two. A child at
@@ -346,15 +347,16 @@ export default function AdminSidebar({
                             <Link
                                 key={item.to}
                                 to={item.to}
+                                aria-current={active ? 'page' : undefined}
                                 onClick={() => onClose?.()}
                                 className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl
                                             transition-all duration-200 ${active
-                                    ? 'bg-white text-blue-600 shadow-lg dark:bg-white dark:text-blue-600'
+                                    ? 'bg-white text-blue-600 shadow-lg'
                                     : 'text-white hover:bg-white/20 backdrop-blur-sm'
                                     }`}
                             >
                                 <span className={`w-[1.375rem] h-[1.375rem] text-ui-body flex items-center
-                                                  justify-center ${active ? 'text-blue-600 dark:text-blue-600' : 'text-white'}`}>
+                                                  justify-center ${active ? 'text-blue-600' : 'text-white'}`}>
                                     {ICONS[item.icon]}
                                 </span>
                                 <span className="font-bold text-ui-body">{item.label}</span>
@@ -365,8 +367,7 @@ export default function AdminSidebar({
             </nav>
 
             <div className="p-3 md:p-4 border-t border-white/20 shrink-0">
-                {/* Light / dark. Drawn in translucent white (tone="rail") so it
-                    reads on the blue rail in both themes. */}
+                {/* Translucent controls remain readable on both rail surfaces. */}
                 <ThemeToggle variant="segmented" tone="rail" className="mb-2" />
                 <Button
                     variant="ghost"
@@ -403,7 +404,7 @@ export default function AdminSidebar({
      * inside need, so nothing lost the context `relative` was there to provide.
      */
     const shell =
-        'bg-gradient-to-b from-[#172554] via-[#1e3a8a] to-[#2563eb] dark:from-[#0b1330] dark:via-[#12275f] dark:to-[#1d4ed8] shadow-lg overflow-hidden';
+        'app-sidebar-rail bg-gradient-to-b from-[#172554] via-[#1e3a8a] to-[#2563eb] shadow-lg overflow-hidden';
 
     return (
         <>

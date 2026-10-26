@@ -1,3 +1,5 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -5,10 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { RootStackParamList } from '../../types';
-import {
-  BottomActionBar, Notice, PALETTE, SPACE, TYPE, money,
-  BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, FadeInUp, PremiumSection, PremiumInput,
-  GradientButton, ProductCrate3D, premiumTone, FitImage } from '../../ui';
+import { BottomActionBar, Notice, SPACE, money, BrandScrollPage, BrandTopBar, BrandHero, PREMIUM_OVERLAP, FadeInUp, PremiumSection, PremiumInput, GradientButton, ProductCrate3D, FitImage } from '../../ui';
 import api from '../../services/api';
 import { errorMessage } from '../../services/businessApi';
 import { useActiveCompany } from '../../stores/activeCompanyStore';
@@ -31,6 +30,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AddProduct'>;
 type PickedImage = { uri: string; type: string; name: string } | null;
 
 const AddProductScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const activeCompany = useActiveCompany();
   const companyId = String(route?.params?.companyId || activeCompany?._id || '');
 
@@ -197,12 +198,12 @@ const AddProductScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   headerPad: { paddingBottom: SPACE.md },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   preview: {
-    flexDirection: 'row', gap: SPACE.md, padding: SPACE.md, borderRadius: 18, backgroundColor: PALETTE.white,
-    borderWidth: 1, borderColor: 'rgba(226,232,240,0.9)', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 2,
+    flexDirection: 'row', gap: SPACE.md, padding: SPACE.md, borderRadius: 18, backgroundColor: PALETTE.card,
+    borderWidth: 1, borderColor: PALETTE.border, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 2,
   },
   previewImg: { width: 84, height: 84, borderRadius: 14, backgroundColor: PALETTE.field },
   previewEmpty: { alignItems: 'center', justifyContent: 'center' },

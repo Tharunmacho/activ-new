@@ -1,12 +1,10 @@
+import { useAppTheme, useThemeStyles } from '../../../ui/AppTheme';
+import type { AppTheme } from '../../../ui/AppTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import {
-  Notice, BottomActionBar, PALETTE, SPACE, TYPE,
-  BrandScrollPage, BrandTopBar, PREMIUM_OVERLAP, FadeInUp, PremiumSection, PremiumInput, PremiumStepper,
-  GradientButton, PressableScale, premiumTone,
-} from '../../../ui';
+import { Notice, BottomActionBar, SPACE, BrandScrollPage, BrandTopBar, PREMIUM_OVERLAP, FadeInUp, PremiumSection, PremiumInput, PremiumStepper, GradientButton, PressableScale } from '../../../ui';
 import api from '../../../services/api';
 import { resolveMediaUrl } from '../../../config/api.config';
 import { getCompany, errorMessage } from '../../../services/businessApi';
@@ -172,6 +170,8 @@ export interface CompanyFormProps {
 }
 
 export default function CompanyForm({ companyId, title, subtitle, createLabel = 'Create company', prefill, onBack, onSaved }: CompanyFormProps) {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const isEdit = !!companyId;
   const loadCompanies = useActiveCompanyStore((st) => st.loadCompanies);
 
@@ -568,6 +568,8 @@ const STEP_TITLES = ['Identity & contact', 'Business details', 'Financial inform
 
 /** A round previous / next control beside the sticky save. */
 function StepNav({ icon, label, onPress, disabled }: { icon: string; label: string; onPress: () => void; disabled?: boolean }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   return (
     <PressableScale
@@ -581,7 +583,7 @@ function StepNav({ icon, label, onPress, disabled }: { icon: string; label: stri
       {disabled ? (
         <View style={[styles.nav, styles.navOff]}><Icon name={icon} size={26} color={PALETTE.textFaint} /></View>
       ) : (
-        <LinearGradient colors={[p.accentSoft, PALETTE.violetBorder]} style={[styles.nav, { borderColor: '#D4C6F7' }]}>
+        <LinearGradient colors={[p.accentSoft, PALETTE.violetBorder]} style={[styles.nav, { borderColor: PALETTE.violetBorder }]}>
           <Icon name={icon} size={26} color={p.accentDark} />
         </LinearGradient>
       )}
@@ -589,7 +591,7 @@ function StepNav({ icon, label, onPress, disabled }: { icon: string; label: stri
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   headerPad: { paddingBottom: SPACE.xs },
   stepperWrap: { marginTop: SPACE.xl, marginBottom: SPACE.lg },
   stepTaps: { ...StyleSheet.absoluteFillObject, flexDirection: 'row' },
@@ -605,6 +607,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.lg, borderRadius: 20,
     backgroundColor: PALETTE.violetTint, borderWidth: 1, borderColor: PALETTE.violetBorder, borderStyle: 'dashed',
   },
-  nextEyebrow: { ...TYPE.eyebrow, color: PALETTE.violet },
+  nextEyebrow: { ...TYPE.eyebrow, color: PALETTE.violetDark },
   nextTitle: { ...TYPE.heading, marginTop: 2 },
 });

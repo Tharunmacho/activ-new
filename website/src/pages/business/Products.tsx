@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { apiFetch } from "@/services/activApi";
 import { resolveMediaUrl } from "@/config/api.config";
 import { useActiveCompanyStore } from "@/contexts/ActiveCompanyContext";
+import { businessPhotos, useBusinessPhotoGallery } from './BusinessPhotoGallery';
 
 const Products = () => {
     const navigate = useNavigate();
@@ -114,6 +115,9 @@ const Products = () => {
     const filteredProducts = products.filter(product =>
         (product?.name || '').toLowerCase().includes(query) ||
         (product?.description || '').toLowerCase().includes(query)
+    );
+    const { openPhoto, viewer } = useBusinessPhotoGallery(
+        businessPhotos({ products: filteredProducts }), `${activeCompany?.businessName || 'Company'} catalogue`,
     );
 
 
@@ -249,17 +253,20 @@ const Products = () => {
                                         origin — hence resolveMediaUrl, as on mobile.
                                     */}
                                     {product.imageUrl ? (
+                                        <button type="button" onClick={() => openPhoto(`product:${product._id}`)} aria-label={`Open photo: ${product.name || 'Product'}`}
+                                            className="h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
                                         <img
                                             src={resolveMediaUrl(product.imageUrl)}
                                             alt={product.name || 'Product'}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
+                                        </button>
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Package className="h-10 w-10 sm:h-14 sm:w-14 text-slate-300" strokeWidth={1.5} />
                                         </div>
                                     )}
-                                    <span className="absolute top-2 right-2 sm:top-3 sm:right-3 max-w-[calc(100%-1rem)] truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 shadow-sm text-[1rem] sm:text-ui-small font-semibold text-blue-600">
+                                    <span className="pointer-events-none absolute top-2 right-2 sm:top-3 sm:right-3 max-w-[calc(100%-1rem)] truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 shadow-sm text-[1rem] sm:text-ui-small font-semibold text-blue-600">
                                         ₹{Number(product.price || 0).toLocaleString('en-IN')}
                                     </span>
                                 </div>
@@ -351,11 +358,13 @@ const Products = () => {
                                             <TableCell>
                                                 <span className="w-11 h-11 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden">
                                                     {product.imageUrl ? (
+                                                        <button type="button" onClick={() => openPhoto(`product:${product._id}`)} aria-label={`Open photo: ${product.name || 'Product'}`} className="h-full w-full cursor-zoom-in">
                                                         <img
                                                             src={resolveMediaUrl(product.imageUrl)}
                                                             alt={product.name || 'Product'}
                                                             className="w-full h-full object-cover"
                                                         />
+                                                        </button>
                                                     ) : (
                                                         <Package className="h-5 w-5 text-slate-400" />
                                                     )}
@@ -400,6 +409,7 @@ const Products = () => {
                     </Card>
                 )}
             </div>
+            {viewer}
         </BusinessPageShell>
     );
 };

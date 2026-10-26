@@ -1,5 +1,5 @@
 // Business Dashboard — the member's business COMMAND CENTRE (premium, business tone: violet).
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,9 +8,7 @@ import { RootStackParamList } from '../../types';
 import api, { getUserData } from '../../services/api';
 import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
 import {
-  PALETTE,
   SPACE,
-  TYPE,
   Skeleton,
   shortDate,
   timeAgo,
@@ -37,6 +35,8 @@ import {
   ActiveCompany,
 } from '../../stores/activeCompanyStore';
 import { BusinessTabBar } from './BusinessTabBar';
+import { BusinessTrustCount } from './BusinessTrustCount';
+import { useAppTheme, useThemeStyles, type AppTheme } from '../../ui/AppTheme';
 import { BizSectionTitle, CompanyGlassCard, ToolGrid, ToolTile, CHIP } from './businessKit';
 
 type BusinessDashboardProps = {
@@ -47,6 +47,8 @@ type BusinessDashboardProps = {
 type BusinessProfile = ActiveCompany;
 
 const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation }) => {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(createStyles);
   // Companies + the active selection live in the shared store, so every other
   // business screen shows this exact company until the user switches here.
   const companies = useActiveCompanyStore((state) => state.companies);
@@ -58,6 +60,8 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
   const [refreshing, setRefreshing] = useState(false);
   const [, setShowCompanyPicker] = useState(false);
   const [catalogStats, setCatalogStats] = useState({ total: 0, active: 0, featured: 0, views: 0 });
+  const [trustedBy, setTrustedBy] = useState<number | null>(null);
+  const dataRequest = useRef(0);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   // Bumped every time the screen regains focus. The data effects below key off
   // it as well as the company id, so returning here after creating, editing or
@@ -81,9 +85,12 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
     if (businessProfile?._id) {
       fetchCompanyData(businessProfile._id);
     } else {
+      dataRequest.current += 1;
+      setTrustedBy(null);
       setCatalogStats({ total: 0, active: 0, featured: 0, views: 0 });
       setRecentActivities([]);
     }
+    return () => { dataRequest.current += 1; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessProfile?._id, focusTick]);
 
@@ -148,14 +155,19 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
   };
 
   const fetchCompanyData = async (companyId: string) => {
-    if (!companyId) return;
+    if (!companyId || useActiveCompanyStore.getState().activeCompanyId !== companyId) return;
+    const request = ++dataRequest.current;
+    const isCurrent = () => request === dataRequest.current && useActiveCompanyStore.getState().activeCompanyId === companyId;
+    setTrustedBy(null);
 
     try {
       const statsResponse = await api.get(ENDPOINTS.PRODUCTS.STATS, {
         params: { companyId },
       });
 
+      if (!isCurrent()) return;
       const stats = statsResponse.data?.data || statsResponse.data || {};
+      setTrustedBy(typeof stats.trustedBy === 'number' && Number.isFinite(stats.trustedBy) ? Math.max(0, stats.trustedBy) : null);
       setCatalogStats({
         total: Number(stats.total || 0),
         active: Number(stats.active || 0),
@@ -168,6 +180,7 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
       });
 
       const activityRows = activitiesResponse?.data?.data;
+      if (!isCurrent()) return;
       if (Array.isArray(activityRows)) {
         setRecentActivities(activityRows);
       } else {
@@ -175,6 +188,7 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
       }
 
     } catch (error: any) {
+      if (!isCurrent()) return;
       console.error('Error fetching company data:', error);
       setCatalogStats({ total: 0, active: 0, featured: 0, views: 0 });
       setRecentActivities([]);
@@ -206,8 +220,9 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
     setRefreshing(true);
     await loadAllCompanies(true);
     await loadMemberName();
-    if (businessProfile?._id) {
-      await fetchCompanyData(businessProfile._id);
+    const selectedId = useActiveCompanyStore.getState().activeCompanyId;
+    if (selectedId) {
+      await fetchCompanyData(selectedId);
     }
     setRefreshing(false);
   };
@@ -372,13 +387,14 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
                 accessibilityRole="button"
                 accessibilityLabel="Delete company"
               >
-                <Icon name="delete-outline" size={18} color={PALETTE.red} />
+                <Icon name="delete-outline" size={18} color={PALETTE.dangerText} />
                 <Text style={styles.deleteText} maxFontSizeMultiplier={1.3}>Delete this company</Text>
               </PressableScale>
             </LiftCard>
           </FadeInUp>
 
           {/* Catalog overview — every number here comes from /products/stats. */}
+          <BusinessTrustCount count={trustedBy} />
           <BizSectionTitle title="Catalogue overview" caption="Live figures for the active company" />
           <MetricGrid>
             <MetricTile tone="business" icon="visibility" label="Product views" value={catalogStats.views} colors={CHIP.violet} delay={120} />
@@ -476,6 +492,7 @@ const BusinessDashboardScreen: React.FC<BusinessDashboardProps> = ({ navigation 
 
 /** First-load placeholder shaped like the body: action card, 2×2 stats, tools. */
 function DashboardSkeleton() {
+  const styles = useThemeStyles(createStyles);
   return (
     <View style={[styles.skeleton, styles.overlap]} accessibilityLabel="Loading">
       <View style={styles.skCard}>
@@ -501,7 +518,7 @@ function DashboardSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   overlap: { marginTop: -PREMIUM_OVERLAP },
   gutter: { marginHorizontal: SPACE.lg },
   headerBlock: { marginTop: SPACE.lg },
@@ -514,7 +531,7 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: SPACE.md },
   actionBtn: { flex: 1, minWidth: 0 },
   deleteRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.xs, minHeight: 44, marginTop: SPACE.sm },
-  deleteText: { ...TYPE.label, color: PALETTE.red, fontWeight: '700' },
+  deleteText: { ...TYPE.label, color: PALETTE.dangerText, fontWeight: '700' },
 
   companiesCard: { marginTop: SPACE.xs },
   companiesRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
@@ -527,7 +544,7 @@ const styles = StyleSheet.create({
   noActivitySub: { ...TYPE.caption, marginTop: 2 },
 
   skeleton: { paddingHorizontal: SPACE.lg, gap: SPACE.md },
-  skCard: { padding: SPACE.lg, borderRadius: 20, backgroundColor: PALETTE.white, borderWidth: 1, borderColor: PALETTE.border },
+  skCard: { padding: SPACE.lg, borderRadius: 20, backgroundColor: PALETTE.card, borderWidth: 1, borderColor: PALETTE.border },
   skeletonRow: { flexDirection: 'row', justifyContent: 'space-between' },
 });
 

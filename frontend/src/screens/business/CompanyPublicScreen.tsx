@@ -1,20 +1,20 @@
-import React, { useCallback, useRef, useState } from 'react';
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Linking, Alert, FlatList, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RootStackParamList } from '../../types';
-import {
-  Badge, InfoRow, PALETTE, SPACE, TYPE, money,
-  BrandFrame, BrandHeaderBlock, BrandTopBar, PREMIUM_OVERLAP, FadeInUp, LiftCard,
-  GradientButton, TrustStar, ContactAction, ArtEmptyState, ProductCrate3D, CountUpText, premiumTone, FitImage } from '../../ui';
+import { Badge, InfoRow, SPACE, money, BrandFrame, BrandHeaderBlock, BrandTopBar, PREMIUM_OVERLAP, FadeInUp, LiftCard, GradientButton, TrustStar, ContactAction, ArtEmptyState, ProductCrate3D, CountUpText, FitImage } from '../../ui';
 import { resolveMediaUrl } from '../../config/api.config';
 import {
   getPublicCompany, addToTrustList, removeFromTrustList, errorMessage, Company, PublicProduct,
 } from '../../services/businessApi';
 import { recordProductView } from '../../services/memberApi';
 import { governmentSchemes } from '../../utils/governmentSchemes';
+import { businessPhotoItems } from '../../utils/businessPhotos';
 import { CompanyShareButton } from '../../components/BusinessShareButton';
 import CatalogueAlbum from '../../components/CatalogueAlbum';
 import { BizSectionTitle, BizStatePage, CoverHero, GlassTag } from './businessKit';
@@ -50,6 +50,8 @@ const monthYear = (value?: string | null) => {
 };
 
 function ProductCard({ item, onOpen }: { item: PublicProduct; onOpen?: () => void }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const img = item?.imageUrl ? resolveMediaUrl(item.imageUrl) : '';
   const stock = Number(item?.stock || 0);
@@ -87,6 +89,8 @@ function ProductCard({ item, onOpen }: { item: PublicProduct; onOpen?: () => voi
 
 /** One figure in the at-a-glance strip. */
 function Fact({ icon, value, label, count }: { icon: string; value?: string; label: string; count?: number }) {
+  const { premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   return (
     <View style={styles.fact} accessible accessibilityLabel={`${label}: ${typeof count === 'number' ? count : value}`}>
@@ -102,12 +106,17 @@ function Fact({ icon, value, label, count }: { icon: string; value?: string; lab
 }
 
 const CompanyPublicScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { palette: PALETTE, type: TYPE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const companyId = route?.params?.companyId || '';
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [albumAt, setAlbumAt] = useState<number | null>(null);
+  const [photosAt, setPhotosAt] = useState<number | null>(null);
+  const photoItems = useMemo(() => businessPhotoItems(company), [company]);
+  const photoCount = photoItems.reduce((total, item) => total + item.images.length, 0);
   const hasData = useRef(false);
 
   /*
@@ -329,6 +338,21 @@ const CompanyPublicScreen: React.FC<Props> = ({ navigation, route }) => {
         ) : null}
       </LiftCard>
 
+      <BizSectionTitle title={`Photos (${photoCount})`} action={photoCount ? 'View all' : undefined} onAction={() => setPhotosAt(0)} />
+      {photoItems.length ? (
+        <View style={styles.photoGrid}>
+          {photoItems.slice(0, 6).map((item, index) => (
+            <Pressable key={String(item._id || index)} onPress={() => setPhotosAt(index)} style={styles.photoTile}
+              accessibilityRole="button" accessibilityLabel={`Open photo: ${item.name || 'Company photo'}`}>
+              <FitImage uri={item.imageUrl} style={styles.photoImage} />
+              <Text style={styles.photoLabel} numberOfLines={1}>{item.name || 'Company photo'}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : (
+        <LiftCard tone="business" style={styles.gutter}><Text style={TYPE.body}>No photos yet.</Text></LiftCard>
+      )}
+
       <BizSectionTitle title={`Products & services (${products.length})`} />
     </View>
   );
@@ -375,15 +399,31 @@ const CompanyPublicScreen: React.FC<Props> = ({ navigation, route }) => {
         recordProductView(it.key);
       }}
     />
+    <CatalogueAlbum
+      items={photoItems}
+      startIndex={photosAt}
+      tone="business"
+      onClose={() => setPhotosAt(null)}
+      onProductShown={(item) => {
+        // Cover/logo images are not products and must not affect seller analytics.
+        if (isOwnerRef.current || !products.some(product => String(product._id) === item.key) || seenProducts.current.has(item.key)) return;
+        seenProducts.current.add(item.key);
+        recordProductView(item.key);
+      }}
+    />
     </>
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   coverWrap: { marginTop: SPACE.md, marginBottom: SPACE.md },
   overlap: { marginTop: -PREMIUM_OVERLAP },
   gutter: { marginHorizontal: SPACE.lg },
   block: { marginTop: SPACE.md },
+  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginHorizontal: SPACE.lg },
+  photoTile: { width: '31%', borderRadius: 12, overflow: 'hidden', backgroundColor: PALETTE.card, borderWidth: 1, borderColor: PALETTE.border },
+  photoImage: { width: '100%', aspectRatio: 1, backgroundColor: PALETTE.fieldBg },
+  photoLabel: { ...TYPE.caption, color: PALETTE.textSoft, padding: SPACE.sm },
   facts: { flexDirection: 'row', alignItems: 'stretch' },
   fact: { flex: 1, minWidth: 0, alignItems: 'center', gap: 2 },
   factDivider: { width: 1, backgroundColor: PALETTE.divider, marginVertical: SPACE.xs },
@@ -402,7 +442,7 @@ const styles = StyleSheet.create({
   // Shadow on the card, no overflow clip: the image rounds its own top corners.
   product: {
     width: '48.5%', backgroundColor: PALETTE.card, borderRadius: 18, marginBottom: SPACE.md,
-    borderWidth: 1, borderColor: 'rgba(226,232,240,0.9)',
+    borderWidth: 1, borderColor: PALETTE.border,
     shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 14, elevation: 3,
   },
   productImgWrap: { borderTopLeftRadius: 17, borderTopRightRadius: 17, overflow: 'hidden' },

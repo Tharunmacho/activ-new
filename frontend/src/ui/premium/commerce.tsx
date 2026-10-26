@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,10 +16,10 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { PALETTE, SIZE, SPACE, TYPE, Tone } from '../tokens';
+import { SIZE, SPACE, Tone } from '../tokens';
 import { GradientButton } from './controls';
 import { PressableScale, prefersReducedMotion } from './motion';
-import { BRAND, premiumTone } from './theme';
+
 import { CallMark, MailMark, WhatsAppMark } from './contactMarks';
 
 /**
@@ -57,6 +58,8 @@ export function CompanyLogoTile({ uri, name, size = 56, tone = 'member', ring = 
   ring?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const [failed, setFailed] = useState(false);
   const src = typeof uri === 'string' ? uri.trim() : '';
@@ -78,7 +81,7 @@ export function CompanyLogoTile({ uri, name, size = 56, tone = 'member', ring = 
         end={{ x: 1, y: 1 }}
         style={{ width: outer, height: outer, borderRadius: radius, padding: ringW }}
       >
-        <View style={{ width: inner, height: inner, borderRadius: radius - ringW, backgroundColor: PALETTE.white, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: inner, height: inner, borderRadius: radius - ringW, backgroundColor: PALETTE.card, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
           {src && !failed ? (
             <Image
               source={{ uri: src }}
@@ -105,6 +108,8 @@ export function CompanyLogoTile({ uri, name, size = 56, tone = 'member', ring = 
 export function CompanyChip({ name, logo, active, onPress, tone = 'member' }: {
   name: string; logo?: string; active?: boolean; onPress: () => void; tone?: Tone;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const body = (
     <>
@@ -140,6 +145,8 @@ export function LiftCard({ children, style, onPress, accessibilityLabel, tone = 
   tone?: Tone;
   padded?: boolean;
 }) {
+  const { premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const box = [s.card, padded && s.cardPad, { shadowColor: p.shadow }];
   if (onPress) {
@@ -156,6 +163,8 @@ export function LiftCard({ children, style, onPress, accessibilityLabel, tone = 
 export function GlassFigure({ icon, value, label, style }: {
   icon?: string; value: string; label: string; style?: StyleProp<ViewStyle>;
 }) {
+  const { brand: BRAND } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.glassStat, style]} accessible accessibilityLabel={`${label}: ${value}`}>
       {icon ? <Icon name={icon} size={16} color={BRAND.onBrandSoft} /> : null}
@@ -181,6 +190,8 @@ export function TrustStar({ trusted, busy, disabled, onPress, size = SIZE.touch,
   size?: number;
   accessibilityLabel?: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const pop = useRef(new Animated.Value(1)).current;
   const burst = useRef(new Animated.Value(0)).current;
   const prev = useRef(trusted);
@@ -244,6 +255,7 @@ export function ContactMark({ kind, size = 24 }: { kind: ContactKind; size?: num
 export function ContactAction({ kind, onPress, label, detail, style }: {
   kind: ContactKind; onPress: () => void; label?: string; detail?: string; style?: StyleProp<ViewStyle>;
 }) {
+  const s = useThemeStyles(makeStyles);
   const text = label || CONTACT_LABEL[kind];
   return (
     <PressableScale
@@ -265,6 +277,8 @@ export function ContactAction({ kind, onPress, label, detail, style }: {
 export interface ActivityItem { key: string; icon?: string; title: string; subtitle?: string; meta?: string }
 
 export function ActivityTimeline({ items, tone = 'member' }: { items: ActivityItem[]; tone?: Tone }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const list = (items || []).filter(Boolean);
   return (
@@ -314,6 +328,8 @@ export function ArtEmptyState({ art, icon = 'inbox', title, message, action, act
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const medal = compact ? 96 : 120;
   return (
@@ -345,6 +361,8 @@ export function LiftSearchBar({ value, onChangeText, placeholder = 'Search', ton
   style?: StyleProp<ViewStyle>;
   autoFocus?: boolean;
 }) {
+  const { palette: PALETTE, premiumTone, isDark } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const [focused, setFocused] = useState(false);
   return (
@@ -353,6 +371,7 @@ export function LiftSearchBar({ value, onChangeText, placeholder = 'Search', ton
         <Icon name="search" size={18} color={PALETTE.white} />
       </LinearGradient>
       <TextInput
+            keyboardAppearance={isDark ? 'dark' : 'light'}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -375,21 +394,21 @@ export function LiftSearchBar({ value, onChangeText, placeholder = 'Search', ton
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
-  logoShadow: { shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 10, elevation: 4, backgroundColor: PALETTE.white },
+  logoShadow: { shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 10, elevation: 4, backgroundColor: PALETTE.card },
 
   chip: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, height: 44, paddingLeft: 6, paddingRight: SPACE.md, borderRadius: 999, maxWidth: 240 },
   chipOn: {},
-  chipOff: { backgroundColor: PALETTE.white, borderWidth: 1, borderColor: PALETTE.border },
+  chipOff: { backgroundColor: PALETTE.card, borderWidth: 1, borderColor: PALETTE.border },
   chipLogo: { elevation: 0, shadowOpacity: 0 },
   chipText: { fontSize: 13, lineHeight: 18, fontWeight: '700', color: PALETTE.textSoft, flexShrink: 1 },
 
   card: {
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.8)',
+    borderColor: PALETTE.border,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.09,
     shadowRadius: 20,
@@ -424,9 +443,9 @@ const s = StyleSheet.create({
     paddingVertical: SPACE.md,
     paddingHorizontal: SPACE.xs,
     borderRadius: 18,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.9)',
+    borderColor: PALETTE.border,
     shadowColor: '#0B1A45',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.07,
@@ -472,7 +491,7 @@ const s = StyleSheet.create({
     paddingRight: SPACE.xs,
     borderRadius: 18,
     borderWidth: 1.5,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.12,
     shadowRadius: 20,

@@ -30,6 +30,8 @@ import { dashboardPathFor } from '@/features/member/memberAccess';
 
 import { CARD_TITLE } from './BusinessUI';
 import { recordProductView } from '@/services/memberHubApi';
+import { PhotoLightbox } from '@/components/shared/PhotoLightbox';
+import { businessPhotos, type BusinessPhoto } from './BusinessPhotoGallery';
 /**
  * Discover — the website's copy of `DiscoverScreen.tsx`.
  *
@@ -163,6 +165,7 @@ const FILTERS: { key: DiscoverFilter; label: string }[] = [
 ];
 
 const Discover = () => {
+    const [photoAlbum, setPhotoAlbum] = useState<{ photos: BusinessPhoto[]; title: string; index: number } | null>(null);
     const { activeCompany, loadCompanies } = useActiveCompanyStore();
     const navigate = useNavigate();
 
@@ -594,6 +597,11 @@ const Discover = () => {
             : companyMatchesQuery(item)
                 ? [...matched, ...catalog.filter((p) => !highlightIds.has(String(p?._id)))]
                 : matched;
+        const openPhoto = (id: string) => {
+            const photos = businessPhotos({ ...item, products: ordered });
+            const index = photos.findIndex(photo => photo.id === id);
+            if (index >= 0) setPhotoAlbum({ photos, index, title: `${item.businessName || 'Company'} photos` });
+        };
 
         return (
             /* `h-full`: the grid stretches its rows, so a card with two
@@ -645,14 +653,16 @@ const Discover = () => {
                     />
                 </button>
 
-                {item.banner ? <img src={resolveMediaUrl(item.banner)} alt={`${item.businessName || 'Company'} banner`} className="mb-4 w-full h-36 object-contain rounded-xl bg-white" loading="lazy" /> : null}
+                {item.banner ? <button type="button" onClick={() => openPhoto('banner')} aria-label={`Open cover photo: ${item.businessName || 'Company'}`} className="cursor-zoom-in"><img src={resolveMediaUrl(item.banner)} alt={`${item.businessName || 'Company'} banner`} className="mb-4 w-full h-36 object-contain rounded-xl bg-white" loading="lazy" /></button> : null}
                 <div className="flex items-start gap-3 sm:gap-4 pr-10">
                     {item.logo ? (
+                        <button type="button" onClick={() => openPhoto('logo')} aria-label={`Open logo photo: ${item.businessName || 'Company'}`} className="shrink-0 cursor-zoom-in">
                         <img
                             src={resolveMediaUrl(item.logo)}
                             alt={item.businessName || 'Business'}
                             className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-contain bg-white border border-slate-200 shrink-0"
                         />
+                        </button>
                     ) : (
                         <span className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
                             <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
@@ -838,11 +848,13 @@ const Discover = () => {
                                             }`}
                                     >
                                         {prod?.imageUrl ? (
+                                            <button type="button" onClick={() => openPhoto(`product:${prod._id}`)} aria-label={`Open photo: ${prod.name || 'Product'}`} className="shrink-0 cursor-zoom-in">
                                             <img
                                                 src={resolveMediaUrl(prod.imageUrl)}
                                                 alt={prod?.name || 'Item'}
                                                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg object-cover shrink-0"
                                             />
+                                            </button>
                                         ) : (
                                             <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                                                 <Package className="w-5 h-5 text-blue-600" />
@@ -1271,6 +1283,12 @@ const Discover = () => {
                     </Card>
                 )}
             </div>
+            <PhotoLightbox photos={photoAlbum?.photos || []} title={photoAlbum?.title} index={photoAlbum?.index ?? -1}
+                onClose={() => setPhotoAlbum(null)} onIndex={index => {
+                    const photo = photoAlbum?.photos[index];
+                    if (photo?.productId) viewProduct(photo.productId);
+                    setPhotoAlbum(current => current && ({ ...current, index }));
+                }} />
         </BusinessPageShell>
     );
 };

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-    Eye, Package, CheckCircle2, Star, Pencil, Clock, Plus, Store, ArrowLeftRight,
+    Users, Eye, Package, CheckCircle2, Star, Pencil, Clock, Plus, Store, ArrowLeftRight,
 } from "lucide-react";
 import BusinessPageShell from "./BusinessPageShell";
 import { Card, SectionHeading, StatTile, EmptyState, Loading, Chip, companyName } from "./BusinessUI";
@@ -33,7 +33,7 @@ const BusinessDashboard = () => {
      * counted it in the browser, which is both a second definition of "active"
      * and a much larger response than three numbers need.
      */
-    const [stats, setStats] = useState({ total: 0, active: 0, featured: 0 });
+    const [stats, setStats] = useState({ total: 0, active: 0, featured: 0, trustedBy: null as number | null });
     const [activities, setActivities] = useState<any[]>([]);
     /**
      * How many companies the member owns at all.
@@ -55,11 +55,16 @@ const BusinessDashboard = () => {
 
     useEffect(() => {
         if (!hasLoaded) return;
-        loadData();
+        let cancelled = false;
+        loadData(() => cancelled);
+        return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hasLoaded, activeCompany?._id]);
 
-    const loadData = async () => {
+    const loadData = async (isCancelled: () => boolean) => {
+        setLoading(true);
+        setStats({ total: 0, active: 0, featured: 0, trustedBy: null });
+        setActivities([]);
         try {
             // The company and the count both come from the shared selection,
             // so the dashboard cannot show one company while the sidebar shows
@@ -68,7 +73,7 @@ const BusinessDashboard = () => {
 
             const companyId = activeCompany?._id;
             if (!companyId) {
-                setStats({ total: 0, active: 0, featured: 0 });
+                setStats({ total: 0, active: 0, featured: 0, trustedBy: null });
                 setActivities([]);
                 return;
             }
@@ -82,26 +87,31 @@ const BusinessDashboard = () => {
                 apiFetch(`/products/stats?companyId=${scope}`),
                 apiFetch(`/products/activities?companyId=${scope}&limit=5`),
             ]);
+            if (isCancelled()) return;
 
-            if (statsRes.status === 'fulfilled') {
+            if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
                 const body = await statsRes.value.json().catch(() => null);
+                if (isCancelled()) return;
                 const data = body?.data || {};
                 setStats({
                     total: Number(data.total || 0),
                     active: Number(data.active || 0),
                     featured: Number(data.featured || 0),
+                    trustedBy: typeof data.trustedBy === 'number' && Number.isFinite(data.trustedBy)
+                        ? Math.max(0, data.trustedBy) : null,
                 });
             }
 
             if (activitiesRes.status === 'fulfilled') {
                 const body = await activitiesRes.value.json().catch(() => null);
+                if (isCancelled()) return;
                 const data = body?.data ?? [];
                 setActivities(Array.isArray(data) ? data : []);
             }
         } catch (error) {
             console.error("Error loading data:", error);
         } finally {
-            setLoading(false);
+            if (!isCancelled()) setLoading(false);
         }
     };
 
@@ -166,7 +176,7 @@ const BusinessDashboard = () => {
                     {/* Two-up on a phone, as on the member dashboard. One column made
                         four figures cost a full screen of scrolling to read. */}
                     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5">
-                        <StatTile label="Profile Views" value={0} unit="Last 30 days" icon={Eye} />
+                        <StatTile label="Trusted by" value={stats.trustedBy ?? '—'} unit={stats.trustedBy === null ? 'Count unavailable' : stats.trustedBy === 1 ? 'Member' : 'Members'} icon={Users} />
                         <StatTile label="Products Listed" value={stats.total} unit="Total catalog" icon={Package} />
                         {/*
                             The server's count of active products. This read

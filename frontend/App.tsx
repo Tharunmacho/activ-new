@@ -1,3 +1,5 @@
+import { AppThemeProvider, useAppTheme } from './src/ui/AppTheme';
+import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 /**
  * Activ App
  * React Native App with Navigation
@@ -110,7 +112,13 @@ if (typeof (globalThis as any).ErrorUtils !== 'undefined') {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function App() {
+function AppContent() {
+  const { palette, isDark } = useAppTheme();
+  const navigationTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: { ...(isDark ? DarkTheme.colors : DefaultTheme.colors), primary: palette.primaryDark,
+      background: palette.canvas, card: palette.card, text: palette.text, border: palette.border, notification: palette.red },
+  };
   const [notificationEntryReady, setNotificationEntryReady] = useState(false);
   const updateNotificationEntry = () => {
     const state = navigationRef.getRootState();
@@ -126,8 +134,8 @@ function App() {
     <ErrorBoundary>
       <SafeAreaProvider>
         <AppUpdateGate>
-        <NavigationContainer ref={navigationRef} onReady={() => { flushPendingDeepLink(); void flushPushNavigation(); updateNotificationEntry(); }} onStateChange={() => { void flushPushNavigation(); void trackScreen(navigationRef.getCurrentRoute()?.name); updateNotificationEntry(); }}>
-        <StatusBar barStyle="dark-content" />
+        <NavigationContainer theme={navigationTheme} ref={navigationRef} onReady={() => { flushPendingDeepLink(); void flushPushNavigation(); updateNotificationEntry(); }} onStateChange={() => { void flushPushNavigation(); void trackScreen(navigationRef.getCurrentRoute()?.name); updateNotificationEntry(); }}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <Stack.Navigator initialRouteName="Onboarding">
           <Stack.Screen name="PublicExplore" component={PublicExploreScreen} options={{ headerShown: false }} />
           <Stack.Screen name="PublicNotifications" component={PublicNotificationsScreen} options={{ headerShown: false }} />
@@ -365,6 +373,10 @@ function App() {
     </SafeAreaProvider>
   </ErrorBoundary>
   );
+}
+
+function App() {
+  return <AppThemeProvider><AppContent /></AppThemeProvider>;
 }
 
 export default App;

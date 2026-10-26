@@ -1,9 +1,11 @@
+import { useAppTheme, useThemeStyles } from '../../../ui/AppTheme';
+import type { AppTheme } from '../../../ui/AppTheme';
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { PALETTE, RADIUS, SPACE, TYPE, SIZE, PressableScale } from '../../../ui';
+import { RADIUS, SPACE, SIZE, PressableScale } from '../../../ui';
 import {
   EXPORT_COUNCILS, ITR_YEARS_EXPECTED, financialYears, parseYears,
 } from './companyOptions';
@@ -66,15 +68,18 @@ export const pickImage = (maxBytes: number, label: string, onPicked: (img: Picke
 /* ------------------------------------------------------------------ labels */
 
 export function Label({ text, required, hint }: { text: string; required?: boolean; hint?: string }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={s.labelWrap}>
-      <Text style={s.label} maxFontSizeMultiplier={1.3}>{text}{required ? <Text style={{ color: PALETTE.red }}> *</Text> : null}</Text>
+      <Text style={s.label} maxFontSizeMultiplier={1.3}>{text}{required ? <Text style={{ color: PALETTE.dangerText }}> *</Text> : null}</Text>
       {hint ? <Text style={s.hint} maxFontSizeMultiplier={1.3}>{hint}</Text> : null}
     </View>
   );
 }
 
 export function SubHeading({ title, hint }: { title: string; hint?: string }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={s.sub}>
       <View style={s.subRow}>
@@ -92,6 +97,8 @@ export function SubHeading({ title, hint }: { title: string; hint?: string }) {
 function Pill({ label, on, onPress, role, icon, style }: {
   label: string; on: boolean; onPress: () => void; role: 'radio' | 'checkbox'; icon?: string; style?: any;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const inner = (
     <>
       {on ? <Icon name="check" size={15} color={PALETTE.white} /> : icon ? <Icon name={icon} size={16} color={PALETTE.textMuted} /> : null}
@@ -122,6 +129,8 @@ const PILL_ON = ['#4C1D95', '#7C3AED'];
 export function ChipChoice({ options, value, onChange, required, error }: {
   options: readonly string[]; value: string; onChange: (v: string) => void; required?: boolean; error?: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={{ marginBottom: SPACE.lg }}>
       <View style={s.chips} accessibilityRole="radiogroup">
@@ -144,6 +153,7 @@ export function ChipChoice({ options, value, onChange, required, error }: {
 export function ChipMulti({ options, values, onToggle }: {
   options: readonly string[]; values: string[]; onToggle: (v: string) => void;
 }) {
+  const s = useThemeStyles(makeStyles);
   const set = new Set(values || []);
   return (
     <View style={[s.chips, { marginBottom: SPACE.lg }]}>
@@ -154,6 +164,8 @@ export function ChipMulti({ options, values, onToggle }: {
 
 /** Yes / No, and neither is allowed — nothing here is required. */
 export function YesNo({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.yesNo, { marginBottom: SPACE.lg }]} accessibilityRole="radiogroup">
       {(['yes', 'no'] as const).map((v) => {
@@ -191,6 +203,8 @@ export function YesNo({ value, onChange }: { value: string; onChange: (v: string
 export function CheckTile({ label, description, checked, onPress, lockedNote }: {
   label: string; description?: string; checked: boolean; onPress: () => void; lockedNote?: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <PressableScale
       onPress={lockedNote ? undefined : onPress}
@@ -226,6 +240,8 @@ export function CheckTile({ label, description, checked, onPress, lockedNote }: 
 
 /** The website's FinancialYearsInput: tick three financial years, told what is missing. */
 export function YearsPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const options = useMemo(() => financialYears(), []);
   const chosen = useMemo(() => parseYears(value), [value]);
   const carried = chosen.filter((y) => !options.includes(y));
@@ -265,6 +281,8 @@ export function YearsPicker({ value, onChange }: { value: string; onChange: (v: 
  * ten, or add a category NIC does not list (stored with an empty code).
  */
 export function CategoryPicker({ value, onChange }: { value: ProductCategory[]; onChange: (next: ProductCategory[]) => void }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const [query, setQuery] = useState('');
   const [catalogue, setCatalogue] = useState<NicCategory[] | null>(null);
   const list = value || [];
@@ -379,6 +397,8 @@ export function CategoryPicker({ value, onChange }: { value: ProductCategory[]; 
 
 /** The website's ExportCouncilInput: searchable DGFT list, still accepts a body it lacks. */
 export function CouncilPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const [query, setQuery] = useState('');
   const [browsing, setBrowsing] = useState(false);
   const trimmed = query.trim();
@@ -448,9 +468,7 @@ export function CouncilPicker({ value, onChange }: { value: string; onChange: (v
 
 /* ------------------------------------------------------------------ styles */
 
-const FILL = '#F7F5FD';
-
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   // Same metrics as PremiumLabel so free-standing labels line up with PremiumInput ones.
   labelWrap: { marginBottom: SPACE.sm, marginLeft: 2 },
   label: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: PALETTE.textSoft },
@@ -465,7 +483,7 @@ const s = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, paddingHorizontal: 14, minHeight: 40,
-    borderRadius: 999, backgroundColor: FILL, borderWidth: 1, borderColor: '#E6E0F4', maxWidth: '100%',
+    borderRadius: 999, backgroundColor: PALETTE.fieldBg, borderWidth: 1, borderColor: PALETTE.violetBorder, maxWidth: '100%',
   },
   chipOn: { borderColor: 'transparent' },
   chipText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: PALETTE.textSoft, flexShrink: 1 },
@@ -474,17 +492,17 @@ const s = StyleSheet.create({
   yesNo: { flexDirection: 'row', gap: SPACE.md },
   yesNoBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.xs + 2, minHeight: 50,
-    borderRadius: 14, borderWidth: 1.5, borderColor: '#E6E0F4', backgroundColor: FILL,
+    borderRadius: 14, borderWidth: 1.5, borderColor: PALETTE.violetBorder, backgroundColor: PALETTE.fieldBg,
   },
   yesNoOn: { borderColor: 'transparent' },
 
   tile: {
     flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.md, padding: SPACE.md, minHeight: SIZE.row,
-    borderRadius: 16, borderWidth: 1.5, borderColor: '#E6E0F4', backgroundColor: PALETTE.card, marginBottom: SPACE.sm,
+    borderRadius: 16, borderWidth: 1.5, borderColor: PALETTE.violetBorder, backgroundColor: PALETTE.card, marginBottom: SPACE.sm,
   },
   tileOn: { borderColor: PALETTE.violet, backgroundColor: PALETTE.violetTint },
   tick: { width: 24, height: 24, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  tickOff: { borderWidth: 1.5, borderColor: PALETTE.borderStrong, backgroundColor: PALETTE.white },
+  tickOff: { borderWidth: 1.5, borderColor: PALETTE.borderStrong, backgroundColor: PALETTE.card },
   tileTitle: { ...TYPE.bodyStrong },
   tileSub: { ...TYPE.small, marginTop: SPACE.xxs },
   lock: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, marginTop: SPACE.xs + 2, alignSelf: 'flex-start', paddingHorizontal: SPACE.sm, paddingVertical: 3, borderRadius: RADIUS.xs, backgroundColor: PALETTE.violetSoft },
@@ -500,7 +518,7 @@ const s = StyleSheet.create({
   removeBtn: { width: SIZE.touch, height: SIZE.touch, alignItems: 'center', justifyContent: 'center' },
 
   // Matches PremiumInput: 52 tall, soft fill, 14 radius.
-  search: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, minHeight: 52, borderRadius: 14, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: FILL, paddingHorizontal: 14 },
+  search: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, minHeight: 52, borderRadius: 14, borderWidth: 1.5, borderColor: 'transparent', backgroundColor: PALETTE.fieldBg, paddingHorizontal: 14 },
   searchInput: { flex: 1, minWidth: 0, fontSize: 15, color: PALETTE.text, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
   results: {
     marginTop: SPACE.sm, borderRadius: 14, borderWidth: 1, borderColor: PALETTE.border, overflow: 'hidden', backgroundColor: PALETTE.card,

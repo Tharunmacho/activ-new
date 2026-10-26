@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from './AppTheme';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -23,7 +24,7 @@ import {
 import { SafeAreaView, Edge, useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { PALETTE, RADIUS, SPACE, SHADOW, TYPE, SIZE, Tone, toneOf, statusTone, GRADIENTS } from './tokens';
+import { RADIUS, SPACE, SHADOW, SIZE, Tone, GRADIENTS } from './tokens';
 
 /**
  * ============================================================================
@@ -51,7 +52,7 @@ const CAP = 1.3;
 
 export function Screen({
   children, tone = 'member', edges = ['top'], scroll = true, refreshing, onRefresh, style, contentStyle,
-  statusBar = 'dark-content', footer, avoidKeyboard = false,
+  statusBar, footer, avoidKeyboard = false,
 }: {
   children: React.ReactNode;
   tone?: Tone;
@@ -68,6 +69,7 @@ export function Screen({
   /** Lift the content above the keyboard on iOS (forms). Android resizes natively. */
   avoidKeyboard?: boolean;
 }) {
+  const { toneOf, isDark } = useAppTheme();
   const t = toneOf(tone);
   const body = scroll ? (
     <ScrollView
@@ -86,7 +88,7 @@ export function Screen({
   );
   return (
     <SafeAreaView style={[{ flex: 1, backgroundColor: t.canvas }, style]} edges={edges}>
-      <StatusBar barStyle={statusBar} />
+      <StatusBar barStyle={statusBar ?? (isDark ? 'light-content' : 'dark-content')} />
       {avoidKeyboard && Platform.OS === 'ios' ? (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           {body}
@@ -120,6 +122,8 @@ export function AppHeader({
   border?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   const lead = onMenu
     ? <IconButton icon="menu" onPress={onMenu} accessibilityLabel="Open menu" />
@@ -130,7 +134,7 @@ export function AppHeader({
     <View style={[s.header, border && s.headerBorder, style]}>
       {lead}
       <View style={[s.headerText, !lead && { marginLeft: 0 }]}>
-        {eyebrow ? <Text style={[s.headerEyebrow, { color: t.accent }]} maxFontSizeMultiplier={CAP}>{eyebrow}</Text> : null}
+        {eyebrow ? <Text style={[s.headerEyebrow, { color: t.accentDark }]} maxFontSizeMultiplier={CAP}>{eyebrow}</Text> : null}
         <Text style={s.headerTitle} accessibilityRole="header" maxFontSizeMultiplier={CAP}>{String(title ?? '')}</Text>
         {subtitle ? <Text style={s.headerSub} maxFontSizeMultiplier={CAP}>{subtitle}</Text> : null}
       </View>
@@ -140,7 +144,7 @@ export function AppHeader({
 }
 
 export function IconButton({
-  icon, onPress, accessibilityLabel, color = PALETTE.textSoft, badge, style, variant = 'surface', size = 22, disabled,
+  icon, onPress, accessibilityLabel, color, badge, style, variant = 'surface', size = 22, disabled,
 }: {
   icon: string;
   onPress?: () => void;
@@ -153,6 +157,8 @@ export function IconButton({
   size?: number;
   disabled?: boolean;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const count = Number(badge || 0);
   return (
     <TouchableOpacity
@@ -165,7 +171,7 @@ export function IconButton({
       activeOpacity={0.65}
       hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
     >
-      <Icon name={icon} size={size} color={color} />
+      <Icon name={icon} size={size} color={color ?? PALETTE.textSoft} />
       {count > 0 ? (
         <View style={s.iconBadge}><Text style={s.iconBadgeText} maxFontSizeMultiplier={1}>{count > 99 ? '99+' : String(count)}</Text></View>
       ) : null}
@@ -191,6 +197,8 @@ export function Hero({
   /** Replaces the icon tile (e.g. an <Avatar>). */
   right?: React.ReactNode;
 }) {
+  const { palette: PALETTE, toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const grad = (colors && colors.length >= 2) ? colors : toneOf(tone).gradient;
   return (
     // Shadow lives on the wrapper: a shadow on the clipped gradient is invisible on iOS.
@@ -224,6 +232,7 @@ export function Card({ children, style, onPress, padded = true, accessibilityLab
   /** elevated = border + soft shadow (default) · outlined = border only · tinted = accent-soft fill, no shadow. */
   variant?: 'elevated' | 'outlined' | 'tinted';
 }) {
+  const s = useThemeStyles(makeStyles);
   const look = variant === 'outlined' ? s.cardOutlined : variant === 'tinted' ? s.cardTinted : SHADOW.card;
   if (!onPress) {
     return <View style={[s.card, look, padded && s.cardPad, style]}>{children}</View>;
@@ -240,6 +249,8 @@ export function Card({ children, style, onPress, padded = true, accessibilityLab
 export function SectionTitle({ title, action, onAction, style, subtitle, tone = 'member' }: {
   title: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle>; subtitle?: string; tone?: Tone;
 }) {
+  const { toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   return (
     <View style={[s.sectionRow, style]}>
@@ -249,7 +260,7 @@ export function SectionTitle({ title, action, onAction, style, subtitle, tone = 
       </View>
       {action && onAction ? (
         <TouchableOpacity onPress={onAction} hitSlop={HIT} style={s.sectionActionBtn} accessibilityRole="button" accessibilityLabel={action}>
-          <Text style={[s.sectionAction, { color: t.accent }]} maxFontSizeMultiplier={CAP}>{action}</Text>
+          <Text style={[s.sectionAction, { color: t.accentDark }]} maxFontSizeMultiplier={CAP}>{action}</Text>
           <Icon name="chevron-right" size={18} color={t.accent} />
         </TouchableOpacity>
       ) : null}
@@ -277,15 +288,17 @@ export function Section({ title, subtitle, action, onAction, tone, children, sty
 const StatColumns = createContext<2 | 3>(2);
 
 /** A small stat tile — two (or three) per row inside <StatGrid>. Equal heights per row. */
-export function StatTile({ label, value, icon, color = PALETTE.blue, soft = PALETTE.blueSoft, hint, onPress }: {
+export function StatTile({ label, value, icon, color, soft, hint, onPress }: {
   label: string; value: string | number; icon: string; color?: string; soft?: string; hint?: string; onPress?: () => void;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const cols = useContext(StatColumns);
   const shown = value === null || value === undefined || value === '' ? '—' : String(value);
   const inner = (
     <>
       <View style={s.statHead}>
-        <View style={[s.statIcon, { backgroundColor: soft }]}><Icon name={icon} size={SIZE.icon} color={color} /></View>
+        <View style={[s.statIcon, { backgroundColor: soft ?? PALETTE.blueSoft }]}><Icon name={icon} size={SIZE.icon} color={color ?? PALETTE.blueDark} /></View>
         {onPress ? <Icon name="arrow-outward" size={16} color={PALETTE.textFaint} /> : null}
       </View>
       <Text style={[s.statValue, cols === 3 && { fontSize: 20, lineHeight: 26 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={CAP}>{shown}</Text>
@@ -307,6 +320,7 @@ export function StatTile({ label, value, icon, color = PALETTE.blue, soft = PALE
 }
 
 export function StatGrid({ children, columns = 2, style }: { children: React.ReactNode; columns?: 2 | 3; style?: StyleProp<ViewStyle> }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <StatColumns.Provider value={columns}>
       <View style={[s.statGrid, style]}>{children}</View>
@@ -317,19 +331,21 @@ export function StatGrid({ children, columns = 2, style }: { children: React.Rea
 /* ------------------------------------------------------------------ Rows */
 
 /** A tappable row: icon, title, subtitle, trailing text/chevron. Use inside a Card. */
-export function ListRow({ icon, iconColor = PALETTE.blue, iconBg = PALETTE.blueSoft, title, subtitle, meta, right, onPress, danger, last, disabled, leading }: {
+export function ListRow({ icon, iconColor, iconBg, title, subtitle, meta, right, onPress, danger, last, disabled, leading }: {
   icon?: string; iconColor?: string; iconBg?: string; title: string; subtitle?: string; meta?: string;
   right?: React.ReactNode; onPress?: () => void; danger?: boolean; last?: boolean; disabled?: boolean;
   /** Replaces the icon chip (e.g. an <Avatar size={40}>). */
   leading?: React.ReactNode;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const hasLead = !!leading || !!icon;
   const content = (pressed = false) => (
     <View style={[s.row, pressed && { opacity: 0.6 }, disabled && { opacity: 0.45 }]}>
       {leading ? <View style={s.rowLead}>{leading}</View>
-        : icon ? <View style={[s.rowIcon, { backgroundColor: danger ? PALETTE.redSoft : iconBg }]}><Icon name={icon} size={SIZE.icon} color={danger ? PALETTE.red : iconColor} /></View> : null}
+        : icon ? <View style={[s.rowIcon, { backgroundColor: danger ? PALETTE.redSoft : (iconBg ?? PALETTE.blueSoft) }]}><Icon name={icon} size={SIZE.icon} color={danger ? PALETTE.red : (iconColor ?? PALETTE.blueDark)} /></View> : null}
       <View style={s.rowText}>
-        <Text style={[s.rowTitle, danger && { color: PALETTE.red }]} numberOfLines={2}>{String(title ?? '')}</Text>
+        <Text style={[s.rowTitle, danger && { color: PALETTE.dangerText }]} numberOfLines={2}>{String(title ?? '')}</Text>
         {subtitle ? <Text style={s.rowSub}>{subtitle}</Text> : null}
       </View>
       {meta ? <Text style={s.rowMeta} numberOfLines={1} maxFontSizeMultiplier={CAP}>{meta}</Text> : null}
@@ -351,6 +367,8 @@ export function InfoRow({ label, value, last, inline = false, icon }: {
   inline?: boolean;
   icon?: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const shown = value === null || value === undefined || value === '' ? '—' : String(value);
   return (
     <View style={[inline ? s.infoInline : s.info, !last && s.rowDivider]}>
@@ -369,6 +387,8 @@ export function KeyValueGrid({ items, columns = 2, style }: {
   columns?: 2 | 3;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const list = Array.isArray(items) ? items : [];
   return (
     <View style={[s.kvGrid, style]}>
@@ -394,6 +414,8 @@ export function ToggleRow({ title, subtitle, value, onValueChange, icon, disable
   title: string; subtitle?: string; value: boolean; onValueChange: (v: boolean) => void;
   icon?: string; disabled?: boolean; last?: boolean; tone?: Tone;
 }) {
+  const { palette: PALETTE, toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   return (
     <View style={[s.row, disabled && { opacity: 0.5 }]}>
@@ -423,6 +445,7 @@ export function Divider({ inset = 0, spacing = 0, style }: {
   spacing?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
   return <View style={[{ height: StyleSheet.hairlineWidth * 2, backgroundColor: PALETTE.divider, marginLeft: inset, marginVertical: spacing }, style]} />;
 }
 
@@ -438,6 +461,8 @@ export function Badge({ label, status, color, bg, style, icon, size = 'md', dot 
   /** Leading coloured dot (live / status). */
   dot?: boolean;
 }) {
+  const { statusTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = statusTone(status || label);
   const fg = color || t.fg;
   return (
@@ -454,8 +479,10 @@ export function Chip({ label, selected = false, onPress, icon, count, tone = 'me
   label: string; selected?: boolean; onPress?: () => void; icon?: string; count?: number;
   tone?: Tone; disabled?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE, toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
-  const fg = selected ? t.accent : PALETTE.textSoft;
+  const fg = selected ? t.accentDark : PALETTE.textSoft;
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -468,7 +495,7 @@ export function Chip({ label, selected = false, onPress, icon, count, tone = 'me
     >
       {selected ? <Icon name="check" size={15} color={fg} /> : icon ? <Icon name={icon} size={15} color={fg} /> : null}
       <Text style={[s.chipText, { color: fg }]} numberOfLines={1} maxFontSizeMultiplier={CAP}>{String(label ?? '')}</Text>
-      {typeof count === 'number' ? <Text style={[s.chipCount, { color: selected ? t.accent : PALETTE.textMuted }]} maxFontSizeMultiplier={CAP}>{count}</Text> : null}
+      {typeof count === 'number' ? <Text style={[s.chipCount, { color: selected ? t.accentDark : PALETTE.textMuted }]} maxFontSizeMultiplier={CAP}>{count}</Text> : null}
     </TouchableOpacity>
   );
 }
@@ -481,6 +508,7 @@ export function FilterChips<T extends string>({ options, value, onChange, tone =
   options: { value: T; label: string; count?: number; icon?: string }[];
   value: T; onChange: (v: T) => void; tone?: Tone; style?: StyleProp<ViewStyle>;
 }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={style} contentContainerStyle={s.chipRow} accessibilityRole="radiogroup">
       {(options || []).map((o) => (
@@ -500,6 +528,8 @@ export function SegmentedTabs<T extends string>({ options, value, onChange, tone
   options: { value: T; label: string; count?: number }[]; value: T; onChange: (v: T) => void; tone?: Tone;
   scrollable?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const { toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   const list = options || [];
   const scroll = scrollable ?? list.length > 4;
@@ -544,11 +574,11 @@ export function SegmentedTabs<T extends string>({ options, value, onChange, tone
               accessibilityLabel={typeof o.count === 'number' ? `${o.label}, ${o.count}` : o.label}
               activeOpacity={0.8}
             >
-              <Text style={[s.segText, on && { color: t.accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={CAP}>
+              <Text style={[s.segText, on && { color: t.accentDark }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={CAP}>
                 {o.label}
               </Text>
               {typeof o.count === 'number' ? (
-                <Text style={[s.segCount, on && { color: t.accent }]} numberOfLines={1} maxFontSizeMultiplier={1}>{o.count > 999 ? '999+' : o.count}</Text>
+                <Text style={[s.segCount, on && { color: t.accentDark }]} numberOfLines={1} maxFontSizeMultiplier={1}>{o.count > 999 ? '999+' : o.count}</Text>
               ) : null}
             </TouchableOpacity>
           );
@@ -571,14 +601,16 @@ type ButtonProps = {
 export function PrimaryButton({ label, onPress, loading, disabled, icon, tone = 'member', variant = 'solid', style, size = 'md', iconRight, accessibilityLabel }: ButtonProps & {
   variant?: ButtonVariant;
 }) {
+  const { palette: PALETTE, toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   const off = !!disabled || !!loading;
   const height = size === 'sm' ? SIZE.controlSm : size === 'lg' ? SIZE.controlLg : SIZE.control;
   const fontSize = size === 'sm' ? 14 : 15;
   const gradient = variant === 'solid' || variant === 'danger' || variant === 'gold';
   const fg = gradient ? '#FFFFFF'
-    : variant === 'dangerOutline' ? PALETTE.red
-    : t.accent;
+    : variant === 'dangerOutline' ? PALETTE.dangerText
+    : t.accentDark;
   const a11y = {
     accessibilityRole: 'button' as const,
     accessibilityLabel: accessibilityLabel || label,
@@ -656,6 +688,7 @@ export function BottomActionBar({ children, safeBottom = true, style, note }: {
   /** Small line above the buttons (e.g. "You will be charged ₹5,000"). */
   note?: string;
 }) {
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const bottom = safeBottom ? Math.max(Number(insets?.bottom || 0), SPACE.md) : SPACE.md;
   return (
@@ -672,6 +705,8 @@ export function Field({ label, error, hint, icon, right, style, inputStyle, requ
   label?: string; error?: string; hint?: string; icon?: string; right?: React.ReactNode; inputStyle?: TextStyle;
   required?: boolean; tone?: Tone;
 }) {
+  const { palette: PALETTE, toneOf, isDark } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   const [focused, setFocused] = useState(false);
   const readOnly = rest.editable === false;
@@ -681,7 +716,7 @@ export function Field({ label, error, hint, icon, right, style, inputStyle, requ
     <View style={[{ marginBottom: SPACE.md }, style as StyleProp<ViewStyle>]}>
       {label ? (
         <Text style={s.fieldLabel} maxFontSizeMultiplier={CAP}>
-          {label}{required ? <Text style={{ color: PALETTE.red }}> *</Text> : null}
+          {label}{required ? <Text style={{ color: PALETTE.dangerText }}> *</Text> : null}
         </Text>
       ) : null}
       <View
@@ -695,6 +730,7 @@ export function Field({ label, error, hint, icon, right, style, inputStyle, requ
       >
         {icon ? <Icon name={icon} size={SIZE.icon} color={focused ? t.accent : PALETTE.textFaint} style={{ marginRight: SPACE.sm, marginTop: multi ? 2 : 0 }} /> : null}
         <TextInput
+            keyboardAppearance={isDark ? 'dark' : 'light'}
           placeholderTextColor={PALETTE.textFaint}
           selectionColor={t.accent}
           accessibilityLabel={label || rest.placeholder}
@@ -718,6 +754,8 @@ export function Field({ label, error, hint, icon, right, style, inputStyle, requ
 /* ------------------------------------------------------------------ States */
 
 export function Loading({ label = 'Loading…', tone = 'member', compact }: { label?: string; tone?: Tone; compact?: boolean }) {
+  const { toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.state, compact && { paddingVertical: SPACE.xl }]} accessibilityRole="progressbar" accessibilityLabel={label}>
       <ActivityIndicator size={compact ? 'small' : 'large'} color={toneOf(tone).accent} />
@@ -732,6 +770,8 @@ export function EmptyState({ icon = 'inbox', title, message, action, onAction, t
   compact?: boolean;
   actionIcon?: string;
 }) {
+  const { toneOf } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const t = toneOf(tone);
   return (
     <View style={[s.state, compact && { paddingVertical: SPACE.xxl }]}>
@@ -748,9 +788,11 @@ export function EmptyState({ icon = 'inbox', title, message, action, onAction, t
 export function ErrorState({ message, onRetry, tone = 'member', title = 'Could not load this' }: {
   message?: string; onRetry?: () => void; tone?: Tone; title?: string;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={s.state}>
-      <View style={[s.stateHalo, { backgroundColor: '#FEF2F2' }]}>
+      <View style={[s.stateHalo, { backgroundColor: PALETTE.dangerSoft }]}>
         <View style={[s.stateIcon, { backgroundColor: PALETTE.redSoft }]}><Icon name="cloud-off" size={30} color={PALETTE.red} /></View>
       </View>
       <Text style={s.stateTitle}>{title}</Text>
@@ -765,12 +807,14 @@ export function Notice({ text, kind = 'info', icon, action, onAction, title, sty
   text: string; kind?: 'info' | 'warning' | 'success' | 'danger'; icon?: string; action?: string; onAction?: () => void;
   title?: string; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const map = {
-    info: { fg: PALETTE.blueDark, bg: PALETTE.blueSoft, line: '#C7DAFB', i: 'info-outline' },
-    warning: { fg: '#92400E', bg: '#FFF8E6', line: '#FCE3A6', i: 'warning-amber' },
-    success: { fg: '#065F46', bg: '#ECFDF5', line: '#A7F3D0', i: 'check-circle-outline' },
-    danger: { fg: '#991B1B', bg: '#FEF2F2', line: '#FECACA', i: 'error-outline' },
-  }[kind] || { fg: PALETTE.blueDark, bg: PALETTE.blueSoft, line: '#C7DAFB', i: 'info-outline' };
+    info: { fg: PALETTE.blueDark, bg: PALETTE.blueSoft, line: PALETTE.border, i: 'info-outline' },
+    warning: { fg: PALETTE.warningText, bg: PALETTE.warningSoft, line: PALETTE.border, i: 'warning-amber' },
+    success: { fg: PALETTE.successText, bg: PALETTE.successSoft, line: PALETTE.border, i: 'check-circle-outline' },
+    danger: { fg: PALETTE.dangerText, bg: PALETTE.dangerSoft, line: PALETTE.border, i: 'error-outline' },
+  }[kind] || { fg: PALETTE.blueDark, bg: PALETTE.blueSoft, line: PALETTE.border, i: 'info-outline' };
   return (
     <View style={[s.notice, { backgroundColor: map.bg, borderColor: map.line }, style]} accessibilityRole={kind === 'danger' ? 'alert' : undefined}>
       <Icon name={icon || map.i} size={20} color={map.fg} style={{ marginTop: 1 }} />
@@ -793,6 +837,7 @@ export function Notice({ text, kind = 'info', icon, action, onAction, title, sty
 export function Skeleton({ width = '100%', height = 14, radius = RADIUS.sm, style }: {
   width?: number | `${number}%`; height?: number; radius?: number; style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
   const pulse = useRef(new Animated.Value(0.55)).current;
   useEffect(() => {
     const loop = Animated.loop(Animated.sequence([
@@ -807,6 +852,7 @@ export function Skeleton({ width = '100%', height = 14, radius = RADIUS.sm, styl
 
 /** A ready-made loading list: `rows` card-shaped skeletons on the screen gutter. */
 export function SkeletonList({ rows = 4 }: { rows?: number }) {
+  const s = useThemeStyles(makeStyles);
   const n = Math.max(1, Math.min(Number(rows || 4), 12));
   return (
     <View style={{ paddingHorizontal: SPACE.lg, gap: SPACE.md, paddingTop: SPACE.md }} accessibilityLabel="Loading">
@@ -825,7 +871,7 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
 
 /* ------------------------------------------------------------------ Avatar */
 
-export function Avatar({ name, size = 44, color = PALETTE.blue, bg = PALETTE.blueSoft, uri, style, ring }: {
+export function Avatar({ name, size = 44, color, bg, uri, style, ring }: {
   name?: string | null; size?: number; color?: string; bg?: string;
   /** Photo URL. Falls back to initials when missing or when it fails to load. */
   uri?: string | null;
@@ -833,6 +879,7 @@ export function Avatar({ name, size = 44, color = PALETTE.blue, bg = PALETTE.blu
   /** White ring — for avatars sitting on a gradient or overlapping a photo. */
   ring?: boolean;
 }) {
+  const { palette: PALETTE } = useAppTheme();
   const [failed, setFailed] = useState(false);
   const src = typeof uri === 'string' ? uri.trim() : '';
   useEffect(() => { setFailed(false); }, [src]);
@@ -841,7 +888,7 @@ export function Avatar({ name, size = 44, color = PALETTE.blue, bg = PALETTE.blu
     ? (parts[0] || '').charAt(0).toUpperCase()
     : `${(parts[0] || '').charAt(0)}${(parts[parts.length - 1] || '').charAt(0)}`.toUpperCase();
   const box: ViewStyle = {
-    width: size, height: size, borderRadius: size / 2, backgroundColor: bg,
+    width: size, height: size, borderRadius: size / 2, backgroundColor: bg ?? PALETTE.blueSoft,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
     ...(ring ? { borderWidth: 2, borderColor: PALETTE.white } : null),
   };
@@ -850,7 +897,7 @@ export function Avatar({ name, size = 44, color = PALETTE.blue, bg = PALETTE.blu
       {src && !failed ? (
         <Image source={{ uri: src }} style={{ width: size, height: size }} resizeMode="cover" onError={() => setFailed(true)} />
       ) : (
-        <Text style={{ color, fontWeight: '700', fontSize: Math.round(size * 0.36), letterSpacing: 0.2 }} maxFontSizeMultiplier={1}>{initials}</Text>
+        <Text style={{ color: color ?? PALETTE.blueDark, fontWeight: '700', fontSize: Math.round(size * 0.36), letterSpacing: 0.2 }} maxFontSizeMultiplier={1}>{initials}</Text>
       )}
     </View>
   );
@@ -858,7 +905,7 @@ export function Avatar({ name, size = 44, color = PALETTE.blue, bg = PALETTE.blu
 
 /* ------------------------------------------------------------------ styles */
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACE.lg, paddingVertical: SPACE.sm, minHeight: SIZE.header + SPACE.sm },
   headerBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: PALETTE.borderStrong },
   headerText: { flex: 1, minWidth: 0, marginHorizontal: SPACE.md, justifyContent: 'center' },
@@ -946,7 +993,7 @@ const s = StyleSheet.create({
   tabCountText: { fontSize: 11, fontWeight: '700', color: PALETTE.textMuted },
 
   segWrap: { paddingHorizontal: SPACE.lg, paddingVertical: SPACE.xs },
-  segTrack: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: RADIUS.md + 2, backgroundColor: '#E9EEF5' },
+  segTrack: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: RADIUS.md + 2, backgroundColor: PALETTE.field },
   seg: { flex: 1, minWidth: 0, minHeight: 40, borderRadius: RADIUS.md - 2, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, paddingVertical: 4 },
   segOn: { backgroundColor: PALETTE.card, ...SHADOW.xs, shadowOpacity: 0.1 },
   segText: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: PALETTE.textMuted, textAlign: 'center' },

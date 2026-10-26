@@ -1,9 +1,10 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SPACE, Tone, toneOf } from '../tokens';
+import { SPACE, Tone } from '../tokens';
 import { BrandBackdrop } from './BrandBackdrop';
-import { premiumTone } from './theme';
+
 
 /**
  * ============================================================================
@@ -43,6 +44,8 @@ export function PremiumScreen({
   headerContentStyle?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
 }) {
+  const { toneOf, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone(tone);
   const canvas = toneOf(tone).canvas;
@@ -88,7 +91,7 @@ export function PremiumScreen({
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({  }: AppTheme) => StyleSheet.create({
   flex: { flex: 1 },
   overscroll: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%' },
   scrim: { position: 'absolute', top: 0, left: 0, right: 0 },

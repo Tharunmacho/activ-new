@@ -1,23 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { sizedMediaUrl } from '@/config/api.config';
-
-/**
- * ============================================================================
- * THE PHOTO VIEWER — one photograph large, its description, and the rest
- * ============================================================================
- *
- * Opened from an album on `/gallery/:id`. It shows the chosen photograph as
- * large as the screen allows, its description underneath, a counter, arrows
- * to step through the album, and a strip of thumbnails to jump anywhere in it.
- *
- * Keyboard: ← and → step, Esc closes. The page behind does not scroll while it
- * is open, and focus goes to the close button so a keyboard user is inside it.
- *
- * A portal on <body>, so no card with `overflow: hidden` can clip it — the
- * fault the phone-number country list had.
- */
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { resolveMediaUrl, sizedMediaUrl } from '@/config/api.config';
 
 export interface LightboxPhoto {
     url: string;
@@ -26,150 +10,150 @@ export interface LightboxPhoto {
     caption?: string;
 }
 
+/** Full-screen album using the shared dialog's focus trap and Escape handling. */
 export function PhotoLightbox({ photos, index, onIndex, onClose, title }: {
     photos: LightboxPhoto[];
-    /** The photo showing, or -1 when the viewer is closed. */
     index: number;
     onIndex: (next: number) => void;
     onClose: () => void;
-    /** The album's name, printed above the counter. */
     title?: string;
 }) {
-    const closeRef = useRef<HTMLButtonElement | null>(null);
-    const stripRef = useRef<HTMLDivElement | null>(null);
+    const returnFocus = useRef<HTMLElement | null>(null);
+    const stripRef = useRef<HTMLDivElement>(null);
     const open = index >= 0 && index < photos.length;
-    const count = photos.length;
-
-    const go = (step: number) => {
-        if (!count) return;
-        onIndex((index + step + count) % count);
-    };
+    const photo = photos[index];
+    const go = (step: number) => onIndex((index + step + photos.length) % photos.length);
 
     useEffect(() => {
-        if (!open) return undefined;
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-            else if (e.key === 'ArrowRight') go(1);
-            else if (e.key === 'ArrowLeft') go(-1);
-        };
-        window.addEventListener('keydown', onKey);
-        const previous = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-            window.removeEventListener('keydown', onKey);
-            document.body.style.overflow = previous;
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, index, count]);
-
-    useEffect(() => { if (open) closeRef.current?.focus(); }, [open]);
-
-    /* Keep the current thumbnail in view as the reader steps through. */
-    useEffect(() => {
-        if (!open) return;
-        const thumb = stripRef.current?.querySelector<HTMLElement>(`[data-thumb="${index}"]`);
-        thumb?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+        if (open) stripRef.current?.querySelector<HTMLElement>(`[data-thumb="${index}"]`)
+            ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }, [open, index]);
 
-    if (!open || typeof document === 'undefined') return null;
-    const photo = photos[index];
-
-    return createPortal(
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={title ? `${title} — photo ${index + 1} of ${count}` : `Photo ${index + 1} of ${count}`}
-            /*
-              * OPAQUE, not 95%.
-              *
-              * Five per cent of a near-white page is enough to read the
-              * headline and the navigation straight through the backdrop,
-              * which is what this screen is for getting AWAY from — the
-              * photograph is meant to be the only thing on the screen. The
-              * translucency bought nothing: there is no depth to suggest,
-              * because nothing behind it is part of the same view.
-              */
-            className="fixed inset-0 z-[1000] flex flex-col bg-slate-950 text-white"
-        >
-            {/* ---- top bar ---- */}
-            <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
-                <div className="min-w-0 flex-1">
-                    {title && <p className="truncate text-[1.125rem] font-bold">{title}</p>}
-                    <p className="text-[1rem] text-white/60">{index + 1} of {count}</p>
+    return (
+        <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
+            {open && <DialogContent
+                style={{ animation: 'none' }}
+                className="z-[1000] flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-slate-950 p-0 text-white sm:rounded-none [&>button]:z-10 [&>button]:rounded-full [&>button]:bg-slate-800 [&>button]:p-3 [&>button]:opacity-100 [&>button]:!text-white"
+                onOpenAutoFocus={() => { returnFocus.current = document.activeElement as HTMLElement; }}
+                onCloseAutoFocus={(event) => {
+                    event.preventDefault();
+                    if (returnFocus.current?.isConnected) returnFocus.current.focus();
+                }}
+                onKeyDown={(event) => {
+                    if (event.key === 'ArrowRight' && photos.length > 1) { event.preventDefault(); go(1); }
+                    if (event.key === 'ArrowLeft' && photos.length > 1) { event.preventDefault(); go(-1); }
+                }}
+            >
+                <div className="shrink-0 border-b border-white/20 px-4 py-3 pr-16 sm:px-6 sm:pr-16 [@media(max-height:480px)]:py-2">
+                    <DialogTitle className="truncate text-lg">{title || 'Photo album'}</DialogTitle>
+                    <DialogDescription className="mt-1 text-sm text-slate-300 [@media(max-height:480px)]:sr-only">
+                        Use the arrows to browse. Zoom in, then drag or scroll to move around the photo.
+                    </DialogDescription>
                 </div>
-                <button
-                    ref={closeRef}
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Close"
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
-                >
-                    <X size={22} />
-                </button>
-            </div>
-
-            {/* ---- the photograph ---- */}
-            <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 sm:px-20">
-                {photo.type === 'video' ? (
-                    <video key={photo.url} src={sizedMediaUrl(photo.url, 1600)} controls
-                           className="max-h-full max-w-full rounded-lg" />
-                ) : (
-                    <img
-                        key={photo.url}
-                        src={sizedMediaUrl(photo.url, 1600)}
-                        alt={photo.alt || photo.caption || title || 'Photograph'}
-                        className="max-h-full max-w-full rounded-lg object-contain"
-                    />
-                )}
-
-                {count > 1 && (
-                    <>
-                        <button type="button" onClick={() => go(-1)} aria-label="Previous photo"
-                                className="absolute left-2 top-1/2 flex h-11 w-11 sm:h-12 sm:w-12 -translate-y-1/2 items-center justify-center
-                                           rounded-full bg-white/10 transition-colors hover:bg-white/25 sm:left-5">
-                            <ChevronLeft size={26} />
-                        </button>
-                        <button type="button" onClick={() => go(1)} aria-label="Next photo"
-                                className="absolute right-2 top-1/2 flex h-11 w-11 sm:h-12 sm:w-12 -translate-y-1/2 items-center justify-center
-                                           rounded-full bg-white/10 transition-colors hover:bg-white/25 sm:right-5">
-                            <ChevronRight size={26} />
-                        </button>
-                    </>
-                )}
-            </div>
-
-            {/* ---- its description ---- */}
-            <div className="mx-auto w-full max-w-3xl px-4 pt-3 text-center max-h-[26vh] overflow-y-auto sm:px-5 sm:pt-4 sm:max-h-none">
-                {photo.caption ? (
-                    <p className="whitespace-pre-line break-words text-[1rem] leading-relaxed text-white/90 sm:text-[1.125rem]">{photo.caption}</p>
-                ) : null}
-            </div>
-
-            {/* ---- the rest of the album ---- */}
-            {count > 1 && (
-                <div ref={stripRef} className="flex gap-2 overflow-x-auto px-4 py-3 sm:justify-center sm:px-6 sm:py-4">
-                    {photos.map((p, i) => (
-                        <button
-                            key={`${p.url}-${i}`}
-                            type="button"
-                            data-thumb={i}
-                            onClick={() => onIndex(i)}
-                            aria-label={`Photo ${i + 1}`}
-                            aria-current={i === index ? 'true' : undefined}
-                            className={`h-12 w-16 sm:h-16 sm:w-20 shrink-0 overflow-hidden rounded-md ring-2 transition ${i === index
-                                ? 'ring-white opacity-100'
-                                : 'ring-transparent opacity-50 hover:opacity-90'}`}
-                        >
-                            {p.type === 'video'
-                                ? <span className="flex h-full w-full items-center justify-center bg-white/10 text-[0.875rem]">Video</span>
-                                : <img src={sizedMediaUrl(p.url, 200)} alt="" className="h-full w-full object-cover" />}
-                        </button>
-                    ))}
+                <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-2">
+                    <button type="button" disabled={photos.length < 2} onClick={() => go(-1)} aria-label="Previous photo"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40">
+                        <ChevronLeft size={24} />
+                    </button>
+                    <p aria-live="polite" aria-atomic="true" className="text-sm text-slate-200">Photo {index + 1} of {photos.length}</p>
+                    <button type="button" disabled={photos.length < 2} onClick={() => go(1)} aria-label="Next photo"
+                        className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-40">
+                        <ChevronRight size={24} />
+                    </button>
                 </div>
-            )}
-        </div>,
-        document.body,
+                {photo.type === 'video'
+                    ? <div className="flex min-h-0 flex-1 items-center justify-center"><video key={photo.url} src={resolveMediaUrl(photo.url)} controls className="max-h-full max-w-full" /></div>
+                    : <ZoomablePhoto key={`${index}:${photo.url}`} photo={photo} title={title} />}
+                {photo.caption && <p className="max-h-[15dvh] shrink-0 overflow-y-auto whitespace-pre-line break-words px-4 py-2 text-center text-sm text-slate-200 [@media(max-height:480px)]:max-h-8 [@media(max-height:480px)]:py-1">{photo.caption}</p>}
+                {photos.length > 1 && <div ref={stripRef} aria-label="Album thumbnails" className="flex shrink-0 gap-2 overflow-x-auto px-4 py-3 [@media(max-height:480px)]:py-2">
+                    {photos.map((item, position) => <button key={`${item.url}-${position}`} type="button"
+                        data-thumb={position} onClick={() => onIndex(position)} aria-label={`View photo ${position + 1}: ${item.alt || 'Photograph'}`}
+                        aria-current={position === index ? 'true' : undefined}
+                        className={`h-14 w-16 shrink-0 overflow-hidden rounded-md border-2 sm:h-16 sm:w-20 [@media(max-height:480px)]:h-10 [@media(max-height:480px)]:w-12 ${position === index ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                        {item.type === 'video' ? <span className="text-sm">Video</span> : <img src={sizedMediaUrl(item.url, 200)} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                    </button>)}
+                </div>}
+            </DialogContent>}
+        </Dialog>
     );
+}
+
+function ZoomablePhoto({ photo, title }: { photo: LightboxPhoto; title?: string }) {
+    const [zoom, setZoom] = useState(1);
+    const [failed, setFailed] = useState(false);
+    const [natural, setNatural] = useState({ width: 0, height: 0 });
+    const [viewport, setViewport] = useState({ width: 0, height: 0 });
+    const area = useRef<HTMLDivElement>(null);
+    const previousZoom = useRef(1);
+    const drag = useRef<{ id: number; x: number; y: number; left: number; top: number } | null>(null);
+    const fit = natural.width && viewport.width
+        ? Math.min(viewport.width / natural.width, viewport.height / natural.height) : 0;
+    const width = natural.width * fit * zoom;
+    const height = natural.height * fit * zoom;
+
+    useLayoutEffect(() => {
+        const element = area.current;
+        if (!element) return;
+        const measure = () => setViewport({ width: element.clientWidth, height: element.clientHeight });
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, []);
+
+    // Keep the middle of the viewed image in place when changing magnification.
+    useLayoutEffect(() => {
+        const element = area.current;
+        if (!element) return;
+        const ratio = zoom / previousZoom.current;
+        element.scrollLeft = zoom === 1 ? 0 : (element.scrollLeft + element.clientWidth / 2) * ratio - element.clientWidth / 2;
+        element.scrollTop = zoom === 1 ? 0 : (element.scrollTop + element.clientHeight / 2) * ratio - element.clientHeight / 2;
+        previousZoom.current = zoom;
+    }, [zoom]);
+
+    const changeZoom = (step: number) => setZoom(value => Math.max(1, Math.min(4, value + step)));
+    useEffect(() => {
+        const handleKey = (event: KeyboardEvent) => {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            if (event.key === '+' || event.key === '=') { event.preventDefault(); setZoom(value => Math.min(4, value + 0.5)); }
+            if (event.key === '-') { event.preventDefault(); setZoom(value => Math.max(1, value - 0.5)); }
+            if (event.key === '0') { event.preventDefault(); setZoom(1); }
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, []);
+    return <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex shrink-0 items-center justify-center gap-2 border-b border-white/20 px-3 pb-2 text-sm">
+            <button type="button" aria-label="Zoom out" disabled={zoom <= 1 || failed} onClick={() => changeZoom(-0.5)} className="rounded-lg bg-white/10 p-3 disabled:opacity-40"><ZoomOut size={20} /></button>
+            <output aria-label="Zoom level" className="min-w-12 text-center tabular-nums">{Math.round(zoom * 100)}%</output>
+            <button type="button" aria-label="Zoom in" disabled={zoom >= 4 || failed} onClick={() => changeZoom(0.5)} className="rounded-lg bg-white/10 p-3 disabled:opacity-40"><ZoomIn size={20} /></button>
+            <button type="button" onClick={() => setZoom(1)} className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-3"><RotateCcw size={16} />Fit photo</button>
+        </div>
+        <div ref={area} tabIndex={0} aria-label="Image viewing area" className="min-h-0 flex-1 overflow-auto overscroll-contain outline-offset-[-3px]"
+            style={{ cursor: zoom > 1 ? 'grab' : 'zoom-in' }}
+            onDoubleClick={() => setZoom(value => value === 1 ? 2 : 1)}
+            onPointerDown={(event) => {
+                if (zoom <= 1 || event.pointerType !== 'mouse' || event.button !== 0) return;
+                event.preventDefault();
+                event.currentTarget.focus();
+                drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop };
+                event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={(event) => {
+                if (!drag.current || drag.current.id !== event.pointerId) return;
+                event.currentTarget.scrollLeft = drag.current.left - event.clientX + drag.current.x;
+                event.currentTarget.scrollTop = drag.current.top - event.clientY + drag.current.y;
+            }}
+            onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }}>
+            {failed ? <p role="alert" className="p-6 text-center">This photo could not be loaded. Choose another photo or try again later.</p>
+                : <div className="flex items-center justify-center" style={{ width: Math.max(viewport.width, width), height: Math.max(viewport.height, height) }}>
+                    <img src={resolveMediaUrl(photo.url)} alt={photo.alt || photo.caption || title || 'Photograph'} draggable={false}
+                        onLoad={(event) => setNatural({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
+                        onError={() => setFailed(true)} className="block max-w-none select-none object-contain"
+                        style={{ width: width || undefined, height: height || undefined, visibility: fit ? 'visible' : 'hidden' }} />
+                </div>}
+        </div>
+    </div>;
 }
 
 export default PhotoLightbox;

@@ -1,9 +1,10 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../../ui/AppTheme';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { PALETTE, SPACE, SIZE, PressableScale, premiumTone } from '../../ui';
+import { SPACE, SIZE, PressableScale } from '../../ui';
 
 /**
  * The business area's bottom navigation — a pinned bar (pass as the page's
@@ -29,6 +30,8 @@ export function BusinessTabBar({ active, onPress }: {
   /** Called for every tab except the active one. */
   onPress: (key: BusinessTabKey) => void;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const p = premiumTone('business');
   const bottom = Math.max(Number(insets?.bottom || 0), SPACE.sm);
@@ -64,7 +67,7 @@ export function BusinessTabBar({ active, onPress }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE }: AppTheme) => StyleSheet.create({
   bar: {
     flexDirection: 'row',
     backgroundColor: PALETTE.card,

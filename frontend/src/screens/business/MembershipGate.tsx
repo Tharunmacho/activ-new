@@ -1,11 +1,11 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {
-  Badge, PALETTE, SPACE, TYPE, SIZE, GradientButton, LiftCard, VaultLock3D, FadeInUp, premiumTone,
-} from '../../ui';
+import { Badge, SPACE, SIZE, GradientButton, LiftCard, VaultLock3D, FadeInUp } from '../../ui';
 import { getMyProfile } from '../../services/memberApi';
 import { isPaidProfile } from '../../services/session';
 
@@ -46,6 +46,8 @@ export interface LockedPerk { icon: string; title: string; detail: string }
 export function MembershipLocked({ icon = 'lock-outline', title, message, perks = [], onJoin, footnote, style }: {
   icon?: string; title: string; message: string; perks?: LockedPerk[]; onJoin: () => void; footnote?: string; style?: ViewStyle;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   return (
     <FadeInUp distance={14} style={[s.wrap, style]}>
@@ -80,7 +82,7 @@ export function MembershipLocked({ icon = 'lock-outline', title, message, perks 
   );
 }
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   wrap: { marginHorizontal: SPACE.lg, marginTop: SPACE.lg },
   card: { alignItems: 'center', padding: SPACE.xl },
   medal: {
@@ -88,7 +90,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.28, shadowRadius: 20, elevation: 8,
   },
   medalRing: { position: 'absolute', width: 118, height: 118, borderRadius: 59, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
-  medalIcon: { position: 'absolute', right: 6, bottom: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: PALETTE.white, alignItems: 'center', justifyContent: 'center' },
+  medalIcon: { position: 'absolute', right: 6, bottom: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: PALETTE.card, alignItems: 'center', justifyContent: 'center' },
   pill: { alignSelf: 'center', marginBottom: SPACE.sm },
   title: { ...TYPE.title, textAlign: 'center' },
   message: { ...TYPE.body, textAlign: 'center', marginTop: SPACE.sm, maxWidth: 320 },

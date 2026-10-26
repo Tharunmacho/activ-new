@@ -1,3 +1,5 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 // Manage Companies — every company under the membership, the ONE place a
 // company switch is made from a list. Premium (business tone, violet).
 import React, { useState, useCallback } from 'react';
@@ -10,11 +12,7 @@ import { RootStackParamList } from '../../types';
 import api from '../../services/api';
 import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompanyStore } from '../../stores/activeCompanyStore';
-import {
-  Badge, PALETTE, SPACE, TYPE, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton,
-  PREMIUM_OVERLAP, FadeInUp, LiftCard, CompanyLogoTile, ArtEmptyState, Briefcase3D, PressableScale,
-  GlassFigure, premiumTone,
-} from '../../ui';
+import { Badge, SPACE, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, PREMIUM_OVERLAP, FadeInUp, LiftCard, CompanyLogoTile, ArtEmptyState, Briefcase3D, PressableScale, GlassFigure } from '../../ui';
 import { CardSkeletons, SoftAction, companyStatus } from './businessKit';
 
 type ManageCompaniesScreenNavigationProp = NativeStackNavigationProp<
@@ -40,6 +38,8 @@ interface Company {
 }
 
 const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
+  const { palette: PALETTE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const companies = useActiveCompanyStore((state) => state.companies) as Company[];
   const activeCompanyId = useActiveCompanyStore((state) => state.activeCompanyId);
   const setActiveCompany = useActiveCompanyStore((state) => state.setActiveCompany);
@@ -210,6 +210,8 @@ function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProd
   company: Company; active: boolean;
   onUse: () => void; onPreview: () => void; onView: () => void; onEdit: () => void; onProducts: () => void; onDelete: () => void;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const logo = company?.logo ? resolveMediaUrl(company.logo) : '';
   const label = statusLabel(company?.status);
@@ -279,7 +281,7 @@ function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProd
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   list: { paddingBottom: SPACE.huge, flexGrow: 1 },
   gutter: { marginHorizontal: SPACE.lg },
   overlap: { marginTop: -PREMIUM_OVERLAP, marginBottom: SPACE.md },

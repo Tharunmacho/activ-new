@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,9 +23,9 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PALETTE, SIZE, SPACE, TYPE, Tone } from '../tokens';
+import { SIZE, SPACE, Tone } from '../tokens';
 import { Avatar } from '../components';
-import { BRAND, PREMIUM_RADIUS, PREMIUM_TYPE, premiumTone } from './theme';
+import { PREMIUM_RADIUS, PREMIUM_TYPE } from './theme';
 import { PressableScale, prefersReducedMotion } from './motion';
 
 /**
@@ -63,10 +64,12 @@ export function GradientButton({
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const off = !!disabled || !!loading;
   const height = size === 'lg' ? 56 : 52;
-  const fg = variant === 'primary' || variant === 'glass' ? PALETTE.white : p.accent;
+  const fg = variant === 'primary' || variant === 'glass' ? PALETTE.white : p.accentDark;
   const content = loading ? (
     <ActivityIndicator color={variant === 'outline' ? p.accent : PALETTE.white} />
   ) : (
@@ -127,6 +130,7 @@ export function PremiumFooter({
   primaryIcon?: string;
   tone?: Tone;
 }) {
+  const s = useThemeStyles(makeStyles);
   const hasSecondary = !!(secondaryLabel && onSecondary);
   const label = String(primaryLabel || '');
   // On 360dp a long label beside "Back" only fits without its icon.
@@ -171,6 +175,7 @@ export function SocialPill({ label, mark, source, onPress, disabled, style, acce
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
 }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <PressableScale
       onPress={onPress}
@@ -214,6 +219,7 @@ export function SocialButton({ label, mark, onPress, disabled, style, accessibil
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
 }) {
+  const s = useThemeStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -286,13 +292,15 @@ export function PortalSwitchCard({
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const guard = useBottomGuard(SPACE.lg);
   const admin = tone === 'admin';
   const accent = admin ? PALETTE.indigo : PALETTE.blue;
   const accentDark = admin ? PALETTE.indigoDark : PALETTE.blueDark;
   const soft = admin ? PALETTE.indigoSoft : PALETTE.blueSoft;
-  const tint = admin ? PALETTE.indigoTint : '#F5F9FF';
-  const edge = admin ? '#DAD6FA' : '#CFE0FD';
+  const tint = admin ? PALETTE.indigoTint : PALETTE.blueTint;
+  const edge = PALETTE.border;
   const grad = admin ? ['#3B2DB0', '#6D5AE6'] : ['#1E3A8A', '#2563EB'];
   return (
     <View style={[{ paddingBottom: guard }, style]}>
@@ -329,6 +337,8 @@ export function PortalSwitchCard({
 export function GlassIconButton({ icon, onPress, accessibilityLabel, style, disabled = false }: {
   icon: string; onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>; disabled?: boolean;
 }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <PressableScale
       onPress={onPress}
@@ -352,6 +362,7 @@ export function GlassIconButton({ icon, onPress, accessibilityLabel, style, disa
 export function BrandLogo({ size = 'md', variant = 'pill', style }: {
   size?: 'sm' | 'md'; variant?: 'pill' | 'disc'; style?: StyleProp<ViewStyle>;
 }) {
+  const s = useThemeStyles(makeStyles);
   const sm = size === 'sm';
   // Source art is ~3.25:1 — width drives the fit.
   const logoW = variant === 'disc' ? (sm ? 44 : 62) : sm ? 84 : 104;
@@ -374,6 +385,8 @@ export function BrandLogo({ size = 'md', variant = 'pill', style }: {
 
 /** Translucent pill on the gradient — "ADMIN PORTAL", "STEP 2". */
 export function GlassBadge({ label, icon, style }: { label: string; icon?: string; style?: StyleProp<ViewStyle> }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.glassBadge, style]}>
       {icon ? <Icon name={icon} size={14} color={PALETTE.white} /> : null}
@@ -387,6 +400,7 @@ export function PremiumHeading({ eyebrow, title, subtitle, size = 'lg', align = 
   eyebrow?: string; title: string; subtitle?: string; size?: 'lg' | 'md'; align?: 'left' | 'center';
   style?: StyleProp<ViewStyle>;
 }) {
+  const s = useThemeStyles(makeStyles);
   const textAlign = align;
   return (
     <View style={style}>
@@ -411,6 +425,8 @@ export function PremiumHeading({ eyebrow, title, subtitle, size = 'lg', align = 
 export function PremiumSheet({ children, style, tone = 'member' }: {
   children: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: Tone;
 }) {
+  const { premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   return <View style={[s.sheet, { shadowColor: p.shadow }, style]}>{children}</View>;
 }
@@ -419,6 +435,8 @@ export function PremiumSheet({ children, style, tone = 'member' }: {
 export function PremiumSection({ icon, title, subtitle, children, style, tone = 'member' }: {
   icon: string; title: string; subtitle?: string; children: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: Tone;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   return (
     <View style={[s.section, { shadowColor: p.shadow }, style]}>
@@ -438,6 +456,8 @@ export function PremiumSection({ icon, title, subtitle, children, style, tone = 
 
 /** "— OR SIGN IN WITH —" */
 export function PremiumDivider({ label, style }: { label: string; style?: StyleProp<ViewStyle> }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <View style={[s.dividerRow, style]}>
       <LinearGradient colors={['rgba(203,213,225,0)', PALETTE.borderStrong]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.dividerLine} />
@@ -482,15 +502,19 @@ function useShake(trigger: string) {
 
 /** Label with the required mark. */
 export function PremiumLabel({ label, required }: { label: string; required?: boolean }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   return (
     <Text style={s.label} maxFontSizeMultiplier={CAP}>
       {label}
-      {required ? <Text style={{ color: PALETTE.red }}> *</Text> : null}
+      {required ? <Text style={{ color: PALETTE.dangerText }}> *</Text> : null}
     </Text>
   );
 }
 
 function Message({ error, hint }: { error?: string; hint?: string }) {
+  const { palette: PALETTE } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   if (error) {
     return (
       <View style={s.msgRow} accessibilityLiveRegion="polite">
@@ -513,6 +537,8 @@ export function PremiumInput({
   label?: string; error?: string; hint?: string; icon?: string; right?: React.ReactNode; prefix?: string;
   inputStyle?: TextStyle; required?: boolean; tone?: Tone;
 }) {
+  const { palette: PALETTE, premiumTone, brand: BRAND, isDark } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const [focused, setFocused] = useState(false);
   const glow = useFocusGlow(focused && !error);
@@ -520,7 +546,7 @@ export function PremiumInput({
   const readOnly = rest.editable === false;
   const multi = !!rest.multiline;
   const borderColor = error ? PALETTE.red : focused ? p.accent : 'transparent';
-  const bg = error ? BRAND.errorFill : focused ? PALETTE.white : readOnly ? PALETTE.field : p.inputFill;
+  const bg = error ? BRAND.errorFill : focused ? PALETTE.card : readOnly ? PALETTE.field : p.inputFill;
   return (
     <View style={[s.fieldWrap, style as StyleProp<ViewStyle>]}>
       {label ? <PremiumLabel label={label} required={required} /> : null}
@@ -547,6 +573,7 @@ export function PremiumInput({
             </View>
           ) : null}
           <TextInput
+            keyboardAppearance={isDark ? 'dark' : 'light'}
             placeholderTextColor={PALETTE.textFaint}
             selectionColor={p.accent}
             accessibilityLabel={label || rest.placeholder}
@@ -594,6 +621,8 @@ export function PremiumSelect({
   /** Emphasised admin filters; normal form fields retain their usual weight. */
   strong?: boolean;
 }) {
+  const { palette: PALETTE, premiumTone, brand: BRAND, isDark } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const [open, setOpen] = useState(false);
   const emojiFor = (option: string) => {
@@ -614,7 +643,7 @@ export function PremiumSelect({
     setOpen((prev) => !prev);
   };
 
-  const bg = error ? BRAND.errorFill : open ? PALETTE.white : disabled ? PALETTE.field : p.inputFill;
+  const bg = error ? BRAND.errorFill : open ? PALETTE.card : disabled ? PALETTE.field : p.inputFill;
   const borderColor = error ? PALETTE.red : open ? p.accent : 'transparent';
 
   return (
@@ -661,6 +690,7 @@ export function PremiumSelect({
             <View style={s.search}>
               <Icon name="search" size={18} color={PALETTE.textFaint} />
               <TextInput
+            keyboardAppearance={isDark ? 'dark' : 'light'}
                 style={s.searchInput}
                 value={query}
                 onChangeText={setQuery}
@@ -731,6 +761,8 @@ export function GradientAvatar({ name, uri, size = 56, tone = 'member', ring = t
   status?: 'online' | 'verified' | 'pending';
   style?: StyleProp<ViewStyle>;
 }) {
+  const { palette: PALETTE, premiumTone } = useAppTheme();
+  const s = useThemeStyles(makeStyles);
   const p = premiumTone(tone);
   const outer = Math.max(24, Number(size || 0));
   const ringW = ring ? Math.max(2, Math.round(outer * 0.05)) : 0;
@@ -746,7 +778,7 @@ export function GradientAvatar({ name, uri, size = 56, tone = 'member', ring = t
         end={{ x: 1, y: 1 }}
         style={{ width: outer, height: outer, borderRadius: outer / 2, padding: ringW, alignItems: 'center', justifyContent: 'center' }}
       >
-        <View style={{ padding: gap, borderRadius: outer / 2, backgroundColor: PALETTE.white }}>
+        <View style={{ padding: gap, borderRadius: outer / 2, backgroundColor: PALETTE.card }}>
           <Avatar name={name} uri={uri} size={inner} color={p.accentDark} bg={p.accentSoft} />
         </View>
       </LinearGradient>
@@ -761,7 +793,7 @@ export function GradientAvatar({ name, uri, size = 56, tone = 'member', ring = t
 
 /* =================================================================== styles */
 
-const s = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) => StyleSheet.create({
   btn: { borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACE.xl, paddingVertical: SPACE.md, overflow: 'hidden' },
   btnShadow: {
     borderRadius: 999,
@@ -771,7 +803,7 @@ const s = StyleSheet.create({
     elevation: 6,
   },
   btnSheen: { position: 'absolute', left: 0, right: 0, top: 0, height: '50%', backgroundColor: 'rgba(255,255,255,0.10)' },
-  btnOutline: { borderWidth: 1.5, backgroundColor: PALETTE.white },
+  btnOutline: { borderWidth: 1.5, backgroundColor: PALETTE.card },
   btnGlass: { borderWidth: 1, borderColor: BRAND.glassBorder, backgroundColor: BRAND.glass },
   btnInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm },
   btnText: { fontSize: 16, lineHeight: 21, fontWeight: '700', letterSpacing: 0.2, flexShrink: 1, textAlign: 'center' },
@@ -789,7 +821,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: PALETTE.border,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -809,8 +841,8 @@ const s = StyleSheet.create({
     paddingHorizontal: SPACE.lg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D3D8E0',
-    backgroundColor: PALETTE.white,
+    borderColor: PALETTE.borderStrong,
+    backgroundColor: PALETTE.card,
     overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 1 },
@@ -818,7 +850,7 @@ const s = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
-  socialBtnPressed: { backgroundColor: '#F4F6F9', borderColor: '#B8C0CC' },
+  socialBtnPressed: { backgroundColor: PALETTE.field, borderColor: PALETTE.borderStrong },
   socialBtnSlot: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   socialBtnText: {
     flex: 1,
@@ -827,7 +859,7 @@ const s = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '600',
     letterSpacing: 0.1,
-    color: '#1F1F1F',
+    color: PALETTE.text,
     paddingHorizontal: SPACE.sm,
   },
 
@@ -840,7 +872,7 @@ const s = StyleSheet.create({
     gap: SPACE.md,
     borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
     shadowColor: '#1E1B4B',
     shadowOffset: { width: 0, height: 2 },
@@ -896,14 +928,14 @@ const s = StyleSheet.create({
   lead: { ...PREMIUM_TYPE.lead, color: BRAND.onBrandSoft, marginTop: SPACE.sm },
 
   sheet: {
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     borderRadius: PREMIUM_RADIUS.sheet,
     marginHorizontal: SPACE.lg,
     paddingHorizontal: SPACE.xl,
     paddingTop: SPACE.xl + 4,
     paddingBottom: SPACE.xl,
     borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.7)',
+    borderColor: PALETTE.border,
     shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.16,
     shadowRadius: 30,
@@ -911,13 +943,13 @@ const s = StyleSheet.create({
   },
 
   section: {
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     borderRadius: PREMIUM_RADIUS.section,
     marginHorizontal: SPACE.lg,
     marginBottom: SPACE.lg,
     padding: SPACE.lg + 2,
     borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.8)',
+    borderColor: PALETTE.border,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.10,
     shadowRadius: 22,
@@ -978,7 +1010,7 @@ const s = StyleSheet.create({
     borderRadius: PREMIUM_RADIUS.input,
     borderWidth: 1,
     borderColor: PALETTE.border,
-    backgroundColor: PALETTE.white,
+    backgroundColor: PALETTE.card,
     overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.12,

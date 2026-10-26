@@ -1,3 +1,4 @@
+import { AppTheme, useAppTheme, useThemeStyles } from '../ui/AppTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler, FlatList, Image, Pressable, ScrollView, StatusBar, StyleSheet, Text, View, useWindowDimensions,
@@ -5,8 +6,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FitImage, GlassIconButton, PALETTE, SPACE, TYPE, money } from '../ui';
+import { FitImage, IconButton, SPACE, money } from '../ui';
 import { resolveMediaUrl } from '../config/api.config';
+import { PhotoViewer } from '../ui/PhotoViewer';
 
 /**
  * ============================================================================
@@ -42,6 +44,8 @@ export interface CatalogueItem {
   category: string;
   description: string;
   price: number;
+  /** Company cover/logo photos are not items offered for sale. */
+  showPrice: boolean;
   sku: string;
   /** null = the API did not send a stock figure; nothing is shown then. */
   stock: number | null;
@@ -76,6 +80,7 @@ export function toCatalogueItem(raw: any, index: number): CatalogueItem {
     category: String(raw?.category || '').trim(),
     description: String(raw?.description || '').trim(),
     price: Number(raw?.price || 0),
+    showPrice: raw?.showPrice !== false,
     sku: String(raw?.sku || '').trim(),
     stock: hasStock ? Number(stockRaw) : null,
     images: urls,
@@ -133,13 +138,16 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
   products: CatalogueItem[]; slides: Slide[]; initialSlide: number; onClose: () => void;
   onProductShown?: (item: CatalogueItem) => void; tone: 'member' | 'business';
 }) {
+  const { palette: PALETTE, toneOf, isDark } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const listRef = useRef<FlatList<Slide>>(null);
   const thumbRef = useRef<FlatList<Slide>>(null);
   const [index, setIndex] = useState(initialSlide);
+  const [zoomPhoto, setZoomPhoto] = useState<{ url: string; title: string } | null>(null);
   const accent = tone === 'business' ? PALETTE.violet : PALETTE.blue;
-  const accentLight = tone === 'business' ? PALETTE.violetLight : '#60A5FA';
+  const accentLight = toneOf(tone).accentDark;
 
   const slide = slides[Math.min(index, Math.max(slides.length - 1, 0))];
   const product = products[slide?.itemIndex || 0];
@@ -182,12 +190,13 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
   const stock = product?.stock;
 
   return (
+    <>
     <View style={[styles.root, { paddingTop: insets.top }]} accessibilityViewIsModal>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* ---- top bar */}
       <View style={styles.bar}>
-        <GlassIconButton icon="close" onPress={onClose} accessibilityLabel="Close catalogue" />
+        <IconButton icon="close" onPress={onClose} accessibilityLabel="Close catalogue" />
         <View style={styles.barText}>
           <Text style={styles.barTitle} numberOfLines={1} maxFontSizeMultiplier={1.2}>{product?.name || 'Catalogue'}</Text>
           <Text style={styles.barSub} maxFontSizeMultiplier={1.2}>
@@ -217,14 +226,32 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
           onMomentumScrollEnd={onSettle}
           onScrollToIndexFailed={() => { /* getItemLayout makes this unreachable; ignore */ }}
           renderItem={({ item: s }) => (
-            <View style={{ width, height: stageHeight }}>
+            <Pressable
+              style={{ width, height: stageHeight }}
+              disabled={!s?.uri}
+              accessibilityRole={s?.uri ? 'button' : undefined}
+              accessibilityLabel={`Enlarge ${products[s?.itemIndex || 0]?.name || 'product'}, photo ${(s?.imageIndex || 0) + 1}`}
+              accessibilityHint="Opens the full photo. Pinch to zoom."
+              onPress={() => {
+                if (s?.uri) setZoomPhoto({
+                  url: s.uri,
+                  title: `${products[s.itemIndex]?.name || 'Product'} · Photo ${s.imageIndex + 1}`,
+                });
+              }}
+            >
               <FitImage
                 uri={s?.uri}
                 style={{ width, height: stageHeight }}
                 accessibilityLabel={`${products[s?.itemIndex || 0]?.name || 'Product'} photo`}
                 fallback={<View style={styles.noPhoto}><Icon name="inventory-2" size={56} color="rgba(255,255,255,0.35)" /><Text style={styles.noPhotoText}>No photo added</Text></View>}
               />
-            </View>
+              {s?.uri ? (
+                <View style={styles.zoomHint} pointerEvents="none" accessible={false}>
+                  <Icon name="zoom-in" size={18} color={PALETTE.white} />
+                  <Text style={styles.zoomHintText}>Tap to zoom</Text>
+                </View>
+              ) : null}
+            </Pressable>
           )}
         />
         {slides.length > 1 ? (
@@ -305,15 +332,17 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
         </View>
 
         <Text style={styles.name} maxFontSizeMultiplier={1.3}>{product?.name || 'Product'}</Text>
-        <Text style={[styles.price, { color: accentLight }]} maxFontSizeMultiplier={1.2}>
+        {product?.showPrice !== false ? <Text style={[styles.price, { color: accentLight }]} maxFontSizeMultiplier={1.2}>
           {Number(product?.price || 0) > 0 ? money(product?.price) : 'Price on request'}
-        </Text>
+        </Text> : null}
         {product?.sku ? <Text style={styles.sku} maxFontSizeMultiplier={1.2}>{`SKU ${product.sku}`}</Text> : null}
 
+        {product?.description || product?.showPrice !== false ? <>
         <Text style={styles.descLabel}>DESCRIPTION</Text>
         <Text style={styles.desc} maxFontSizeMultiplier={1.3}>
           {product?.description || 'The seller has not added a description for this item yet.'}
         </Text>
+        </> : null}
 
         {products.length > 1 ? (
           <View style={styles.nav}>
@@ -323,7 +352,7 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
               onPress={() => goTo(Math.max(0, slides.findIndex((s) => s.itemIndex === (slide?.itemIndex || 0) - 1)))}
               accessibilityRole="button" accessibilityLabel="Previous product"
             >
-              <Icon name="arrow-back" size={18} color={PALETTE.white} />
+              <Icon name="arrow-back" size={18} color={PALETTE.text} />
               <Text style={styles.navText} maxFontSizeMultiplier={1.2}>Previous item</Text>
             </Pressable>
             <Pressable
@@ -333,54 +362,64 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
               accessibilityRole="button" accessibilityLabel="Next product"
             >
               <Text style={styles.navText} maxFontSizeMultiplier={1.2}>Next item</Text>
-              <Icon name="arrow-forward" size={18} color={PALETTE.white} />
+              <Icon name="arrow-forward" size={18} color={PALETTE.text} />
             </Pressable>
           </View>
         ) : null}
       </ScrollView>
     </View>
+    {zoomPhoto && <PhotoViewer
+      visible
+      url={zoomPhoto.url}
+      title={zoomPhoto.title}
+      closeLabel="Close enlarged catalogue photo"
+      onClose={() => setZoomPhoto(null)}
+    />}
+    </>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   // Over everything in the screen; zIndex + elevation so Android stacks it above the page.
-  root: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0B1330', zIndex: 1000, elevation: 1000 },
+  root: { ...StyleSheet.absoluteFillObject, backgroundColor: PALETTE.canvas, zIndex: 1000, elevation: 1000 },
   bar: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingHorizontal: SPACE.lg, paddingVertical: SPACE.sm },
   barText: { flex: 1, minWidth: 0 },
-  barTitle: { color: PALETTE.white, fontSize: 16, lineHeight: 22, fontWeight: '700' },
-  barSub: { color: '#C7D4EA', fontSize: 12, lineHeight: 18, marginTop: 1 },
-  counter: { paddingHorizontal: SPACE.md, paddingVertical: 5, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.14)' },
-  counterText: { color: PALETTE.white, fontSize: 12, lineHeight: 16, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  barTitle: { color: PALETTE.text, fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  barSub: { color: PALETTE.textMuted, fontSize: 12, lineHeight: 18, marginTop: 1 },
+  counter: { paddingHorizontal: SPACE.md, paddingVertical: 5, borderRadius: 999, backgroundColor: PALETTE.field },
+  counterText: { color: PALETTE.text, fontSize: 12, lineHeight: 16, fontWeight: '800', fontVariant: ['tabular-nums'] },
 
   noPhoto: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', gap: SPACE.sm, backgroundColor: '#121C45' },
   noPhotoText: { color: 'rgba(255,255,255,0.55)', fontSize: 13, lineHeight: 18 },
+  zoomHint: { position: 'absolute', right: SPACE.md, bottom: SPACE.sm, flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, paddingHorizontal: SPACE.sm, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(11,19,48,0.75)' },
+  zoomHintText: { color: PALETTE.white, fontSize: 12, lineHeight: 18, fontWeight: '600' },
   arrow: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,19,48,0.55)' },
   arrowLeft: { left: SPACE.sm },
   arrowRight: { right: SPACE.sm },
 
   dots: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: SPACE.sm },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.35)' },
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: PALETTE.borderStrong },
   strip: { flexGrow: 0, maxHeight: THUMB + SPACE.md },
   stripContent: { paddingHorizontal: SPACE.lg, paddingVertical: SPACE.xs, gap: SPACE.sm },
   thumb: { width: THUMB, height: THUMB, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#121C45', borderWidth: 2, borderColor: 'transparent', opacity: 0.65 },
   thumbImg: { width: '100%', height: '100%' },
 
-  details: { flex: 1, marginTop: SPACE.sm, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: '#111B42' },
+  details: { flex: 1, marginTop: SPACE.sm, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: PALETTE.card },
   detailsContent: { padding: SPACE.xl },
   badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: SPACE.sm },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: '100%', paddingHorizontal: SPACE.md, paddingVertical: 5, borderRadius: 999 },
   badgeText: { color: PALETTE.white, fontSize: 12, lineHeight: 16, fontWeight: '700', flexShrink: 1 },
-  badgeGhost: { backgroundColor: 'rgba(255,255,255,0.12)' },
-  badgeGhostText: { color: '#DCE6F7' },
-  name: { ...TYPE.heading, color: PALETTE.white, fontSize: 22, lineHeight: 28, marginTop: SPACE.md },
+  badgeGhost: { backgroundColor: PALETTE.field },
+  badgeGhostText: { color: PALETTE.textSoft },
+  name: { ...TYPE.heading, color: PALETTE.text, fontSize: 22, lineHeight: 28, marginTop: SPACE.md },
   price: { fontSize: 22, lineHeight: 28, fontWeight: '800', marginTop: SPACE.xs, fontVariant: ['tabular-nums'] },
-  sku: { color: '#9FB0CE', fontSize: 12, lineHeight: 18, marginTop: SPACE.xxs },
-  descLabel: { color: '#9FB0CE', fontSize: 11, lineHeight: 16, fontWeight: '800', letterSpacing: 1, marginTop: SPACE.xl },
-  desc: { color: '#E5ECF8', fontSize: 15, lineHeight: 23, marginTop: SPACE.xs },
+  sku: { color: PALETTE.textMuted, fontSize: 12, lineHeight: 18, marginTop: SPACE.xxs },
+  descLabel: { color: PALETTE.textMuted, fontSize: 11, lineHeight: 16, fontWeight: '800', letterSpacing: 1, marginTop: SPACE.xl },
+  desc: { color: PALETTE.textSoft, fontSize: 15, lineHeight: 23, marginTop: SPACE.xs },
   nav: { flexDirection: 'row', gap: SPACE.md, marginTop: SPACE.xl },
   navBtn: { flex: 1, minHeight: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.xs, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.12)' },
   navBtnOff: { opacity: 0.35 },
-  navText: { color: PALETTE.white, fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  navText: { color: PALETTE.text, fontSize: 13, lineHeight: 18, fontWeight: '700' },
 });
 
 export default CatalogueAlbum;

@@ -1,3 +1,5 @@
+import { useAppTheme, useThemeStyles } from '../../ui/AppTheme';
+import type { AppTheme } from '../../ui/AppTheme';
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -10,10 +12,7 @@ import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
 import { useActiveCompany, useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import { BusinessTabBar } from './BusinessTabBar';
 import CatalogueAlbum from '../../components/CatalogueAlbum';
-import {
-  Notice, Badge, PALETTE, SPACE, TYPE, money,
-  BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, GlassFigure, PREMIUM_OVERLAP, FadeInUp,
-  LiftCard, LiftSearchBar, ArtEmptyState, ProductCrate3D, SearchLens3D, PressableScale, premiumTone, FitImage } from '../../ui';
+import { Notice, Badge, SPACE, money, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, GlassFigure, PREMIUM_OVERLAP, FadeInUp, LiftCard, LiftSearchBar, ArtEmptyState, ProductCrate3D, SearchLens3D, PressableScale, FitImage } from '../../ui';
 import { BUSINESS_TAB_ROUTES, CardSkeletons, CHIP } from './businessKit';
 
 type ProductsServicesScreenNavigationProp = NativeStackNavigationProp<
@@ -40,6 +39,8 @@ interface Product {
 }
 
 const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
+  const { palette: PALETTE, type: TYPE } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const route = useRoute<ProductsServicesScreenRouteProp>();
   const { companyId: routeCompanyId } = route.params || {};
 
@@ -283,7 +284,7 @@ function ItemGap() {
 }
 
 /** Stock level → the chip's colours (the Stock screen's rule). */
-function stockTone(stock: number, min: number) {
+function stockTone(stock: number, min: number, PALETTE: AppTheme['palette']) {
   if (stock <= 0) return { fg: PALETTE.redDark, bg: PALETTE.redSoft, icon: 'remove-shopping-cart', label: 'Out of stock' };
   if (min > 0 && stock <= min) return { fg: PALETTE.amberDark, bg: PALETTE.amberSoft, icon: 'trending-down', label: `${stock} left` };
   return { fg: PALETTE.greenDark, bg: PALETTE.greenSoft, icon: 'layers', label: `${stock} in stock` };
@@ -291,11 +292,13 @@ function stockTone(stock: number, min: number) {
 
 /** One catalogue line: photo, name + category, status, then price and stock chips. */
 function ProductCard({ product, onOpen, onDelete, onPhoto }: { product: Product; onOpen: () => void; onDelete: () => void; onPhoto: () => void }) {
+  const { palette: PALETTE, type: TYPE, premiumTone } = useAppTheme();
+  const styles = useThemeStyles(makeStyles);
   const p = premiumTone('business');
   const hidden = (product as any)?.isActive === false;
   const img = product?.imageUrl ? resolveMediaUrl(product.imageUrl) : '';
   const stock = Number(product?.stock || 0);
-  const st = stockTone(stock, Number((product as any)?.minStock || 0));
+  const st = stockTone(stock, Number((product as any)?.minStock || 0), PALETTE);
   return (
     <LiftCard tone="business" style={styles.productCard}>
       <View style={styles.productTop}>
@@ -339,7 +342,7 @@ function ProductCard({ product, onOpen, onDelete, onPhoto }: { product: Product;
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.create({
   gutter: { marginHorizontal: SPACE.lg },
   listContent: { paddingBottom: SPACE.xxl },
   overlap: { marginTop: -PREMIUM_OVERLAP },
@@ -356,7 +359,7 @@ const styles = StyleSheet.create({
   thumbEmpty: { alignItems: 'center', justifyContent: 'center' },
   productText: { flex: 1, minWidth: 0, marginLeft: SPACE.md, gap: SPACE.xxs },
   productName: { ...TYPE.subheading },
-  deleteBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEF2F2', marginLeft: SPACE.sm },
+  deleteBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.dangerSoft, marginLeft: SPACE.sm },
   productDesc: { ...TYPE.body, marginTop: SPACE.md },
   productFoot: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md, paddingTop: SPACE.md, borderTopWidth: 1, borderTopColor: PALETTE.divider },
   priceChip: { paddingHorizontal: SPACE.md, paddingVertical: 6, borderRadius: 999, maxWidth: '60%' },
