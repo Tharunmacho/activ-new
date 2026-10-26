@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, AppState, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View,
@@ -38,6 +39,8 @@ type Props = { navigation: any; route: any };
 
 /** The live camera. Only mounted when the library loaded, so its hooks always run in the same order. */
 function LiveScanner({ vc, active, onCode }: { vc: any; active: boolean; onCode: (value: string) => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const { hasPermission, requestPermission } = vc.useCameraPermission();
   const device = vc.useCameraDevice('back');
   const [asked, setAsked] = useState(false);
@@ -130,6 +133,10 @@ function LiveScanner({ vc, active, onCode }: { vc: any; active: boolean; onCode:
 }
 
 export default function EventScannerScreen({ navigation, route }: Props) {
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
   const eventId: string = String(route?.params?.eventId || '');
   const eventTitle: string = String(route?.params?.eventTitle || '');
 
@@ -460,3 +467,9 @@ const s = StyleSheet.create({
   bl: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 10 },
   br: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 10 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;
+const legacyAppearance_TYPE = TYPE;

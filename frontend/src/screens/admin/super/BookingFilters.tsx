@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ConsoleCard, GradientButton, PALETTE, PremiumInput, PremiumSelect, PressableScale, SPACE } from '../../../ui';
@@ -6,6 +7,7 @@ import { BookingFilterOptions, BookingFiltersValue } from '../../../services/boo
 export default function BookingFilters({ value, options = {}, onChange }: {
   value: BookingFiltersValue; options?: BookingFilterOptions; onChange: (value: BookingFiltersValue) => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
@@ -55,3 +57,6 @@ const s = StyleSheet.create({
   fields: { gap: SPACE.sm, paddingTop: SPACE.sm }, group: { color: PALETTE.text, fontSize: 15, fontWeight: '700', marginVertical: SPACE.sm },
   help: { fontSize: 12, lineHeight: 18, color: PALETTE.textMuted, marginBottom: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

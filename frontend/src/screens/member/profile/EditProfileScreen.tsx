@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -34,6 +35,9 @@ type Props = {
 };
 
 function PhotoSlot() {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
   const { updateMember } = useMemberStore();
   const [photo, setPhoto] = useState('');
   const [name, setName] = useState('');
@@ -139,3 +143,8 @@ const s = StyleSheet.create({
 });
 
 export default EditProfileScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_TYPE = TYPE;

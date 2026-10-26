@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Platform, StyleProp, ViewStyle, TouchableOpacity, Alert } from 'react-native';
 import { checkoutLinkKind, openPaymentApp } from '../../services/paymentAppLink';
@@ -45,6 +46,8 @@ export function ResultHeader({
   right?: React.ReactNode;
   children?: React.ReactNode;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const art = outcome === 'checking'
     ? <SecureCard3D size={120} />
     : <ResultOrb3D size={120} kind={outcome === 'failed' ? 'failed' : outcome === 'pending' ? 'pending' : 'success'} />;
@@ -93,6 +96,8 @@ export function Overlap({ children, delay = 180, style }: { children: React.Reac
 
 /** "Amount paid ₹5,000" — the highlighted total at the foot of a receipt card. */
 export function TotalBar({ label, value }: { label: string; value: string }) {
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <LinearGradient colors={[BRAND.navy, BRAND.blue]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.total}>
       <Text style={s.totalLabel} maxFontSizeMultiplier={1.3}>{label}</Text>
@@ -103,6 +108,7 @@ export function TotalBar({ label, value }: { label: string; value: string }) {
 
 /** A small reassurance row. */
 export function TrustLine({ icon, text, tone = 'blue', style }: { icon: string; text: string; tone?: keyof typeof GLYPH_COLORS; style?: StyleProp<ViewStyle> }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={[s.trust, style]}>
       <GradientGlyph icon={icon} tone={tone} size={34} iconSize={17} />
@@ -113,6 +119,7 @@ export function TrustLine({ icon, text, tone = 'blue', style }: { icon: string; 
 
 /** A dashed tear across a receipt with half-circle notches in the canvas colour. */
 export function ReceiptDivider({ notch = PALETTE.canvas, inset = SPACE.lg }: { notch?: string; inset?: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={[s.divider, { marginHorizontal: -inset }]}>
       <View style={[s.notch, { left: -11, backgroundColor: notch }]} />
@@ -140,6 +147,8 @@ export function WebCheckout({
   onOpenBrowser?: () => void;
   title?: string;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const insets = useSafeAreaInsets();
   const [pageLoading, setPageLoading] = useState(true);
   const launching = useRef(false);
@@ -255,3 +264,8 @@ const s = StyleSheet.create({
   webFootBtn: { minHeight: 36, justifyContent: 'center' },
   webFootLink: { ...TYPE.caption, fontWeight: '800', color: PALETTE.blue },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;

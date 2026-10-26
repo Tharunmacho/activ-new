@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../theme/theme';
@@ -17,6 +18,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   action,
   style,
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View style={[styles.container, style]}>
       <Text style={styles.icon}>{icon}</Text>
@@ -57,3 +59,6 @@ const styles = StyleSheet.create({
 });
 
 export default EmptyState;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

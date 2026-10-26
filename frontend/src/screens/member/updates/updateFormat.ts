@@ -1,4 +1,5 @@
 import { PALETTE } from '../../../ui';
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 
 /** The website's UpdateCard CATEGORY_STYLE, in the app's palette. */
 export const CATEGORY_STYLE: Record<string, { label: string; fg: string; bg: string }> = {
@@ -13,6 +14,11 @@ export const CATEGORY_STYLE: Record<string, { label: string; fg: string; bg: str
 export const CATEGORIES = ['all', 'urgent', 'notice', 'policy', 'scheme', 'achievement', 'general'];
 
 export const categoryStyle = (c?: string | null) => CATEGORY_STYLE[String(c || 'general')] || CATEGORY_STYLE.general;
+
+export const useCategoryStyle = () => {
+  const styles = useLegacyAppearance(CATEGORY_STYLE);
+  return (category?: string | null) => styles[String(category || 'general')] || styles.general;
+};
 
 const ENTITIES: Record<string, string> = {
   '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&apos;': "'", '&nbsp;': ' ',

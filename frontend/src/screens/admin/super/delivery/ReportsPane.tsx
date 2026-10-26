@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
@@ -73,6 +74,7 @@ function Ratio({
   value: number;
   total: number;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const percent = total ? Math.round((value / total) * 1000) / 10 : 0;
   return (
     <View style={s.ratio}>
@@ -96,6 +98,9 @@ export function ReportsPane({
   header?: React.ReactNode;
   refreshKey?: number;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const [filters, setFilters] = useState<ReportFilters>({
     from: firstDate(),
     page: 1,
@@ -878,3 +883,8 @@ const s = StyleSheet.create({
     padding: SPACE.xl,
   },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

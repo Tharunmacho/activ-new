@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -30,6 +31,8 @@ export default function MemberLocked({
   onActivate: () => void;
   benefits?: GateBenefitItem[];
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const list = Array.isArray(benefits) ? benefits : [];
   return (
     <View style={styles.wrap}>
@@ -94,3 +97,7 @@ const styles = StyleSheet.create({
   open: { backgroundColor: PALETTE.successSoft, borderRadius: 999, paddingHorizontal: SPACE.sm, paddingVertical: 1 },
   openText: { fontSize: 10.5, fontWeight: '800', color: PALETTE.successText },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

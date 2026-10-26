@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Share, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -57,6 +58,8 @@ const WHAT_NEXT: { icon: string; title: string; detail: string; tone: ChipTone }
 ];
 
 const ApplicationSubmittedScreen: React.FC<Props> = ({ navigation }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [application, setApplication] = useState<any>(null);
   const [paid, setPaid] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -312,3 +315,7 @@ const s = StyleSheet.create({
 });
 
 export default ApplicationSubmittedScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

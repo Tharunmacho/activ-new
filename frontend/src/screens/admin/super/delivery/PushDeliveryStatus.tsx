@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { ConsoleCard, ConsoleButton, PALETTE, SPACE, TYPE } from '../../../../ui';
@@ -5,6 +6,8 @@ import api from '../../../../services/api';
 import NotificationPreferences from '../../../../components/NotificationPreferences';
 
 export default function PushDeliveryStatus() {
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [status, setStatus] = useState<any>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -34,3 +37,7 @@ export default function PushDeliveryStatus() {
     {!!message && <Text accessibilityRole="alert" style={{ ...TYPE.body, color: PALETTE.textMuted, marginTop: SPACE.sm }}>{message}</Text>}
   </ConsoleCard>;
 }
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_TYPE = TYPE;
+const legacyAppearance_PALETTE = PALETTE;

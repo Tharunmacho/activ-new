@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -137,6 +138,7 @@ export function DeliveryBadge({ state }: { state: string }) {
  * asks; the second sends. The server's sentence is shown as the result.
  */
 export function ResendButton({ row, onDone, compact }: { row: DeliveryLogRow; onDone?: () => void; compact?: boolean }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
   const sending = useRef(false);
@@ -185,6 +187,7 @@ export function ResendButton({ row, onDone, compact }: { row: DeliveryLogRow; on
 /* ------------------------------------------------------------ row details */
 
 function DetailField({ label, value, mono }: { label: string; value?: string | number | null; mono?: boolean }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   const v = value === null || value === undefined ? '' : String(value);
   if (!v) return null;
   return (
@@ -202,6 +205,8 @@ const providerWord = (p?: string) => (p === 'meta' ? 'WhatsApp (Meta)' : p === '
  * provider's id, the delivery timeline and the full failure reason.
  */
 export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const state = stateOf(row);
   const reason = reasonOf(row);
   const history = Array.isArray(row?.statusHistory) ? row.statusHistory : [];
@@ -266,6 +271,7 @@ export function DeliveryDetail({ row }: { row: DeliveryLogRow }) {
 /* ----------------------------------------------- per-booking chips + hook */
 
 function ChannelChip({ channel, summary }: { channel: 'email' | 'whatsapp'; summary?: ChannelSummary }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   const meta = summary ? STATE_META[String(summary?.status || '')] : undefined;
   return (
     <View style={k.chanChip}>
@@ -279,6 +285,8 @@ function ChannelChip({ channel, summary }: { channel: 'email' | 'whatsapp'; summ
 export function DeliveryChips({ summary, loading, onOpen }: {
   summary?: BookingDeliverySummary | null; loading?: boolean; onOpen: () => void;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const label = `Messages: email ${summary?.email ? (STATE_META[String(summary.email.status)]?.label || summary.email.status) : 'none'}, WhatsApp ${summary?.whatsapp ? (STATE_META[String(summary.whatsapp.status)]?.label || summary.whatsapp.status) : 'none'}`;
   return (
     <TouchableOpacity onPress={onOpen} style={k.chips} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={label} hitSlop={6}>
@@ -350,3 +358,7 @@ const k = StyleSheet.create({
   chanChip: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   none: { fontSize: 12, color: PALETTE.textFaint, fontWeight: '700' },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_k = k;
+const legacyAppearance_PALETTE = PALETTE;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import { AppTheme, useAppTheme, useThemeStyles } from '../ui/AppTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -138,6 +139,7 @@ function AlbumBody({ products, slides, initialSlide, onClose, onProductShown, to
   products: CatalogueItem[]; slides: Slide[]; initialSlide: number; onClose: () => void;
   onProductShown?: (item: CatalogueItem) => void; tone: 'member' | 'business';
 }) {
+  const makeStyles = useLegacyAppearance(legacyAppearance_makeStyles);
   const { palette: PALETTE, toneOf, isDark } = useAppTheme();
   const styles = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
@@ -423,3 +425,6 @@ const makeStyles = ({ palette: PALETTE, type: TYPE }: AppTheme) => StyleSheet.cr
 });
 
 export default CatalogueAlbum;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_makeStyles = makeStyles;

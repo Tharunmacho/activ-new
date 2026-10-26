@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -40,6 +41,7 @@ const AUDIENCES: { value: PlanAudience; label: string }[] = [
 const num = (v: string) => (String(v || '').trim() === '' ? NaN : Number(v));
 
 const SuperPlanEditorScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const existing: MembershipPlanRow | undefined = route?.params?.plan || undefined;
@@ -214,3 +216,6 @@ const s = StyleSheet.create({
 });
 
 export default SuperPlanEditorScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

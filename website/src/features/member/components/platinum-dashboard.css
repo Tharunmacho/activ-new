@@ -250,3 +250,61 @@
   .platinum-dashboard .lifetime-tiles button { transition: none !important; transform: none !important; }
   .platinum-metal-card:after { animation: none !important; display: none; }
 }
+
+/* Lifetime members choose the same light/dark preference as every member.
+   The membership card keeps its gold identity; workspace surfaces and copy
+   follow the chosen theme instead of forcing the whole dashboard to light. */
+html[data-app-theme='dark'] .member-shell--gold,
+html[data-app-theme='dark'] .platinum-dashboard {
+  --lifetime-ink: #f4f4f5;
+  --lifetime-muted: #c4beb3;
+  --lifetime-gold: #e8c477;
+  --lifetime-border: #39342b;
+}
+html[data-app-theme='dark'] .member-shell--gold > div > main { background: #0a0a0a; }
+html[data-app-theme='dark'] .platinum-welcome {
+  color: #f4f4f5;
+  background: #121212;
+  border-color: #39342b;
+  box-shadow: 0 12px 36px -24px #0009;
+}
+html[data-app-theme='dark'] .platinum-welcome__main {
+  background: radial-gradient(ellipse at 95% 5%, #b88d3514, transparent 65%), linear-gradient(120deg, #151515, #1b1915);
+}
+html[data-app-theme='dark'] .platinum-name,
+html[data-app-theme='dark'] .platinum-workspace__heading h3,
+html[data-app-theme='dark'] .platinum-dashboard .platinum-panel > header h2,
+html[data-app-theme='dark'] .platinum-dashboard .lifetime-tiles button > span:nth-child(2) { color: #f4f4f5; }
+html[data-app-theme='dark'] .platinum-greeting,
+html[data-app-theme='dark'] .platinum-welcome__copy,
+html[data-app-theme='dark'] .platinum-welcome__meta,
+html[data-app-theme='dark'] .platinum-card-caption,
+html[data-app-theme='dark'] .platinum-workspace__heading > span,
+html[data-app-theme='dark'] .platinum-action__detail,
+html[data-app-theme='dark'] .platinum-dashboard .platinum-panel > header p { color: #c4beb3; }
+html[data-app-theme='dark'] .platinum-overline,
+html[data-app-theme='dark'] .platinum-welcome__meta svg,
+html[data-app-theme='dark'] .platinum-action__arrow,
+html[data-app-theme='dark'] .platinum-dashboard .platinum-panel > header > a { color: #e8c477; }
+html[data-app-theme='dark'] .platinum-workspace { background: #151515; border-color: #39342b; }
+html[data-app-theme='dark'] .platinum-action,
+html[data-app-theme='dark'] .platinum-dashboard .lifetime-tiles button {
+  background: #1b1b1b;
+  border-color: #39342b;
+  color: #f4f4f5;
+}
+html[data-app-theme='dark'] .platinum-action:hover,
+html[data-app-theme='dark'] .platinum-dashboard .lifetime-tiles button:hover { background: #24211c; border-color: #b28b41; }
+html[data-app-theme='dark'] .platinum-overline__mark,
+html[data-app-theme='dark'] .platinum-action__icon,
+html[data-app-theme='dark'] .platinum-dashboard .platinum-panel > header > span,
+html[data-app-theme='dark'] .platinum-dashboard .lifetime-tiles button > span:first-child,
+html[data-app-theme='dark'] .platinum-dashboard .lifetime-tiles button > span:last-child > span:last-child > span:last-child {
+  background: #332b1b;
+  border-color: #68512a;
+  color: #e8c477;
+  box-shadow: none;
+}
+html[data-app-theme='dark'] .platinum-dashboard .platinum-panel { border-color: #39342b; }
+html[data-app-theme='dark'] .platinum-text-link { color: #251b0b; background: #e8c477; border-color: #e8c477; }
+html[data-app-theme='dark'] .platinum-text-link:hover { background: #f2d797; }

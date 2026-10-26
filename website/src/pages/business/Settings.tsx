@@ -66,7 +66,7 @@ const Settings = () => {
     const { activeCompany, companies, hasLoaded, loadCompanies, setActiveCompany } =
         useActiveCompanyStore();
 
-    const [isListed, setIsListed] = useState(true);
+    const [isListed, setIsListed] = useState(false);
     const [isSavingListing, setIsSavingListing] = useState(false);
     const [catalogStats, setCatalogStats] = useState({ total: 0, active: 0, featured: 0 });
     const [confirmDelete, setConfirmDelete] = useState(false);
@@ -82,8 +82,8 @@ const Settings = () => {
     }, [loadCompanies]);
 
     useEffect(() => {
-        setIsListed(activeCompany?.isActive !== false);
-    }, [activeCompany?._id, activeCompany?.isActive]);
+        setIsListed(activeCompany?.publication?.published ?? activeCompany?.isActive === true);
+    }, [activeCompany?._id, activeCompany?.isActive, activeCompany?.publication?.published]);
 
     /**
      * A settings screen that cannot tell you whether your catalog is empty is
@@ -200,7 +200,7 @@ const Settings = () => {
             return;
         }
 
-        if (activeCompany.isActive === false) { toast.info('Publish this company in ACTIV Network before sharing its public preview.'); return; }
+        if (!isListed) { toast.info('Publish this company in ACTIV Network before sharing its public preview.'); return; }
         const url = publicUrl(`/network/company/${encodeURIComponent(companyId)}`);
         const lines = [
             activeCompany.businessName || '',
@@ -382,7 +382,7 @@ const Settings = () => {
                             <Row
                                 Icon={PlusCircle}
                                 title="Add New Company"
-                                subtitle="Register another business under your membership"
+                                subtitle={activeCompany?.publication?.unlimited ? 'Included with your ₹2 lakh membership' : 'Save privately, then pay its plan to promote it'}
                                 onClick={() => navigate('/business/companies/add')}
                             />
                             <Row
@@ -441,7 +441,9 @@ const Settings = () => {
                                     <p className="text-ui-caption text-slate-500">
                                         {isListed
                                             ? 'Other members can find this company and its products'
-                                            : 'Hidden from search across the member network'}
+                                            : activeCompany?.publication?.paymentRequired
+                                                ? 'Only you can see this company. Enable listing to review and pay its plan.'
+                                                : 'Only you can see this company; it is hidden from search.'}
                                     </p>
                                 </div>
                                 {isSavingListing ? (
@@ -451,9 +453,20 @@ const Settings = () => {
                                         checked={isListed}
                                         onCheckedChange={handleToggleListing}
                                         disabled={!companyId}
+                                        aria-label="List this company in ACTIV Network"
                                     />
                                 )}
                             </div>
+                            <p className="mt-3 text-ui-small text-slate-600">
+                                {activeCompany?.publication?.unlimited
+                                    ? 'Your ₹2 lakh membership covers every company with the same membership ID.'
+                                    : activeCompany?.publication?.included
+                                        ? 'This is the company included with your membership. Other companies need their own paid plan to be visible.'
+                                        : 'A paid additional company has its own membership ID and certificate.'}
+                            </p>
+                            {activeCompany?.publication?.membershipNumber && (
+                                <p className="mt-2 break-words text-ui-small text-slate-600">Membership ID: <strong className="text-slate-900">{activeCompany.publication.membershipNumber}</strong></p>
+                            )}
 
                             <Row
                                 Icon={Compass}

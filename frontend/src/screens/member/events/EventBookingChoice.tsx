@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
@@ -21,6 +22,7 @@ type Props = {
 
 /** The website's two booking paths, in the app's native form components. */
 export default function EventBookingChoice({ event, navigation, onGuest, onMember }: Props) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -95,3 +97,6 @@ const styles = StyleSheet.create({
   hint: { ...TYPE.caption, textAlign: 'center', marginTop: SPACE.md },
   link: { color: PALETTE.blue, fontWeight: '700' },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

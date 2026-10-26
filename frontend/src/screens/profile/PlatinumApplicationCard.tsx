@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -31,6 +32,9 @@ const STATUS_COPY: Record<string, { title: string; text: string }> = {
 };
 
 export default function PlatinumApplicationCard({ onApply }: { onApply: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [price, setPrice] = useState<number | null>(null);
   const [request, setRequest] = useState<any>(null);
   const [isPlatinum, setIsPlatinum] = useState(false);
@@ -157,3 +161,8 @@ const s = StyleSheet.create({
   },
   ctaText: { ...TYPE.subheading, fontWeight: '700', color: PALETTE.blueDeep },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

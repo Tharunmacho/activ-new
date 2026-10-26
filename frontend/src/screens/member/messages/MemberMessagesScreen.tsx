@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import StudentNetworkingGate from '../StudentNetworkingGate';
 import { isStudentMembership } from '../../../utils/memberAudience';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -58,6 +59,8 @@ const whenOf = (iso?: string | null) => {
 };
 
 function ConversationRow({ c, onPress, index }: { c: any; onPress: () => void; index: number }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const who = c?.withMember || {};
   const unread = Number(c?.unread || 0);
   const photo = who?.photoUrl ? resolveMediaUrl(who.photoUrl) : '';
@@ -100,6 +103,7 @@ function ConversationRow({ c, onPress, index }: { c: any; onPress: () => void; i
 
 /** Website PaneWelcome with no conversations: the three openers and Find a member. */
 function Welcome({ onFind }: { onFind: () => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View style={styles.welcome}>
       <ArtBadge size={112}><ChatBubbles3D size={84} /></ArtBadge>
@@ -124,6 +128,8 @@ function Welcome({ onFind }: { onFind: () => void }) {
 }
 
 const MemberMessagesScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const { paid, profile, loading: accessLoading } = useMemberAccess();
   const cta = useLockedCta(paid, profile);
   const [tab, setTab] = useState<Tab>('all');
@@ -301,3 +307,7 @@ const styles = StyleSheet.create({
 });
 
 export default MemberMessagesScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

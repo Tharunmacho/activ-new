@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -48,6 +49,8 @@ const GROUPS: { audience: string; title: string; hint: string; icon: string }[] 
 function PlanCard({ p, thisYear, onEdit, onRestore, onDelete }: {
   p: MembershipPlanRow; thisYear: number; onEdit: () => void; onRestore: () => void; onDelete: () => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const years = hasBand(p) ? yearWindowLabel(p, thisYear) : '';
   const retired = !p?.active;
   return (
@@ -74,6 +77,8 @@ function PlanCard({ p, thisYear, onEdit, onRestore, onDelete }: {
 }
 
 function PlansTab({ navigation, nonce }: { navigation: any; nonce: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [data, setData] = useState<{ plans: MembershipPlanRow[]; settings: { showAllPlans: boolean } } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -258,6 +263,7 @@ const modeLabel = (mode?: string) => PAYMENT_MODE_LABEL[(mode || 'other') as key
 
 /** One search result (website PlatinumMembers → "Make a member Platinum"). */
 function CandidateRow({ m, onGrant }: { m: any; onGrant: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const isPlat = String(m?.membershipTier || '') === 'platinum';
   const contact = [m?.email, m?.phoneNumber].filter(Boolean).join(' · ');
   const where = [m?.membershipNumber, place(m?.block, m?.district, m?.state)].filter(Boolean).join(' · ');
@@ -285,6 +291,8 @@ function CandidateRow({ m, onGrant }: { m: any; onGrant: () => void }) {
 
 /** One existing Platinum member, with the office receipt and Undo. */
 function PlatinumMemberRow({ m, onRevoke, onEdit }: { m: any; onRevoke: () => void; onEdit: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const g = m?.platinumGrant || null;
   return (
     <ConsoleCard style={s.card} accent={PALETTE.gold}>
@@ -310,6 +318,8 @@ function PlatinumMemberRow({ m, onRevoke, onEdit }: { m: any; onRevoke: () => vo
 }
 
 function PlatinumTab({ navigation, nonce }: { navigation: any; nonce: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [overview, setOverview] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -401,6 +411,8 @@ const STATUS_WORD: Record<string, string> = { new: 'New', contacted: 'Contacted'
 const statusKind = (st?: string): ConsoleChipKind => (st === 'converted' ? 'approved' : st === 'declined' ? 'rejected' : st === 'contacted' ? 'pending' : 'info');
 
 function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [status, setStatus] = useState('new');
   const [data, setData] = useState<{ requests: any[]; counts: Record<string, number> } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -509,6 +521,7 @@ function RequestsTab({ navigation, nonce }: { navigation: any; nonce: number }) 
 }
 
 const SuperMembershipScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const initial = String(route?.params?.tab || '');
@@ -585,3 +598,7 @@ const s = StyleSheet.create({
 });
 
 export default SuperMembershipScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

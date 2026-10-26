@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +17,9 @@ const date = (value: string) => {
 export default function PublicNotificationsCard({ visible, noticeId, onClose, navigation }: {
   visible: boolean; noticeId?: string; onClose: () => void; navigation: any;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const [items, setItems] = useState<PublicNotice[]>([]);
@@ -165,3 +169,8 @@ const s = StyleSheet.create({
   footer: { borderTopWidth: 1, borderTopColor: PALETTE.divider, backgroundColor: PALETTE.blueTint, paddingHorizontal: SPACE.md, paddingVertical: SPACE.xs },
   action: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: SPACE.xs }, actionText: { ...TYPE.caption, fontSize: 16, lineHeight: 24, fontWeight: '700', color: BRAND.blue }, pushError: { ...TYPE.caption, color: PALETTE.textMuted, marginBottom: SPACE.xs },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

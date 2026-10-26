@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
 import { COLORS, FONTS } from '../theme/theme';
@@ -21,6 +22,7 @@ const Avatar: React.FC<AvatarProps> = ({
   backgroundColor = COLORS.primary,
   textColor = COLORS.white,
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const getInitials = (fullName?: string | null): string => {
     // `.filter(Boolean)` drops the empty strings a blank/whitespace name
     // would otherwise leave behind, so we always render a real glyph.
@@ -124,3 +126,6 @@ const styles = StyleSheet.create({
 });
 
 export default Avatar;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

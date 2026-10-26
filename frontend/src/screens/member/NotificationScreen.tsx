@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import { isUpcomingEvent } from '../../utils/eventLifecycle';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
@@ -225,6 +226,8 @@ export const feedUnreadCount = async (): Promise<number> => {
 type Filter = 'all' | 'unread';
 
 function Row({ item, index, onOpen, onTick }: { item: FeedItem; index: number; onOpen: () => void; onTick: () => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const k = KIND_STYLE[item.kind] || KIND_STYLE.notification;
   const ago = when(item.at);
   return (
@@ -278,6 +281,8 @@ function Row({ item, index, onOpen, onTick }: { item: FeedItem; index: number; o
 }
 
 const NotificationScreen = () => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -450,3 +455,7 @@ const styles = StyleSheet.create({
 });
 
 export default NotificationScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

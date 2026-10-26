@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import { View, ActivityIndicator, Text, StyleSheet, ViewStyle } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../theme/theme';
@@ -17,6 +18,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   fullScreen = false,
   style,
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const containerStyle = fullScreen ? styles.fullScreenContainer : styles.container;
 
   return (
@@ -48,3 +50,6 @@ const styles = StyleSheet.create({
 });
 
 export default LoadingSpinner;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

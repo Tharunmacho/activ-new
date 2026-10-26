@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { updateAudienceLabel } from '../../../utils/memberAudience';
 import { resolveUpdateDeliveryChannels, updateDeliverySummary } from '../../../utils/updateDeliveryChannels';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -34,6 +35,8 @@ export const CATEGORY_TONE: Record<string, { fg: string; bg: string; icon: strin
 };
 
 function UpdateCard({ a, onEdit, onToggle, onDelete }: { a: any; onEdit: () => void; onToggle: () => void; onDelete: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const tone = CATEGORY_TONE[String(a?.category || 'general')] || CATEGORY_TONE.general;
   const published = String(a?.status) === 'published';
   const title = String(a?.title || '').trim() || 'Untitled update';
@@ -73,6 +76,9 @@ function UpdateCard({ a, onEdit, onToggle, onDelete }: { a: any; onEdit: () => v
 }
 
 const SuperUpdatesScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const [tab, setTab] = useState<Tab>('all');
   const [rows, setRows] = useState<any[] | null>(null);
@@ -198,3 +204,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperUpdatesScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

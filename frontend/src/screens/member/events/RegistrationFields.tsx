@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
 import { PremiumInput, PremiumSelect, PALETTE, SPACE, TYPE } from '../../../ui';
@@ -7,6 +8,7 @@ export function RegistrationFields({ fields, answers, errors, onChange }: {
   fields: RegistrationField[]; answers: RegistrationAnswers; errors: Record<string, string>;
   onChange: (key: string, value: string | boolean) => void;
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return <>{fields.map(field => {
     const value = answers[field.key];
     const error = errors[`responses.${field.key}`];
@@ -24,3 +26,6 @@ export function RegistrationFields({ fields, answers, errors, onChange }: {
   })}</>;
 }
 const styles = StyleSheet.create({ checkbox: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, marginBottom: SPACE.md }, label: { ...TYPE.label }, hint: { ...TYPE.caption, marginTop: SPACE.xs }, error: { ...TYPE.caption, color: PALETTE.redDark, marginTop: SPACE.xs } });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

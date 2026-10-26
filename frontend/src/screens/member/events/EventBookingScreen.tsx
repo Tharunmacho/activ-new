@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { onlineRegistrationLink } from '../../../utils/onlineEvent';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -53,6 +54,8 @@ type Errors = Record<string, string>;
 
 
 function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (n: number) => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={styles.stepper}>
       <PressableScale onPress={() => onChange(Math.max(min, value - 1))} disabled={value <= min} scaleTo={0.9} contentStyle={[styles.stepBtn, value <= min && { opacity: 0.4 }]} accessibilityRole="button" accessibilityLabel="One fewer seat">
@@ -69,6 +72,8 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 }
 
 function TicketAction({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <PressableScale onPress={onPress} style={styles.tActionWrap} contentStyle={styles.tAction} accessibilityRole="button" accessibilityLabel={label}>
       <Icon name={icon} size={18} color={PALETTE.blueDark} />
@@ -79,6 +84,8 @@ function TicketAction({ icon, label, onPress }: { icon: string; label: string; o
 
 /** The confirmation, drawn as a real ticket: gradient stub, perforation, details, torn foot. */
 function Ticket({ b, event, onPay, onRebook, open }: { b: any; event: any; onPay: () => void; onRebook: () => void; open: (url: string) => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const now = useEventClock();
   const { status, payment: payStatus, payable, settled, needsReview, headline, paymentLabel, expired } = bookingState(b, now);
   const mode = b?.mode ?? event?.mode;
@@ -249,6 +256,8 @@ function Ticket({ b, event, onPay, onRebook, open }: { b: any; event: any; onPay
 }
 
 const EventBookingScreen = ({ navigation, route }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const open = (url: string) => { if (url) openWebsitePage(navigation, url, 'Event information'); };
   const eventId = String(route?.params?.eventId || '');
   const now = useEventClock();
@@ -748,3 +757,7 @@ const styles = StyleSheet.create({
 });
 
 export default EventBookingScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

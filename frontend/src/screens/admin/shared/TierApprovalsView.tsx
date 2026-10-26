@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import ApprovalQueue from '../../../components/ApprovalQueue';
@@ -51,6 +52,7 @@ interface Props {
 function ChipRow({ label, options, value, onChange }: {
   label: string; options: string[]; value: string; onChange: (v: string) => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   if (!options.length) return null;
   return (
     <View style={s.filterBlock}>
@@ -68,6 +70,8 @@ function ChipRow({ label, options, value, onChange }: {
 export default function TierApprovalsView({
   tier, region, applicants, loading, refreshing, onRefresh, submitReview, navigation,
 }: Props) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const levels = useMemo(() => FILTERS[tier] || [], [tier]);
   const [tab, setTab] = useState<keyof ApplicantBuckets>('all');
   const [district, setDistrict] = useState('');
@@ -175,3 +179,7 @@ const s = StyleSheet.create({
   filterLabel: { ...TYPE.eyebrow, marginHorizontal: SPACE.lg, marginBottom: SPACE.sm, color: PALETTE.indigoDark },
   skeleton: { marginTop: SPACE.md },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

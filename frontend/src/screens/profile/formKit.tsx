@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import {
   View,
@@ -81,6 +82,7 @@ export function FormScreen({
   /** The step's illustration (original SVG art), floating beside the heading. */
   art?: React.ReactNode;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   const showStepper = !!step && Array.isArray(steps) && steps.length > 1;
   return (
     <PremiumScreen
@@ -152,6 +154,8 @@ export function FormFooter({
  * draws the white stepper on the header).
  */
 export function StepProgress({ step, labels, tone = 'member' }: { step: number; labels: string[]; tone?: Tone }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const t = toneOf(tone);
   const list = labels || [];
   const total = list.length || 1;
@@ -212,6 +216,8 @@ export function StepProgress({ step, labels, tone = 'member' }: { step: number; 
 
 /** A page-level heading + one line of context, on the gutter above the first section. */
 export function FormIntro({ title, text, large }: { title: string; text?: string; large?: boolean }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
   return (
     <View style={k.intro}>
       <Text style={large ? TYPE.display : TYPE.title} accessibilityRole="header">{title}</Text>
@@ -247,6 +253,8 @@ export function FieldLabel({ label, required }: { label: string; required?: bool
 
 /** The error / hint line under a control — identical to the premium input's. */
 export function FieldMessage({ error, hint }: { error?: string; hint?: string }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   if (error) {
     return (
       <View style={k.msgRow} accessibilityLiveRegion="polite">
@@ -260,6 +268,8 @@ export function FieldMessage({ error, hint }: { error?: string; hint?: string })
 
 /** Show / hide for a password field's `right` slot — a full 44px target. */
 export function EyeToggle({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <TouchableOpacity
       onPress={onToggle}
@@ -329,6 +339,8 @@ export function ChoicePills<T extends string>({
   disabled?: boolean;
   tone?: Tone;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const p = premiumTone(tone);
   return (
     <View style={k.pills} accessibilityRole="radiogroup">
@@ -337,7 +349,7 @@ export function ChoicePills<T extends string>({
         const fg = on ? PALETTE.white : disabled ? PALETTE.textFaint : PALETTE.textSoft;
         const inner = (
           <>
-            <View style={[k.radio, on && k.radioOn]}>
+            <View style={[k.radio, on && k.radioOn, on && { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' }]}>
               {on ? <View style={[k.radioDot, { backgroundColor: p.accent }]} /> : null}
             </View>
             {o.icon ? <Icon name={o.icon} size={SIZE.iconSm + 2} color={fg} /> : null}
@@ -379,6 +391,8 @@ export function CheckRow({
   disabled?: boolean;
   tone?: Tone;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const p = premiumTone(tone);
   return (
     <TouchableOpacity
@@ -484,3 +498,8 @@ export const k = StyleSheet.create({
   boxOn: { borderWidth: 0 },
   checkText: { ...TYPE.body },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_k = k;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_TYPE = TYPE;

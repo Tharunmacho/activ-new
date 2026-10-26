@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { Alert, View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +9,7 @@ import useRegionCascade from '../../../hooks/useRegionCascade';
 const EMPTY = { fullName: '', email: '', password: '', phoneNumber: '', whatsappNumber: '', state: '', district: '', block: '' };
 const LABELS = { fullName: 'Full name', email: 'Email', password: 'Password', phoneNumber: 'Mobile', whatsappNumber: 'WhatsApp number', state: 'State', district: 'District', block: 'Block' };
 export default function SuperOfficeAccountScreen() {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const [form, setForm] = useState(EMPTY);
   const [busy, setBusy] = useState(false);
@@ -51,3 +53,6 @@ export default function SuperOfficeAccountScreen() {
   </ConsoleScroll>;
 }
 const s = StyleSheet.create({ card: { marginHorizontal: SPACE.lg, marginTop: SPACE.md } });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

@@ -1,3 +1,5 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
+import { useAppTheme } from '../../../ui/AppTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, BackHandler, Easing, Linking, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,19 +55,32 @@ const hostOf = (url: string) => {
 };
 
 const WebsiteViewerScreen = ({ navigation, route }: any) => {
+  const { isDark } = useAppTheme();
+  const initialAppearance = useRef(isDark ? 'dark' : 'light').current;
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const insets = useSafeAreaInsets();
   const params = route?.params || {};
   const publicMode = params.publicAccess === true;
   const startUrl = useMemo(() => {
     const raw = String(params?.url || params?.path || '').trim();
     const base = websiteUrl(raw || '/');
-    const url = publicMode ? publicWebsiteUrl(base) : base;
+    const publicUrl = publicMode ? publicWebsiteUrl(base) : base;
+    const hashAt = publicUrl.indexOf('#');
+    const page = hashAt < 0 ? publicUrl : publicUrl.slice(0, hashAt);
+    const fragment = hashAt < 0 ? '' : publicUrl.slice(hashAt);
+    const url = publicMode ? `${page}${page.includes('?') ? '&' : '?'}appTheme=${initialAppearance}${fragment}` : publicUrl;
     // Only the association's own site is ever loaded here.
     return isWebsiteUrl(url) ? url : `${WEBSITE_ORIGIN}/`;
-  }, [params?.url, params?.path, publicMode]);
+  }, [params?.url, params?.path, publicMode, initialAppearance]);
   const fallbackTitle = String(params?.title || 'ACTIV');
 
   const web = useRef<any>(null);
+  const appearanceScript = `window.__ACTIV_APP_THEME__ = '${isDark ? 'dark' : 'light'}'; window.dispatchEvent(new CustomEvent('activ:theme-changed', {detail: {mode: window.__ACTIV_APP_THEME__}})); true;`;
+  useEffect(() => {
+    if (publicMode) web.current?.injectJavaScript?.(appearanceScript);
+  }, [publicMode, appearanceScript]);
   const [currentUrl, setCurrentUrl] = useState(startUrl);
   const [pageTitle, setPageTitle] = useState(fallbackTitle);
   const [canGoBack, setCanGoBack] = useState(false);
@@ -234,7 +249,7 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
           incognito={publicMode}
           sharedCookiesEnabled={false}
           thirdPartyCookiesEnabled={false}
-          injectedJavaScriptBeforeContentLoaded={publicMode ? 'window.__ACTIV_PUBLIC_APP__ = true; true;' : undefined}
+          injectedJavaScriptBeforeContentLoaded={publicMode ? `window.__ACTIV_PUBLIC_APP__ = true; ${appearanceScript}` : undefined}
           onMessage={(event: any) => {
             if (!publicMode || !publicWebsitePath(String(event?.nativeEvent?.url || ''))) return;
             try {
@@ -248,7 +263,7 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
           onShouldStartLoadWithRequest={onShouldStart}
           onLoadStart={() => { setLoading(true); setBar(0.1); }}
           onLoadProgress={(e: any) => setBar(Number(e?.nativeEvent?.progress || 0))}
-          onLoadEnd={() => { setBar(1); setTimeout(() => setLoading(false), 220); }}
+          onLoadEnd={() => { if (publicMode) web.current?.injectJavaScript?.(appearanceScript); setBar(1); setTimeout(() => setLoading(false), 220); }}
           onNavigationStateChange={(nav: any) => {
             setCanGoBack(!!nav?.canGoBack);
             if (nav?.url) setCurrentUrl(String(nav.url));
@@ -264,7 +279,7 @@ const WebsiteViewerScreen = ({ navigation, route }: any) => {
           }}
         />
       )}
-      <View style={{ height: Number(insets?.bottom || 0), backgroundColor: PALETTE.white }} />
+      <View style={{ height: Number(insets?.bottom || 0), backgroundColor: PALETTE.canvas }} />
     </View>
   );
 };
@@ -295,3 +310,8 @@ export default function WebsiteOrArticleScreen(props: any) {
     : destination?.name === 'PublicExplore' ? PublicExploreScreen : destination?.name === 'PublicEventDetail' ? PublicEventDetailScreen : null;
   return Screen ? <Screen {...props} route={{ ...props.route, params: destination?.params }} /> : <WebsiteViewerScreen {...props} />;
 }
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

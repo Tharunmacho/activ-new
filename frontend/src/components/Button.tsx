@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import {
   TouchableOpacity,
@@ -35,6 +36,8 @@ const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const COLORS = useLegacyAppearance(legacyAppearance_COLORS);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const getVariantStyles = (): ViewStyle => {
     switch (variant) {
       case 'primary':
@@ -180,3 +183,7 @@ const styles = StyleSheet.create({
 });
 
 export default Button;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_COLORS = COLORS;
+const legacyAppearance_styles = styles;

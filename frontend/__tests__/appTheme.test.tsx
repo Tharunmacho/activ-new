@@ -6,6 +6,7 @@ import { AppTheme, AppThemeProvider, DARK_PALETTE, THEME_STORAGE_KEY, useAppThem
 import { AppearancePicker } from '../src/ui/AppearancePicker';
 import { Card } from '../src/ui/components';
 import { PALETTE } from '../src/ui/tokens';
+import { resolveLegacyAppearance } from '../src/ui/legacyAppearance';
 
 jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({ __esModule: true, default: jest.fn(() => 'light') }));
 
@@ -50,8 +51,32 @@ test('appearance controls update cards immediately and restore the preference af
   expect(await AsyncStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
 });
 
+test('a new installation stays light even when the phone switches to dark', async () => {
+  (useColorScheme as jest.Mock).mockReturnValue('dark');
+  await render();
+  expect(theme.preference).toBe('light');
+  expect(theme.isDark).toBe(false);
+});
+
+test('legacy styles resolve neutral text and surfaces while preserving brand fills and shared source objects', async () => {
+  await render(); await pick('Dark');
+  const original = { title: { color: '#0B1A45' }, panel: { backgroundColor: '#fff' },
+    action: { backgroundColor: '#3B2DB0', color: '#FFFFFF' }, gradient: ['#0B1A45', '#1C2E68', '#1E3A8A'] };
+  const resolved = resolveLegacyAppearance(original, theme);
+  expect(resolved.title.color).toBe(DARK_PALETTE.text);
+  expect(resolved.panel.backgroundColor).toBe(DARK_PALETTE.card);
+  expect(resolved.action).toEqual(original.action);
+  expect(resolved.gradient).toEqual(original.gradient);
+  expect(original.panel.backgroundColor).toBe('#fff');
+  expect(resolveLegacyAppearance(original, theme)).toBe(resolved);
+  class AnimationHandle { value = 1; }
+  const animation = new AnimationHandle();
+  expect(resolveLegacyAppearance({ animation }, theme).animation).toBe(animation);
+});
+
 test('system follows phone changes while an explicit preference stays fixed', async () => {
   await render();
+  await pick('System');
   (useColorScheme as jest.Mock).mockReturnValue('dark');
   await Renderer.act(async () => { screen!.update(<AppThemeProvider><Probe /></AppThemeProvider>); });
   expect(theme.isDark).toBe(true);
@@ -84,10 +109,10 @@ test('failed storage writes keep the selected appearance and expose a retry mess
   expect(await AsyncStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
 });
 
-test('invalid stored values fall back to system and rapid changes save in order', async () => {
+test('invalid stored values fall back to light and rapid changes save in order', async () => {
   await AsyncStorage.setItem(THEME_STORAGE_KEY, 'invalid');
   await render();
-  expect(theme.preference).toBe('system');
+  expect(theme.preference).toBe('light');
   await Renderer.act(async () => {
     theme.setPreference('dark');
     theme.setPreference('light');

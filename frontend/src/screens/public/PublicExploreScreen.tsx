@@ -1,3 +1,5 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
+import { AppearanceToggle } from '../../ui/AppearanceToggle';
 import EventFilters from '../../components/EventFilters';
 import { EMPTY_EVENT_FILTERS, matchesEventFilters } from '../../utils/eventFilters';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -31,6 +33,9 @@ const TABS: { key: ExploreSection; label: string; icon: string; title: string; s
 const EMPTY: ExploreContent = { events: [], news: [], gallery: [], zones: [] };
 
 export default function PublicExploreScreen({ navigation, route }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [section, setSection] = useState<ExploreSection>(() => TABS.find(tab => tab.key === route?.params?.section)?.key || 'home');
@@ -179,6 +184,7 @@ export default function PublicExploreScreen({ navigation, route }: any) {
               </PressableScale>
               </View>
             </View>
+            <View style={{ alignItems: 'flex-end', marginTop: SPACE.sm }}><AppearanceToggle glass /></View>
             <View style={s.heroRow}>
               <View style={s.heroText}><Text style={s.eyebrow}>{section === 'home' ? 'WELCOME TO ACTIV' : 'EXPLORE / ' + tab.label.toUpperCase()}</Text>
                 <Text style={[s.heroTitle, compact && s.heroTitleCompact]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>{tab.title}</Text>
@@ -259,3 +265,8 @@ const s = StyleSheet.create({
   tabIcon: { height: 28, alignItems: 'center', justifyContent: 'center' },
   tabText: { alignSelf: 'stretch', flexShrink: 1, fontSize: 11, lineHeight: 15, textAlign: 'center', color: '#DCE8FF', fontWeight: '600' }, tabTextSelected: { color: BRAND.blue900, fontWeight: '800' },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -28,6 +29,9 @@ import {
  */
 
 export default function SuperBookingMessagesScreen() {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const bookingRef: string = String(route?.params?.bookingRef || '');
@@ -195,3 +199,8 @@ const s = StyleSheet.create({
   more: { fontSize: 12, fontWeight: '800', color: PALETTE.indigo },
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

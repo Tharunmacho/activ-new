@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -55,6 +56,9 @@ const REASONS: Record<string, string> = {
 const PROVIDER_NAME: Record<string, string> = { google: 'Google', facebook: 'Facebook', linkedin: 'LinkedIn' };
 
 const SocialSignInScreen: React.FC<Props> = ({ navigation, route }) => {
+  const a = useLegacyAppearance(sharedAppearance_a);
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const code = String(route?.params?.code || '');
   const reason = String(route?.params?.error || '');
   const provider = String(route?.params?.provider || '');
@@ -247,3 +251,9 @@ const s = StyleSheet.create({
 });
 
 export default SocialSignInScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+
+const sharedAppearance_a = a;

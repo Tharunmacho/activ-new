@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, View, StyleSheet } from 'react-native';
 import api from '../../services/api';
@@ -7,6 +8,7 @@ import { GradientButton, PALETTE, SPACE, TYPE } from '../../ui';
 export default function SocialEmailVerification({ code, initialEmail, onComplete }: {
   code: string; initialEmail: string; onComplete: (session: any) => Promise<void>;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [email, setEmail] = useState(initialEmail), [otp, setOtp] = useState('');
   const [sent, setSent] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState(''), [wait, setWait] = useState(0);
   useEffect(() => { if (!wait) return; const timer = setTimeout(() => setWait(value => Math.max(0, value - 1)), 1000); return () => clearTimeout(timer); }, [wait]);
@@ -56,3 +58,6 @@ const s = StyleSheet.create({
   input: { ...TYPE.body, color: PALETTE.text, backgroundColor: PALETTE.white, borderWidth: 1, borderColor: PALETTE.border, borderRadius: 12, minHeight: 52, paddingHorizontal: SPACE.lg },
   sent: { ...TYPE.body, color: PALETTE.greenDark }, error: { ...TYPE.body, color: PALETTE.redDark },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import { membershipValidityLabel } from '../../utils/membershipDates';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -78,6 +79,7 @@ const KIND_BENEFITS: Record<'student' | 'aspirant' | 'business', { icon: string;
 const TILE_TONES = ['blue', 'teal', 'sky', 'amber', 'green', 'navy'] as const;
 
 function BenefitTile({ icon, title, text, tone, muted }: { icon: string; title: string; text: string; tone: typeof TILE_TONES[number]; muted?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={s.tileCell}>
       <View style={[s.tile, muted && s.tileMuted]}>
@@ -93,6 +95,9 @@ function BenefitTile({ icon, title, text, tone, muted }: { icon: string; title: 
 function PlanCard({ plan, selected, ribbon, onSelect, delay }: {
   plan: Plan; selected: boolean; ribbon: string; onSelect: () => void; delay: number;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const band = bandLabel(plan);
   const lifetime = String(plan?.membershipType || '').toLowerCase() === 'lifetime';
   const features = plan?.features || [];
@@ -167,6 +172,9 @@ function PlanCard({ plan, selected, ribbon, onSelect, delay }: {
 }
 
 const MembershipPlansScreen: React.FC<any> = ({ navigation, route }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const renewParam = route?.params?.renew === true;
   const upgrading = route?.params?.upgrade === true;
   const [upgradeReason, setUpgradeReason] = useState('');
@@ -548,3 +556,8 @@ const s = StyleSheet.create({
 });
 
 export default MembershipPlansScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;

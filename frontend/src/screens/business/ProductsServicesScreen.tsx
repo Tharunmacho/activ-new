@@ -49,6 +49,7 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
   const loadCompanies = useActiveCompanyStore((state) => state.loadCompanies);
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsCompanyId, setProductsCompanyId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   // Website Products.tsx: a search over name + description, and a load failure
   // that SAYS so rather than rendering as an empty catalogue.
@@ -67,10 +68,11 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
       setFocusTick((tick) => tick + 1);
       // A route param is an explicit switch (e.g. "Products" from Manage
       // Companies) — it becomes the new active company everywhere.
-      if (routeCompanyId) {
-        setActiveCompany(routeCompanyId);
-      }
-      loadCompanies();
+      let active = true;
+      void loadCompanies().then(list => {
+        if (active && routeCompanyId && list.some(company => company._id === routeCompanyId)) setActiveCompany(routeCompanyId);
+      });
+      return () => { active = false; };
     }, [routeCompanyId, setActiveCompany, loadCompanies])
   );
 
@@ -78,23 +80,27 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
     const companyId = selectedCompany?._id;
     if (!companyId) {
       setProducts([]);
+      setProductsCompanyId('');
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
-    fetchProductsForCompany(companyId).finally(() => setIsLoading(false));
+    void fetchProductsForCompany(companyId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCompany?._id, focusTick]);
 
   const fetchProductsForCompany = async (targetCompanyId: string) => {
     if (!targetCompanyId) return;
+    const isCurrent = () => useActiveCompanyStore.getState().activeCompanyId === targetCompanyId;
     try {
       const response = await api.get(ENDPOINTS.PRODUCTS.LIST, {
         params: { companyId: targetCompanyId },
       });
+      if (!isCurrent()) return;
 
       const payload = response.data?.data || [];
       setLoadError('');
+      setProductsCompanyId(targetCompanyId);
       // Belt and braces: the server already scopes by companyId, but never let
       // a stale/mismatched row from another company render here.
       setProducts(
@@ -104,19 +110,22 @@ const ProductsServicesScreen: React.FC<Props> = ({ navigation }) => {
         })
       );
     } catch (error) {
+      if (!isCurrent()) return;
       console.error('Error fetching products:', error);
       setProducts([]);
       setLoadError('Failed to load products. Pull back and try again.');
+    } finally {
+      if (isCurrent()) setIsLoading(false);
     }
   };
 
   const filteredProducts = useMemo(() => {
     const q = (searchQuery || '').trim().toLowerCase();
-    const list = products || [];
+    const list = productsCompanyId === selectedCompany?._id ? products || [] : [];
     if (!q) return list;
     return list.filter((p) =>
       (p?.name || '').toLowerCase().includes(q) || (p?.description || '').toLowerCase().includes(q));
-  }, [products, searchQuery]);
+  }, [products, searchQuery, productsCompanyId, selectedCompany?._id]);
 
   const handleDeleteProduct = (product: Product) => {
     Alert.alert(

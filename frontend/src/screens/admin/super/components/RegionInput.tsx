@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -140,6 +141,8 @@ const RegionInput: React.FC<Props> = ({
   disabled = false,
   hint = '',
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [open, setOpen] = useState(false);
 
   // A disabled field (no parent region chosen yet) must not keep a panel open
@@ -455,3 +458,7 @@ const styles = StyleSheet.create({
 });
 
 export default RegionInput;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import CompanyForm from './CompanyForm';
+import { useActiveCompanyStore } from '@/contexts/ActiveCompanyContext';
 
 /**
  * Add or edit a company, for a member who already has one.
@@ -12,6 +13,7 @@ import CompanyForm from './CompanyForm';
 const AddEditCompany = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const { activeCompany } = useActiveCompanyStore();
 
   return (
     <CompanyForm
@@ -20,7 +22,9 @@ const AddEditCompany = () => {
       subtitle={
         isEditMode
           ? 'Update this company’s details'
-          : 'Register another business under your membership'
+          : activeCompany?.publication?.unlimited
+            ? 'Included with your ₹2 lakh membership and existing membership ID'
+            : 'Save privately; pay this company’s plan when you want others to find it'
       }
       returnTo="/business/companies"
       createLabel="Create Company"

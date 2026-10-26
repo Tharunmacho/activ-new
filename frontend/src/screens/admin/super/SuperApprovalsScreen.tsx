@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Alert, Text, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -48,6 +49,7 @@ const matchesSelection = (a: any, sel: RegionSelection) =>
 function RegionFilter({ applicants, selection, onChange }: {
   applicants: any[]; selection: RegionSelection; onChange: (s: RegionSelection) => void;
 }) {
+  const rf = useLegacyAppearance(legacyAppearance_rf);
   const groups = useMemo(() => {
     const rows = Array.isArray(applicants) ? applicants : [];
     return LEVELS.map((level, depth) => {
@@ -102,6 +104,8 @@ const rf = StyleSheet.create({
 });
 
 const SuperApprovalsScreen: React.FC = () => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const [buckets, setBuckets] = useState<ApplicantBuckets>(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -232,3 +236,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperApprovalsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_rf = rf;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_s = s;

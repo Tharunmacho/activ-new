@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -60,6 +61,7 @@ const asText = (value: unknown): string => {
 };
 
 function Item({ label, value }: { label: string; value?: string | number | null }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const text = value === undefined || value === null ? '' : String(value).trim();
   if (!text) return null;
   return (
@@ -73,6 +75,8 @@ function Item({ label, value }: { label: string; value?: string | number | null 
 function Section({ icon, tone = 'blue', title, onEdit, editLabel = 'Edit', children, delay = 0 }: {
   icon: string; tone?: GlyphTone; title: string; onEdit?: () => void; editLabel?: string; children: React.ReactNode; delay?: number;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <FadeInUp delay={delay}>
       <SurfaceCard style={s.section}>
@@ -93,6 +97,9 @@ function Section({ icon, tone = 'blue', title, onEdit, editLabel = 'Edit', child
 }
 
 function NotYet({ icon, tone = 'slate', title, detail, onGo }: { icon: string; tone?: GlyphTone; title: string; detail: string; onGo: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={s.notYet}>
       <View style={s.notYetRow}>
@@ -108,6 +115,10 @@ function NotYet({ icon, tone = 'slate', title, detail, onGo }: { icon: string; t
 }
 
 const ProfileScreen: React.FC<any> = ({ navigation }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
   const { logout } = useAuthStore();
   const { updateMember } = useMemberStore();
   const [loading, setLoading] = useState(true);
@@ -479,3 +490,9 @@ const s = StyleSheet.create({
 });
 
 export default ProfileScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_TYPE = TYPE;
+const legacyAppearance_BRAND = BRAND;

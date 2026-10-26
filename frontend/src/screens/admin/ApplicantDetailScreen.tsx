@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -73,6 +74,8 @@ const ADMIN_TYPE: Record<string, string> = {
 
 /** One fact tile in the dossier's grid. */
 function Fact({ icon, label, value, wide }: { icon: string; label: string; value: string; wide?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[styles.fact, wide && styles.factWide]}>
       <View style={styles.factIcon}><Icon name={icon} size={16} color={PALETTE.indigo} /></View>
@@ -96,6 +99,9 @@ function Fact({ icon, label, value, wide }: { icon: string; label: string; value
  * never a native Modal (Rule 2). Same fetch, same payloads as before.
  */
 const ApplicantDetailScreen: React.FC<Props> = ({ navigation, route }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
   const { applicant } = route.params;
 
   const [fullApp, setFullApp] = useState<any>(applicant);
@@ -723,3 +729,8 @@ const styles = StyleSheet.create({
 });
 
 export default ApplicantDetailScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_ACCENTS = CONSOLE_ACCENTS;

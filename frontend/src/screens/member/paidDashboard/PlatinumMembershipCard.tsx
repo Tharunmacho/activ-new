@@ -1,3 +1,5 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
+import { useAppTheme } from '../../../ui/AppTheme';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, View, Text, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -8,6 +10,7 @@ type Props = { name: string; memberId: string; since: string; active: boolean; o
 
 /** Lifetime Membership in the same warm gold palette as the website. */
 export default function PlatinumMembershipCard({ name, memberId, since, active, onPress }: Props) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const reduceMotion = useReduceMotion();
   const shine = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -33,11 +36,14 @@ export default function PlatinumMembershipCard({ name, memberId, since, active, 
 }
 
 export function PlatinumMemberShortcuts({ onBusiness, onDocuments, onReceipt }: { onBusiness: () => void; onDocuments: () => void; onReceipt: () => void }) {
-  return <View style={s.shortcuts}><Text style={s.sectionLabel}>YOUR MEMBER SPACE</Text><View style={s.shortcutRow}>{[
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const { palette, isDark } = useAppTheme();
+  const ink = isDark ? '#F0D38F' : '#876018';
+  return <View style={s.shortcuts}><Text style={[s.sectionLabel, { color: palette.textMuted }]}>YOUR MEMBER SPACE</Text><View style={s.shortcutRow}>{[
     { label: 'Business', icon: 'business-center', onPress: onBusiness },
     { label: 'Documents', icon: 'description', onPress: onDocuments },
     { label: 'Receipt', icon: 'receipt-long', onPress: onReceipt },
-  ].map(action => <PressableScale key={action.label} onPress={action.onPress} style={s.shortcutFlex} accessibilityRole="button" accessibilityLabel={`Open ${action.label.toLowerCase()}`}><LinearGradient colors={['#fff9e9', '#f7ebc9']} style={s.shortcut}><Icon name={action.icon} size={23} color="#876018" /><Text style={s.shortcutText}>{action.label}</Text><Icon name="north-east" size={14} color="#876018" style={s.shortcutArrow} /></LinearGradient></PressableScale>)}</View></View>;
+  ].map(action => <PressableScale key={action.label} onPress={action.onPress} style={s.shortcutFlex} accessibilityRole="button" accessibilityLabel={`Open ${action.label.toLowerCase()}`}><LinearGradient colors={isDark ? ['#29261e', '#353024'] : ['#fff9e9', '#f7ebc9']} style={[s.shortcut, isDark && { borderColor: '#625436' }]}><Icon name={action.icon} size={23} color={ink} /><Text style={[s.shortcutText, { color: ink }]}>{action.label}</Text><Icon name="north-east" size={14} color={ink} style={s.shortcutArrow} /></LinearGradient></PressableScale>)}</View></View>;
 }
 
 const s = StyleSheet.create({
@@ -73,3 +79,6 @@ const s = StyleSheet.create({
   shortcutText: { ...TYPE.caption, fontSize: 11, fontWeight: '500', color: '#3b3020', marginTop: 12 },
   shortcutArrow: { alignSelf: 'flex-end', marginTop: 8 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

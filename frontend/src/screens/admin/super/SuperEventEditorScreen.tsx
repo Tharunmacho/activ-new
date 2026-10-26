@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -191,6 +192,8 @@ const pickImage = (onAsset: (asset: any) => void) => {
 /* ------------------------------------------------------------ sub-editors */
 
 function SessionRows({ rows, onChange, withWhere }: { rows: EventAgendaItem[]; onChange: (rows: EventAgendaItem[]) => void; withWhere?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const list = Array.isArray(rows) ? rows : [];
   const patch = (i: number, p: Partial<EventAgendaItem>) => onChange(list.map((r, j) => (j === i ? { ...r, ...p } : r)));
   return (
@@ -219,6 +222,8 @@ function SessionRows({ rows, onChange, withWhere }: { rows: EventAgendaItem[]; o
 function SpeakerRow({ row, index, onPatch, onRemove }: {
   row: EventSpeaker; index: number; onPatch: (p: Partial<EventSpeaker>) => void; onRemove: () => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [busy, setBusy] = useState(false);
   const upload = () => pickImage(async (asset) => {
     setBusy(true);
@@ -261,6 +266,8 @@ function SpeakerRow({ row, index, onPatch, onRemove }: {
 function RegionTargets({ targets, onChange, reachEveryone, onReachEveryone }: {
   targets: EventTarget[]; onChange: (t: EventTarget[]) => void; reachEveryone: boolean; onReachEveryone: (v: boolean) => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   // `/regions/tree?include=all` — the UNPRUNED tree (content targeting).
   const tree = useRegionTreeAll();
   const [st, setSt] = useState('');
@@ -337,6 +344,8 @@ function RegionTargets({ targets, onChange, reachEveryone, onReachEveryone }: {
 /* ================================================================= screen */
 
 const SuperEventEditorScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const original: CmsEventRow | null = route?.params?.event || null;
@@ -819,3 +828,7 @@ const s = StyleSheet.create({
 });
 
 export default SuperEventEditorScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

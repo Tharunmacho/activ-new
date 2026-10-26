@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppTheme } from '../ui/AppTheme';
 import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +42,7 @@ const SettingsIcon = makeAdminTabIcon('settings');
 const MoreIcon = makeAdminTabIcon('apps');
 
 function Tabs({ navigation }: { navigation: any }) {
+  const { palette } = useAppTheme();
   // Without this the bar sits under Android's gesture pill and iOS's home
   // indicator: labels get clipped and the last rows of a list scroll behind it.
   const insets = useSafeAreaInsets();
@@ -52,7 +54,7 @@ function Tabs({ navigation }: { navigation: any }) {
         screenListeners={{
           focus: (e: any) => { try { menu.setActive(String(e?.target || '').split('-')[0]); } catch { /* ignore */ } },
         }}
-        screenOptions={adminTabScreenOptions(insets.bottom)}
+        screenOptions={adminTabScreenOptions(insets.bottom, palette)}
       >
         <Tab.Screen name="Hub" component={SuperAdminActionHubScreen} options={{ tabBarIcon: HubIcon }} />
         <Tab.Screen name="Admins" component={ManageAdminsScreen} options={{ tabBarIcon: AdminsIcon }} />

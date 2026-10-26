@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -32,6 +33,8 @@ const regionGradient = (slug: string, index = 0) => {
 };
 
 export function ExploreQuickLinks({ openPage }: { openPage: OpenPage }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   return <View style={s.links}>
     {LINKS.map(link => <PressableScale key={link.path} style={s.link} contentStyle={s.linkInner}
       accessibilityRole="button" accessibilityLabel={link.label} onPress={() => openPage(link.path, link.label)}>
@@ -42,6 +45,9 @@ export function ExploreQuickLinks({ openPage }: { openPage: OpenPage }) {
 }
 
 export function ExploreSchemes({ openPage }: { openPage: OpenPage }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const { width, fontScale } = useWindowDimensions();
   const stacked = width < 360 || fontScale > 1.2;
   return <View style={s.section}>
@@ -61,6 +67,9 @@ export function ExploreSchemes({ openPage }: { openPage: OpenPage }) {
 export function ExploreZones({ zones, openPage, onSeeAll, variant = 'directory' }: {
   zones: any[]; openPage: OpenPage; onSeeAll?: () => void; variant?: 'directory' | 'preview';
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const { width, fontScale } = useWindowDimensions();
   const cardWidth = exploreCardWidth(width, fontScale);
   const [directoryWidth, setDirectoryWidth] = useState(0);
@@ -172,6 +181,8 @@ function ZoneDirectoryCard({ title, eyebrow, description, icon, tone, colors, ac
   colors: string[];
   action: string; count?: string; width: number | '100%'; accessibilityLabel: string; onPress: () => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return <View style={{ width }}><SurfaceCard padded={false} stretch contentStyle={s.directoryCard} accessibilityLabel={accessibilityLabel} onPress={onPress}>
     <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.directoryCardBody}>
       <View style={s.directoryCardHeading}>
@@ -235,3 +246,8 @@ const s = StyleSheet.create({
   directoryAction: { marginLeft: 'auto', maxWidth: '100%', minHeight: 44, paddingHorizontal: SPACE.md, paddingVertical: SPACE.sm, borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
   directoryActionText: { fontSize: 13, lineHeight: 19, fontWeight: '700', flexShrink: 1 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

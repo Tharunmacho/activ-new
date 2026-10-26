@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -8,7 +9,7 @@ import {
 import { getAnnouncement } from '../../../services/memberApi';
 import { resolveMediaUrl } from '../../../config/api.config';
 import { useLoad } from '../useLoad';
-import { categoryStyle, categoryGlyph, htmlToText } from './updateFormat';
+import { useCategoryStyle, categoryGlyph, htmlToText } from './updateFormat';
 import { openWebsitePage } from '../../../services/websiteNavigation';
 import { Body } from '../../public/PublicContentKit';
 import { updateAudienceLabel } from '../../../utils/memberAudience';
@@ -21,6 +22,9 @@ import { sharePublicPage } from '../../../services/contentShare';
  * the text IS the content.
  */
 const UpdateDetailScreen = ({ navigation, route }: any) => {
+  const categoryStyle = useCategoryStyle();
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const id = String(route?.params?.id || '');
   const { data: update, loading, error, reload, refreshing, refresh } = useLoad<any>(() => (id ? getAnnouncement(id) : Promise.resolve(null)), [id], null);
 
@@ -146,3 +150,7 @@ const styles = StyleSheet.create({
 });
 
 export default UpdateDetailScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

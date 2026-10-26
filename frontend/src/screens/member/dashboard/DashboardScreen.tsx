@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Linking, Alert, ScrollView, Share } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -82,6 +83,7 @@ const STAGE_TONE: Record<StageState, { color: string; bg: string; label: string;
 };
 
 function StageNode({ label, state, at }: { label: string; state: StageState; at: string }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const chip = STAGE_CHIP[state];
   const t = STAGE_TONE[state];
   return (
@@ -95,6 +97,7 @@ function StageNode({ label, state, at }: { label: string; state: StageState; at:
 }
 
 function DetailRow({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View style={[styles.detailRow, !last && styles.divider]}>
       <GradientIconChip icon={icon} tone="blue" size={32} />
@@ -105,6 +108,8 @@ function DetailRow({ icon, label, value, last }: { icon: string; label: string; 
 }
 
 function TimelineRow({ title, by, at, state, last, index }: { title: string; by: string; at: string | null; state: StageState; last: boolean; index: number }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const t = STAGE_TONE[state];
   return (
     <FadeInUp delay={120 + index * 70} distance={10} style={styles.tlRow}>
@@ -123,6 +128,8 @@ function TimelineRow({ title, by, at, state, last, index }: { title: string; by:
 }
 
 function IdTile({ icon, label, value, onPress, actionIcon }: { icon: string; label: string; value: string; onPress?: () => void; actionIcon?: string }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const body = (
     <>
       <Icon name={icon} size={SIZE.iconSm} color={PALETTE.primary} />
@@ -142,6 +149,7 @@ function IdTile({ icon, label, value, onPress, actionIcon }: { icon: string; lab
 }
 
 function Benefit({ icon, title, detail, tone, last }: { icon: string; title: string; detail: string; tone: ChipTone; last?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View style={[styles.benefit, !last && styles.divider]}>
       <GradientIconChip icon={icon} tone={tone} size={36} />
@@ -154,6 +162,8 @@ function Benefit({ icon, title, detail, tone, last }: { icon: string; title: str
 }
 
 function SupportRow({ icon, tone, label, onPress, link }: { icon: string; tone: ChipTone; label: string; onPress?: () => void; link?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const body = (
     <>
       <GradientIconChip icon={icon} tone={tone} size={34} />
@@ -170,6 +180,8 @@ function SupportRow({ icon, tone, label, onPress, link }: { icon: string; tone: 
 }
 
 const DashboardScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const scrollRef = useRef<ScrollView>(null);
   const [statusY, setStatusY] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -763,3 +775,7 @@ const styles = StyleSheet.create({
 });
 
 export default DashboardScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

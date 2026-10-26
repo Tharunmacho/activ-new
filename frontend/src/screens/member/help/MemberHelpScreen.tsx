@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -61,6 +62,7 @@ const digits = (v: string) => String(v || '').replace(/[^\d+]/g, '');
 function QuickTile({ icon, label, detail, colors, tone, onPress }: {
   icon: string; label: string; detail: string; colors?: string[]; tone?: GlyphTone; onPress: () => void;
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <PressableScale
       onPress={onPress}
@@ -79,6 +81,8 @@ function QuickTile({ icon, label, detail, colors, tone, onPress }: {
 function DetailRow({ icon, tone, label, lines, onPress, actionIcon = 'open-in-new', last }: {
   icon: string; tone: GlyphTone; label: string; lines: string[]; onPress?: () => void; actionIcon?: string; last?: boolean;
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const body = (
     <View style={[styles.detailRow, !last && styles.divider]}>
       <GradientGlyph icon={icon} tone={tone} size={40} />
@@ -97,6 +101,9 @@ function DetailRow({ icon, tone, label, lines, onPress, actionIcon = 'open-in-ne
 }
 
 function Faq({ item, open, onToggle, last }: { item: typeof FAQ[number]; open: boolean; onToggle: () => void; last?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[styles.faq, !last && styles.divider, open && styles.faqOpen]}>
       <TouchableOpacity onPress={onToggle} style={styles.faqHead} activeOpacity={0.7} accessibilityRole="button" accessibilityState={{ expanded: open }}>
@@ -116,6 +123,7 @@ function Faq({ item, open, onToggle, last }: { item: typeof FAQ[number]; open: b
 }
 
 const MemberHelpScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const [contact, setContact] = useState<any>(null);
   const [appRef, setAppRef] = useState('');
   const [open, setOpen] = useState('');
@@ -312,3 +320,8 @@ const styles = StyleSheet.create({
 });
 
 export default MemberHelpScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;

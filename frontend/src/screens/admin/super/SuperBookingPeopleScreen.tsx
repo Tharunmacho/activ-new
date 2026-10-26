@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -38,6 +39,8 @@ const modeWord = (mode: string) => (mode === 'bank_transfer' ? 'Bank' : mode ? m
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 
 function Tile({ icon, label, value }: { icon: string; label: string; value: string }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={s.tile}>
       <View style={s.tileHead}>
@@ -50,6 +53,8 @@ function Tile({ icon, label, value }: { icon: string; label: string; value: stri
 }
 
 function Contact({ icon, label, value }: { icon: string; label: string; value?: string }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   if (!String(value || '').trim()) return null;
   return (
     <View style={s.contact}>
@@ -63,6 +68,8 @@ function Contact({ icon, label, value }: { icon: string; label: string; value?: 
 }
 
 function PersonDetail({ p, bookings, loading }: { p: any; bookings: any[] | null; loading: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const list = Array.isArray(bookings) ? bookings : [];
   return (
     <View style={s.detail}>
@@ -121,6 +128,8 @@ function PersonDetail({ p, bookings, loading }: { p: any; bookings: any[] | null
 function PersonCard({ p, index, open, bookings, loading, onToggle }: {
   p: any; index: number; open: boolean; bookings: any[] | null; loading: boolean; onToggle: () => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const events = Number(p?.events || 0);
   const seats = Number(p?.seats || 0);
   return (
@@ -164,6 +173,9 @@ function PersonCard({ p, index, open, bookings, loading, onToggle }: {
 /** The people list, with whatever header the host screen puts above it. */
 const NO_FILTERS = {};
 export function BookingPeoplePane({ header, refreshKey = 0, filters = NO_FILTERS }: { header?: React.ReactElement | null; refreshKey?: number; filters?: import('../../../services/bookingFilters').BookingFiltersValue }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [q, setQ] = useState('');
   const [people, setPeople] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -319,3 +331,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperBookingPeopleScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

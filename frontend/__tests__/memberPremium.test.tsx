@@ -10,6 +10,8 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text, TextInput } from 'react-native';
+import { AppThemeProvider, DARK_PALETTE } from '../src/ui/AppTheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /* ---- navigation: focus effects run like mount effects ---------------------- */
 jest.mock('@react-navigation/native', () => {
@@ -108,6 +110,32 @@ const unmountScreen = async (tree?: ReactTestRenderer.ReactTestRenderer) => {
   if (!tree || !mountedScreens.delete(tree)) return;
   await ReactTestRenderer.act(async () => { tree.unmount(); });
 };
+
+test('paid dashboard updates and event headings follow the sun/moon choice without remounting', async () => {
+  mockPaid = true; mockFailAll = false; mockWebsiteEmpty = false;
+  await AsyncStorage.clear();
+  const Dashboard = require('../src/screens/member/paidDashboard/PaidDashboardScreen').default;
+  let tree: ReactTestRenderer.ReactTestRenderer | undefined;
+  await ReactTestRenderer.act(async () => {
+    tree = renderScreen(<AppThemeProvider><Dashboard navigation={nav()} /></AppThemeProvider>);
+    await flush(); await flush();
+  });
+  const label = (value: string) => tree?.root.findAllByType(Text).find(node => node.props.children === value);
+  const originalUpdate = label('Update');
+  expect(originalUpdate).toBeDefined();
+  const select = async (value: 'dark' | 'light') => {
+    const control = tree?.root.findAll(node => node.props.accessibilityLabel === `Use ${value} appearance` && typeof node.props.onPress === 'function')[0];
+    await ReactTestRenderer.act(async () => { control?.props.onPress(); await flush(); });
+  };
+  await select('dark');
+  expect(label('Update')).toBe(originalUpdate);
+  expect(StyleSheet.flatten(label('Update')?.props.style)?.color).toBe(DARK_PALETTE.text);
+  expect(StyleSheet.flatten(label('Members meet')?.props.style)?.color).toBe(DARK_PALETTE.text);
+  expect(StyleSheet.flatten(label('UPDATE')?.props.style)?.color).toBe(DARK_PALETTE.textSoft);
+  await select('light');
+  expect(StyleSheet.flatten(label('Update')?.props.style)?.color).toBe('#0F172A');
+  await unmountScreen(tree);
+}, 30000);
 // Assertion failures must still run focus-effect and event-clock cleanup.
 afterEach(async () => {
   for (const tree of mountedScreens) await unmountScreen(tree);

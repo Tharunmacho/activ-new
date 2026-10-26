@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet, Switch, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -68,6 +69,8 @@ export function memberStateChip(m: MemberLike): { label: string; kind: ConsoleCh
 
 /** Days left of the paid year, as a ring. */
 function ExpiryRing({ m }: { m: MemberLike }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   if (m?.status === 'awaiting_payment') {
     return (
       <View style={s.ringBox} accessible accessibilityLabel="Awaiting payment">
@@ -89,6 +92,8 @@ function ExpiryRing({ m }: { m: MemberLike }) {
 }
 
 function Line({ icon, text }: { icon: string; text?: string }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={s.detail}>
       <View style={s.detailIcon}><Icon name={icon} size={15} color={PALETTE.indigo} /></View>
@@ -115,6 +120,8 @@ export default function PremiumMemberCard({
   onView: (m: any) => void;
   delay?: number;
 }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const remindable = m?.status === 'expired' || (m?.status === 'active' && !!m?.expiringSoon);
   const lapsed = m?.status === 'expired';
   const photo = m?.photo ? resolveMediaUrl(m.photo) : '';
@@ -244,3 +251,7 @@ const s = StyleSheet.create({
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.md },
   busy: { marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

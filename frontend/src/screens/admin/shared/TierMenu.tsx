@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { AppearancePicker } from '../../../ui/AppearancePicker';
 import { AppTheme, useAppTheme, useThemeStyles } from '../../../ui/AppTheme';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -127,6 +128,8 @@ function DrawerPanel({
   tier: AdminTier; adminName: string; roleTitle: string; region: string; photo?: string | null;
   rootNavigation: any; stackRoute: string;
 }) {
+  const makeStyles = useLegacyAppearance(legacyAppearance_makeStyles);
+  const ADMIN = useLegacyAppearance(legacyAppearance_ADMIN);
   const { palette: PALETTE } = useAppTheme();
   const s = useThemeStyles(makeStyles);
   const insets = useSafeAreaInsets();
@@ -273,3 +276,7 @@ const makeStyles = ({ palette: PALETTE, type: TYPE, brand: BRAND }: AppTheme) =>
   itemHint: { ...TYPE.caption, marginTop: 1 },
   rule: { height: StyleSheet.hairlineWidth * 2, backgroundColor: PALETTE.divider, marginVertical: SPACE.md, marginHorizontal: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_makeStyles = makeStyles;
+const legacyAppearance_ADMIN = ADMIN;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { PremiumInput, PremiumSelect, SurfaceCard, PALETTE, SPACE } from '../ui';
@@ -6,6 +7,7 @@ import { EMPTY_EVENT_FILTERS, eventDateError, eventFilterOptions, EventFilters a
 export default function EventFilters({ events, value, onChange, search = true }: {
   events: any[]; value: Filters; onChange: (value: Filters) => void; search?: boolean;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [open, setOpen] = useState(false);
   const set = (key: keyof Filters, v: string) => onChange({ ...value, [key]: v });
   const count = Object.entries(value).filter(([key, v]) => key !== 'q' && !!v).length;
@@ -35,3 +37,6 @@ export default function EventFilters({ events, value, onChange, search = true }:
 const s = StyleSheet.create({ card: { marginVertical: SPACE.md }, row: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
   button: { minHeight: 44, justifyContent: 'center' }, title: { color: PALETTE.text, fontSize: 16, fontWeight: '700' }, clear: { color: PALETTE.blue, fontWeight: '700' },
   fields: { gap: 10 }, date: { flex: 1, minWidth: 130 }, hint: { color: PALETTE.textMuted, fontSize: 12, lineHeight: 18 }, error: { color: '#B91C1C', fontSize: 13 } });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

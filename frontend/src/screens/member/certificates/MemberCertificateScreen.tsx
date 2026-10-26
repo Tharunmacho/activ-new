@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Share, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Share, Alert } from 'react-native';
 import {
-  Skeleton, Notice, BottomActionBar, SPACE, RADIUS, TYPE, errorText,
+  Skeleton, Notice, BottomActionBar, SPACE, RADIUS, errorText, CompanyChip,
   PremiumPage, PremiumPageHeader, PREMIUM_OVERLAP, HeaderStat, HeaderStatRow, GlassIconButton, GradientButton,
   PillTabs, StateView, SurfaceCard, GradientGlyph, FadeInUp, CertificateSeal3D,
 } from '../../../ui';
+import { AppTheme, useThemeStyles } from '../../../ui/AppTheme';
+import { useActiveCompany, useActiveCompanyStore } from '../../../stores/activeCompanyStore';
 import { getCertificate } from '../../../services/memberApi';
 import { saveCertificatePdf } from '../../../services/certificateExport';
 import { isPaymentGate } from '../useLoad';
@@ -54,46 +56,74 @@ const shareText = (kind: Kind, cert: any): string => {
     valid ? `Valid till: ${valid}` : '',
     cert?.reference ? `Certificate No: ${cert.reference}` : '',
     '',
-    `View or print: ${SITE}/member/certificate/membership`,
+    `View or print: ${SITE}/member/certificate/membership${cert?.companyId ? `?companyId=${encodeURIComponent(cert.companyId)}` : ''}`,
   ].filter(Boolean).join('\n');
 };
 
 const MemberCertificateScreen = ({ navigation, route }: any) => {
+  const s = useThemeStyles(makeStyles);
+  const activeCompany = useActiveCompany();
+  const companies = useActiveCompanyStore(state => state.companies);
+  const loadCompanies = useActiveCompanyStore(state => state.loadCompanies);
+  const setActiveCompany = useActiveCompanyStore(state => state.setActiveCompany);
+  const [companiesReady, setCompaniesReady] = useState(false);
   const initial: Kind = route?.params?.kind === 'tax-exemption' ? 'tax-exemption' : 'membership';
   const [kind, setKind] = useState<Kind>(initial);
-  const [cert, setCert] = useState<any>(null);
+  const companyId = kind === 'membership' ? activeCompany?._id : undefined;
+  const scope = `${kind}:${companyId || 'member'}`;
+  const [resultScope, setResultScope] = useState('');
+  const [certificate, setCert] = useState<any>(null);
+  const cert = resultScope === scope ? certificate : null;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [gated, setGated] = useState(false);
   const alive = useRef(true);
+  const requestId = useRef(0);
   const pdfRef = useRef<View>(null);
   const [savingPdf, setSavingPdf] = useState(false);
 
   const load = useCallback(async (mode: 'load' | 'refresh' = 'load') => {
+    if (!companiesReady && kind === 'membership') return;
+    const request = ++requestId.current;
+    const isCurrent = () => alive.current && request === requestId.current;
     if (mode === 'refresh') setRefreshing(true); else setLoading(true);
+    setCert(null);
     setError('');
     setGated(false);
     try {
-      const c = await getCertificate(kind);
-      if (!alive.current) return;
+      const c = await getCertificate(kind, companyId);
+      if (!isCurrent()) return;
+      if (companyId && String(c?.companyId || '') !== companyId) {
+        setError('The selected company certificate could not be loaded. Please try again.');
+        return;
+      }
       setCert(c);
       if (!c) setError('This certificate could not be issued');
     } catch (err) {
-      if (!alive.current) return;
+      if (!isCurrent()) return;
       setCert(null);
       setGated(isPaymentGate(err));
       setError(errorText(err, 'This certificate could not be issued'));
     } finally {
-      if (alive.current) { setLoading(false); setRefreshing(false); }
+      if (isCurrent()) { setResultScope(scope); setLoading(false); setRefreshing(false); }
     }
-  }, [kind]);
+  }, [kind, companyId, scope, companiesReady]);
+
+  useEffect(() => { setKind(initial); }, [initial]);
+
+  useEffect(() => {
+    let active = true;
+    void loadCompanies().then(() => { if (active) setCompaniesReady(true); });
+    return () => { active = false; };
+  }, [loadCompanies]);
 
   useEffect(() => {
     alive.current = true;
     load();
-    return () => { alive.current = false; };
-  }, [load]);
+    const removeFocusListener = navigation?.addListener?.('focus', () => { void load(); });
+    return () => { alive.current = false; ++requestId.current; removeFocusListener?.(); };
+  }, [load, navigation]);
 
   const share = useCallback(async () => {
     if (!cert) return;
@@ -121,7 +151,7 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
   const validTill = platinum
     ? 'Lifetime'
     : cert?.validUntil ? certDate(cert.validUntil) : String(cert?.membershipType || '') === 'lifetime' ? 'Lifetime' : '';
-  const ready = !!cert && !error;
+  const ready = !!cert && !error && !loading;
 
   const header = (
     <PremiumPageHeader
@@ -159,10 +189,24 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
           { value: 'tax-exemption', label: 'Tax (80G)', icon: 'receipt-long' },
         ]}
       />
+      {kind === 'membership' && (companies || []).length > 0 ? (
+        <View style={s.companySection}>
+          <Text style={s.verifyTitle}>Certificate company</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.companyChoices}>
+            {(companies || []).map(company => (
+              <CompanyChip key={company._id} name={company.businessName || 'Company'}
+                active={companyId === company._id} onPress={() => setActiveCompany(company._id)} />
+            ))}
+          </ScrollView>
+          <Text style={s.verifyText}>{activeCompany?.publication?.unlimited
+            ? 'Your ₹2 lakh membership covers your companies with the same membership ID. The certificate shows the selected company.'
+            : 'Your included company uses your membership ID. Each paid additional company has its own ID; unpaid drafts remain private.'}</Text>
+        </View>
+      ) : null}
     </FadeInUp>
   );
 
-  if (loading) {
+  if (loading || resultScope !== scope) {
     return (
       <PremiumPage header={header}>
         {tabs}
@@ -177,7 +221,12 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
     return (
       <PremiumPage header={header} onRefresh={() => load('refresh')} refreshing={refreshing}>
         {tabs}
-        {gated ? (
+        {gated && activeCompany?.publication?.paymentRequired && kind === 'membership' ? (
+          <StateView kind="empty" title="Activate this company’s membership"
+            message="This extra company is private. Pay its publishing plan to make it visible and receive its own membership ID and certificate."
+            action="View publishing plan"
+            onAction={() => navigation.navigate('Settings')} />
+        ) : gated ? (
           <FadeInUp delay={260} style={s.gate}>
             <MemberLocked feature="Your certificates" onActivate={() => navigation.navigate('MembershipPlans')} />
           </FadeInUp>
@@ -245,7 +294,7 @@ const MemberCertificateScreen = ({ navigation, route }: any) => {
   );
 };
 
-const s = StyleSheet.create({
+const makeStyles = ({ type: TYPE }: AppTheme) => StyleSheet.create({
   tabs: { marginTop: -PREMIUM_OVERLAP },
   sheet: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.lg },
   gate: { marginTop: SPACE.md },
@@ -256,6 +305,8 @@ const s = StyleSheet.create({
   verifyText: { ...TYPE.caption, marginTop: 2 },
   flexMin: { flex: 1, minWidth: 0 },
   grow: { flex: 1 },
+  companySection: { paddingHorizontal: SPACE.lg, paddingTop: SPACE.lg, gap: SPACE.sm },
+  companyChoices: { gap: SPACE.sm, paddingVertical: SPACE.sm },
 });
 
 export default MemberCertificateScreen;

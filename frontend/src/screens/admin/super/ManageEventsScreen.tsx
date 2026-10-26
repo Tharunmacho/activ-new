@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -40,6 +41,8 @@ import { MenuButton } from '../shared/TierMenu';
 type When = 'upcoming' | 'past';
 
 function EventCard({ e, onEdit, onDelete, onQr }: { e: CmsEventRow; onEdit: () => void; onDelete: () => void; onQr: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const banner = resolveMediaUrl(e?.media?.url || e?.imageUrl || '');
   const published = e?.status === 'published';
   const onPublic = isOnPublicSite(e);
@@ -106,6 +109,8 @@ function EventCard({ e, onEdit, onDelete, onQr }: { e: CmsEventRow; onEdit: () =
 
 /** A shortcut tile under the header — Bookings, Categories, Attendance. */
 function Shortcut({ icon, label, hint, onPress }: { icon: string; label: string; hint: string; onPress: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <PressableScale onPress={onPress} style={s.shortcutCell} contentStyle={s.shortcut} accessibilityRole="button" accessibilityLabel={`${label}, ${hint}`}>
       <View style={s.shortcutIcon}><Icon name={icon} size={20} color={PALETTE.indigo} /></View>
@@ -116,6 +121,9 @@ function Shortcut({ icon, label, hint, onPress }: { icon: string; label: string;
 }
 
 const ManageEventsScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const [events, setEvents] = useState<CmsEventRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -299,3 +307,8 @@ const s = StyleSheet.create({
 });
 
 export default ManageEventsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

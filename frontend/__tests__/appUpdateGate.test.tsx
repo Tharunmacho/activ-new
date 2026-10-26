@@ -3,7 +3,8 @@ import Renderer, { act } from 'react-test-renderer';
 import { AppState, Text, type AppStateStatus } from 'react-native';
 import AppUpdateGate from '../src/components/AppUpdateGate';
 import StartupScreen from '../src/components/StartupScreen';
-import { PrimaryButton, SecondaryButton } from '../src/ui';
+import { GradientButton } from '../src/ui';
+import { AppThemeProvider } from '../src/ui/AppTheme';
 import { checkAppUpdate, openAppUpdateStore } from '../src/services/appUpdates';
 
 jest.mock('../src/services/appUpdates', () => ({
@@ -69,7 +70,7 @@ it('blocks app content without a dismiss action, opens Play and rechecks after r
   expect(copy()).not.toContain('Private app content');
   await act(async () => {
     await screen.root
-      .findAllByType(PrimaryButton)
+      .findAllByType(GradientButton)
       .find(node => node.props.label === 'Update on Google Play')!
       .props.onPress();
   });
@@ -93,14 +94,14 @@ it('retains the gate after canceled/failed store launch and supports explicit re
   await mount();
   await act(async () => {
     await screen.root
-      .findAllByType(PrimaryButton)
+      .findAllByType(GradientButton)
       .find(node => node.props.label === 'Update on Google Play')!
       .props.onPress();
   });
   expect(copy()).toContain('Google Play could not be opened.');
   expect(copy()).not.toContain('Private app content');
   await act(async () => {
-    await screen.root.findByType(SecondaryButton).props.onPress();
+    await screen.root.findAllByType(GradientButton).find(node => node.props.label === 'Check again')?.props.onPress();
   });
   expect(checkAppUpdate).toHaveBeenCalledTimes(2);
 });
@@ -117,4 +118,17 @@ it('retains a confirmed update when a return check cannot read Play or cached st
   expect(copy()).toContain('Update required');
   expect(copy()).toContain('Google Play could not be checked');
   expect(copy()).not.toContain('Private app content');
+});
+
+it('allows an explicit sun/moon choice while keeping the entire app gated', async () => {
+  await act(async () => {
+    screen = Renderer.create(<AppThemeProvider><AppUpdateGate><Text>Private app content</Text></AppUpdateGate></AppThemeProvider>);
+  });
+  const toggle = (label: string) => screen.root.findAll(node => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function')[0];
+  await act(async () => toggle('Use dark appearance').props.onPress());
+  expect(toggle('Use dark appearance').props.accessibilityState.checked).toBe(true);
+  expect(copy()).not.toContain('Private app content');
+  await act(async () => toggle('Use light appearance').props.onPress());
+  expect(toggle('Use light appearance').props.accessibilityState.checked).toBe(true);
+  expect(copy()).toContain('Update required');
 });

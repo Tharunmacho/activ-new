@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -83,6 +84,7 @@ const stageMessage = (key: StageKey, grants: boolean, status: StageState, reason
 };
 
 function InfoLine({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={[s.info, !last && s.divider]}>
       <GradientIconChip icon={icon} tone="blue" size={32} />
@@ -95,6 +97,8 @@ function InfoLine({ icon, label, value, last }: { icon: string; label: string; v
 }
 
 const ApplicationStatusScreen: React.FC<Props> = ({ navigation }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [application, setApplication] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -416,3 +420,7 @@ const s = StyleSheet.create({
 });
 
 export default ApplicationStatusScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -41,6 +42,8 @@ type Props = { navigation: any };
 const pct = (inside: number, registered: number) => (registered > 0 ? Math.round((inside / registered) * 100) : 0);
 
 function EventRow({ e, big, go }: { e: CheckinEvent; big?: boolean; go: (name: string, params?: any) => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const registered = Number(e?.registered || 0);
   const inside = Number(e?.checkedIn || 0);
   return (
@@ -92,6 +95,8 @@ function EventRow({ e, big, go }: { e: CheckinEvent; big?: boolean; go: (name: s
 const LIVE_MS = 10000;
 
 export default function EventsAdminDashboardScreen({ navigation }: Props) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const { user } = useAuthStore();
   const [upcoming, setUpcoming] = useState<CheckinEvent[]>([]);
   const [past, setPast] = useState<CheckinEvent[]>([]);
@@ -271,3 +276,7 @@ const s = StyleSheet.create({
   emptyText: { ...TYPE.body, color: PALETTE.textMuted, flex: 1 },
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.xl },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

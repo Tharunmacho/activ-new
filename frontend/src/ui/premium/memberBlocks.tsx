@@ -1,3 +1,5 @@
+import { useLegacyAppearance } from '../legacyAppearance';
+import { useAppTheme } from '../AppTheme';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -82,6 +84,7 @@ export function SurfaceCard({
   /** Fill a horizontal carousel cell without fixing its text height. */
   stretch?: boolean;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
   const inner = (
     <View style={[b.cardInner, padded && b.cardPad, accent ? { borderColor: accent, borderWidth: 1.5 } : null, stretch && { flex: 1 }, contentStyle]}>
       {children}
@@ -109,6 +112,8 @@ export function SurfaceCard({
 export function GradientGlyph({ icon, tone = 'blue', colors, size = 42, iconSize, radius, style }: {
   icon: string; tone?: GlyphTone; colors?: string[]; size?: number; iconSize?: number; radius?: number; style?: StyleProp<ViewStyle>;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const c = colors || GLYPH_COLORS[tone] || GLYPH_COLORS.blue;
   return (
     <LinearGradient
@@ -139,6 +144,8 @@ export function LinkRow({
   disabled?: boolean;
   leading?: React.ReactNode;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const body = (
     <View style={[b.linkRow, !last && b.linkDivider, disabled && { opacity: 0.5 }]}>
       {leading || (icon ? <GradientGlyph icon={icon} tone={danger ? 'red' : tone} size={40} /> : null)}
@@ -172,6 +179,8 @@ export function LinkRow({
 export function GroupTitle({ title, subtitle, count, action, onAction, style }: {
   title: string; subtitle?: string; count?: number; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle>;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[b.groupRow, style]}>
       <View style={b.flexMin}>
@@ -204,6 +213,8 @@ export type PillTabOption<T extends string> = { value: T; label: string; count?:
 export function PillTabs<T extends string>({ options, value, onChange, style, tone = 'member' }: {
   options: PillTabOption<T>[]; value: T; onChange: (v: T) => void; style?: StyleProp<ViewStyle>; tone?: Tone;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const p = premiumTone(tone);
   return (
     <View style={[b.tabsTrack, { shadowColor: p.shadow }, style]} accessibilityRole="tablist">
@@ -258,6 +269,8 @@ export function SearchPill({ value, onChangeText, placeholder = 'Search', onSubm
   style?: StyleProp<ViewStyle>;
   tone?: Tone;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const p = premiumTone(tone);
   return (
     <View style={[b.search, { shadowColor: p.shadow }, style]}>
@@ -299,6 +312,8 @@ const asDate = (v?: string | Date | null) => {
 export function DateTile({ date, size = 60, muted, style }: {
   date?: string | Date | null; size?: number; muted?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const d = asDate(date);
   const colors = muted ? ['#94A3B8', '#64748B'] : ['#1E3A8A', '#2563EB'];
   return (
@@ -363,18 +378,21 @@ export function MeterBar({ value, colors, height = 8, track = PALETTE.divider, s
 export function SeatMeter({ taken, capacity, left, style, compact }: {
   taken?: number | null; capacity?: number | null; left?: number | null; style?: StyleProp<ViewStyle>; compact?: boolean;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const { palette } = useAppTheme();
   const cap = Number(capacity || 0);
   if (!cap || cap <= 0) return null;
   const remaining = typeof left === 'number' && Number.isFinite(left) ? Math.max(0, left) : Math.max(0, cap - Number(taken || 0));
   const used = Math.max(0, cap - remaining);
   const ratio = used / cap;
   const colors = remaining <= 0 ? GLYPH_COLORS.red : ratio >= 0.75 ? GLYPH_COLORS.amber : GLYPH_COLORS.green;
+  const foreground = remaining <= 0 ? palette.redDark : ratio >= 0.75 ? palette.amberDark : palette.greenDark;
   const text = remaining <= 0 ? 'Fully booked' : remaining === 1 ? 'Last seat left' : `${remaining} of ${cap} seats left`;
   return (
     <View style={style}>
       <View style={b.seatRow}>
-        <Icon name="event-seat" size={14} color={colors[0]} />
-        <Text style={[b.seatText, { color: colors[0] }]} numberOfLines={1} maxFontSizeMultiplier={CAP}>{text}</Text>
+        <Icon name="event-seat" size={14} color={foreground} />
+        <Text style={[b.seatText, { color: foreground }]} numberOfLines={1} maxFontSizeMultiplier={CAP}>{text}</Text>
         {!compact ? <Text style={b.seatPct} maxFontSizeMultiplier={CAP}>{Math.round(ratio * 100)}% booked</Text> : null}
       </View>
       <MeterBar value={Math.max(ratio, 0.04)} colors={colors} height={6} style={{ marginTop: 6 }} />
@@ -403,6 +421,7 @@ export function StateView({
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
   const artSize = compact ? 64 : 84;
   const piece = art || (kind === 'error' ? <CloudOff3D size={artSize} /> : <EmptyBox3D size={artSize} />);
   const actionLabel = action || (kind === 'error' && onAction ? 'Try again' : '');
@@ -433,6 +452,7 @@ export function StateView({
 export function CardSkeletons({ rows = 3, variant = 'row', style }: {
   rows?: number; variant?: 'row' | 'media' | 'bubble'; style?: StyleProp<ViewStyle>;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
   const n = Math.max(1, Math.min(Number(rows || 3), 8));
   return (
     <View style={[b.skelWrap, style]} accessibilityLabel="Loading" accessibilityRole="progressbar">
@@ -492,6 +512,8 @@ export function TornEdge({ color = PALETTE.white, flip, height = 10, teeth = 22,
 export function ReceiptLine({ label, value, strong, muted, selectable }: {
   label: string; value?: string | number | null; strong?: boolean; muted?: boolean; selectable?: boolean;
 }) {
+  const b = useLegacyAppearance(legacyAppearance_b);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const v = value === undefined || value === null || value === '' ? '—' : String(value);
   return (
     <View style={b.rLine}>
@@ -591,3 +613,7 @@ const b = StyleSheet.create({
   rStrongLabel: { ...TYPE.subheading, color: PALETTE.text },
   rStrongValue: { fontSize: 18, lineHeight: 24, fontWeight: '800', color: BRAND.navy, fontVariant: ['tabular-nums'] },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_b = b;
+const legacyAppearance_PALETTE = PALETTE;

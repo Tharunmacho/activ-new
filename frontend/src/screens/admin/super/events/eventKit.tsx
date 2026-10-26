@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -143,6 +144,7 @@ export const coversTarget = (outer: EventTarget, inner: EventTarget) => {
 /* ============================================================== controls */
 
 export function Label({ text, hint }: { text: string; hint?: string }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return (
     <View style={{ marginBottom: 6 }}>
       <Text style={k.label}>{text}</Text>
@@ -156,6 +158,8 @@ export function Choice<T extends string>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void;
   options: { value: T; icon: string; title: string; detail?: string }[];
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View accessibilityRole="radiogroup" style={{ gap: SPACE.sm }}>
       {(options || []).map((o) => {
@@ -182,6 +186,8 @@ export function Choice<T extends string>({ value, onChange, options }: {
 export function CheckCard({ checked, onChange, icon, title, detail }: {
   checked: boolean; onChange: (v: boolean) => void; icon: string; title: string; detail?: string;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <TouchableOpacity onPress={() => onChange(!checked)} activeOpacity={0.85}
       accessibilityRole="checkbox" accessibilityState={{ checked }} style={[k.choice, checked && k.choiceOn]}>
@@ -202,6 +208,8 @@ export function InlineSelect({ label, value, options, placeholder, onChange, dis
   label?: string; value: string; options: string[]; placeholder: string; onChange: (v: string) => void;
   disabled?: boolean; note?: string; emptyLabel?: string;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const list = useMemo(() => {
@@ -251,6 +259,8 @@ const WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 export function DateField({ label, value, onChange, hint, min }: {
   label: string; value: string; onChange: (v: string) => void; hint?: string; min?: string;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [open, setOpen] = useState(false);
   const base = isDay(value) ? new Date(`${value}T00:00:00`) : (isDay(min) ? new Date(`${min}T00:00:00`) : new Date());
   const [cursor, setCursor] = useState({ y: base.getFullYear(), m: base.getMonth() });
@@ -329,6 +339,8 @@ const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
  * Blank is allowed — nothing on the event form is required.
  */
 export function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [open, setOpen] = useState(false);
   const has = isTime(value);
   const [h24, m] = has ? String(value).split(':').map(Number) : [9, 0];
@@ -386,6 +398,8 @@ export function TimeField({ label, value, onChange }: { label: string; value: st
 
 /** A small section heading inside an editor card, with an optional action. */
 export function SubHead({ title, hint, action, onAction }: { title: string; hint?: string; action?: string; onAction?: () => void }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={k.subHead}>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -449,3 +463,7 @@ export const k = StyleSheet.create({
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1.5, borderColor: PALETTE.indigo, backgroundColor: PALETTE.card, borderRadius: RADIUS.pill, paddingHorizontal: 12, minHeight: 36 },
   addText: { fontSize: 12, fontWeight: '800', color: PALETTE.indigo },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_k = k;
+const legacyAppearance_PALETTE = PALETTE;

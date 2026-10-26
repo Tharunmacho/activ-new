@@ -72,11 +72,18 @@ try {
   await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   const origin = 'http://127.0.0.1:' + server.address().port;
-  await send('Page.navigate', { url: origin + '/?activApp=public' });
+  await send('Page.navigate', { url: origin + '/?activApp=public&appTheme=dark' });
   await until('document.body.innerText.includes("Public ACTIV event")');
+  assert.equal(await evaluate('document.documentElement.dataset.appTheme'), 'dark', 'Embedded pages follow the app dark preference');
+  assert.equal(await evaluate('getComputedStyle(document.body).backgroundColor'), 'rgb(10, 10, 10)', 'Embedded dark surfaces are neutral');
   assert.equal(await evaluate('window.privateMounts'), 0);
   await evaluate('document.getElementById("news").click()');
   await until('document.body.innerText.includes("Published news")');
+  assert.equal(await evaluate('document.documentElement.dataset.appTheme'), 'dark', 'App theme survives navigation without query parameters');
+  await evaluate('window.__ACTIV_APP_THEME__="light";window.dispatchEvent(new CustomEvent("activ:theme-changed"))');
+  await until('!document.documentElement.hasAttribute("data-app-theme")');
+  await evaluate('window.__ACTIV_APP_THEME__="dark";window.dispatchEvent(new CustomEvent("activ:theme-changed"))');
+  await until('document.documentElement.dataset.appTheme==="dark"');
   assert.deepEqual(await evaluate('window.messages'), []);
   await evaluate('document.getElementById("event").click()');
   await until('document.getElementById("book")');
@@ -95,14 +102,15 @@ try {
   assert.equal(await evaluate('window.messages.length'), 1, 'External URLs never become native commands');
   await evaluate('[...document.querySelectorAll("button")].find(b => b.textContent === "Back to browsing").click()');
   await until('document.getElementById("book")');
-  await send('Page.navigate', { url: origin + '/' });
+  await send('Page.navigate', { url: origin + '/?appTheme=dark' });
   await until('document.getElementById("book")');
+  assert.equal(await evaluate('document.documentElement.hasAttribute("data-app-theme")'), false, 'Ordinary website ignores native theme query without the app bridge');
   await evaluate('document.getElementById("book").click()');
   await until('document.body.innerText.includes("Existing website checkout")');
   assert.equal(await evaluate('window.privateMounts'), 1, 'Ordinary website keeps its current booking flow');
   assert.deepEqual(await evaluate('window.messages'), []);
   assert.deepEqual(errors, []);
-  console.log('PASS: anonymous content, SPA/native sign-in handoff, no private mount, back to browsing, mobile layout and ordinary website checkout.');
+  console.log('PASS: anonymous content, native light/dark bridge and SPA persistence, sign-in handoff, no private mount, back to browsing, mobile layout and ordinary website checkout.');
   await send('Browser.close');
 } finally {
   ws?.close(); chrome?.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -159,6 +160,8 @@ interface StaffDraft {
  * current one.
  */
 const StaffAccountCard = ({ item, index, onSaved }: { item: StaffAccount; index: number; onSaved: () => void }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<StaffDraft | null>(null);
   const [reveal, setReveal] = useState<{ [k: string]: boolean }>({});
@@ -321,6 +324,10 @@ const SEARCH_DEBOUNCE_MS = 350;
  * edit and hard delete.
  */
 const ManageAdminsScreen = ({ route }: any) => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   /** CMS / events staff, from their own endpoint (credentials maintained here). */
   const [staff, setStaff] = useState<StaffAccount[]>([]);
@@ -1341,3 +1348,9 @@ const styles = StyleSheet.create({
 });
 
 export default ManageAdminsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_ACCENTS = CONSOLE_ACCENTS;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

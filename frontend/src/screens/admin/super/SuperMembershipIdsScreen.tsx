@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useRef, useState } from 'react';
 import { Alert, View, Text, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -8,6 +9,7 @@ import { ToggleRow } from './superKit';
 
 const INPUTS = [['fullName', 'Full name'], ['email', 'Email / login'], ['phoneNumber', 'Mobile number'], ['whatsappNumber', 'WhatsApp number'], ['state', 'State'], ['district', 'District'], ['block', 'Block'], ['city', 'City'], ['place', 'Place / overseas address'], ['educationalQualification', 'Education']] as const;
 export default function SuperMembershipIdsScreen() {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const [data, setData] = useState<MembershipIdPage | null>(null);
   const [query, setQuery] = useState(''), [search, setSearch] = useState(''), [page, setPage] = useState(1);
@@ -102,3 +104,6 @@ const s = StyleSheet.create({
   history: { borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 12, marginTop: 12 },
   actions: { gap: SPACE.sm, alignItems: 'stretch' },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

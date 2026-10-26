@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -69,6 +70,8 @@ const photoOf = (photo?: string | null) => {
 };
 
 function RecentRow({ app, onPress, delay }: { app: Applicant; onPress: () => void; delay: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const name = app?.fullName || 'Unknown';
   const stage = String(app?.stage || 'pending');
   const photoPath = (app as any)?.profilePhoto;
@@ -101,6 +104,8 @@ function RecentRow({ app, onPress, delay }: { app: Applicant; onPress: () => voi
 
 /** Pending / approved / rejected as one bar, plus the decided ring. */
 function Progress({ pending, approved, rejected, total }: { pending: number; approved: number; rejected: number; total: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const sum = Math.max(1, pending + approved + rejected);
   const decided = approved + rejected;
   const pct = total > 0 ? decided / Math.max(1, total) : 0;
@@ -132,6 +137,7 @@ function Progress({ pending, approved, rejected, total }: { pending: number; app
 }
 
 function Legend({ color, label }: { color: string; label: string }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={s.legendItem}>
       <View style={[s.legendDot, { backgroundColor: color }]} />
@@ -143,6 +149,8 @@ function Legend({ color, label }: { color: string; label: string }) {
 export default function TierDashboardView({
   tier, adminName, location, photo, stats, applicants, loading, refreshing, onRefresh, scopeMessage, navigation,
 }: Props) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [pulling, setPulling] = useState(false);
   const pull = useCallback(async () => {
     setPulling(true);
@@ -261,3 +269,7 @@ const s = StyleSheet.create({
   legendDot: { width: 8, height: 8, borderRadius: 4 },
   legendText: { fontSize: 11, lineHeight: 14, fontWeight: '600', color: PALETTE.textMuted },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

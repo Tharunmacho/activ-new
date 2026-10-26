@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Share, Alert } from 'react-native';
 import {
@@ -71,6 +72,7 @@ const statementToCertificate = (d: any) => {
 };
 
 const DonationDocumentScreen = ({ navigation, route }: any) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const kind: 'receipt' | 'statement' = route?.params?.kind === 'statement' ? 'statement' : 'receipt';
   const token = String(route?.params?.token || '');
   const [fy, setFy] = useState(String(route?.params?.fy || ''));
@@ -264,3 +266,6 @@ const s = StyleSheet.create({
 });
 
 export default DonationDocumentScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

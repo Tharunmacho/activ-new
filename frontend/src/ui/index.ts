@@ -118,6 +118,7 @@
 export * from './tokens';
 export * from './AppTheme';
 export * from './AppearancePicker';
+export * from './AppearanceToggle';
 export * from './components';
 export * from './data';
 export * from './premium';

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { ContentImage } from '../../ui/ContentImage';
@@ -16,6 +17,9 @@ const sectionIcon: Record<string, string> = { about: 'info-outline', gallery: 'p
 export default function PublicRegionContent({ page, path, navigation, offset, onOffset }: {
   page: PublicPageData; path: string; navigation: any; offset: number; onOffset: (offset: number) => void;
 }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const { width, fontScale } = useWindowDimensions();
   const stackPeople = width < 360 && fontScale > 1.1 || fontScale >= 1.5;
   const record = useMemo(() => page.page || {}, [page.page]);
@@ -82,12 +86,16 @@ export default function PublicRegionContent({ page, path, navigation, offset, on
   </>;
 }
 function SectionTitle({ title, eyebrow }: { title: string; eyebrow?: string }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
   return <View style={x.sectionHeading}>{!!eyebrow && <Text style={x.eyebrow}>{eyebrow.toUpperCase()}</Text>}<Text accessibilityRole="header" style={x.heading}>{title}</Text></View>;
 }
 function ContactGroup({ name, contacts, navigation }: { name: string; contacts: any[]; navigation: any }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
   return <View style={x.contactGroup}>{!!name && <Text accessibilityRole="header" style={x.boardName}>{name}</Text>}<SurfaceCard padded={false}>{contacts.map((contact, index) => <View key={contact.id || index} style={index > 0 ? x.divider : undefined}><Contact contact={contact} navigation={navigation} /></View>)}</SurfaceCard></View>;
 }
 function Leader({ person, onPress, stacked = false }: { person: any; onPress: () => void; stacked?: boolean }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const uri = resolveMediaUrl(person.photoUrl || '');
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [uri]);
@@ -99,6 +107,7 @@ function Leader({ person, onPress, stacked = false }: { person: any; onPress: ()
   </SurfaceCard>;
 }
 function Contact({ contact, navigation, flush = false }: { contact: any; navigation: any; flush?: boolean }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
   if (!hasContact(contact)) return null;
   return <View style={[x.contact, flush && x.contactFlush]}>
     {!!(contact.name || contact.personName || contact.designation || contact.organisation) && <Text style={x.personName}>{contact.name || contact.personName || contact.designation || contact.organisation}</Text>}
@@ -109,10 +118,14 @@ function Contact({ contact, navigation, flush = false }: { contact: any; navigat
   </View>;
 }
 function ContactAction({ navigation, icon, href, label }: { navigation: any; icon: string; href?: string; label: string }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   if (!href || !/^(\/[^/]|https?:\/\/|mailto:|tel:)/i.test(href)) return null;
   return <PressableScale accessibilityRole="link" accessibilityLabel={label} onPress={() => openWebsitePage(navigation, href, label)} contentStyle={x.contactAction}><View style={x.contactIcon}><Icon name={icon} size={19} color={BRAND.blue} /></View><Text selectable style={x.contactValue}>{label}</Text><Icon name="chevron-right" size={18} color={PALETTE.textMuted} /></PressableScale>;
 }
 function FeedCard({ item, navigation }: { item: any; navigation: any }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
   const [cover, ...photos] = newsMedia(item);
   return <SurfaceCard style={x.leaderCard} contentStyle={x.cardContent}>{!!cover && <NewsMediaItem media={cover} navigation={navigation} />}<Text style={s.meta}>{[item.date, item.location, item.category].filter(Boolean).join(' · ')}</Text><Heading>{item.title}</Heading>
     <Body value={item.summary} navigation={navigation} /><Body value={item.body} navigation={navigation} />
@@ -121,6 +134,7 @@ function FeedCard({ item, navigation }: { item: any; navigation: any }) {
   </SurfaceCard>;
 }
 function LeaderProfile({ person, context, path, navigation, onClose }: { person: any; context: any; path: string; navigation: any; onClose: () => void }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
   const inFlight = useRef(false);
   const [purposes, setPurposes] = useState<any[] | null>(null), [form, setForm] = useState(false), [loading, setLoading] = useState(false), [sending, setSending] = useState(false), [sent, setSent] = useState(false), [error, setError] = useState('');
   const [values, setValues] = useState({ name: '', phone: '', email: '', organisation: '', district: '', purpose: '', note: '' });
@@ -184,3 +198,8 @@ const x = StyleSheet.create({
   contactAction: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingVertical: 6 }, contactIcon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: PALETTE.blueSoft }, contactValue: { flex: 1, minWidth: 0, color: BRAND.blue900, fontSize: 14, lineHeight: 22, fontWeight: '600' },
   search: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: PALETTE.border, borderRadius: 14, backgroundColor: PALETTE.white, paddingHorizontal: 14 }, searchInput: { flex: 1, minWidth: 0, minHeight: 50, color: PALETTE.text, fontSize: 15 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_x = x;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;

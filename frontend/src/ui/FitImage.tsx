@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from './legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View, useWindowDimensions, type ImageURISource, type StyleProp, type ViewStyle } from 'react-native';
 import { ContentImage } from './ContentImage';
@@ -65,6 +66,8 @@ export function FitImage({
   fallback = null,
   children = null,
 }: FitImageProps) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const src = typeof uri === 'string' ? uri.trim() : '';
   const { width: screenWidth } = useWindowDimensions();
   const frameWidth = StyleSheet.flatten(style)?.width;
@@ -145,3 +148,7 @@ const s = StyleSheet.create({
 });
 
 export default FitImage;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

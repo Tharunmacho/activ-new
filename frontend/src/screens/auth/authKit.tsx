@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleProp, ViewStyle, Platform, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -32,6 +33,7 @@ import { authStyles as a } from './authStyles';
 
 /** Shared by sign-in, account recovery and both registration steps. */
 export function AuthTitle({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return <View style={k.titleBlock}>
     {!!eyebrow && <Text style={k.eyebrow}>{eyebrow}</Text>}
     <Text accessibilityRole="header" style={k.title}>{title}</Text>
@@ -58,6 +60,7 @@ export function PremiumAuthScreen({
   below?: React.ReactNode;
   footer?: React.ReactNode;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return (
     <PremiumScreen
       tone={tone}
@@ -123,6 +126,7 @@ export function AuthScreen({
   children: React.ReactNode;
   centered?: boolean;
 }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
   return (
     <Screen tone={tone} avoidKeyboard contentStyle={header ? a.scrollWithHeader : a.scrollContent}>
       {header || null}
@@ -135,6 +139,7 @@ export function AuthScreen({
 
 /** The ACTIV logo on its white disc — the brand mark, unchanged. */
 export function BrandMark() {
+  const a = useLegacyAppearance(sharedAppearance_a);
   return (
     <View style={a.brandWrap}>
       <View style={a.brandCircle}>
@@ -154,6 +159,7 @@ export function BrandMark() {
 export function AuthHeading({ title, subtitle, badge, badgeIcon = 'admin-panel-settings', tone = 'member' }: {
   title: string; subtitle?: string; badge?: string; badgeIcon?: string; tone?: Tone;
 }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
   const t = toneOf(tone);
   return (
     <View style={a.header}>
@@ -173,6 +179,7 @@ export function AuthHeading({ title, subtitle, badge, badgeIcon = 'admin-panel-s
 export function AuthIntro({ icon, title, text, tone = 'member', badge }: {
   icon: string; title: string; text?: string; tone?: Tone; badge?: string;
 }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
   const t = toneOf(tone);
   return (
     <View style={{ marginBottom: SPACE.xl }}>
@@ -195,6 +202,8 @@ export function AuthIntro({ icon, title, text, tone = 'member', badge }: {
 export function TextLink({ label, onPress, tone = 'member', muted, disabled, style }: {
   label: string; onPress: () => void; tone?: Tone; muted?: boolean; disabled?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const t = toneOf(tone);
   return (
     <TouchableOpacity
@@ -211,6 +220,7 @@ export function TextLink({ label, onPress, tone = 'member', muted, disabled, sty
 
 /** "OR SIGN IN WITH" */
 export function AuthDivider({ label }: { label: string }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
   return (
     <View style={a.dividerRow} accessibilityRole="text">
       <View style={a.dividerLine} />
@@ -224,6 +234,8 @@ export function AuthDivider({ label }: { label: string }) {
 export function PortalLink({ icon, label, onPress, disabled, accessibilityLabel }: {
   icon: string; label: string; onPress: () => void; disabled?: boolean; accessibilityLabel?: string;
 }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={a.portalRow}>
       <TouchableOpacity
@@ -259,6 +271,8 @@ export function StatusPanel({ icon, kind = 'info', title, children, actions }: {
   children?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
+  const a = useLegacyAppearance(sharedAppearance_a);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const c = STATUS_KIND[kind] || STATUS_KIND.info;
   return (
     <View>
@@ -275,3 +289,9 @@ export function StatusPanel({ icon, kind = 'info', title, children, actions }: {
     </View>
   );
 }
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_k = k;
+const legacyAppearance_PALETTE = PALETTE;
+
+const sharedAppearance_a = a;

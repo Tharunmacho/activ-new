@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -28,6 +29,7 @@ const MODES = (Object.keys(PAYMENT_MODE_LABEL) as PlatinumPaymentMode[]).map((k)
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 function Detail({ label, value, last }: { label: string; value?: string | null; last?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const v = String(value || '').trim();
   if (!v) return null;
   return (
@@ -39,6 +41,8 @@ function Detail({ label, value, last }: { label: string; value?: string | null; 
 }
 
 const SuperPlatinumGrantScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const [m, setMember] = useState(route?.params?.member || {});
@@ -202,3 +206,7 @@ const s = StyleSheet.create({
 });
 
 export default SuperPlatinumGrantScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

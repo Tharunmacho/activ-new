@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import {
   Modal as RNModal,
@@ -28,6 +29,7 @@ const Modal: React.FC<ModalProps> = ({
   fullScreen = false,
   ...modalProps
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <RNModal
       visible={visible}
@@ -129,3 +131,6 @@ const styles = StyleSheet.create({
 });
 
 export default Modal;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

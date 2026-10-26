@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -52,6 +53,7 @@ const TAKEN_EMAIL = 'This email is already registered. Please sign in instead.';
 const TAKEN_PHONE = 'This mobile number is already registered. Please sign in instead.';
 
 const RegistrationStep1Screen: React.FC<Props> = ({ navigation, route }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [country, setCountry] = useState<DialCountry>(INDIA);
@@ -304,3 +306,6 @@ const s = StyleSheet.create({
 });
 
 export default RegistrationStep1Screen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

@@ -662,7 +662,7 @@ export function PremiumSelect({
           <Text style={s.emoji} maxFontSizeMultiplier={1.2}>{valueEmoji}</Text>
         ) : icon && iconBadge ? (
           <LinearGradient
-            colors={disabled ? [PALETTE.textFaint, PALETTE.textMuted] : [p.glow, p.accent, p.accentDark]}
+            colors={disabled ? [PALETTE.textFaint, PALETTE.textMuted] : p.button}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[s.iconBadge, !disabled && { shadowColor: p.shadow }]}

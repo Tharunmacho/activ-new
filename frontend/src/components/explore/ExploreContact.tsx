@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -9,6 +10,8 @@ let MapView: any = null;
 try { MapView = require('react-native-webview').WebView; } catch { /* Contact details still work without a map module. */ }
 
 export function ExploreContact({ openPage, refreshKey = 0 }: { openPage: (path: string, title: string) => void; refreshKey?: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const [info, setInfo] = useState<any>(null);
   const [selected, setSelected] = useState('');
   const [mapFailed, setMapFailed] = useState(false);
@@ -67,3 +70,7 @@ const s = StyleSheet.create({
   copy: { flex: 1, minWidth: 0 }, title: { color: BRAND.navyDeep, fontSize: 16, lineHeight: 22, fontWeight: '800' }, description: { color: PALETTE.textMuted, fontSize: 12, lineHeight: 19, marginTop: 4 },
   contactButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, paddingHorizontal: 12, backgroundColor: PALETTE.blueSoft, borderRadius: 12, marginTop: SPACE.md }, contactButtonText: { color: BRAND.blue, fontSize: 13, fontWeight: '700' },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;

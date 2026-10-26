@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -78,6 +79,9 @@ export const SUPER_MENU_SECTIONS: { title: string; items: Item[] }[] = [
 
 /** One grid tile. Equal heights per row: the cell stretches, the tile fills it. */
 function Tile({ item, onPress, delay }: { item: Item; onPress: () => void; delay: number }) {
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const a = CONSOLE_ACCENTS[item.accent] || CONSOLE_ACCENTS.indigo;
   return (
     <FadeInUp delay={delay} style={s.cellInner}>
@@ -101,6 +105,7 @@ function Tile({ item, onPress, delay }: { item: Item; onPress: () => void; delay
 }
 
 const SuperMenuScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const { logout } = useAuthStore();
   const { adminName, adminEmail, adminProfilePhoto } = useSuperAdminData() as any;
@@ -183,3 +188,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperMenuScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_CONSOLE_ACCENTS = CONSOLE_ACCENTS;
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

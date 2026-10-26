@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -50,6 +51,9 @@ const ContactMarkFor = ({ kind }: { kind: Contact }) =>
   kind === 'whatsapp' ? <WhatsAppMark size={30} /> : kind === 'email' ? <MailMark size={30} /> : <CallMark size={30} />;
 
 const PlatinumRequestScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
   const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState<number | null>(null);
   const [request, setRequest] = useState<any>(null);
@@ -317,3 +321,8 @@ const styles = StyleSheet.create({
 });
 
 export default PlatinumRequestScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_TYPE = TYPE;

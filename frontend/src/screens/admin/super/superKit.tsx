@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Switch, Alert, Linking, Platform } from 'react-native';
 import { PALETTE, SPACE, SIZE, TYPE, ConsolePill, ConsoleTabs } from '../../../ui';
@@ -45,6 +46,7 @@ export const whatsappNumber = (phone?: string, text = '') => {
 export function ChipRow<T extends string>({ options, value, onChange }: {
   options: { value: T; label: string }[]; value: T; onChange: (v: T) => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return <ConsoleTabs<T> scrollable options={options || []} value={value} onChange={onChange} style={s.chips} />;
 }
 
@@ -52,6 +54,8 @@ export function ChipRow<T extends string>({ options, value, onChange }: {
 export function ToggleRow({ label, hint, value, onChange, disabled, last }: {
   label: string; hint?: string; value: boolean; onChange: (v: boolean) => void; disabled?: boolean; last?: boolean;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[s.toggle, !last && s.divider]}>
       <View style={s.toggleText}>
@@ -133,3 +137,7 @@ export function useRegionNames(states: any[], state?: string, district?: string)
     };
   }, [states, state, district]);
 }
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

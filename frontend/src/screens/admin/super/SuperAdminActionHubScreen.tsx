@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -65,6 +66,10 @@ const EMPTY_SUMMARY = { states: 0, districts: 0, blocks: 0 };
  * refetches a level the admin has already loaded.
  */
 const SuperAdminActionHubScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const {
     adminName,
     adminProfilePhoto,
@@ -783,6 +788,8 @@ const SuperAdminActionHubScreen = ({ navigation }: any) => {
 function BrowseRow({ icon, grad, title, subtitle, onPress, last, delay }: {
   icon: string; grad: string[]; title: string; subtitle: string; onPress: () => void; last: boolean; delay: number;
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <FadeInUp delay={delay}>
       <TouchableOpacity onPress={onPress} style={[styles.browseRow, last && styles.hitRowLast]} activeOpacity={0.75} accessibilityRole="button" accessibilityLabel={`${title}, ${subtitle}`}>
@@ -881,3 +888,9 @@ const styles = StyleSheet.create({
 });
 
 export default SuperAdminActionHubScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_ACCENTS = CONSOLE_ACCENTS;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

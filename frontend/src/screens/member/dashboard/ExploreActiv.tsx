@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { isUpcomingEvent } from '../../../utils/eventLifecycle';
 import { useEventClock } from '../../../utils/useEventClock';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -67,6 +68,8 @@ const metaFor = (path: string): TileMeta => {
 const MONTHS3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 function MediaPlaceholder({ icon, label }: { icon: string; label: string }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   return <View style={x.mediaPlaceholder}><Icon name={icon} size={28} color={BRAND.blue} /><Text style={x.mediaPlaceholderText}>{label}</Text></View>;
 }
 
@@ -74,6 +77,9 @@ export default function ExploreActiv({ navigation, refreshKey = 0, sections, sho
   navigation: Nav; refreshKey?: number; sections?: readonly ExploreSection[]; showEmpty?: boolean; content?: ExploreContent; publicAccess?: boolean;
   onOpenPage?: (path: string, title: string) => void;
 }) {
+  const x = useLegacyAppearance(legacyAppearance_x);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const sectionKey = (sections || ALL_SECTIONS).join('|');
   const shown = useMemo(() => new Set(sectionKey.split('|')), [sectionKey]);
   const { width, fontScale } = useWindowDimensions();
@@ -455,3 +461,8 @@ const x = StyleSheet.create({
   legalDot: { color: PALETTE.textFaint },
   legalText: { fontSize: 12, lineHeight: 18, color: PALETTE.textMuted, fontWeight: '600', paddingVertical: SPACE.xs },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_x = x;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

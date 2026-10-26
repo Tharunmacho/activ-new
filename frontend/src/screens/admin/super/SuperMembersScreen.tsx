@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, Alert, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -44,6 +45,9 @@ const inTab = (m: AdminMember, tab: MembersTab) => {
 };
 
 const SuperMembersScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const navigation = useNavigation<any>();
   const { data, setData, loading, refreshing, error, reload, refresh } =
     useApi<any>(() => listAdminMembers({ tab: 'all' }).then((d) => ({ data: d })), [], EMPTY_MEMBERS);
@@ -264,3 +268,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperMembersScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

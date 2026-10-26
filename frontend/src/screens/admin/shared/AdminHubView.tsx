@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -80,6 +81,7 @@ const totals = (rows: HubRegion[]) => (rows || []).reduce(
 /* ------------------------------------------------------------------ pieces */
 
 function Figure({ label, value, color }: { label: string; value: number; color: string }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={s.figure} accessible accessibilityLabel={`${label}: ${Number(value || 0)}`}>
       <Text style={[s.figureValue, { color }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>{Number(value || 0)}</Text>
@@ -89,6 +91,8 @@ function Figure({ label, value, color }: { label: string; value: number; color: 
 }
 
 function LevelCard({ level, rows, onPress, delay }: { level: RegionLevel; rows: HubRegion[]; onPress: () => void; delay: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const c = LEVEL_CARD[level];
   const t = totals(rows);
   const count = (rows || []).length;
@@ -145,6 +149,8 @@ function LevelCard({ level, rows, onPress, delay }: { level: RegionLevel; rows: 
 }
 
 function RegionRow({ r, level, onPress, delay }: { r: HubRegion; level: RegionLevel; onPress: () => void; delay: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const parent = level === 'block' ? r?.district : r?.state;
   const apps = Number(r?.applications || 0);
   const pending = Number(r?.pending || 0);
@@ -188,6 +194,8 @@ function RegionRow({ r, level, onPress, delay }: { r: HubRegion; level: RegionLe
 function DecisionCard({ a, you, busy, onDecide, onView, delay }: {
   a: any; you: string; busy: boolean; onDecide: (a: any, approve: boolean, reason?: string) => void; onView: (a: any) => void; delay: number;
 }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
   const canAct = !!a?.canAct;
@@ -294,6 +302,9 @@ function DecisionCard({ a, you, busy, onDecide, onView, delay }: {
 export default function AdminHubView({ tier, region, navigation, onDecided }: {
   tier: AdminTier; region: string; navigation: any; onDecided?: () => void;
 }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const levels = LEVELS_FOR[tier] || ['block'];
   const [level, setLevel] = useState<Level>('levels');
   const [regionLevel, setRegionLevel] = useState<RegionLevel>(levels[0]);
@@ -525,3 +536,8 @@ const s = StyleSheet.create({
   fieldGap: { marginBottom: SPACE.sm },
   decideRow: { flexDirection: 'row', gap: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

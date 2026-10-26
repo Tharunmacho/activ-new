@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import { AuthTitle } from '../auth/authKit';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View, Platform } from 'react-native';
@@ -42,6 +43,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'RegistrationStep2'>;
 const STEPS = ['Account', 'Location'];
 
 const RegistrationStep2Screen: React.FC<Props> = ({ navigation, route }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const params = route?.params || ({} as any);
   const fullName = String(params?.fullName || '');
   const email = String(params?.email || '');
@@ -256,3 +258,6 @@ const s = StyleSheet.create({
 });
 
 export default RegistrationStep2Screen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

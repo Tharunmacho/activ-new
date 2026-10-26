@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, Alert, StyleSheet } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -38,6 +39,7 @@ type Props = {
  * reaches active admin accounts the Super Admin created.
  */
 const AdminLoginScreen: React.FC<Props> = ({ navigation }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -205,3 +207,6 @@ const styles = StyleSheet.create({
 });
 
 export default AdminLoginScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

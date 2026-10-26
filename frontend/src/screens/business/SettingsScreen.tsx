@@ -5,7 +5,7 @@ import { AppTheme, useAppTheme, useThemeStyles } from '../../ui/AppTheme';
 // Everything here maps to a real capability of a business account:
 // the company record itself, its public listing, its catalog, and the session.
 // No placeholder rows - a row exists only if tapping it does something.
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -52,8 +52,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const loadCompanies = useActiveCompanyStore((state) => state.loadCompanies);
   const setActiveCompany = useActiveCompanyStore((state) => state.setActiveCompany);
 
-  const [isListed, setIsListed] = useState(true);
+  const [isListed, setIsListed] = useState(false);
   const [isSavingListing, setIsSavingListing] = useState(false);
+  const listingRequest = useRef(0);
   const [catalogStats, setCatalogStats] = useState({ total: 0, active: 0, featured: 0 });
   // Bumped every time the screen regains focus. The data effects below key off
   // it as well as the company id, so returning here after creating, editing or
@@ -63,6 +64,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const companyName = activeCompany?.businessName || '';
   const companyId = activeCompany?._id || '';
+  useEffect(() => {
+    setIsSavingListing(false);
+    return () => { ++listingRequest.current; };
+  }, [companyId]);
   const companiesCount = (companies || []).length;
   const statusTone =
     STATUS_TONES[(activeCompany?.status || 'pending').toLowerCase()] || STATUS_TONES.pending;
@@ -77,8 +82,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   useEffect(() => {
-    setIsListed(activeCompany?.isActive !== false);
-  }, [activeCompany?._id, activeCompany?.isActive]);
+    setIsListed(activeCompany?.publication?.published ?? (activeCompany?.status === 'active' && activeCompany?.isActive !== false));
+  }, [activeCompany?._id, activeCompany?.isActive, activeCompany?.status, activeCompany?.publication?.published]);
 
   // A settings screen that can't tell you whether your catalog is empty is
   // just a menu, so pull the same counts the dashboard shows.
@@ -132,33 +137,37 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    if (next && activeCompany?.publication?.paymentRequired) {
-      try {
+    const request = ++listingRequest.current;
+    const isCurrent = () => listingRequest.current === request && useActiveCompanyStore.getState().activeCompanyId === companyId;
+    const previous = isListed;
+    setIsSavingListing(true);
+    try {
+      if (next && activeCompany?.publication?.paymentRequired) {
         const res = await api.get(`/business-profiles/${companyId}/publishing`);
+        if (!isCurrent()) return;
         const quote = res.data?.data || res.data;
         if (quote.paymentRequired) {
           Alert.alert('Publish another company', `₹${Number(quote.amount).toLocaleString('en-IN')} · ${quote.term}\n\n${quote.message}`, [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Continue to payment', onPress: () => navigation.navigate('PaymentCheckout', { orderType: 'company_listing', companyId }) },
+            { text: 'Continue to payment', onPress: () => { if (isCurrent()) navigation.navigate('PaymentCheckout', { orderType: 'company_listing', companyId }); } },
           ]);
           return;
         }
-      } catch (error: any) { Alert.alert('Company publishing', error?.response?.data?.message || 'The current fee could not be loaded. Please retry.'); return; }
-    }
-    setIsListed(next);
-    setIsSavingListing(true);
-
-    try {
+      }
+      if (!isCurrent()) return;
+      setIsListed(next);
       await api.put(ENDPOINTS.BUSINESS.UPDATE(companyId), { isActive: next });
+      if (!isCurrent()) return;
       await loadCompanies({ force: true });
     } catch (error: any) {
-      setIsListed(!next);
+      if (!isCurrent()) return;
+      setIsListed(previous);
       Alert.alert(
         'Could Not Update Listing',
         error?.response?.data?.message || 'Please check your connection and try again.'
       );
     } finally {
-      setIsSavingListing(false);
+      if (isCurrent()) setIsSavingListing(false);
     }
   };
 
@@ -267,7 +276,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     >
       {/* Directory presence — the one switch with consequences for others. */}
       <FadeInUp delay={240} style={styles.overlap}>
-        <PremiumSection tone="business" icon="travel-explore" title="ACTIV Network" subtitle={activeCompany?.publication?.unlimited ? 'Lifetime Membership · publish multiple companies' : 'One company included · membership payment for each additional company'}>
+        <PremiumSection tone="business" icon="travel-explore" title="ACTIV Network" subtitle={activeCompany?.publication?.unlimited ? '₹2 lakh membership · multiple companies with the same membership ID' : 'One public company included · pay separately to publish each additional company'}>
           <ToggleRow tone="business"
             icon="travel-explore"
             title="List in ACTIV Network"
@@ -298,6 +307,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             onPress={() => requireCompany(() => navigation.navigate('CompanyPublic', { companyId }))} />
           <ListRow iconColor={PALETTE.violet} iconBg={PALETTE.violetSoft} icon="swap-horiz" title="Manage companies" subtitle="Switch between or review your business accounts"
             onPress={() => navigation.navigate('ManageCompanies')} />
+          <ListRow iconColor={PALETTE.violet} iconBg={PALETTE.violetSoft} icon="workspace-premium" title="Membership certificate" subtitle="View the certificate for the selected company"
+            onPress={() => requireCompany(() => navigation.navigate('MemberCertificate', { kind: 'membership' }))} />
           <ListRow iconColor={PALETTE.violet} iconBg={PALETTE.violetSoft} icon="add-business" title="Add new company" subtitle="Register another business under your membership"
             onPress={() => navigation.navigate('AddCompany')} last />
         </PremiumSection>

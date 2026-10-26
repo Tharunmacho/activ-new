@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -76,6 +77,8 @@ const when = (value?: string) => {
 };
 
 function LogRow({ l, onChanged }: { l: any; onChanged: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [showDetails, setShowDetails] = useState(false);
   const ch = String(l?.channel || 'in_app');
   const rawReason = String(l?.failureReason || l?.lastError || '');
@@ -117,6 +120,7 @@ function LogRow({ l, onChanged }: { l: any; onChanged: () => void }) {
 
 /** The configuration banner — FIRST, because it answers "why is nobody getting emails". */
 function ConfigBanner({ st }: { st: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   if (!st) return null;
   const emailOff = !st?.email?.configured;
   const waOff = !st?.whatsapp?.configured;
@@ -134,6 +138,7 @@ function ConfigBanner({ st }: { st: any }) {
 }
 
 function InfoLine({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={[s.info, !last && s.infoDivider]}>
       <Text style={s.infoLabel} maxFontSizeMultiplier={1.3}>{label}</Text>
@@ -145,6 +150,8 @@ function InfoLine({ label, value, last }: { label: string; value: string; last?:
 function ChannelCard({ channel, title, configured, rows, note, noteIcon }: {
   channel: 'email' | 'whatsapp'; title: string; configured: boolean; rows: [string, string][]; note?: string; noteIcon?: string;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <ConsoleCard style={s.card}>
       <View style={s.headRow}>
@@ -166,6 +173,7 @@ function ChannelCard({ channel, title, configured, rows, note, noteIcon }: {
 }
 
 function DeliveryView({ st, error, onReload }: { st: any; error: string; onReload: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [channel, setChannel] = useState<'email' | 'whatsapp'>('email');
   const [to, setTo] = useState('');
   const [sending, setSending] = useState(false);
@@ -223,6 +231,7 @@ function DeliveryView({ st, error, onReload }: { st: any; error: string; onReloa
 }
 
 function RoutingView() {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const tree = useRegionTreeAll();
   const [state, setState] = useState('');
   const [district, setDistrict] = useState('');
@@ -258,6 +267,9 @@ function RoutingView() {
 }
 
 const SuperNotificationsScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const initial = String(route?.params?.view || '') as View4;
@@ -454,3 +466,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperNotificationsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

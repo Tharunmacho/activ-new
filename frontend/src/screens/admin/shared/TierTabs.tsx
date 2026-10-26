@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppTheme } from '../../../ui/AppTheme';
 import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,6 +48,7 @@ interface Props {
 }
 
 function Inner({ tier, stackRoute, rootNavigation, identity, screens }: Props) {
+  const { palette } = useAppTheme();
   const insets = useSafeAreaInsets();
   const menu = useTierMenu();
   return (
@@ -55,7 +57,7 @@ function Inner({ tier, stackRoute, rootNavigation, identity, screens }: Props) {
         screenListeners={{
           focus: (e: any) => { try { menu.setActive(String(e?.target || '').split('-')[0]); } catch { /* ignore */ } },
         }}
-        screenOptions={adminTabScreenOptions(insets.bottom)}
+        screenOptions={adminTabScreenOptions(insets.bottom, palette)}
       >
         {screens.map((sc) => (
           <Tab.Screen key={sc.name} name={sc.name} component={sc.component} options={{ tabBarIcon: TAB_ICONS[sc.name] }} />

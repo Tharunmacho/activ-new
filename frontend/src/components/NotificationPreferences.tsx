@@ -1,9 +1,11 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { SurfaceCard, LinkRow, PALETTE } from '../ui';
 import { enablePushFromSettings, openPushSettings } from '../services/pushNotifications';
 import { analyticsAllowed, setAnalyticsAllowed } from '../services/analytics';
 export default function NotificationPreferences() {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [analytics, setAnalytics] = useState(false);
   useEffect(() => { void analyticsAllowed().then(setAnalytics); }, []);
   return <SurfaceCard style={{ marginVertical: 16 }}>
@@ -15,3 +17,6 @@ export default function NotificationPreferences() {
     </View>
   </SurfaceCard>;
 }
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;

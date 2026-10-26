@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { PALETTE, SPACE, BRAND, useLoop, ConsoleSkeleton } from '../../../../ui';
@@ -16,16 +17,22 @@ interface BarProps {
 }
 
 export const SkeletonBar: React.FC<BarProps> = ({ width = '100%', height = 12, radius = 6, style }) => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const pulse = useLoop({ duration: 1400, pingPong: true });
   const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] });
   return <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: PALETTE.divider, opacity }, style]} />;
 };
 
-const Card: React.FC<{ children: React.ReactNode; style?: StyleProp<ViewStyle> }> = ({ children, style }) => (
+const Card: React.FC<{ children: React.ReactNode; style?: StyleProp<ViewStyle> }> = ({ children, style }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  return (
   <View style={[styles.card, style]}>{children}</View>
 );
+};
 
-export const SkeletonTierCard: React.FC = () => (
+export const SkeletonTierCard: React.FC = () => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  return (
   <Card>
     <View style={styles.row}>
       <SkeletonBar width={44} height={44} radius={14} />
@@ -39,8 +46,11 @@ export const SkeletonTierCard: React.FC = () => (
     </View>
   </Card>
 );
+};
 
-export const SkeletonRegionCard: React.FC = () => (
+export const SkeletonRegionCard: React.FC = () => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  return (
   <Card>
     <View style={styles.row}>
       <SkeletonBar width={56} height={56} radius={28} />
@@ -52,8 +62,11 @@ export const SkeletonRegionCard: React.FC = () => (
     <SkeletonBar height={30} radius={12} style={styles.gapTop} />
   </Card>
 );
+};
 
-export const SkeletonRow: React.FC<{ lines?: number }> = ({ lines = 2 }) => (
+export const SkeletonRow: React.FC<{ lines?: number }> = ({ lines = 2 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  return (
   <Card>
     <View style={styles.row}>
       <SkeletonBar width={48} height={48} radius={24} />
@@ -65,6 +78,7 @@ export const SkeletonRow: React.FC<{ lines?: number }> = ({ lines = 2 }) => (
     </View>
   </Card>
 );
+};
 
 /** Repeat any skeleton `count` times with the list's normal spacing. */
 export const SkeletonList: React.FC<{ count?: number; children?: React.ReactNode; variant?: 'row' | 'region' | 'tier' }> = ({
@@ -72,6 +86,7 @@ export const SkeletonList: React.FC<{ count?: number; children?: React.ReactNode
   variant = 'row',
   children,
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   if (!children && variant === 'row') return <ConsoleSkeleton rows={count} style={styles.flush} />;
   return (
     <View style={styles.list}>
@@ -104,3 +119,7 @@ const styles = StyleSheet.create({
 });
 
 export default SkeletonBar;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_styles = styles;

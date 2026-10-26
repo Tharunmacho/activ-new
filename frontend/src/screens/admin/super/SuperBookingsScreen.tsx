@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, AppState, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -40,6 +41,7 @@ type Tab = 'events' | 'people';
 const fullness = (e: any) => (Number(e?.totalSeats || 0) > 0 ? Math.min(1, Number(e?.bookedSeats || 0) / Number(e?.totalSeats || 1)) : null);
 
 function Figure({ label, value, color, children }: { label: string; value: string; color?: string; children?: React.ReactNode }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return (
     <View style={s.figure}>
       <Text style={[s.figValue, color ? { color } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>{value}</Text>
@@ -50,6 +52,8 @@ function Figure({ label, value, color, children }: { label: string; value: strin
 }
 
 function EventCard({ e, index, onOpen }: { e: any; index: number; onOpen: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const total = Number(e?.totalSeats || 0);
   const booked = Number(e?.bookedSeats || 0);
   const remaining = e?.remainingSeats === null || e?.remainingSeats === undefined ? null : Number(e.remainingSeats);
@@ -119,6 +123,9 @@ function EventCard({ e, index, onOpen }: { e: any; index: number; onOpen: () => 
 }
 
 const SuperBookingsScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const [tab, setTab] = useState<Tab>('events');
   const [history, setHistory] = useState<BookingHistoryCategory>('current');
@@ -307,3 +314,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperBookingsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

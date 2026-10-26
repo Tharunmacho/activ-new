@@ -1,3 +1,6 @@
+import { useLegacyAppearance } from '../legacyAppearance';
+import { useAppTheme } from '../AppTheme';
+import { AppearanceToggle } from '../AppearanceToggle';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -70,6 +73,10 @@ export function ConsoleFrame({ children, footer, style, avoidKeyboard }: {
   /** Lift content + footer above the keyboard on iOS (Android resizes natively). */
   avoidKeyboard?: boolean;
 }) {
+  const f = useLegacyAppearance(legacyAppearance_f);
+  const { palette, premiumTone: themedPremiumTone } = useAppTheme();
+  const CONSOLE_CANVAS = palette.canvasAdmin;
+  const ADMIN = themedPremiumTone('admin');
   const insets = useSafeAreaInsets();
   const top = Number(insets?.top || 0);
   return (
@@ -97,6 +104,8 @@ export function ConsoleScroll({ children, footer, refreshControl, keyboardShould
   children: React.ReactNode; footer?: React.ReactNode; refreshControl?: React.ReactElement<any>;
   keyboardShouldPersistTaps?: 'always' | 'never' | 'handled'; avoidKeyboard?: boolean;
 }) {
+  const f = useLegacyAppearance(legacyAppearance_f);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   return (
     <ConsoleFrame footer={footer} avoidKeyboard={avoidKeyboard}>
       <ScrollView
@@ -137,6 +146,11 @@ export function ConsoleHeader({
   /** Small caption between left and right in the top row (e.g. "Super Admin"). */
   topCenter?: string;
 }) {
+  const { palette } = useAppTheme();
+  const CONSOLE_CANVAS = palette.canvasAdmin;
+  const h = useLegacyAppearance(legacyAppearance_h);
+  const f = useLegacyAppearance(legacyAppearance_f);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const insets = useSafeAreaInsets();
   const top = Number(insets?.top || 0);
   const artSize = compact ? 84 : 104;
@@ -152,7 +166,7 @@ export function ConsoleHeader({
         <FadeInUp distance={8} style={h.topRow}>
           <View style={h.side}>{left || null}</View>
           {topCenter ? <Text style={h.topCenter} maxFontSizeMultiplier={CAP}>{topCenter}</Text> : <View style={f.flex} />}
-          <View style={[h.side, h.sideRight]}>{right || null}</View>
+          <View style={[h.side, h.sideRight]}><AppearanceToggle glass />{right || null}</View>
         </FadeInUp>
       ) : null}
       <View style={[h.heroRow, compact && h.heroRowCompact]}>
@@ -256,6 +270,10 @@ export function ConsoleStatTile({ label, value, icon, accent = 'indigo', hint, o
   label: string; value: number | string; icon: string; accent?: ConsoleAccent; hint?: string;
   onPress?: () => void; selected?: boolean; delay?: number;
 }) {
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const t = useLegacyAppearance(legacyAppearance_t);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const f = useLegacyAppearance(legacyAppearance_f);
   const a = CONSOLE_ACCENTS[accent] || CONSOLE_ACCENTS.indigo;
   const body = (
     <View style={t.tileShadow}>
@@ -293,6 +311,7 @@ export function ConsoleStatTile({ label, value, icon, accent = 'indigo', hint, o
 
 /** Two tiles per row on the gutter. `overlap` pulls the grid up over the waves. */
 export function ConsoleGrid({ children, overlap, style }: { children: React.ReactNode; overlap?: boolean; style?: StyleProp<ViewStyle> }) {
+  const t = useLegacyAppearance(legacyAppearance_t);
   return <View style={[t.grid, overlap && { marginTop: -CONSOLE_OVERLAP }, style]}>{children}</View>;
 }
 
@@ -305,6 +324,7 @@ export function ConsoleCard({ children, style, onPress, padded = true, accessibi
   /** A coloured stripe down the left edge (status). */
   accent?: string;
 }) {
+  const c = useLegacyAppearance(legacyAppearance_c);
   const inner = (
     <View style={[c.card, padded && c.padded, accent ? { borderLeftWidth: 4, borderLeftColor: accent } : null]}>
       {children}
@@ -322,6 +342,9 @@ export function ConsoleCard({ children, style, onPress, padded = true, accessibi
 export function ConsoleSectionTitle({ title, subtitle, icon, action, onAction, style }: {
   title: string; subtitle?: string; icon?: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle>;
 }) {
+  const c = useLegacyAppearance(legacyAppearance_c);
+  const ADMIN = useLegacyAppearance(legacyAppearance_ADMIN);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[c.sectionRow, style]}>
       {icon ? (
@@ -347,6 +370,9 @@ export function ConsoleSectionTitle({ title, subtitle, icon, action, onAction, s
 export function ConsoleNote({ icon = 'info-outline', text, kind = 'indigo', style, action, onAction }: {
   icon?: string; text: string; kind?: ConsoleAccent; style?: StyleProp<ViewStyle>; action?: string; onAction?: () => void;
 }) {
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const c = useLegacyAppearance(legacyAppearance_c);
+  const f = useLegacyAppearance(legacyAppearance_f);
   const a = CONSOLE_ACCENTS[kind] || CONSOLE_ACCENTS.indigo;
   return (
     <View style={[c.note, { backgroundColor: a.soft }, style]}>
@@ -382,6 +408,8 @@ const CHIP: Record<ConsoleChipKind, { fg: string; bg: string }> = {
 export function ConsoleChip({ label, kind = 'neutral', icon, dot = !icon, style }: {
   label: string; kind?: ConsoleChipKind; icon?: string; dot?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const CHIP = useLegacyAppearance(legacyAppearance_CHIP);
+  const c = useLegacyAppearance(legacyAppearance_c);
   const k = CHIP[kind] || CHIP.neutral;
   return (
     <View style={[c.chip, { backgroundColor: k.bg }, style]}>
@@ -408,10 +436,14 @@ export function ConsoleButton({ label, icon, onPress, kind = 'primary', loading,
   label: string; icon?: string; onPress?: () => void; kind?: ConsoleButtonKind; loading?: boolean; disabled?: boolean;
   size?: 'sm' | 'md'; style?: StyleProp<ViewStyle>; accessibilityLabel?: string;
 }) {
+  const ADMIN = useLegacyAppearance(legacyAppearance_ADMIN);
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const c = useLegacyAppearance(legacyAppearance_c);
   const off = !!disabled || !!loading;
   const height = size === 'sm' ? SIZE.controlSm + 2 : SIZE.control;
   const gradient = kind === 'primary' ? ADMIN.button : kind === 'approve' ? CONSOLE_ACCENTS.green.grad.slice(0, 2) : kind === 'dangerSolid' ? GRADIENTS.danger : null;
-  const fg = gradient ? PALETTE.white : kind === 'danger' ? PALETTE.red : PALETTE.indigo;
+  const fg = gradient ? PALETTE.white : kind === 'danger' ? PALETTE.redDark : PALETTE.indigoDark;
   const content = (
     <View style={c.btnInner}>
       {loading ? <ActivityIndicator size="small" color={fg} /> : icon ? <Icon name={icon} size={size === 'sm' ? 17 : 19} color={fg} /> : null}
@@ -439,7 +471,7 @@ export function ConsoleButton({ label, icon, onPress, kind = 'primary', loading,
           style={[
             c.btn,
             { height },
-            kind === 'danger' && { borderWidth: 1.5, borderColor: PALETTE.red, backgroundColor: PALETTE.white },
+            kind === 'danger' && { borderWidth: 1.5, borderColor: PALETTE.red, backgroundColor: PALETTE.card },
             kind === 'soft' && { backgroundColor: PALETTE.indigoSoft },
             kind === 'ghost' && { backgroundColor: 'transparent' },
           ]}
@@ -452,9 +484,12 @@ export function ConsoleButton({ label, icon, onPress, kind = 'primary', loading,
 }
 
 /** A small outlined action pill inside a card ("Remind now", "Block"). */
-export function ConsolePill({ icon, label, onPress, color = PALETTE.indigo, disabled }: {
+export function ConsolePill({ icon, label, onPress, color: customColor, disabled }: {
   icon: string; label: string; onPress?: () => void; color?: string; disabled?: boolean;
 }) {
+  const c = useLegacyAppearance(legacyAppearance_c);
+  const { palette } = useAppTheme();
+  const color = customColor || palette.indigoDark;
   return (
     <PressableScale
       onPress={onPress}
@@ -484,6 +519,8 @@ export function ConsoleTabs<T extends string>({ options, value, onChange, scroll
   options: { value: T; label: string; count?: number }[]; value: T; onChange: (v: T) => void;
   scrollable?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const tb = useLegacyAppearance(legacyAppearance_tb);
+  const ADMIN = useLegacyAppearance(legacyAppearance_ADMIN);
   const list = options || [];
   const scroll = scrollable ?? list.length > 4;
   if (scroll) {
@@ -567,6 +604,8 @@ export function ConsoleSearch({ value, onChangeText, placeholder, style, onSubmi
   value: string; onChangeText: (v: string) => void; placeholder: string; style?: StyleProp<ViewStyle>;
   onSubmitEditing?: () => void;
 }) {
+  const c = useLegacyAppearance(legacyAppearance_c);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[{ paddingHorizontal: SPACE.lg }, style]}>
       <PremiumInput
@@ -636,6 +675,9 @@ const shortDay = (v?: string | null) => {
 export function TierProgressRail({ app, you, compact, style }: {
   app: any; you?: string; compact?: boolean; style?: StyleProp<ViewStyle>;
 }) {
+  const r = useLegacyAppearance(legacyAppearance_r);
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const trail = tierTrail(app);
   const summary = trail.map((s) => `${TIER_WORD[s.tier]} ${s.decision}`).join(', ');
   return (
@@ -701,6 +743,10 @@ export function CoverageRing({ progress, size = 68, stroke = 7, accent = 'indigo
   /** Drawn on a gradient (white track). */
   light?: boolean;
 }) {
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const g = useLegacyAppearance(legacyAppearance_g);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const reduce = useReduceMotion();
   const a = CONSOLE_ACCENTS[accent] || CONSOLE_ACCENTS.indigo;
   const p = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
@@ -746,6 +792,7 @@ export function ConsoleState({ kind = 'empty', title, message, action, onAction,
   kind?: 'empty' | 'error'; title: string; message?: string; action?: string; onAction?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
+  const st = useLegacyAppearance(legacyAppearance_st);
   return (
     <FadeInUp style={[st.wrap, style]}>
       <FloatingIllustration size={104} amplitude={5} halo={false}>
@@ -764,6 +811,10 @@ export function ConsoleState({ kind = 'empty', title, message, action, onAction,
 export function ConsoleSkeleton({ rows = 3, variant = 'card', style }: {
   rows?: number; variant?: 'card' | 'tiles'; style?: StyleProp<ViewStyle>;
 }) {
+  const t = useLegacyAppearance(legacyAppearance_t);
+  const sk = useLegacyAppearance(legacyAppearance_sk);
+  const c = useLegacyAppearance(legacyAppearance_c);
+  const f = useLegacyAppearance(legacyAppearance_f);
   const pulse = useLoop({ duration: 1400, pingPong: true });
   const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] });
   if (variant === 'tiles') {
@@ -944,3 +995,21 @@ const sk = StyleSheet.create({
   block: { backgroundColor: PALETTE.divider, borderRadius: 8 },
 });
 
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_f = f;
+const legacyAppearance_CONSOLE_CANVAS = CONSOLE_CANVAS;
+const legacyAppearance_ADMIN = ADMIN;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;
+const legacyAppearance_h = h;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_ACCENTS = CONSOLE_ACCENTS;
+const legacyAppearance_t = t;
+const legacyAppearance_c = c;
+const legacyAppearance_CHIP = CHIP;
+const legacyAppearance_tb = tb;
+const legacyAppearance_r = r;
+const legacyAppearance_g = g;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_st = st;
+const legacyAppearance_sk = sk;

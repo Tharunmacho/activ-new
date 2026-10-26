@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { saveSpreadsheetReport } from '../../../services/reportExport';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity, RefreshControl } from 'react-native';
@@ -57,6 +58,8 @@ const modeLabel = (mode: string) => (mode === 'bank_transfer' ? 'Bank' : mode ? 
 function BookingCard({ b, n, onOpen, delivery, deliveryLoading, onMessages }: {
   b: any; n: number; onOpen: () => void; delivery: any; deliveryLoading: boolean; onMessages: () => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const cancelled = String(b?.status || '') === 'cancelled';
   const pay = payChip(String(b?.payment?.status || ''));
   const mode = modeLabel(String(b?.payment?.mode || ''));
@@ -104,6 +107,8 @@ function BookingCard({ b, n, onOpen, delivery, deliveryLoading, onMessages }: {
 }
 
 function AttendeeRow({ a, n }: { a: any; n: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const status = String(a?.paymentStatus || 'pending');
   const pay = payChip(status, 'Unpaid');
   const waitlist = String(a?.status || '') === 'waitlist';
@@ -132,6 +137,9 @@ function AttendeeRow({ a, n }: { a: any; n: number }) {
 }
 
 const SuperEventBookingsScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const eventId: string = String(route?.params?.eventId || '');
@@ -503,3 +511,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperEventBookingsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import EventFilters from '../../../components/EventFilters';
 import { EMPTY_EVENT_FILTERS, matchesEventFilters } from '../../../utils/eventFilters';
 import { useEventClock } from '../../../utils/useEventClock';
@@ -39,6 +40,8 @@ const pickSeats = (e: any) => wantsSeats(e) && !isPastEvent(e);
 
 /** Website EventRow, premium: poster, calendar tile, chips, title, time · venue · seats · ref, one action. */
 function EventCard({ e, seat, onPress }: { e: any; seat?: SeatInfo | null; onPress: () => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const d = dateParts(e?.startAt);
   const banner = e?.bannerUrl ? resolveMediaUrl(e.bannerUrl) : '';
   const { reg, awaitingPayment, waitlisted, label, action } = seatState(e);
@@ -154,6 +157,7 @@ function EventCard({ e, seat, onPress }: { e: any; seat?: SeatInfo | null; onPre
 }
 
 const MemberEventsScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const { width, fontScale } = useWindowDimensions();
   const [viewportWidth, setViewportWidth] = useState(width);
   const availableWidth = Math.max(1, viewportWidth - SPACE.lg * 2);
@@ -307,3 +311,7 @@ const styles = StyleSheet.create({
 });
 
 export default MemberEventsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import {
@@ -25,6 +26,7 @@ const POLLS = 6;
 const EVERY_MS = 3000;
 
 const DonationResultScreen = ({ navigation, route }: any) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const orderId = String(route?.params?.orderId || '');
   const paymentId = String(route?.params?.paymentId || '');
   const gatewayStatus = String(route?.params?.paymentStatus || '');
@@ -207,3 +209,6 @@ const s = StyleSheet.create({
 });
 
 export default DonationResultScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

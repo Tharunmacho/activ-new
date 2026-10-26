@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import { saveSpreadsheetReport } from '../../services/reportExport';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
@@ -56,6 +57,10 @@ const clock = (ms: number) => {
 };
 
 export default function EventAttendanceScreen({ navigation, route }: Props) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const eventId: string = String(route?.params?.eventId || '');
   const eventTitle: string = String(route?.params?.eventTitle || '');
   const readOnly: boolean = route?.params?.readOnly === true;
@@ -286,3 +291,9 @@ const s = StyleSheet.create({
   },
   listBottom: { paddingBottom: SPACE.xl },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_TYPE = TYPE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

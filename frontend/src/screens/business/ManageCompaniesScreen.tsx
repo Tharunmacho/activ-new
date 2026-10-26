@@ -11,7 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../../types';
 import api from '../../services/api';
 import { ENDPOINTS, resolveMediaUrl } from '../../config/api.config';
-import { useActiveCompanyStore } from '../../stores/activeCompanyStore';
+import { ActiveCompany, useActiveCompanyStore } from '../../stores/activeCompanyStore';
 import { Badge, SPACE, BrandFrame, BrandHeaderBlock, BrandTopBar, BrandHero, GlassIconButton, PREMIUM_OVERLAP, FadeInUp, LiftCard, CompanyLogoTile, ArtEmptyState, Briefcase3D, PressableScale, GlassFigure } from '../../ui';
 import { CardSkeletons, SoftAction, companyStatus } from './businessKit';
 
@@ -35,6 +35,7 @@ interface Company {
   status: string;
   isActive: boolean;
   logo?: string;
+  publication?: ActiveCompany['publication'];
 }
 
 const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
@@ -74,7 +75,7 @@ const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
     setActiveCompany(company._id);
     Alert.alert(
       'Company Switched',
-      `You are now working as "${company.businessName || 'this company'}". Products, profile and analytics now show this company only.`
+      `You are now working as "${company.businessName || 'this company'}". Products, profile, analytics and your membership certificate follow this company.`
     );
   };
 
@@ -109,7 +110,7 @@ const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
 
   const list = companies || [];
   const count = list.length;
-  const listed = list.filter((c) => c?.isActive !== false).length;
+  const listed = list.filter((c) => c?.publication?.published ?? (c?.status === 'active' && c?.isActive !== false)).length;
   const active = list.find((c) => c?._id === activeCompanyId);
 
   const header = (
@@ -123,7 +124,9 @@ const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
         <BrandHero
           eyebrow="Your membership"
           title="Manage companies"
-          subtitle="Switch the company you are working as, or tidy up the ones you run."
+          subtitle={list.some(company => company?.publication?.unlimited)
+            ? 'Your ₹2 lakh membership covers multiple companies with one membership ID. Switch a company to update its certificate.'
+            : 'One public company is included. Extra drafts stay private until you pay their plan; each paid extra company gets its own membership ID.'}
           art={<Briefcase3D tone="business" size={92} />}
           artSize={92}
         >
@@ -174,6 +177,14 @@ const ManageCompaniesScreen: React.FC<Props> = ({ navigation }) => {
                 navigation.navigate('ProductsServices', { companyId: item._id });
               }}
               onDelete={() => handleDelete(item)}
+              onCertificate={() => {
+                setActiveCompany(item._id);
+                navigation.navigate('MemberCertificate', { kind: 'membership' });
+              }}
+              onPromote={() => {
+                setActiveCompany(item._id);
+                navigation.navigate('Settings');
+              }}
             />
           </FadeInUp>
         )}
@@ -206,9 +217,10 @@ function statusLabel(status?: string) {
 }
 
 /** One company: identity, the switch control, and its actions. */
-function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProducts, onDelete }: {
+function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProducts, onDelete, onCertificate, onPromote }: {
   company: Company; active: boolean;
   onUse: () => void; onPreview: () => void; onView: () => void; onEdit: () => void; onProducts: () => void; onDelete: () => void;
+  onCertificate: () => void; onPromote: () => void;
 }) {
   const { palette: PALETTE, premiumTone } = useAppTheme();
   const styles = useThemeStyles(makeStyles);
@@ -216,7 +228,7 @@ function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProd
   const logo = company?.logo ? resolveMediaUrl(company.logo) : '';
   const label = statusLabel(company?.status);
   const st = companyStatus(company?.status);
-  const listed = company?.isActive !== false;
+  const listed = company?.publication?.published ?? (company?.status === 'active' && company?.isActive !== false);
   return (
     <LiftCard tone="business" style={[styles.card, active && { borderColor: p.accent, borderWidth: 1.5 }]}>
       <View style={styles.headRow}>
@@ -260,6 +272,12 @@ function CompanyCard({ company, active, onUse, onPreview, onView, onEdit, onProd
       )}
 
       <View style={styles.actions}>
+        {company?.publication?.membershipNumber ? <Text style={styles.meta}>Membership ID: {company.publication.membershipNumber}</Text> : null}
+        {company?.publication?.paymentRequired ? <Text style={styles.meta}>Private draft · Only you can see it. Pay this company’s plan to appear in search and receive its own membership ID.</Text> : null}
+        <View style={styles.actionRow}>
+          <SoftAction icon="workspace-premium" label="Certificate" onPress={onCertificate} />
+          {company?.publication?.paymentRequired ? <SoftAction icon="campaign" label="Publish company" onPress={onPromote} /> : null}
+        </View>
         <View style={styles.actionRow}>
           <SoftAction icon="visibility" label="View" onPress={onView} accessibilityLabel={`View ${company?.businessName || 'company'}`} />
           <SoftAction icon="edit" label="Edit" onPress={onEdit} />

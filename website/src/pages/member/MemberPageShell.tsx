@@ -4,7 +4,6 @@ import { MenuTile } from '@/components/shared/MenuTile';
 import MemberSidebar from './MemberSidebar';
 import MemberTopBar from '@/features/member/components/MemberTopBar';
 import ThemeToggle from '@/components/shared/ThemeToggle';
-import ForceLightTheme from '@/components/shared/ForceLightTheme';
 import { useNavigate } from 'react-router-dom';
 /*
  * The same two constants the dashboard's header band uses. This shell draws the
@@ -109,13 +108,8 @@ export default function MemberPageShell({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
-    /* The platinum (lifetime) dashboard is a gold-on-ivory design with its own
-       stylesheet; it stays light, and so does not offer the switch. */
-    const gold = appearance === 'gold';
-
     return (
         <div className={`min-h-screen flex bg-white font-sans ${appearance === 'gold' ? 'member-shell--gold' : ''}`}>
-            {gold ? <ForceLightTheme /> : null}
             {sidebar ? (
                 <MemberSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             ) : null}
@@ -203,7 +197,7 @@ export default function MemberPageShell({
                         {/* Light / dark — on every member screen, linear flows
                             included, because it is a viewing preference rather than
                             a way out. */}
-                        {gold ? null : <ThemeToggle />}
+                        <ThemeToggle />
                         {sidebar ? <MemberTopBar /> : null}
                     </div>
                 </header>

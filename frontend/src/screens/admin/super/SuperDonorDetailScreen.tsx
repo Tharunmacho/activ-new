@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -24,6 +25,7 @@ const GOLD = PALETTE.amberDark;
 
 /** Absent values are left out rather than printed as dashes (website `Detail`). */
 function Detail({ label, value, last }: { label: string; value?: string | null; last?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const v = String(value || '').trim();
   if (!v) return null;
   return (
@@ -35,6 +37,8 @@ function Detail({ label, value, last }: { label: string; value?: string | null; 
 }
 
 const SuperDonorDetailScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const id: string = String(route?.params?.id || '');
@@ -191,3 +195,7 @@ const s = StyleSheet.create({
 });
 
 export default SuperDonorDetailScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

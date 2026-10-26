@@ -265,8 +265,9 @@ export const markAllNotificationsRead = async () =>
 /* ------------------------------------------------------------------ certificates, help */
 
 /** kind: 'membership' | 'tax-exemption'. Throws 403 until the membership is active. */
-export const getCertificate = async (kind: 'membership' | 'tax-exemption') =>
-  unwrap<any>(await api.get(`/members/certificate/${kind}`), null);
+export const getCertificate = async (kind: 'membership' | 'tax-exemption', companyId?: string) =>
+  unwrap<any>(await api.get(`/members/certificate/${kind}`,
+    kind === 'membership' && companyId ? { params: { companyId } } : undefined), null);
 
 /** The association's public contact details (GET /cms/contact-info). */
 export const getContactInfo = async () => unwrap<any>(await api.get('/cms/contact-info'), {});

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, Alert, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -62,6 +63,8 @@ const toKind = (saved: any): Kind => {
 };
 
 const BusinessInformationFormScreen: React.FC<Props> = ({ navigation, route, editMode = false }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [doingBusiness, setDoingBusiness] = useState<Choice>('');
   const [kind, setKind] = useState<Kind>('');
   const [year, setYear] = useState('');
@@ -257,3 +260,7 @@ const s = StyleSheet.create({
 });
 
 export default BusinessInformationFormScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

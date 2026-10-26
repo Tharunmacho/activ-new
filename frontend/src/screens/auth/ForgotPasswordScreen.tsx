@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useLayoutEffect, useState } from 'react';
 import { Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -36,6 +37,7 @@ interface Props {
 }
 
 const ForgotPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
+  const styles = useLegacyAppearance(sharedAppearance_styles);
   const portal: 'member' | 'admin' = route?.params?.portal === 'admin' ? 'admin' : 'member';
   const forAdmins = portal === 'admin';
   const signIn = forAdmins ? 'AdminLogin' : 'Login';
@@ -175,3 +177,5 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 export default ForgotPasswordScreen;
+
+const sharedAppearance_styles = styles;

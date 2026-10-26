@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,6 +8,8 @@ import { ChatAttachment, chatAudioSource } from '../../../services/messageAttach
 import { PALETTE } from '../../../ui';
 
 export default function ChatAudio({ attachment, mine }: { attachment: ChatAttachment; mine: boolean }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const [source, setSource] = useState<Awaited<ReturnType<typeof chatAudioSource>> | null>(null);
   const [paused, setPaused] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -39,3 +42,7 @@ export default function ChatAudio({ attachment, mine }: { attachment: ChatAttach
   </View>;
 }
 const styles = StyleSheet.create({ wrap: { minWidth: 170, maxWidth: 250 }, control: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 48 }, text: { flex: 1 }, name: { fontSize: 14, fontWeight: '700' }, time: { fontSize: 11, marginTop: 4 }, player: { width: 1, height: 1 } });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_styles = styles;

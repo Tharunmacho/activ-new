@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -43,6 +44,8 @@ const ELSEWHERE = [
 ];
 
 function Line({ icon, text, muted }: { icon: string; text: string; muted?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={s.line}>
       <Icon name={icon} size={18} color={muted ? PALETTE.textMuted : PALETTE.indigo} />
@@ -52,6 +55,7 @@ function Line({ icon, text, muted }: { icon: string; text: string; muted?: boole
 }
 
 export default function EventsAdminAccountScreen({ navigation }: Props) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const { user } = useAuthStore();
   const name = String((user as any)?.fullName || (user as any)?.name || 'Attendance Admin');
   const email = String((user as any)?.email || '');
@@ -117,3 +121,7 @@ const s = StyleSheet.create({
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.lg },
   signout: { marginHorizontal: SPACE.lg, marginTop: SPACE.xl },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

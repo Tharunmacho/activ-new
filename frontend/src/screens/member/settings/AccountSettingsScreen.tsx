@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import NotificationPreferences from '../../../components/NotificationPreferences';
 import AssociationUpdatePreferences from '../../../components/AssociationUpdatePreferences';
 import React, { useCallback, useState } from 'react';
@@ -41,6 +42,8 @@ const prettyPhone = (value: unknown) => {
 };
 
 function Detail({ icon, label, value, last }: { icon: string; label: string; value: string; last?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[styles.detail, !last && styles.detailDivider]}>
       <GradientGlyph icon={icon} tone="navy" size={34} />
@@ -53,6 +56,7 @@ function Detail({ icon, label, value, last }: { icon: string; label: string; val
 }
 
 function PasswordField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [shown, setShown] = useState(false);
   return (
     <PremiumInput
@@ -73,6 +77,9 @@ function PasswordField({ label, value, onChange }: { label: string; value: strin
 }
 
 const AccountSettingsScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
   const { logout } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
@@ -344,3 +351,8 @@ const styles = StyleSheet.create({
 });
 
 export default AccountSettingsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_TYPE = TYPE;

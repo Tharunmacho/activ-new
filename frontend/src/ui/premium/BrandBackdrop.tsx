@@ -1,3 +1,5 @@
+import { useLegacyAppearance } from '../legacyAppearance';
+import { useAppTheme } from '../AppTheme';
 import React, { memo, useMemo } from 'react';
 import { Animated, StyleProp, StyleSheet, View, ViewStyle, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -11,7 +13,6 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { PALETTE, Tone } from '../tokens';
-import { premiumTone } from './theme';
 import { useLoop } from './motion';
 
 /**
@@ -51,6 +52,7 @@ type Layer = { color: string; opacity: number; amp: number; baseline: number; cy
 const WaveLayer = memo(function WaveLayer({ width, height, layer, animated }: {
   width: number; height: number; layer: Layer; animated: boolean;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const t = useLoop({ duration: layer.duration, enabled: animated });
   const d = useMemo(
     () => wavePath(width, height, layer.baseline, layer.amp, layer.cycles),
@@ -77,6 +79,7 @@ const WaveLayer = memo(function WaveLayer({ width, height, layer, animated }: {
 export const WaveBand = memo(function WaveBand({ height = 56, color = PALETTE.canvas, glow, animated = true }: {
   height?: number; color?: string; glow?: string; animated?: boolean;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const { width } = useWindowDimensions();
   const w = Math.max(320, Math.round(width || 360));
   const layers: Layer[] = useMemo(() => [
@@ -95,6 +98,7 @@ export const WaveBand = memo(function WaveBand({ height = 56, color = PALETTE.ca
 
 /** Glow orbs, dot grid and a hairline ring — the header's texture. Static except a slow breath. */
 const BackdropDecor = memo(function BackdropDecor({ glow, animated }: { glow: string; animated: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const { width } = useWindowDimensions();
   const w = Math.max(320, Math.round(width || 360));
   const breath = useLoop({ duration: 7000, pingPong: true, enabled: animated });
@@ -155,7 +159,9 @@ export function BrandBackdrop({
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
 }) {
-  const p = premiumTone(tone);
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const { premiumTone: themedPremiumTone } = useAppTheme();
+  const p = themedPremiumTone(tone);
   return (
     <View style={[s.wrap, { minHeight, paddingBottom: waveHeight }, style]}>
       <LinearGradient
@@ -182,3 +188,6 @@ const s = StyleSheet.create({
   band: { position: 'absolute', left: 0, right: 0, bottom: 0, overflow: 'hidden' },
   orbTopRight: { position: 'absolute', top: -150, width: 320, height: 320 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

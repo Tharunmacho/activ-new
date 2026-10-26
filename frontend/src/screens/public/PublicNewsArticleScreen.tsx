@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { getPublicNewsArticle } from '../../services/publicContent';
@@ -34,6 +35,7 @@ export function NewsMediaItem({ media, navigation, cover = false }: { media: New
 }
 
 export function NewsResourceLinks({ article, navigation }: { article: any; navigation: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const documents = newsAttachments(article), links = newsLinks(article);
   return documents.length || links.length ? <View style={s.resources}>
     {documents.length > 0 && <View><Heading>Documents</Heading>{documents.map(document => <ActionLink key={document.url} navigation={navigation} href={document.url} label={document.label} filename={document.filename} download />)}</View>}
@@ -42,6 +44,7 @@ export function NewsResourceLinks({ article, navigation }: { article: any; navig
 }
 
 export function NewsArticleContent({ article, navigation }: { article: any; navigation: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   if (!article) return null;
   const [cover, ...photos] = newsMedia(article);
   const hasResources = newsAttachments(article).length > 0 || newsLinks(article).length > 0;
@@ -72,3 +75,6 @@ const s = StyleSheet.create({
   summary: { color: BRAND.navy, fontWeight: '600', fontSize: 16, lineHeight: 25, paddingBottom: SPACE.md, marginBottom: SPACE.lg, borderBottomWidth: 1, borderBottomColor: PALETTE.divider },
   resources: { gap: SPACE.md },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

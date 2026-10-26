@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -65,6 +66,9 @@ export default function TierSettingsView({
   tier, name, email, roleLine, photo, isEditing, isSaving, onEdit, onSave, onBack, onPickImage, onLogout,
   fields, passwordFields, photoBusy = false,
 }: Props) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const ADMIN = useLegacyAppearance(legacyAppearance_ADMIN);
   // Keyed by label, so revealing one password never reveals the one beside it.
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
@@ -200,3 +204,8 @@ const styles = StyleSheet.create({
   logout: { marginHorizontal: SPACE.lg, marginTop: SPACE.xs },
   logoutHint: { ...TYPE.caption, textAlign: 'center', marginTop: SPACE.sm, color: PALETTE.textFaint },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_ADMIN = ADMIN;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -50,6 +51,8 @@ const typeFromLabel = (label: string) => (MESSAGE_TYPES.find(([, l]) => l === la
 function Tiles({ email, whatsapp, delivery, onPick }: {
   email: DeliveryCounts; whatsapp: DeliveryCounts; delivery: string; onPick: (value: string) => void;
 }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const num = (v: unknown) => Number(v || 0);
   const reached = (c: DeliveryCounts) => num(c?.accepted) + num(c?.sent) + num(c?.delivered) + num(c?.read);
   const tiles: [string, string, number, string, string][] = [
@@ -81,6 +84,8 @@ function Tiles({ email, whatsapp, delivery, onPick }: {
 }
 
 function MessageCard({ row, open, onToggle, onChanged }: { row: DeliveryLogRow; open: boolean; onToggle: () => void; onChanged: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const state = stateOf(row);
   const reason = plainReason(row);
   return (
@@ -142,6 +147,9 @@ function MessageCard({ row, open, onToggle, onChanged }: { row: DeliveryLogRow; 
 }
 
 export function AutomationPane({ header, refreshKey = 0 }: { header?: React.ReactElement | null; refreshKey?: number }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const [data, setData] = useState<AutomationPage>(EMPTY_AUTOMATION);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -436,3 +444,8 @@ const s = StyleSheet.create({
   pagerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACE.sm },
   pageNo: { fontSize: 14, fontWeight: '800', color: PALETTE.textSoft },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_s = s;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

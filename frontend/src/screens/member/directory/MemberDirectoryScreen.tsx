@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import StudentNetworkingGate from '../StudentNetworkingGate';
 import { isStudentMembership } from '../../../utils/memberAudience';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -47,6 +48,8 @@ const joinedLabel = (v?: string | null) => {
 };
 
 function Fact({ icon, text, muted }: { icon: string; text: string; muted?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[styles.fact, muted && styles.factMuted]}>
       <Icon name={icon} size={13} color={muted ? PALETTE.textFaint : PALETTE.blue} />
@@ -56,6 +59,8 @@ function Fact({ icon, text, muted }: { icon: string; text: string; muted?: boole
 }
 
 function MemberCard({ m, onPress, index }: { m: any; onPress: () => void; index: number }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const photo = resolveMediaUrl(m?.profilePhoto || '');
   const primary = asArray<any>(m?.companies)[0];
   const logo = resolveMediaUrl(primary?.logo || '');
@@ -140,6 +145,8 @@ function FilterSelect({ label, icon, value, options, onChange, disabled, disable
 }
 
 const MemberDirectoryScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const { paid, profile, loading: accessLoading } = useMemberAccess();
   const cta = useLockedCta(paid, profile);
   const [term, setTerm] = useState('');
@@ -446,3 +453,7 @@ const styles = StyleSheet.create({
 });
 
 export default MemberDirectoryScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

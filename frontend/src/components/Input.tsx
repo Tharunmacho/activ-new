@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React, { useState } from 'react';
 import {
   View,
@@ -30,6 +31,8 @@ const Input: React.FC<InputProps> = ({
   isPassword = false,
   ...textInputProps
 }) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const COLORS = useLegacyAppearance(legacyAppearance_COLORS);
   const [isFocused, setIsFocused] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -134,3 +137,7 @@ const styles = StyleSheet.create({
 });
 
 export default Input;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_COLORS = COLORS;

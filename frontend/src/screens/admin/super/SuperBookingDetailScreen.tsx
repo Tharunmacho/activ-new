@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -52,6 +53,7 @@ const modeWord = (mode: string) => (mode === 'bank_transfer' ? 'Bank' : mode ? m
 
 /** One labelled field — or nothing, when there is no value. */
 function Row({ label, value, children, last }: { label: string; value?: string | null; children?: React.ReactNode; last?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const empty = !children && (value === null || value === undefined || value === '');
   if (empty) return null;
   return (
@@ -63,6 +65,9 @@ function Row({ label, value, children, last }: { label: string; value?: string |
 }
 
 const SuperBookingDetailScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const TYPE = useLegacyAppearance(legacyAppearance_TYPE);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const eventId: string = String(route?.params?.eventId || '');
@@ -267,3 +272,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperBookingDetailScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_TYPE = TYPE;
+const legacyAppearance_PALETTE = PALETTE;

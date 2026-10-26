@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -33,6 +34,9 @@ import {
 type Props = { navigation: any; route: any };
 
 export default function EventDoorBookingsScreen({ navigation, route }: Props) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const eventId: string = String(route?.params?.eventId || '');
   const eventTitle: string = String(route?.params?.eventTitle || '');
 
@@ -202,3 +206,8 @@ const s = StyleSheet.create({
   metaText: { ...TYPE.caption, flex: 1, minWidth: 0 },
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -31,6 +32,7 @@ type Tab = 'donors' | 'donations';
 const GOLD = PALETTE.amberDark;
 
 function DonorRow({ d, fy, onOpen }: { d: any; fy: string; onOpen: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const where = place(d?.city, d?.district, d?.state);
   const count = Number(d?.donationCount || 0);
   return (
@@ -61,6 +63,8 @@ function DonorRow({ d, fy, onOpen }: { d: any; fy: string; onOpen: () => void })
 }
 
 function DonationRow({ r, onOpenDonor }: { r: any; onOpenDonor: () => void }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const status = String(r?.status || 'pending');
   const paid = status.toLowerCase() === 'paid';
   return (
@@ -89,6 +93,9 @@ function DonationRow({ r, onOpenDonor }: { r: any; onOpenDonor: () => void }) {
 }
 
 const SuperDonorsScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const [fy, setFy] = useState('');
   const [tab, setTab] = useState<Tab>('donors');
@@ -247,3 +254,8 @@ const s = StyleSheet.create({
 });
 
 export default SuperDonorsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

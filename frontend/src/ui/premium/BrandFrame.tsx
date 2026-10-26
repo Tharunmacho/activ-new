@@ -1,4 +1,5 @@
 import { AppTheme, useAppTheme, useThemeStyles } from '../AppTheme';
+import { AppearanceToggle } from '../AppearanceToggle';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -198,7 +199,7 @@ export function BrandTopBar({ onBack, title, right }: {
         />
       ) : <View style={s.topSpacer} />}
       <Text style={s.topTitle} numberOfLines={1} maxFontSizeMultiplier={1.2}>{title || ''}</Text>
-      <View style={s.topRight}>{right || <View style={s.topSpacer} />}</View>
+      <View style={s.topRight}><AppearanceToggle glass />{right || null}</View>
     </View>
   );
 }

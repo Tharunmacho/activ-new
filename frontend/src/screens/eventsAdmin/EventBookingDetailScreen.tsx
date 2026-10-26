@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -32,6 +33,7 @@ import { eventWhen } from './checkinKit';
 type Props = { navigation: any; route: any };
 
 const Fact = ({ label, value, mono }: { label: string; value?: string | number | null; mono?: boolean }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const text = String(value ?? '').trim();
   if (!text) return null;
   return (
@@ -43,6 +45,9 @@ const Fact = ({ label, value, mono }: { label: string; value?: string | number |
 };
 
 export default function EventBookingDetailScreen({ navigation, route }: Props) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const eventId: string = String(route?.params?.eventId || '');
   const eventTitle: string = String(route?.params?.eventTitle || '');
   const bookingRef: string = String(route?.params?.bookingRef || '');
@@ -315,3 +320,8 @@ const s = StyleSheet.create({
   admitAll: { marginTop: SPACE.md },
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

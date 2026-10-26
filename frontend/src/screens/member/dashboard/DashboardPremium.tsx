@@ -1,3 +1,5 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
+import { AppearanceToggle } from '../../../ui/AppearanceToggle';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, LayoutChangeEvent, Platform, StyleProp, StyleSheet, Text, View, ViewStyle, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -53,6 +55,7 @@ export function DashboardHeader({
   bell?: number;
   children?: React.ReactNode;
 }) {
+  const h = useLegacyAppearance(legacyAppearance_h);
   return (
     <View>
       <View style={h.top}>
@@ -73,6 +76,7 @@ export function DashboardHeader({
           style={{ marginLeft: SPACE.sm }}
         />
       </View>
+      <View style={{ alignItems: 'flex-end', marginTop: SPACE.sm }}><AppearanceToggle glass /></View>
       <View style={h.hero}>
         <FadeInUp delay={40} style={h.heroText}>
           <View style={h.greetRow}>
@@ -95,6 +99,8 @@ export function DashboardHeader({
 
 /** A translucent chip on the header gradient ("Business applicant", "Under review"). */
 export function GlassChip({ label, icon, dot, style }: { label: string; icon?: string; dot?: string; style?: StyleProp<ViewStyle> }) {
+  const h = useLegacyAppearance(legacyAppearance_h);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[h.chip, style]}>
       {dot ? <View style={[h.chipDot, { backgroundColor: dot }]} /> : null}
@@ -108,6 +114,7 @@ export function GlassChip({ label, icon, dot, style }: { label: string; icon?: s
 
 /** A slow diagonal gloss moving across a card — native driver, off under reduce-motion. */
 function Sheen({ width }: { width: number }) {
+  const p = useLegacyAppearance(legacyAppearance_p);
   const t = useLoop({ duration: 5200, delay: 800 });
   const w = Math.max(200, width || 320);
   const translateX = t.interpolate({ inputRange: [0, 0.55, 1], outputRange: [-w * 0.6, w * 1.2, w * 1.2] });
@@ -137,6 +144,9 @@ const NODE_UI: Record<StageState, { icon: string; bg: string; fg: string; ring: 
 };
 
 export function JourneyTrack({ nodes }: { nodes: JourneyNode[] }) {
+  const p = useLegacyAppearance(legacyAppearance_p);
+  const NODE_UI = useLegacyAppearance(legacyAppearance_NODE_UI);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const list = nodes || [];
   const total = Math.max(1, list.length);
   // The rail fills up to the last approved node (and half-way into a node under review).
@@ -216,6 +226,8 @@ export function ApprovalJourneyCard({
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
+  const p = useLegacyAppearance(legacyAppearance_p);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const [w, setW] = useState(0);
   return (
     <PressableScale
@@ -285,6 +297,8 @@ export function MembershipCard3D({
   platinum: boolean;
   onPress: () => void;
 }) {
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const p = useLegacyAppearance(legacyAppearance_p);
   const [w, setW] = useState(0);
   const colors = platinum
     ? ['#111827', '#374151', '#6B7280', '#9CA3AF']
@@ -358,6 +372,7 @@ export function MembershipCard3D({
 /* ================================================================ skeleton */
 
 export function PremiumDashboardSkeleton({ style }: { style?: StyleProp<ViewStyle> }) {
+  const p = useLegacyAppearance(legacyAppearance_p);
   const { width } = useWindowDimensions();
   const cardH = Math.round(Math.min(240, Math.max(200, (width || 360) * 0.58)));
   return (
@@ -455,3 +470,10 @@ const p = StyleSheet.create({
   skRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: SPACE.lg, marginTop: SPACE.lg },
   skGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginHorizontal: SPACE.lg, marginTop: SPACE.xl },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_h = h;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_p = p;
+const legacyAppearance_NODE_UI = NODE_UI;
+const legacyAppearance_BRAND = BRAND;

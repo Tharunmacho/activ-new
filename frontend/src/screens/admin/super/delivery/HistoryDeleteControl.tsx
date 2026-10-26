@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { ConsoleButton, PALETTE, SPACE } from '../../../../ui';
@@ -36,6 +37,7 @@ const addReasons = (previous: HistoryDeleteResult['reasons'], next: HistoryDelet
 export function HistoryDeleteControl({ selection, onDone, disabled, label = 'Clear logs' }: {
   selection: HistorySelection; onDone: () => void; disabled?: boolean; label?: string;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const selectionKey = JSON.stringify(historySelection(selection));
   const currentKey = useRef(selectionKey);
   currentKey.current = selectionKey;
@@ -144,3 +146,6 @@ const s = StyleSheet.create({
   help: { fontSize: 14, lineHeight: 21, color: PALETTE.textMuted },
   error: { fontSize: 14, lineHeight: 21, color: PALETTE.redDark },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
 import { ContentImage } from '../../ui/ContentImage';
@@ -19,6 +20,7 @@ export function ContentLayout({ navigation, title, subtitle, art = 'news', resou
   navigation: any; title: string; subtitle?: string; art?: string; readingPanel?: boolean; overlap?: boolean; sharePath?: string;
   resource: { loading: boolean; refreshing: boolean; error: string; reload: () => any; data: any }; children?: React.ReactNode;
 }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles);
   const section = ({ gallery: 'Gallery', schemes: 'Opportunities', zones: 'Community', news: 'News', about: 'About us', membership: 'Membership', contact: 'Contact', policy: 'Information' } as Record<string, string>)[art] || 'ACTIV';
   return <PremiumPage safeBottom refreshing={resource.refreshing} onRefresh={resource.reload} header={
     <View style={contentStyles.headerInner}><PremiumPageHeader title={contentText(title)} subtitle={contentText(subtitle)} eyebrow={'ACTIV / ' + section.toUpperCase()}
@@ -37,8 +39,10 @@ export function ContentLayout({ navigation, title, subtitle, art = 'news', resou
     </View>
   </PremiumPage>;
 }
-export function Heading({ children }: { children: React.ReactNode }) { return <Text accessibilityRole="header" style={contentStyles.heading}>{typeof children === 'string' ? contentText(children) : children}</Text>; }
+export function Heading({ children }: { children: React.ReactNode }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles); return <Text accessibilityRole="header" style={contentStyles.heading}>{typeof children === 'string' ? contentText(children) : children}</Text>; }
 export function Body({ value, navigation, style }: { value: any; navigation?: any; style?: StyleProp<TextStyle> }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles);
   return <>{publicTextBlocks(value).map((block, index) => {
     const text = <Text selectable accessibilityRole={block.kind === 'heading' ? 'header' : undefined}
       style={[contentStyles.body, style, block.kind === 'heading' && contentStyles.richHeading, block.kind === 'quote' && contentStyles.quote, block.kind === 'code' && contentStyles.code]}>
@@ -54,6 +58,7 @@ export function Body({ value, navigation, style }: { value: any; navigation?: an
   })}</>;
 }
 export function ActionLink({ navigation, href, label, download = false, filename }: { navigation: any; href?: string; label: string; download?: boolean; filename?: string }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles);
   if (!href) return null;
   const file = download || isPublicDownloadUrl(href);
   if (!file && !/^(\/[^/]|https?:\/\/|mailto:|tel:)/i.test(href)) return null;
@@ -66,6 +71,9 @@ export function ActionLink({ navigation, href, label, download = false, filename
   </PressableScale>;
 }
 export function Photo({ url, alt = 'ACTIV photo', caption, document = false, closeLabel = 'Close photo', edgeToEdge = false }: { url?: string; alt?: string; caption?: string; document?: boolean; closeLabel?: string; edgeToEdge?: boolean }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const [ratio, setRatio] = useState(4 / 3), [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading'), [open, setOpen] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const uri = resolveMediaUrl(url || '');
@@ -97,6 +105,7 @@ export function Photo({ url, alt = 'ACTIV photo', caption, document = false, clo
 /** Uploaded videos play in the native player. Embedded media stays in an
  * isolated player with no website chrome or external page navigation. */
 export function ContentMedia({ media, title }: { media: any; title: string }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles);
   const [failed, setFailed] = useState(false);
   const uri = resolveMediaUrl(media?.url || '');
   useEffect(() => { setFailed(false); }, [uri, media?.type]);
@@ -117,6 +126,7 @@ export function ContentMedia({ media, title }: { media: any; title: string }) {
   return <Video key={uri} source={{ uri }} controls resizeMode="contain" paused style={contentStyles.video} onError={() => setFailed(true)} />;
 }
 export function ExtraFields({ fields, navigation }: { fields: any[]; navigation: any }) {
+  const contentStyles = useLegacyAppearance(legacyAppearance_contentStyles);
   return <>{(Array.isArray(fields) ? fields : []).filter(field => field && field.value && !field.isHidden
     && !/^(created\s*by|updated\s*by|seed|source\s*id|internal|database|imported\s*by)/i.test(String(field.label || field.key || '').trim())
     && !/^seed[:\s-]/i.test(String(field.value).trim())).map((field, i) => <SurfaceCard key={i} style={contentStyles.section}>
@@ -148,3 +158,8 @@ export const contentStyles = StyleSheet.create({
   video: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#071332', marginBottom: 14 },
   input: { backgroundColor: PALETTE.white, borderWidth: 1, borderColor: PALETTE.border, borderRadius: 14, minHeight: 48, paddingHorizontal: 14, color: PALETTE.text, fontSize: 16, marginBottom: 12 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_contentStyles = contentStyles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;

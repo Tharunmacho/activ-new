@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -33,6 +34,8 @@ const insertLabels = { title: 'Title', body: 'Message', summary: 'Summary' };
 
 /** Write, add optional files, choose recipients and review before publishing. */
 const SuperUpdateEditorScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const a = route?.params?.announcement || null;
@@ -339,3 +342,7 @@ const s = StyleSheet.create({
   error: { color: PALETTE.red, fontSize: 16, lineHeight: 24, marginVertical: SPACE.md },
 });
 export default SuperUpdateEditorScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

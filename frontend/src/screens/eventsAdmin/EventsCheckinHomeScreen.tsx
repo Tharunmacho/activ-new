@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -34,6 +35,9 @@ type Scope = 'upcoming' | 'past';
 const LIVE_MS = 10000;
 
 export default function EventsCheckinHomeScreen({ navigation }: Props) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const [scope, setScope] = useState<Scope>('upcoming');
   const [events, setEvents] = useState<CheckinEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -208,3 +212,8 @@ const s = StyleSheet.create({
   flexBtn: { flex: 1 },
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

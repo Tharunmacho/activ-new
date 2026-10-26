@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Linking, Alert, BackHandler,
@@ -72,6 +73,9 @@ const validate = (form: Form, amount: number): Errors => {
 };
 
 const DonateScreen = ({ navigation }: any) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const [preset, setPreset] = useState<number | null>(1000);
   const [custom, setCustom] = useState('');
   const [donorType, setDonorType] = useState<DonorType>('individual');
@@ -476,3 +480,8 @@ const s = StyleSheet.create({
 });
 
 export default DonateScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;

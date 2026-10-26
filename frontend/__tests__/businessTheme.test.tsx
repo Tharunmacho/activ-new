@@ -25,8 +25,9 @@ jest.mock('@react-navigation/native', () => {
 });
 jest.mock('../src/stores/activeCompanyStore', () => {
   const company = { _id: 'company-1', businessName: 'Test company' };
-  const store = { loadCompanies: jest.fn(), setActiveCompany: jest.fn() };
-  return { useActiveCompany: () => company, useActiveCompanyStore: (selector: any) => selector(store) };
+  const store = { activeCompanyId: company._id, loadCompanies: jest.fn().mockResolvedValue([company]), setActiveCompany: jest.fn() };
+  const useActiveCompanyStore = Object.assign((selector: any) => selector(store), { getState: () => store });
+  return { useActiveCompany: () => company, useActiveCompanyStore };
 });
 jest.mock('../src/services/api', () => ({
   __esModule: true,

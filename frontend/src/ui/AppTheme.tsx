@@ -10,8 +10,8 @@ export type ThemePalette = typeof PALETTE;
 
 export const DARK_PALETTE: ThemePalette = {
   ...PALETTE,
-  canvas: '#0D1422', canvasAdmin: '#0D1422', card: '#172133', surface: '#172133', background: '#0D1422',
-  border: '#2D3B50', borderStrong: '#46566F', divider: '#263449', field: '#202D42', fieldBg: '#1B283B', disabled: '#344258',
+  canvas: '#111214', canvasAdmin: '#111214', card: '#1C1E22', surface: '#1C1E22', background: '#111214',
+  border: '#34373D', borderStrong: '#51565F', divider: '#303339', field: '#282B30', fieldBg: '#24272C', disabled: '#3D424A',
   text: '#F1F5FB', textSoft: '#D4DFEE', textMuted: '#A8B8CE', textFaint: '#93A5BD', overlay: 'rgba(0,0,0,0.65)',
   blueDark: '#93C5FD', blueSoft: '#172F51', blueTint: '#16243B', primaryDark: '#93C5FD', primarySoft: '#172F51',
   indigoDark: '#C7C4FF', indigoSoft: '#2B2850', indigoTint: '#211F39',
@@ -36,7 +36,7 @@ function makeTokens(isDark: boolean) {
   const themedTone = (tone: Tone = 'member') => {
     const base = toneOf(tone);
     const key = tone === 'business' ? 'violet' : tone === 'admin' ? 'indigo' : 'blue';
-    return { ...base, canvas: tone === 'admin' ? palette.canvasAdmin : palette.canvas,
+    return { ...base, ...(isDark && tone === 'admin' ? { gradient: ['#111214', '#202329', '#30343C'] } : {}), canvas: tone === 'admin' ? palette.canvasAdmin : palette.canvas,
       accentDark: palette[`${key}Dark`], accentSoft: palette[`${key}Soft`], accentTint: palette[`${key}Tint`] };
   };
   return { isDark, palette, type, toneOf: themedTone,
@@ -45,7 +45,7 @@ function makeTokens(isDark: boolean) {
       const base = premiumTone(tone);
       if (!isDark) return base;
       const themed = themedTone(tone);
-      return { ...base, accentDark: themed.accentDark, accentSoft: themed.accentSoft,
+      return { ...base, ...(tone === 'admin' ? { header: ['#111214', '#1B1D22', '#25282E', '#30343C'], top: '#111214' } : {}), accentDark: themed.accentDark, accentSoft: themed.accentSoft,
         accentSoft2: themed.accentTint, inputFill: palette.fieldBg };
     },
     statusTone: (status?: string | null) => {
@@ -67,12 +67,14 @@ export type AppTheme = ReturnType<typeof makeTokens> & {
   ready: boolean;
   storageError: string | null;
 };
-const ThemeContext = createContext<AppTheme>({ ...LIGHT, preference: 'system', setPreference: () => {}, ready: true, storageError: null });
+const ThemeContext = createContext<AppTheme>({ ...LIGHT, preference: 'light', setPreference: () => {}, ready: true, storageError: null });
 const validPreference = (value: unknown): value is ThemePreference => value === 'system' || value === 'light' || value === 'dark';
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [preference, updatePreference] = useState<ThemePreference>('system');
+  // Start in the familiar light appearance. Following the phone is opt-in;
+  // a device switching to dark at night must not change the app unexpectedly.
+  const [preference, updatePreference] = useState<ThemePreference>('light');
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
   const revision = useRef(0);

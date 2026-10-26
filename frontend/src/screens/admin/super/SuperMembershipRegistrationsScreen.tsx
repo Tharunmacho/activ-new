@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { membershipValidityLabel } from '../../../utils/membershipDates';
 import { saveSpreadsheetReport } from '../../../services/reportExport';
 import React, { useCallback, useRef, useState } from 'react';
@@ -16,9 +17,12 @@ const MEMBER_FILTERS = [
 ];
 const PAYMENT_FILTERS = [['all', 'All payments'], ['paid', 'Paid / confirmed'], ['created', 'Pending checkout'], ['waived', 'Fee waived'], ['failed', 'Failed'], ['cancelled', 'Cancelled']];
 function Receipt({ p }: { p: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return <View style={s.receipt}><Text style={s.title}>{p.planName} · {money(p.amount)}</Text><Text style={s.body}>{display(p.status)} · {display(p.mode)} · {shortDate(p.paidAt || p.createdAt)}</Text><Text selectable style={s.body}>Order: {p.orderId}</Text>{p.paymentId ? <Text selectable style={s.body}>Payment: {p.paymentId}</Text> : null}{p.manual ? <Text style={s.body}>Confirmed by {p.manual.byName} · {shortDate(p.manual.at)}{'\n'}{p.manual.note}{p.manual.waivedAmount > 0 ? `\nFee waived: ${money(p.manual.waivedAmount)}` : ''}</Text> : null}</View>;
 }
 export default function SuperMembershipRegistrationsScreen() {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -193,3 +197,7 @@ export default function SuperMembershipRegistrationsScreen() {
   </ConsoleScroll>;
 }
 const s = StyleSheet.create({ card: { marginHorizontal: SPACE.lg, marginVertical: SPACE.sm }, title: { ...TYPE.subheading, marginBottom: SPACE.sm }, body: { ...TYPE.caption, lineHeight: 21, marginVertical: SPACE.xs }, receipt: { paddingVertical: SPACE.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: '#dbe3ef' }, actions: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm } });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

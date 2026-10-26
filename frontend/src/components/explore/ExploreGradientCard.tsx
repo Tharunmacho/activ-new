@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,6 +16,7 @@ export function ExploreGradientCard({ title, description, colors, art, icon, cap
   title: string; description: string; colors: string[]; art?: SiteArtKind; icon?: string;
   caption?: string; width: number; accessibilityLabel?: string; onPress: () => void;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return <PressableScale onPress={onPress} style={{ width, flexShrink: 0 }} scaleTo={0.95}
     contentStyle={[s.shadow, { shadowColor: colors[0], backgroundColor: colors[0] }]}
     accessibilityRole="button" accessibilityLabel={accessibilityLabel || `${title}. ${description}`}>
@@ -41,3 +43,6 @@ const s = StyleSheet.create({
   description: { fontSize: 11, lineHeight: 15, fontWeight: '500', color: '#FFFFFF', marginTop: 2 },
   caption: { fontSize: 11, lineHeight: 16, fontWeight: '600', color: '#FFFFFF', paddingTop: 10, marginTop: 'auto' },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

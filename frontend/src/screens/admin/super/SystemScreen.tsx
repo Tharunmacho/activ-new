@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
@@ -90,6 +91,10 @@ const dayLabel = (value?: string | null): string => {
  * log — the record of who approved, rejected or deleted what.
  */
 const SystemScreen = ({ navigation }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_ACCENTS = useLegacyAppearance(legacyAppearance_CONSOLE_ACCENTS);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const {
     adminName, adminEmail, adminPhone, updateAdminProfile,
     adminProfilePhoto, setAdminProfilePhoto, stats,
@@ -668,3 +673,9 @@ const styles = StyleSheet.create({
 });
 
 export default SystemScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_ACCENTS = CONSOLE_ACCENTS;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

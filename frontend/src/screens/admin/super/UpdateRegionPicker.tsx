@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -11,6 +12,8 @@ const covers = (outer: UpdateRegion, inner: UpdateRegion) => outer.state === inn
 
 /** Whole states, whole districts or individual blocks; each chosen path is complete. */
 export default function UpdateRegionPicker({ value, onChange, disabled }: { value: UpdateRegion[]; onChange: (value: UpdateRegion[]) => void; disabled: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const tree = useRegionTreeAll();
   const [open, setOpen] = useState<string[]>([]);
   const [query, setQuery] = useState('');
@@ -60,3 +63,7 @@ const s = StyleSheet.create({
   name: { flex: 1, fontSize: 16, lineHeight: 24, color: PALETTE.text }, expand: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   children: { marginLeft: SPACE.md }, selection: { flexDirection: 'row', alignItems: 'center', backgroundColor: PALETTE.blueSoft, borderRadius: 12, paddingLeft: SPACE.md },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

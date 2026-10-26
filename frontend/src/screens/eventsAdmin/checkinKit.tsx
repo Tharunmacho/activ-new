@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -47,6 +48,7 @@ const BANNER: Record<Verdict, { icon: string; title: string; fg: string; bg: str
 };
 
 function Fact({ label, value, mono }: { label: string; value?: string | number | null; mono?: boolean }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const text = String(value ?? '').trim();
   if (!text) return null;
   return (
@@ -73,6 +75,8 @@ export function SeatResultCard({
   onNext?: () => void;
   nextLabel?: string;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   if (!seat) return null;
   const verdict = verdictOf(seat, outcome);
   const b = BANNER[verdict];
@@ -178,3 +182,7 @@ const s = StyleSheet.create({
   warnText: { ...TYPE.label, color: PALETTE.amberDark, flex: 1, minWidth: 0 },
   actions: { gap: SPACE.sm, marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

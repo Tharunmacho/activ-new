@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Share, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -43,6 +44,7 @@ const dateLine = (startAt?: string | null) => {
 };
 
 const SuperEventQrScreen: React.FC = () => {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const event = route?.params?.event || {};
@@ -122,3 +124,6 @@ const s = StyleSheet.create({
 });
 
 export default SuperEventQrScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;

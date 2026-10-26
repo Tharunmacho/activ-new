@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { membershipValidityLabel } from '../../../utils/membershipDates';
 import { isPastEvent as isPast } from '../../../utils/eventLifecycle';
 import { useEventClock } from '../../../utils/useEventClock';
@@ -24,7 +25,7 @@ import {
 import { resolveMediaUrl } from '../../../config/api.config';
 import { invalidateWebsiteContent } from '../../../services/websiteContent';
 import { feedUnreadCount } from '../NotificationScreen';
-import { categoryStyle } from '../updates/updateFormat';
+import { useCategoryStyle } from '../updates/updateFormat';
 import { clockTime, longDate } from '../events/eventFormat';
 import { pickMostAdvancedApplication, resolveApplicantKind, planLabelFor } from '../dashboard/memberRules';
 import RenewalBanner from '../dashboard/RenewalBanner';
@@ -52,6 +53,8 @@ import RenewalBanner from '../dashboard/RenewalBanner';
 const MONTHS3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 function Fact({ label, value, icon, wide }: { label: string; value: string; icon: string; wide?: boolean }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     // `wide` for long identifiers: a half cell cut them mid-ID, and Android's
     // selectable text ignores numberOfLines and spilled under the button below.
@@ -69,6 +72,7 @@ function Fact({ label, value, icon, wide }: { label: string; value: string; icon
 function Row({ onPress, last, children, accessibilityLabel }: {
   onPress: () => void; last?: boolean; children: React.ReactNode; accessibilityLabel?: string;
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <PressableScale onPress={onPress} scaleTo={0.985} contentStyle={[styles.row, !last && styles.divider]} accessibilityRole="button" accessibilityLabel={accessibilityLabel}>
       {children}
@@ -77,6 +81,9 @@ function Row({ onPress, last, children, accessibilityLabel }: {
 }
 
 const PaidDashboardScreen = ({ navigation }: any) => {
+  const categoryStyle = useCategoryStyle();
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const { width } = useWindowDimensions();
   const eventCardWidth = Math.min(340, width - SPACE.lg * 2 - 24);
   const [loading, setLoading] = useState(true);
@@ -530,3 +537,7 @@ const styles = StyleSheet.create({
 });
 
 export default PaidDashboardScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

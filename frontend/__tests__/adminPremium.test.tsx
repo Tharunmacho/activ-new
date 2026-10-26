@@ -9,6 +9,10 @@
 
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
+import { Text, View, StyleSheet } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { AppThemeProvider, DARK_PALETTE, THEME_STORAGE_KEY } from '../src/ui/AppTheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /* ---- navigation: focus effects run like mount effects ---------------------- */
 jest.mock('@react-navigation/native', () => {
@@ -152,6 +156,33 @@ const screens: [string, () => React.ComponentType<any>, () => React.ComponentTyp
   ['Super members', () => require('../src/screens/admin/super/SuperMembersScreen').default, Super, {}],
   ['Applicant dossier', () => require('../src/screens/admin/ApplicantDetailScreen').default, () => React.Fragment, { params: { applicant: APPLICANT } }],
 ];
+
+test.each(screens.filter(([name]) => /dashboard|Super hub/.test(name)))('%s uses neutral dark surfaces and switches back immediately', async (_name, load, provider, route) => {
+  mockFailAll = false;
+  await AsyncStorage.setItem(THEME_STORAGE_KEY, 'light');
+  const Screen = load(), Provider = provider();
+  let tree: ReactTestRenderer.ReactTestRenderer | undefined;
+  try {
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(<AppThemeProvider><Provider><Screen navigation={nav()} route={route} /></Provider></AppThemeProvider>);
+      await flush(); await flush();
+    });
+    const choose = async (value: 'light' | 'dark') => {
+      const button = tree?.root.findAll(node => node.props.accessibilityLabel === `Use ${value} appearance` && typeof node.props.onPress === 'function')[0];
+      expect(button).toBeDefined();
+      await ReactTestRenderer.act(async () => { button?.props.onPress(); await flush(); });
+    };
+    await choose('dark');
+    const fills = tree?.root.findAllByType(View).map(node => StyleSheet.flatten(node.props.style)?.backgroundColor) || [];
+    expect(fills).toContain(DARK_PALETTE.canvasAdmin);
+    expect(fills).toContain(DARK_PALETTE.card);
+    expect(tree?.root.findAllByType(LinearGradient).some(node => node.props.colors?.[0] === '#111214')).toBe(true);
+    const bodyText = tree?.root.findAllByType(Text).filter(node => StyleSheet.flatten(node.props.style)?.color === DARK_PALETTE.text) || [];
+    expect(bodyText.length).toBeGreaterThan(0);
+    await choose('light');
+    expect(tree?.root.findAllByType(View).some(node => StyleSheet.flatten(node.props.style)?.backgroundColor === '#FAFAFA')).toBe(true);
+  } finally { await ReactTestRenderer.act(async () => tree?.unmount()); }
+}, 30000);
 
 /** Press the first node carrying this accessibility label and an onPress. */
 const press = async (tree: any, label: string) => {

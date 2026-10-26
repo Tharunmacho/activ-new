@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -21,6 +22,8 @@ import { getPendingPayment, PendingPayment } from '../../services/paymentRecover
  * from the email, as on the website.
  */
 const MemberDonationsScreen = ({ navigation }: any) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [docs, setDocs] = useState<SavedDonationDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -145,3 +148,7 @@ const s = StyleSheet.create({
 });
 
 export default MemberDonationsScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

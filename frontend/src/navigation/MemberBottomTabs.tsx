@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MemberBottomTabParamList } from '../types';
@@ -31,11 +32,14 @@ const TAB_LABEL = { fontSize: 11, lineHeight: 14, fontWeight: '600' as const, ma
 const TAB_ITEM = { paddingVertical: SPACE.xxs };
 
 // Tab bar icons — the focused one sits on a soft blue pill (premium look).
-const TabGlyph = ({ name, color, size, focused }: { name: string; color: string; size: number; focused: boolean }) => (
+const TabGlyph = ({ name, color, size, focused }: { name: string; color: string; size: number; focused: boolean }) => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  return (
   <View style={[TAB_PILL, focused && { backgroundColor: PALETTE.blueSoft }]}>
     <Icon name={name} size={size} color={color} />
   </View>
 );
+};
 
 const HomeIcon = ({ color, size, focused }: { color: string; size: number; focused: boolean }) => (
   <TabGlyph name="home" color={color} size={size} focused={focused} />
@@ -54,6 +58,9 @@ const ProfileIcon = ({ color, size, focused }: { color: string; size: number; fo
 );
 
 const MemberBottomTabs = () => {
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const TAB_BAR = useLegacyAppearance(legacyAppearance_TAB_BAR);
   return (
     <Tab.Navigator
       screenOptions={{
@@ -105,3 +112,8 @@ const MemberBottomTabs = () => {
 };
 
 export default MemberBottomTabs;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_TAB_BAR = TAB_BAR;

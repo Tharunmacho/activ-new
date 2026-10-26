@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, StyleProp, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -30,6 +31,7 @@ export function GradientPanel({
   /** The two soft light blobs in the corners. */
   decorate?: boolean;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   const grad = colors && colors.length >= 2 ? colors : GRADIENTS.member;
   return (
     // Shadow on the unclipped wrapper; the clipped gradient inside it (iOS drops a shadow on overflow:hidden).
@@ -56,6 +58,7 @@ export const onGradient = StyleSheet.create({
 export function OnGradientButton({ label, icon = 'arrow-forward', onPress, color = PALETTE.blueDeep, style, bg = PALETTE.white }: {
   label: string; icon?: string; onPress?: () => void; color?: string; style?: StyleProp<ViewStyle>; bg?: string;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={style} contentStyle={[k.onBtn, { backgroundColor: bg }]}>
       <Text style={[k.onBtnText, { color }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{label}</Text>
@@ -69,6 +72,7 @@ export function OnGradientButton({ label, icon = 'arrow-forward', onPress, color
 export function ProgressBar({ percent, onDark = false, color = PALETTE.blue, style }: {
   percent: number; onDark?: boolean; color?: string; style?: StyleProp<ViewStyle>;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   const p = Math.max(0, Math.min(100, Number(percent || 0)));
   return (
     <View
@@ -84,12 +88,15 @@ export function ProgressBar({ percent, onDark = false, color = PALETTE.blue, sty
 /* ------------------------------------------------------------ Quick actions */
 
 export function QuickGrid({ children }: { children: React.ReactNode }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return <View style={k.grid}>{children}</View>;
 }
 
 export function QuickTile({ icon, label, detail, color, bg, onPress }: {
   icon: string; label: string; detail?: string; color: string; bg: string; onPress: () => void;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={k.tileCell}>
       <Pressable onPress={onPress} style={{ flex: 1 }} accessibilityRole="button" accessibilityLabel={detail ? `${label}, ${detail}` : label}>
@@ -113,6 +120,7 @@ export function QuickTile({ icon, label, detail, color, bg, onPress }: {
 export function IconChip({ icon, color = PALETTE.blue, bg = PALETTE.blueSoft, size = SIZE.iconChip }: {
   icon: string; color?: string; bg?: string; size?: number;
 }) {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return (
     <View style={[k.chip, { width: size, height: size, backgroundColor: bg }]}>
       <Icon name={icon} size={Math.round(size * 0.5)} color={color} />
@@ -123,6 +131,7 @@ export function IconChip({ icon, color = PALETTE.blue, bg = PALETTE.blueSoft, si
 /* ------------------------------------------------------------ Skeleton */
 
 export function DashboardSkeleton() {
+  const k = useLegacyAppearance(legacyAppearance_k);
   return (
     <View accessibilityLabel="Loading your dashboard" accessibilityRole="progressbar">
       <View style={k.skHeader}>
@@ -177,3 +186,7 @@ const k = StyleSheet.create({
 
   skHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, paddingHorizontal: SPACE.lg, paddingVertical: SPACE.md, marginBottom: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_k = k;
+const legacyAppearance_PALETTE = PALETTE;

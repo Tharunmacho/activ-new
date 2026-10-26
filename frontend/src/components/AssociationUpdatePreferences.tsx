@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { PALETTE, SurfaceCard, errorText } from '../ui';
@@ -8,6 +9,8 @@ import {
 const preferenceError = (error: unknown, fallback: string) => error instanceof UnconfirmedUpdatePreferencesError ? error.message : errorText(error, fallback);
 
 export default function AssociationUpdatePreferences() {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,3 +89,7 @@ const styles = StyleSheet.create({
   retry: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }, retryText: { fontSize: 14, fontWeight: '600', color: '#1D4ED8' },
   success: { fontSize: 14, lineHeight: 21, color: '#047857', paddingBottom: 8 }, footnote: { fontSize: 14, lineHeight: 21, color: PALETTE.textMuted, marginTop: 8 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

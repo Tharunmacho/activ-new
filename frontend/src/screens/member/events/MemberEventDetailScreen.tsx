@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import { useEventClock } from '../../../utils/useEventClock';
 import React, { useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -58,6 +59,7 @@ const METHODS: { key: 'upi' | 'card' | 'netbanking'; label: string; icon: string
 function Fact({ icon, tone = 'blue', label, value, onPress, children, last }: {
   icon: string; tone?: 'blue' | 'teal' | 'sky' | 'amber' | 'green' | 'navy'; label: string; value?: string; onPress?: () => void; children?: React.ReactNode; last?: boolean;
 }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View style={[styles.fact, !last && styles.divider]}>
       <GradientGlyph icon={icon} tone={tone} size={40} />
@@ -76,6 +78,8 @@ function Fact({ icon, tone = 'blue', label, value, onPress, children, last }: {
 
 /** A translucent chip on the gradient header. */
 function HeaderChip({ icon, text, tint }: { icon?: string; text: string; tint?: string }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <View style={[styles.hChip, tint ? { backgroundColor: tint, borderColor: 'transparent' } : null]}>
       {icon ? <Icon name={icon} size={13} color={PALETTE.white} /> : null}
@@ -85,6 +89,8 @@ function HeaderChip({ icon, text, tint }: { icon?: string; text: string; tint?: 
 }
 
 function ActionPill({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   return (
     <PressableScale onPress={onPress} contentStyle={styles.pill} accessibilityRole="button" accessibilityLabel={label}>
       <Icon name={icon} size={SIZE.iconSm} color={PALETTE.blueDark} />
@@ -94,6 +100,8 @@ function ActionPill({ icon, label, onPress }: { icon: string; label: string; onP
 }
 
 const MemberEventDetailScreen = ({ navigation, route, publicAccess = false }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const open = (url: string) => { if (url) openWebsitePage(navigation, url, 'Event information'); };
   const eventNow = useEventClock();
   const id = String(route?.params?.id || '');
@@ -685,3 +693,7 @@ const styles = StyleSheet.create({
 });
 
 export default MemberEventDetailScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

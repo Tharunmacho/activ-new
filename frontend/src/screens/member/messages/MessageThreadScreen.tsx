@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Linking, ScrollView, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -65,6 +66,7 @@ type Row =
   | { kind: 'msg'; key: string; m: any; tail: boolean };
 
 function DaySeparator({ label }: { label: string }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View style={styles.dayRow} accessibilityRole="header">
       <View style={styles.dayLine} />
@@ -75,6 +77,8 @@ function DaySeparator({ label }: { label: string }) {
 }
 
 function Bubble({ m, tail, onOptions }: { m: any; tail: boolean; onOptions: (message: any) => void }) {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const mine = !!m?.mine;
   const [downloading, setDownloading] = useState(false);
   const document = !m.deleted && m?.attachment?.kind === 'file' ? m.attachment as ChatAttachment : null;
@@ -145,6 +149,8 @@ function Bubble({ m, tail, onOptions }: { m: any; tail: boolean; onOptions: (mes
 }
 
 const MessageThreadScreen = ({ navigation, route }: any) => {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const { profile } = useMemberAccess();
   const conversationId = String(route?.params?.conversationId || '');
   const [messages, setMessages] = useState<any[]>([]);
@@ -677,3 +683,7 @@ const styles = StyleSheet.create({
 });
 
 export default MessageThreadScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;
+const legacyAppearance_PALETTE = PALETTE;

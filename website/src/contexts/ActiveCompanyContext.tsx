@@ -48,7 +48,11 @@ export interface ActiveCompany {
     location?: string;
     logo?: string;
     banner?: string;
-    publication?: { published: boolean; canPublish: boolean; memberActive: boolean; unlimited: boolean; paymentRequired: boolean; publishedCount: number; label: string };
+    publication?: {
+        published: boolean; canPublish: boolean; memberActive: boolean; unlimited: boolean;
+        paymentRequired: boolean; publishedCount: number; label: string;
+        included?: boolean; membershipNumber?: string; certificateAvailable?: boolean;
+    };
     status?: string;
     /** Listed in the Discover directory. NOT "is the active company". */
     isActive?: boolean;
@@ -133,6 +137,8 @@ export function ActiveCompanyProvider({ children }: { children: ReactNode }) {
                     nextId = list.length > 0 ? list[0]._id : null;
                 }
 
+                companiesRef.current = list;
+                activeIdRef.current = nextId;
                 setCompanies(list);
                 setActiveCompanyId(nextId);
                 writeStoredId(nextId);
@@ -155,11 +161,14 @@ export function ActiveCompanyProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const setActiveCompany = useCallback((id: string | null) => {
+        activeIdRef.current = id;
         setActiveCompanyId(id);
         writeStoredId(id);
     }, []);
 
     const clear = useCallback(() => {
+        companiesRef.current = [];
+        activeIdRef.current = null;
         setCompanies([]);
         setActiveCompanyId(null);
         writeStoredId(null);

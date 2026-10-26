@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -32,6 +33,9 @@ type Props = { navigation: any };
 type Scope = 'upcoming' | 'past';
 
 export default function SuperEventAttendanceScreen({ navigation }: Props) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
   const [scope, setScope] = useState<Scope>('upcoming');
   const [events, setEvents] = useState<CheckinEvent[]>([]);
   const [query, setQuery] = useState('');
@@ -188,3 +192,8 @@ const s = StyleSheet.create({
   count: { color: PALETTE.greenDark, fontWeight: '700' },
   note: { marginHorizontal: SPACE.lg, marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;

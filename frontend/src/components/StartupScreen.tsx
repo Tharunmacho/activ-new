@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -9,6 +10,7 @@ import {
 
 /** One quiet presentation while the required update and session checks finish. */
 export default function StartupScreen() {
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   return (
     <View
       style={styles.screen}
@@ -42,3 +44,6 @@ const styles = StyleSheet.create({
   mark: { width: 144, height: 144 },
   progress: { position: 'absolute', top: '50%', marginTop: 104 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_styles = styles;

@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { FitImage } from '../../ui/FitImage';
@@ -18,6 +19,8 @@ const date = (value: any) => value && Number.isFinite(new Date(value).getTime())
 const calendar = (value: any, options: Intl.DateTimeFormatOptions) => date(value)?.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', ...options }) || '';
 
 function EventDate({ value }: { value: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   return <View style={s.dateShadow} accessibilityLabel={calendar(value, { day: 'numeric', month: 'long', year: 'numeric' }) || 'Date to be announced'}>
     <LinearGradient colors={[BRAND.blue900, BRAND.blue]} style={s.dateMonthBand}>
       <Text style={s.dateMonth}>{calendar(value, { month: 'short' }).toUpperCase() || 'DATE'}</Text>
@@ -30,11 +33,16 @@ function EventDate({ value }: { value: any }) {
 }
 
 function Fact({ icon, children }: { icon: string; children: React.ReactNode }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   return <View style={s.fact}><Icon name={icon} size={17} color={BRAND.blue} /><Text style={s.factText}>{children}</Text></View>;
 }
 
 /** Shared by the home preview and each public tab. No account is needed to open it. */
 export function PublicContentCard({ item, kind, openPage }: { item: any; kind: ContentKind; openPage: PublicPageOpener }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const title = cleanText(item.title || item.caption) || (kind === 'gallery' ? 'From our community' : 'ACTIV update');
   const image = resolveMediaUrl(kind === 'events' ? item.imageUrl || item.bannerUrl || item.media?.url
     : kind === 'news' ? newsMedia(item).find(media => media.type === 'image')?.url
@@ -88,6 +96,8 @@ export function PublicContentCard({ item, kind, openPage }: { item: any; kind: C
 }
 
 export function PublicZoneCard({ item, openPage }: { item: any; openPage: PublicPageOpener }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const states = (Array.isArray(item.states) ? item.states : []).filter((state: any) => state.hasPage !== false && (!state.status || state.status === 'published'));
   const title = publicText(item.label || item.name || item.slug);
   return <SurfaceCard padded={false} style={s.card}>
@@ -105,6 +115,8 @@ export function PublicZoneCard({ item, openPage }: { item: any; openPage: Public
 }
 
 function StateLink({ state, openPage }: { state: any; openPage: PublicPageOpener }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   return <PressableScale onPress={() => openPage(WEBSITE_PATHS.state(state.slug), publicText(state.name))}
     accessibilityRole="button" accessibilityLabel={'Explore ' + publicText(state.name)} style={s.stateOuter} contentStyle={s.stateInner}>
     <Text style={s.stateText}>{publicText(state.name)}</Text><Icon name="chevron-right" size={18} color={BRAND.blue} />
@@ -144,3 +156,8 @@ const s = StyleSheet.create({
   stateText: { flexShrink: 1, fontSize: 14, lineHeight: 21, fontWeight: '500', color: BRAND.navy },
   zoneHint: { paddingHorizontal: 18, paddingBottom: 18, color: PALETTE.textMuted, fontSize: 14, lineHeight: 21 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;
+const legacyAppearance_PALETTE = PALETTE;

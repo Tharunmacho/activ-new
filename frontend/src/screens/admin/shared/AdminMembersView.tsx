@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, Alert, RefreshControl } from 'react-native';
 import {
@@ -57,6 +58,9 @@ const inTab = (m: AdminMemberRow, tab: MembersTab) => {
 /* ------------------------------------------------------------------ the screen */
 
 export default function AdminMembersView({ tier, region, navigation }: { tier: AdminTier; region: string; navigation: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const CONSOLE_LIST = useLegacyAppearance(legacyAppearance_CONSOLE_LIST);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [tab, setTab] = useState<MembersTab>('active');
   const [kind, setKind] = useState('');
   const [query, setQuery] = useState('');
@@ -318,3 +322,7 @@ const s = StyleSheet.create({
   bulk: { marginHorizontal: SPACE.lg, marginTop: SPACE.md },
   listGap: { marginTop: SPACE.md },
 });
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_CONSOLE_LIST = CONSOLE_LIST;
+const legacyAppearance_PALETTE = PALETTE;

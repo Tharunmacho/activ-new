@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -44,6 +45,9 @@ interface Props {
 }
 
 const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
+  const styles = useLegacyAppearance(sharedAppearance_styles);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const local = useLegacyAppearance(legacyAppearance_local);
   const portal: 'member' | 'admin' = route?.params?.portal === 'admin' ? 'admin' : 'member';
   const signIn = portal === 'admin' ? 'AdminLogin' : 'Login';
   const [token, setToken] = useState(route?.params?.token || '');
@@ -337,3 +341,9 @@ const local = StyleSheet.create({
 });
 
 export default ResetPasswordScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_local = local;
+
+const sharedAppearance_styles = styles;

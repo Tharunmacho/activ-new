@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../../ui/legacyAppearance';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -31,6 +32,8 @@ const stageFromStatus = (status: string): 'pending' | 'approved' | 'rejected' =>
  * The super admin reviews the same record, so it should look the same.
  */
 const ApplicantRow: React.FC<Props> = ({ applicant, busy, onPress, onReview }) => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const a: any = applicant || {};
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
@@ -230,3 +233,7 @@ const styles = StyleSheet.create({
 });
 
 export default React.memo(ApplicantRow);
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_styles = styles;

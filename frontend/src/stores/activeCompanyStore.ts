@@ -20,7 +20,7 @@ export interface ActiveCompany {
   location?: string;
   logo?: string;
   banner?: string;
-  publication?: { published: boolean; canPublish: boolean; memberActive: boolean; unlimited: boolean; paymentRequired: boolean; publishedCount: number; label: string };
+  publication?: { published: boolean; canPublish: boolean; memberActive: boolean; unlimited: boolean; paymentRequired: boolean; publishedCount: number; label: string; membershipNumber?: string; included?: boolean; certificateAvailable?: boolean };
   status?: string;
   isActive?: boolean;
   createdAt?: string;
@@ -37,7 +37,9 @@ const readStoredId = async (): Promise<string | null> => {
   }
 };
 
-const writeStoredId = async (id: string | null): Promise<void> => {
+let storageWrites: Promise<void> = Promise.resolve();
+const writeStoredId = (id: string | null): Promise<void> => {
+  storageWrites = storageWrites.then(async () => {
   try {
     if (id) {
       await AsyncStorage.setItem(STORAGE_KEY, id);
@@ -47,6 +49,8 @@ const writeStoredId = async (id: string | null): Promise<void> => {
   } catch (err) {
     console.warn('Active company write safely caught:', err);
   }
+  });
+  return storageWrites;
 };
 
 interface ActiveCompanyState {
@@ -69,6 +73,7 @@ interface ActiveCompanyState {
 const LOAD_TTL_MS = 4000;
 let inFlight: Promise<ActiveCompany[]> | null = null;
 let lastLoadedAt = 0;
+let loadRevision = 0;
 
 export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
   companies: [],
@@ -91,6 +96,8 @@ export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
       }
     }
 
+    const revision = ++loadRevision;
+    const isCurrent = () => revision === loadRevision;
     const request = (async () => {
     set({ isLoading: true });
     try {
@@ -98,6 +105,7 @@ export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
         headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
         params: { _t: Date.now() },
       });
+      if (!isCurrent()) return get().companies || [];
 
       const payload = response.data?.data || response.data || [];
       const list: ActiveCompany[] = (Array.isArray(payload) ? payload : []).filter(
@@ -108,8 +116,10 @@ export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
       // persisted one, else the first company.
       let nextId = get().activeCompanyId;
       if (!nextId) {
-        nextId = await readStoredId();
+        const storedId = await readStoredId();
+        nextId = get().activeCompanyId || storedId;
       }
+      if (!isCurrent()) return get().companies || [];
 
       const stillExists = list.some((c) => c._id === nextId);
       if (!stillExists) {
@@ -117,16 +127,20 @@ export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
       }
 
       set({ companies: list, activeCompanyId: nextId, hasLoaded: true });
+      lastLoadedAt = Date.now();
       await writeStoredId(nextId);
-      return list;
+      return isCurrent() ? list : get().companies || [];
     } catch (err) {
-      console.warn('Error loading companies:', err);
-      set({ hasLoaded: true });
+      if (isCurrent()) {
+        console.warn('Error loading companies:', err);
+        set({ hasLoaded: true });
+      }
       return get().companies || [];
     } finally {
-      set({ isLoading: false });
-      lastLoadedAt = Date.now();
-      inFlight = null;
+      if (isCurrent()) {
+        set({ isLoading: false });
+        inFlight = null;
+      }
     }
     })();
 
@@ -135,6 +149,7 @@ export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
   },
 
   setActiveCompany: (id) => {
+    if (id && !(get().companies || []).some(company => company._id === id)) return;
     set({ activeCompanyId: id });
     // Fire-and-forget: persistence must never block or crash the UI.
     writeStoredId(id);
@@ -146,7 +161,10 @@ export const useActiveCompanyStore = create<ActiveCompanyState>((set, get) => ({
   },
 
   clear: () => {
-    set({ companies: [], activeCompanyId: null, hasLoaded: false });
+    ++loadRevision;
+    lastLoadedAt = 0;
+    inFlight = null;
+    set({ companies: [], activeCompanyId: null, hasLoaded: false, isLoading: false });
     writeStoredId(null);
   },
 }));

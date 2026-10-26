@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -69,6 +70,8 @@ const isNonBusiness = (business: any) =>
   || business?.registrationType === 'student';
 
 const DeclarationFormScreen: React.FC<Props> = ({ navigation, editMode = false }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
   const [sisterConcerns, setSisterConcerns] = useState('');
   const [companies, setCompanies] = useState<string[]>(['']);
@@ -375,3 +378,7 @@ const s = StyleSheet.create({
 });
 
 export default DeclarationFormScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

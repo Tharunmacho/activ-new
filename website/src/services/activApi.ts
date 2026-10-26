@@ -769,6 +769,9 @@ export const getRecentActivity = async (limit = 10): Promise<MemberActivity[]> =
 
 export interface Certificate {
     kind: string;
+    /** The selected owned company, when this is a company membership certificate. */
+    companyId?: string;
+    companyMembership?: boolean;
     title: string;
     body: string;
     member: {
@@ -841,8 +844,10 @@ export interface Certificate {
  * it would show them a blank certificate instead of the reason they cannot have
  * one.
  */
-export const getCertificate = async (kind: 'membership' | 'tax-exemption'): Promise<Certificate> =>
-    unwrap<Certificate>(await api.get(ENDPOINTS.MEMBERS.CERTIFICATE(kind)), null as any);
+export const getCertificate = async (kind: 'membership' | 'tax-exemption', companyId?: string | null): Promise<Certificate> =>
+    unwrap<Certificate>(await api.get(ENDPOINTS.MEMBERS.CERTIFICATE(kind), {
+        params: kind === 'membership' && companyId ? { companyId } : undefined,
+    }), null as any);
 export const getBusinessInfo = async () => unwrap<any>(await api.get(ENDPOINTS.MEMBERS.BUSINESS_INFO), {});
 export const getFinancialInfo = async () => unwrap<any>(await api.get(ENDPOINTS.MEMBERS.FINANCIAL_INFO), {});
 export const getDeclarationInfo = async () => unwrap<any>(await api.get(ENDPOINTS.MEMBERS.DECLARATION_INFO), {});

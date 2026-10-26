@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Share, TouchableOpacity, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -42,6 +43,8 @@ const titleCase = (v: string) => (v || '').replace(/[_-]+/g, ' ').replace(/\b\w/
  * lastPaymentAmount ?? paymentAmount, lastPaymentDate and paymentId.
  */
 const PaymentSuccessScreen: React.FC<any> = ({ navigation, route }) => {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const orderId: string = String(route?.params?.orderId || '');
   const renewed: boolean = route?.params?.renewed === true;
 
@@ -343,3 +346,7 @@ const s = StyleSheet.create({
 });
 
 export default PaymentSuccessScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

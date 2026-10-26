@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { ContentImage } from '../../ui/ContentImage';
@@ -18,9 +19,11 @@ function SectionFields({ doc, section, navigation }: any) {
   return <ExtraFields fields={list(doc.sections).find(row => row.key === section)?.fields || []} navigation={navigation} />;
 }
 function Bullets({ items, navigation }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return <>{list(items).map((item, i) => <View key={i} style={s.bullet}><Text style={s.dot}>•</Text><View style={c.flex}><Body value={typeof item === 'string' ? item : item.text || item.title || ''} navigation={navigation} /></View></View>)}</>;
 }
 function Portrait({ photo, name }: { photo: any; name: string }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const uri = resolveMediaUrl(photo?.url || '');
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [uri]);
@@ -28,6 +31,8 @@ function Portrait({ photo, name }: { photo: any; name: string }) {
   return <ContentImage uri={uri} width={480} accessibilityLabel={name} onError={() => setFailed(true)} resizeMode="cover" style={s.portrait} />;
 }
 function About({ doc, navigation }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const points = list(doc.bullets).length ? list(doc.bullets) : list(doc.bulletPoints);
   const stats = list(doc.statsBar).filter(stat => stat.label && stat.value != null && String(stat.value).trim());
   return <>
@@ -52,6 +57,7 @@ function About({ doc, navigation }: any) {
   </>;
 }
 function Membership({ doc, navigation }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const blurb = (key: string, value: any = {}) => shown(doc, key) && (value?.heading || value?.subtitle || value?.lead || list(value?.bullets).length > 0 || hasSectionFields(doc, key)) && <SurfaceCard style={s.card}><Heading>{value?.heading}</Heading><Body value={value?.subtitle} navigation={navigation} /><Body value={value?.lead} navigation={navigation} /><Bullets items={value?.bullets} navigation={navigation} /><SectionFields doc={doc} section={key} navigation={navigation} /></SurfaceCard>;
   return <>
@@ -74,6 +80,7 @@ function Membership({ doc, navigation }: any) {
 
 const blank: ContactForm = { name: '', email: '', phone: '', subject: '', message: '', memberId: '' };
 function EnquiryForm({ deletion = false, copy = {} }: { deletion?: boolean; copy?: any }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const [form, setForm] = useState<ContactForm>({ ...blank }), [confirmed, setConfirmed] = useState(false);
   const [sending, setSending] = useState(false), [error, setError] = useState(''), [reference, setReference] = useState('');
   const inFlight = useRef(false);
@@ -100,6 +107,8 @@ function EnquiryForm({ deletion = false, copy = {} }: { deletion?: boolean; copy
   </SurfaceCard>;
 }
 function Contact({ doc, wantedState, navigation }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const BRAND = useLegacyAppearance(legacyAppearance_BRAND);
   const offices = useMemo(() => publicOffices(doc), [doc]);
   const [selected, setSelected] = useState(''), [mapFailed, setMapFailed] = useState(false);
   const office = offices.find(item => item.id === selected) || offices.find(item => wantedState && item.state.toLowerCase() === wantedState.toLowerCase()) || offices[0];
@@ -127,11 +136,13 @@ function Contact({ doc, wantedState, navigation }: any) {
   </>;
 }
 function Policy({ doc, navigation }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   const effectiveFrom = doc.effectiveFrom ? new Date(doc.effectiveFrom) : null;
   return <><Body value={doc.lede} navigation={navigation} />{effectiveFrom && !Number.isNaN(effectiveFrom.getTime()) && <Text style={c.meta}>Effective from {effectiveFrom.toLocaleDateString('en-IN')}</Text>}
     {list(doc.sections).map((section, i) => <View key={i} style={s.policySection}>{!!section.heading && <Heading>{section.heading}</Heading>}<Body value={paragraphs(section.body)} navigation={navigation} /><Bullets items={section.bullets} navigation={navigation} />{list(section.links).map((link, index) => <ActionLink key={index} navigation={navigation} href={link.href} label={link.label || link.href} />)}</View>)}<ExtraFields fields={doc.extraFields} navigation={navigation} /></>;
 }
 function Deletion({ navigation }: any) {
+  const s = useLegacyAppearance(legacyAppearance_s);
   return <><SurfaceCard style={s.card}><Heading>What happens next</Heading><Body value="Send a request using your account email. ACTIV will verify ownership, confirm the expected completion date, and notify you when the request has been processed. Submitting this form does not immediately delete your account." /><Body value="Your request covers your login, personal and membership profile, business information and associated personal documents or images. Once deletion is completed, you lose access to member services. Uninstalling the app does not delete your account." /><Body value="Payment and transaction records may need to be retained for legal obligations or dispute resolution. The team will explain any retention reason and period. Account deletion does not automatically request a refund." /><Body value="Do not include passwords, OTPs, Aadhaar or PAN numbers, or payment card details." /><ActionLink navigation={navigation} href="/privacy-policy" label="Privacy Policy" /><ActionLink navigation={navigation} href="/contact" label="Contact ACTIV" /></SurfaceCard><EnquiryForm deletion /></>;
 }
 export default function PublicInfoScreen({ navigation, route }: any) {
@@ -167,3 +178,7 @@ const s = StyleSheet.create({
   details: { marginTop: 14 }, label: { color: BRAND.navyDeep, fontSize: 14, fontWeight: '700', marginBottom: 7 }, multiline: { minHeight: 125, paddingTop: 12 }, confirm: { flexDirection: 'row', gap: 10, paddingVertical: 10 }, check: { color: BRAND.blue, fontSize: 25 },
   error: { color: PALETTE.dangerText, fontSize: 14, lineHeight: 21, marginBottom: 15 }, success: { color: PALETTE.successText, fontSize: 16, lineHeight: 24, marginBottom: 12 }, map: { height: 210, borderRadius: 16, overflow: 'hidden', marginTop: 10, marginBottom: 8 },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_BRAND = BRAND;

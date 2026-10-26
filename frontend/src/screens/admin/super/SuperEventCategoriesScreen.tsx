@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -48,6 +49,8 @@ function CategoryCard({ c, index, first, last, busy, editing, onEdit, onUp, onDo
   c: EventCategory; index: number; first: boolean; last: boolean; busy: boolean; editing: boolean;
   onEdit: () => void; onUp: () => void; onDown: () => void; onDelete: () => void; onList: () => void; children?: React.ReactNode;
 }) {
+  const s = useLegacyAppearance(legacyAppearance_s);
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
   const count = Number(c?.eventCount || 0);
   return (
     <ConsoleCard style={s.card}>
@@ -83,6 +86,8 @@ function CategoryCard({ c, index, first, last, busy, editing, onEdit, onUp, onDo
 }
 
 const SuperEventCategoriesScreen: React.FC = () => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const navigation = useNavigation<any>();
   const [data, setData] = useState<EventCategoryList | null>(null);
   const [loading, setLoading] = useState(true);
@@ -300,3 +305,7 @@ const s = StyleSheet.create({
 });
 
 export default SuperEventCategoriesScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+const legacyAppearance_PALETTE = PALETTE;

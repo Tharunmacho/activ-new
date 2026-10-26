@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../ui/legacyAppearance';
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -28,6 +29,8 @@ const GOVT_SCHEMES = [
 ];
 
 const FinancialComplianceFormScreen: React.FC<FinancialComplianceFormScreenProps> = ({ navigation, route }) => {
+  const k = useLegacyAppearance(sharedAppearance_k);
+  const s = useLegacyAppearance(legacyAppearance_s);
   const { userData } = route.params || {};
 
   const [formData, setFormData] = useState({
@@ -266,3 +269,8 @@ const s = StyleSheet.create({
 });
 
 export default FinancialComplianceFormScreen;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_s = s;
+
+const sharedAppearance_k = k;

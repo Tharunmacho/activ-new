@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, Building2, Eye, Pencil, Trash2, CheckCircle, Package, MoreVertical } from "lucide-react";
+import { Plus, Building2, Eye, Pencil, Trash2, CheckCircle, Package, MoreVertical, FileBadge, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 import BusinessPageShell from "./BusinessPageShell";
 import { Card, EmptyState, Loading, Chip, companyName } from "./BusinessUI";
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { apiFetch } from "@/services/activApi";
 import { resolveMediaUrl } from "@/config/api.config";
-import { useActiveCompanyStore } from "@/contexts/ActiveCompanyContext";
+import { useActiveCompanyStore, type ActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 import { CARD_TITLE } from './BusinessUI';
 interface Company {
@@ -38,20 +38,9 @@ interface Company {
   logo: string;
   status: string;
   isActive: boolean;
+  publication?: ActiveCompany['publication'];
   createdAt: string;
 }
-
-/**
- * The company `status` vocabulary is `pending | active | inactive` — the enum on
- * `company.model.js`. This screen switched on 'approved' and 'rejected', which
- * are *application* statuses and never appear on a company, so every company
- * fell through to the amber default however long it had been active.
- */
-const STATUS_TONES: Record<string, 'green' | 'red' | 'amber'> = {
-  active: 'green',
-  inactive: 'red',
-  pending: 'amber',
-};
 
 const MyCompanies = () => {
   const navigate = useNavigate();
@@ -157,6 +146,13 @@ const MyCompanies = () => {
         </Button>
       }
     >
+      {!loading && companies.length > 0 && (
+        <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-ui-body text-slate-700" role="note">
+          {companies.some(company => company.publication?.unlimited)
+            ? 'Your ₹2 lakh membership includes multiple companies with one membership ID. Switch company to update the name on your membership certificate.'
+            : 'Your membership includes one public company. Additional companies stay private to you until you pay their plan. Each paid additional company receives its own membership ID.'}
+        </div>
+      )}
       {loading ? (
         <Loading label="Loading companies…" />
       ) : companies.length === 0 ? (
@@ -179,8 +175,8 @@ const MyCompanies = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 items-start">
           {companies.map((company) => {
-            const status = (company.status || 'pending').toLowerCase();
             const isActive = activeCompanyId === company._id;
+            const published = company.publication?.published ?? company.isActive;
 
             return (
               <Card
@@ -234,7 +230,7 @@ const MyCompanies = () => {
                       onClick={() => navigate(`/business/company/${company._id}?preview=1`)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      View as member
+                      {published ? 'View as member' : 'Preview privately'}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => navigate(`/business/companies/edit/${company._id}`)}
@@ -242,7 +238,7 @@ const MyCompanies = () => {
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit company
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/business/products')}>
+                    <DropdownMenuItem onClick={() => { setActiveCompany(company._id); navigate('/business/products'); }}>
                       <Package className="h-4 w-4 mr-2" />
                       Products
                     </DropdownMenuItem>
@@ -282,10 +278,16 @@ const MyCompanies = () => {
                   </div>
                 </div>
 
-                <div className="mt-3 sm:mt-4">
-                  <Chip tone={STATUS_TONES[status] || 'amber'}>
-                    <span className="capitalize">{status}</span>
+                <div className="mt-3 sm:mt-4 space-y-2">
+                  <Chip tone={published ? 'green' : 'amber'} icon={published ? Eye : LockKeyhole}>
+                    {published ? 'Visible to members' : 'Private — only you'}
                   </Chip>
+                  {company.publication?.membershipNumber && (
+                    <p className="break-words text-ui-small text-slate-600">Membership ID: <span className="font-semibold text-slate-900">{company.publication.membershipNumber}</span></p>
+                  )}
+                  {company.publication?.paymentRequired && (
+                    <p className="text-ui-small text-slate-600">Pay this company’s plan to appear in search and get its membership certificate.</p>
+                  )}
                 </div>
 
                 {/*
@@ -305,7 +307,7 @@ const MyCompanies = () => {
                       onClick={() => navigate(`/business/company/${company._id}?preview=1`)}
                     >
                       <Eye className="h-4 w-4 mr-1.5" />
-                      View as member
+                      {published ? 'View as member' : 'Preview privately'}
                     </Button>
                   ) : (
                     <Button
@@ -315,6 +317,20 @@ const MyCompanies = () => {
                     >
                       Switch to this company
                     </Button>
+                  )}
+                  {company.publication?.certificateAvailable && (
+                    <Button size="sm" variant="outline" className="mt-2 w-full min-h-[40px] border-slate-200 text-slate-700" onClick={() => {
+                      setActiveCompany(company._id);
+                      navigate('/member/certificate/membership');
+                    }}>
+                      <FileBadge className="mr-1.5 h-4 w-4" /> Membership certificate
+                    </Button>
+                  )}
+                  {company.publication?.paymentRequired && (
+                    <Button size="sm" variant="outline" className="mt-2 w-full min-h-[40px] border-blue-200 text-blue-700" onClick={() => {
+                      setActiveCompany(company._id);
+                      navigate('/business/settings');
+                    }}>View promotion plan</Button>
                   )}
                 </div>
               </Card>

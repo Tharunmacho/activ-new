@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../ui/legacyAppearance';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -64,6 +65,8 @@ const ApprovalQueue: React.FC<Props> = ({
   activeFilter: controlledFilter,
   onFilterChange,
 }) => {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   const [internalFilter, setInternalFilter] = useState<FilterKey>('pending');
   const activeFilter = controlledFilter ?? internalFilter;
   const setActiveFilter = (f: FilterKey) => {
@@ -462,3 +465,7 @@ const styles = StyleSheet.create({
 });
 
 export default ApprovalQueue;
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_styles = styles;

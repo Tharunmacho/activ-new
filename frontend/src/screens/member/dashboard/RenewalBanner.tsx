@@ -1,3 +1,4 @@
+import { useLegacyAppearance } from '../../../ui/legacyAppearance';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -34,6 +35,8 @@ export const renewalMessage = (r: any): string => {
 };
 
 export default function RenewalBanner({ renewal, onRenew }: { renewal: any; onRenew: () => void }) {
+  const PALETTE = useLegacyAppearance(legacyAppearance_PALETTE);
+  const styles = useLegacyAppearance(legacyAppearance_styles);
   if (!renewal || !renewal.canRenew) return null;
   const expired = renewal.state === 'expired';
   const days = renewal.daysLeft !== null && renewal.daysLeft !== undefined ? Math.max(0, Number(renewal.daysLeft)) : null;
@@ -82,3 +85,7 @@ const styles = StyleSheet.create({
   title: { ...TYPE.heading, fontSize: 17, lineHeight: 23, color: PALETTE.white, marginTop: SPACE.xxs },
   ends: { textAlign: 'center', marginTop: SPACE.sm },
 });
+
+// Theme-aware aliases preserve the original styles for non-React helpers.
+const legacyAppearance_PALETTE = PALETTE;
+const legacyAppearance_styles = styles;
