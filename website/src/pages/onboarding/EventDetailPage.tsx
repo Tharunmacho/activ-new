@@ -1,5 +1,4 @@
 import { PosterFrame } from '@/components/shared/PosterFrame';
-import { onlinePlatformName } from '@/lib/onlineEvent';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -426,14 +425,14 @@ export default function EventDetailPage() {
          *
          * An online event has no venue row — printing one would have a reader
          * looking for an address that does not exist — and an offline one has
-         * no platform row. The mode decides which, not the presence of the
+         * no online row. The mode decides which, not the presence of the
          * fields: an event switched from in-person to online keeps whatever
          * address was typed before, and reading the fields would show both.
          */
         isOnline ? {
             icon: <Video size={16} />,
-            label: 'Platform',
-            value: onlinePlatformName(event.onlinePlatform),
+            label: 'Location',
+            value: 'Online',
         } : (event.venue || event.location) ? {
             icon: <MapPin size={16} />,
             label: 'Venue',

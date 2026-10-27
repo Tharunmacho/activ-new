@@ -3,6 +3,7 @@ import Renderer, { act } from 'react-test-renderer';
 import { FlatList, RefreshControl, Share, Text, TextInput } from 'react-native';
 import MemberEventsScreen from '../src/screens/member/events/MemberEventsScreen';
 import { listMemberEvents } from '../src/services/memberApi';
+import { directionsUrl, eventPlace, googleCalendarUrl, whereOf } from '../src/screens/member/events/eventFormat';
 
 // Keep the screen, filters, controls, list, lifecycle rules and useLoad real.
 // Only the network, focus boundary and decorative header are replaced.
@@ -122,6 +123,22 @@ test('event listing has no outside share action and still opens event details', 
     await pressLabel('View details: Business summit');
     expect(navigation.navigate).toHaveBeenCalledWith('MemberEventDetail', { id: 'summit' });
   } finally { share.mockRestore(); }
+});
+
+test('online cards and calendar use Online even when a platform and old venue are saved', async () => {
+  const event = { ...events.find(item => item.id === 'workshop'), onlinePlatform: 'Google Meet', venue: 'Old venue', venueAddress: 'Old address' };
+  (listMemberEvents as jest.Mock).mockResolvedValue({ events: [event] });
+  await render();
+  expect(screenText()).toContain('Online');
+  expect(screenText()).not.toContain('Google Meet');
+  expect(screenText()).not.toContain('Old venue');
+  expect(whereOf(event)).toBe('Online');
+  expect(eventPlace(event)).toBe('Online');
+  expect(googleCalendarUrl(event)).toMatch(/[?&]location=Online(?:&|$)/);
+  expect(directionsUrl(event)).toBe('');
+  const offline = { ...event, mode: 'offline' };
+  expect(whereOf(offline)).toBe('Old venue');
+  expect(eventPlace(offline)).toBe('Old venue, Old address');
 });
 
 test('search matches venue, keeps tab totals, and clear restores the current tab', async () => {

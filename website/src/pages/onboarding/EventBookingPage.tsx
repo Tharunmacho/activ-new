@@ -1,5 +1,5 @@
 import api from '@/services/api';
-import { onlineRegistrationLink, onlinePlatformName } from '@/lib/onlineEvent';
+import { onlineRegistrationLink } from '@/lib/onlineEvent';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -966,9 +966,9 @@ export default function EventBookingPage({ chrome = 'public' }: {
         },
         {
             icon: <MapPin size={16} />,
-            label: event.mode === 'online' ? 'Platform' : 'Location',
+            label: 'Location',
             value: event.mode === 'online'
-                ? onlinePlatformName(event.onlinePlatform)
+                ? 'Online'
                 : [event.venue, event.venueAddress].filter(Boolean).join(' · ') || 'Venue to be announced',
         },
     ];
@@ -2058,9 +2058,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                         {confirmed.onlineUrl ? (
                             <>
                                 <p className="mt-1.5 text-ui-body font-semibold text-emerald-900">
-                                    {confirmed.onlinePlatform
-                                        ? `This event runs on ${confirmed.onlinePlatform}.`
-                                        : 'This event is online.'}
+                                    This event is online.
                                 </p>
                                 <a
                                     href={confirmed.onlineUrl}
@@ -2081,9 +2079,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                             </>
                         ) : (
                             <p className="mt-1.5 text-ui-body font-semibold text-emerald-900">
-                                {confirmed.onlinePlatform
-                                    ? `This event runs on ${confirmed.onlinePlatform}. `
-                                    : 'This event is online. '}
+                                This event is online.{' '}
                                 The organiser has not added the joining details yet. Check this booking again or contact the event team.
                             </p>
                         )}
@@ -2118,7 +2114,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
                     // `DetailTable` drops a row with no value, so an online
                     // event simply has no Venue line rather than an empty one.
                     (confirmed?.mode ?? event.mode) === 'online'
-                        ? ['Attend', confirmed?.onlinePlatform || event.onlinePlatform || 'Online']
+                        ? ['Attend', 'Online']
                         : ['Venue', confirmed?.eventVenue || event.venue || ''],
                 ]}
             />

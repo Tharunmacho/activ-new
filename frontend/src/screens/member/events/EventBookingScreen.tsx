@@ -113,7 +113,6 @@ function Ticket({ b, event, onPay, onRebook, open }: { b: any; event: any; onPay
     venueAddress: event?.venueAddress,
     venueMapUrl: b?.eventMapUrl || event?.venueMapUrl,
     mode,
-    onlinePlatform: b?.onlinePlatform ?? event?.onlinePlatform,
   };
   const shareContent = eventShareContent(event);
   const pageUrl = publicShareUrl(shareContent.path);
@@ -162,7 +161,7 @@ function Ticket({ b, event, onPay, onRebook, open }: { b: any; event: any; onPay
           </View>
           <View style={styles.tFact}>
             <Icon name={online ? 'videocam' : 'place'} size={16} color={PALETTE.blue} />
-            <Text style={styles.tFactText}>{online ? (merged.onlinePlatform || 'Online') : (merged.venue || 'Venue to be announced')}</Text>
+            <Text style={styles.tFactText}>{online ? 'Online' : (merged.venue || 'Venue to be announced')}</Text>
           </View>
         </View>
 
@@ -174,14 +173,14 @@ function Ticket({ b, event, onPay, onRebook, open }: { b: any; event: any; onPay
             <Text style={styles.onlineHead}>YOUR ONLINE EVENT</Text>
             {b?.onlineUrl ? (
               <>
-                <Text style={styles.small}>{merged.onlinePlatform ? `This event runs on ${merged.onlinePlatform}.` : 'This event is online.'}</Text>
+                <Text style={styles.small}>This event is online.</Text>
                 <GradientButton label={onlineRegistrationLink(b.onlineUrl) ? 'Complete platform registration' : 'Join online event'} icon="videocam" onPress={() => open(String(b.onlineUrl))} style={{ marginTop: SPACE.sm }} />
                 <Text style={[styles.small, { marginTop: SPACE.sm }]} selectable numberOfLines={2}>{b.onlineUrl}</Text>
                 <Text style={styles.small}>{onlineRegistrationLink(b.onlineUrl) ? 'Complete the platform form and follow its instructions to receive your personal joining link.' : 'Open this link at the event start time. Please keep it private.'}</Text>
               </>
             ) : (
               <Text style={styles.small}>
-                {merged.onlinePlatform ? `This event runs on ${merged.onlinePlatform}. ` : 'This event is online. '}
+                This event is online.{' '}
                 The organiser has not added the joining details yet. Check this booking again or contact the event team.
               </Text>
             )}

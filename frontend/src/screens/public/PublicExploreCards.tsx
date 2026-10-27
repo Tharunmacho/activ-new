@@ -53,7 +53,7 @@ export function PublicContentCard({ item, kind, openPage }: { item: any; kind: C
   const summary = cleanText(item.summary || item.description);
   const fee = Number(item.registrationFee);
   const showPrice = kind === 'events' && item.registrationEnabled && item.registrationFee != null && Number.isFinite(fee);
-  const place = item.mode === 'online' ? (item.onlinePlatform || 'Online event') : (item.location || item.venue || item.state);
+  const place = item.mode === 'online' ? 'Online' : (item.location || item.venue || item.state);
   const time = calendar(item.startAt, { hour: 'numeric', minute: '2-digit', hour12: true });
 
   return <SurfaceCard padded={false} style={s.card}>

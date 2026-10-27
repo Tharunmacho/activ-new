@@ -79,9 +79,9 @@ export const eventWindow = (event: CalendarEventLike): { start: Date; end: Date 
     return { start, end };
 };
 
-/** "Hall A, Chennai — 12 Mount Road" as one line, or empty. */
+/** Online attendance, or a physical venue and address on one line. */
 export const eventPlace = (event: CalendarEventLike): string =>
-    [event.venue || event.location, event.venueAddress].filter(Boolean).join(', ');
+    event.mode === 'online' ? 'Online' : [event.venue || event.location, event.venueAddress].filter(Boolean).join(', ');
 
 /**
  * WHERE THE EVENT LIVES ON THE WEB.

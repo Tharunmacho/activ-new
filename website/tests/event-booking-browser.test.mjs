@@ -43,6 +43,7 @@ try {
         import EventBookingPage from './src/pages/onboarding/EventBookingPage';
         import EventDetailPage from './src/pages/onboarding/EventDetailPage';import {EventsExplorer} from './src/pages/onboarding/components/EventsExplorer';
         import {eventWhere} from './src/lib/eventWhere';window.eventLocation=eventWhere;
+        import {eventPlace,googleCalendarUrl} from './src/lib/eventCalendar';window.calendarPlace=eventPlace;window.calendarUrl=googleCalendarUrl;
         window.eventFixture={id:'fixture',title:'Conference fixture',startAt:'2030-10-23T03:30:00Z',endAt:'2030-10-23T11:30:00Z',mode:'offline',venue:'Chennai',amount:0,price:0,capacity:100,seatsLeft:100,maxPerBooking:10,registrationFields:[{key:'meal',label:'Meal preference',type:'select',required:true,options:['Vegetarian','Other']},{key:'consent',label:'Confirm attendance',type:'checkbox',required:true}]};
         window.bookingFixture={bookingRef:'FIXTURE-REF',eventId:'fixture',eventTitle:'Conference fixture',eventStartAt:window.eventFixture.startAt,status:'active',payment:{status:'not_required'},bookedBy:{name:'Booker',email:'booker@example.test',phone:'9000000001'},participants:[{name:'Booker'}],noOfPersons:1,unitAmount:0,totalAmount:0,responses:[{key:'meal',label:'Meal preference',value:'Vegetarian'}],passes:[{index:0,name:'Booker',registrationNo:'FIXTURE-REF-P1',url:'https://example.test/checkin/'+('a'.repeat(40))}]};
         const root=createRoot(document.getElementById('root'));let version=0;window.mountBooking=(ref='',forOthers=false)=>root.render(<MemoryRouter key={++version} initialEntries={['/events/fixture/book'+(ref?'?ref='+ref:forOthers?'?forOthers=1':'')]}><Routes><Route path='/events/:id/book' element={<EventBookingPage chrome='member'/>}/></Routes></MemoryRouter>);window.mountBooking();
@@ -70,9 +71,12 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}` });
     await until('document.querySelector("#registration-meal")');
-    assert.deepEqual(await evaluate(`window.eventLocation({mode:'online',onlinePlatform:' Zoom ',venue:'Old venue'})`),{online:true,label:'Platform',value:'Zoom'},'Shared homepage/member card location uses the same short platform name');
-    assert.deepEqual(await evaluate(`window.eventLocation({mode:'online',onlinePlatform:'',venue:'Old venue'})`),{online:true,label:'Platform',value:'Online'},'Unset platform has an honest online fallback');
+    assert.deepEqual(await evaluate(`window.eventLocation({mode:'online',onlinePlatform:' Zoom ',venue:'Old venue'})`),{online:true,label:'Location',value:'Online'},'Public location shows only the attendance mode even when a platform is saved');
+    assert.deepEqual(await evaluate(`window.eventLocation({mode:'online',onlinePlatform:'',venue:'Old venue'})`),{online:true,label:'Location',value:'Online'},'Unset platform also shows Online');
     assert.deepEqual(await evaluate(`window.eventLocation({mode:'offline',onlinePlatform:'Zoom',venue:'Chennai'})`),{online:false,label:'Location',value:'Chennai'},'Offline venues remain unchanged');
+    assert.equal(await evaluate(`window.calendarPlace({mode:'online',onlinePlatform:'Zoom',venue:'Old venue',venueAddress:'Old address'})`),'Online','Online calendar exports suppress stale physical venues and platform names');
+    assert.equal(await evaluate(`new URL(window.calendarUrl({...window.eventFixture,mode:'online',onlinePlatform:'Google Meet'})).searchParams.get('location')`),'Online','Calendar location is Online');
+    assert.equal(await evaluate(`window.calendarPlace({mode:'offline',venue:'Chennai',venueAddress:'Hall A'})`),'Chennai, Hall A','Physical calendar locations stay intact');
     const fill = async (index, value) => evaluate(`(()=>{const input=document.querySelectorAll('input')[${index}];Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     await fill(0, 'Booker'); await fill(1, 'booker@example.test'); await fill(2, '9000000001');
     assert.equal(await evaluate("document.querySelectorAll('input')[4].value"), 'Booker', 'Participant 1 visibly mirrors booking contact');
@@ -126,16 +130,18 @@ try {
     await fill(0, 'Booker'); await fill(1, 'booker@example.test'); await fill(2, '9000000001');
     assert.equal(await evaluate("document.querySelectorAll('input')[4].value"), '', 'forOthers entry never mirrors the booking contact');
     await evaluate("window.eventFixture={...window.eventFixture,mode:'online',onlinePlatform:'Google Meet',venue:''};window.mountBooking()");
-    await until('document.body.textContent.includes("Platform")');
-    assert(await evaluate('document.body.textContent.includes("Google Meet")'));
+    await until('document.body.textContent.includes("Location") && document.body.textContent.includes("Online")');
+    assert(!(await evaluate('document.body.textContent.includes("Google Meet")')));
     assert(!(await evaluate('document.body.textContent.includes("Joining details are provided with your confirmed booking")')));
     assert(!(await evaluate('document.body.textContent.includes("To be announced")')));
     await evaluate("window.bookingFixture={...window.bookingFixture,mode:'online',onlinePlatform:'Google Meet',onlineUrl:'https://meet.google.com/aaa-bbbb-ccc'};window.mountBooking('FIXTURE-REF')");
     await until('document.body.textContent.includes("Join online event")');
+    assert(!(await evaluate('document.body.textContent.includes("Google Meet")')),'Confirmed booking uses Online without the saved platform');
     assert.equal(await evaluate(`[...document.querySelectorAll('a')].find(a=>a.textContent.includes('Join online event'))?.href`),'https://meet.google.com/aaa-bbbb-ccc','Confirmed meeting action retains organiser URL');
     assert(!(await evaluate('document.body.textContent.includes("personal joining link is emailed")')));
     await evaluate("window.bookingFixture={...window.bookingFixture,onlinePlatform:'Zoom',onlineUrl:'https://zoom.us/meeting/register/example'};window.mountBooking('FIXTURE-REF')");
     await until('document.body.textContent.includes("Complete platform registration")');
+    assert(!(await evaluate('document.body.textContent.includes("Zoom")')),'Registration action does not show a platform label');
     assert.equal(await evaluate(`[...document.querySelectorAll('a')].find(a=>a.textContent.includes('Complete platform registration'))?.href`),'https://zoom.us/meeting/register/example','Confirmed registration action retains organiser URL');
     await evaluate("window.bookingFixture={...window.bookingFixture,onlineUrl:''};window.mountBooking('FIXTURE-REF')");
     await until('document.body.textContent.includes("organiser has not added the joining details")');
@@ -144,12 +150,13 @@ try {
         await evaluate(`window.eventFixture={...window.eventFixture,mode:'online',onlinePlatform:' Zoom ',venue:'Old venue should not appear',slug:'fixture',status:'published',registrationEnabled:true};window.mount${view==='booking'?'Booking':view==='detail'?'Detail':'Explorer'}()`);
         const platformExpression=view==='explorer'
             ? `document.querySelector('#explorer svg.lucide-video')?.parentElement.querySelector('span')`
-            : `[...document.querySelectorAll('p')].find(p=>p.textContent.trim()==='Platform')?.nextElementSibling`;
-        await until(`${platformExpression}?.textContent.trim()==='Zoom'`);
+            : `[...document.querySelectorAll('p')].find(p=>p.textContent.trim()==='Location')?.nextElementSibling`;
+        await until(`${platformExpression}?.textContent.trim()==='Online'`);
         await evaluate('document.fonts.ready');
         await evaluate(`${platformExpression}.scrollIntoView({block:'center'})`);await pause(100);
         const result=await evaluate(`(()=>{const el=${platformExpression},r=el.getBoundingClientRect();return{view:${JSON.stringify(view)},width:innerWidth,scrollWidth:document.documentElement.scrollWidth,platform:el.textContent.trim(),left:r.left,right:r.right,font:getComputedStyle(el).fontFamily,oldLabel:/Online\\s*[·]\\s*Zoom|Joining link on|Joining details are provided with your confirmed booking/.test(document.body.textContent),oldVenue:document.body.textContent.includes('Old venue should not appear')}})()`);
-        assert.equal(result.platform,'Zoom','The platform value is only its trimmed name');
+        assert.equal(result.platform,'Online','Public attendance value stays Online');
+        assert(!(await evaluate('document.body.textContent.includes("Zoom")')),'Saved platform is not displayed publicly');
         assert.equal(result.oldLabel,false,'No redundant online/joining label remains');
         assert.equal(result.oldVenue,false,'Online event never shows stale offline venue');
         assert(result.scrollWidth<=width+1&&result.left>=-1&&result.right<=width+1,'Platform summary fits '+view+' at '+width);
@@ -158,7 +165,7 @@ try {
         if(output){const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await writeFile(path.join(output,view+'-'+width+'.png'),Buffer.from(shot.result.data,'base64'));}
     }
     assert.deepEqual(errors, []);
-    if(output)await writeFile(path.join(output,'verification.json'),JSON.stringify({checkedAt:new Date().toISOString(),layouts,errors,checks:'Required questions and attendees, review/edit, server-only amount, confirmed passes, meeting/registration hrefs, missing-link guidance; Zoom-only platform labels across booking/detail/explorer on phone and desktop'},null,2));
+    if(output)await writeFile(path.join(output,'verification.json'),JSON.stringify({checkedAt:new Date().toISOString(),layouts,errors,checks:'Required questions and attendees, review/edit, server-only amount, confirmed passes, meeting/registration hrefs, missing-link guidance; Online labels across booking/detail/explorer and calendars on phone and desktop'},null,2));
     await evaluate("window.bookingFixture={...window.bookingFixture,status:'waitlist',payment:{...window.bookingFixture.payment,status:'paid',reconciliationRequired:true,reconciliationReason:'An attendee email is already registered.'}};window.mountBooking('FIXTURE-REF')");
     await until("document.body.textContent.includes('Payment received — organiser review needed')");
     assert(await evaluate("document.body.textContent.includes('Please do not pay again')"));

@@ -1571,7 +1571,7 @@ export default function EventsManager({
                                         value: 'online' as const,
                                         icon: <Video className="h-4 w-4" />,
                                         title: 'Online',
-                                        detail: 'People join on a link. The page names the platform; the link itself goes only to those who book.',
+                                        detail: 'The page shows Online. The registration or meeting link goes only to those who book.',
                                     },
                                 ]}
                             />
@@ -1587,7 +1587,7 @@ export default function EventsManager({
                                     <>
                                         <CmsField
                                             label="Platform"
-                                            hint="Zoom, Google Meet, Microsoft Teams — whatever people will need open."
+                                            hint="Optional. Included in event messages when filled in; leave blank to show only Online."
                                         >
                                             <CmsInput
                                                 value={form.detail.onlinePlatform}

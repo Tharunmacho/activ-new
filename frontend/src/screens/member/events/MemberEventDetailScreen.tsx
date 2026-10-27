@@ -284,7 +284,7 @@ const MemberEventDetailScreen = ({ navigation, route, publicAccess = false }: an
         >
           <View style={styles.hChips}>
             {e?.audience === 'paid' ? <HeaderChip icon="lock" text="Members only" /> : null}
-            {online ? <HeaderChip icon="videocam" text={`Online${e?.onlinePlatform ? ` · ${e.onlinePlatform}` : ''}`} /> : null}
+            {online ? <HeaderChip icon="videocam" text="Online" /> : null}
             {past ? <HeaderChip icon="history" text="This event has taken place" />
               : phase === 'live' ? <HeaderChip icon="fiber-manual-record" text="Happening now" tint="rgba(5,150,105,0.9)" />
                 : countdown ? <HeaderChip icon="timer" text={countdown} /> : null}
@@ -348,7 +348,7 @@ const MemberEventDetailScreen = ({ navigation, route, publicAccess = false }: an
               ) : null}
             </Fact>
           ) : null}
-          {online ? <Fact icon="videocam" label="Attend online" value={e?.onlinePlatform || 'Online event'} /> : null}
+          {online ? <Fact icon="videocam" label="Attendance" value="Online" /> : null}
           {region ? <Fact icon="map" tone="sky" label="Region" value={region} last={contactLast('region')} /> : null}
           {e?.contactName ? <Fact icon="person-outline" tone="navy" label="Contact" value={e.contactName} last={contactLast('name')} /> : null}
           {e?.contactPhone ? <Fact icon="call" tone="green" label="Phone" value={e.contactPhone} onPress={() => open(`tel:${String(e.contactPhone).replace(/[^\d+]/g, '')}`)} last={contactLast('phone')} /> : null}

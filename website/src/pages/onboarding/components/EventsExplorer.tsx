@@ -8,7 +8,6 @@ import { getRegionTree } from '@/services/activApi';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, Clock, CalendarDays, ArrowRight, X, Landmark, Video, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { eventWhere } from '@/lib/eventWhere';
-import { onlinePlatformName } from '@/lib/onlineEvent';
 import type { CmsEvent, EventsSettings } from '@/services/cmsApi';
 import { CmsIcon } from '@/components/shared/CmsIcon';
 import { Reveal } from '@/components/shared/Reveal';
@@ -1079,7 +1078,7 @@ export function EventsExplorer({ events, settings }: Props) {
                                                                       font-semibold text-gray-500">
                                                             <Video size={16} className="mt-0.5 shrink-0 text-brand-400" />
                                                             <span className="line-clamp-1">
-                                                                {onlinePlatformName(event.onlinePlatform)}
+                                                                Online
                                                             </span>
                                                         </p>
                                                     ) : (

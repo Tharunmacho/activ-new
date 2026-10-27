@@ -106,7 +106,7 @@ function EventCard({ e, seat, onPress }: { e: any; seat?: SeatInfo | null; onPre
           {String(e?.mode || '') === 'online' ? (
             <View style={styles.metaRow}>
               <Icon name="videocam" size={SIZE.iconSm} color={PALETTE.textFaint} />
-              <Text style={styles.meta}>Online{e?.onlinePlatform ? ` · ${e.onlinePlatform}` : ''}</Text>
+              <Text style={styles.meta}>Online</Text>
             </View>
           ) : venue ? (
             <View style={styles.metaRow}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
-import { BackHandler, Text, TextInput } from 'react-native';
+import { BackHandler, Linking, Text, TextInput } from 'react-native';
 import EventBookingScreen from '../src/screens/member/events/EventBookingScreen';
 import { createEventBooking, checkEventBooking, getBookableEvent, getMyProfile, getEventBooking } from '../src/services/memberApi';
 import api, { getAuthToken, getUserRole } from '../src/services/api';
@@ -120,6 +120,23 @@ test.each(['online', 'offline'])('confirmed %s receipt does not assume an email 
     expect(screenText()).toContain('use the online event details below');
     expect(screenText()).not.toContain('show your entry pass at the venue');
   } else expect(screenText()).toContain('Refresh your booking or contact the organiser with your booking reference.');
+});
+
+test.each([
+  ['https://meet.google.com/aaa-bbbb-ccc', 'Join online event'],
+  ['https://zoom.us/meeting/register/example', 'Complete platform registration'],
+])('online receipt hides the platform but opens the exact current link: %s', async (onlineUrl, action) => {
+  const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+  try {
+    (getEventBooking as jest.Mock).mockResolvedValueOnce({ bookingRef: 'ONLINE', eventId: 'conference', mode: 'online',
+      onlinePlatform: 'Stale platform', onlineUrl, status: 'active', payment: { status: 'not_required' } });
+    await render({ ref: 'ONLINE' });
+    expect(screenText()).toContain('Online');
+    expect(screenText()).toContain('This event is online.');
+    expect(screenText()).not.toContain('Stale platform');
+    await press(action);
+    expect(open).toHaveBeenCalledWith(onlineUrl);
+  } finally { open.mockRestore(); }
 });
 
 test('a single guest can differ from the booking contact, and the same data reaches check and create', async () => {

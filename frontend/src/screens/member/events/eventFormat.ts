@@ -30,7 +30,7 @@ export const priceLabel = (e: any) => {
 
 /** Where an event happens — the website's eventWhere: online, venue, region, or TBA. */
 export const whereOf = (e: any) => {
-  if (String(e?.mode || '') === 'online') return `Online${e?.onlinePlatform ? ` · ${e.onlinePlatform}` : ''}`;
+  if (String(e?.mode || '') === 'online') return 'Online';
   if (e?.venue || e?.location) return String(e.venue || e.location);
   const region = [e?.district, e?.state].filter(Boolean).join(', ');
   return region || 'Venue to be announced';
@@ -116,7 +116,8 @@ export const formatReminders = (hours: any): string => {
 };
 
 /** Website eventPlace. */
-export const eventPlace = (e: any) => [e?.venue || e?.location, e?.venueAddress].filter(Boolean).join(', ');
+export const eventPlace = (e: any) => e?.mode === 'online'
+  ? 'Online' : [e?.venue || e?.location, e?.venueAddress].filter(Boolean).join(', ');
 
 const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 

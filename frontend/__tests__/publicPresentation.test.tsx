@@ -2,6 +2,7 @@ import React from 'react';
 import Renderer from 'react-test-renderer';
 import { Text } from 'react-native';
 import { Body } from '../src/screens/public/PublicContentKit';
+import { PublicContentCard } from '../src/screens/public/PublicExploreCards';
 import WebsiteViewer from '../src/screens/member/website/WebsiteViewerScreen';
 import { PremiumPage, PremiumPageHeader } from '../src/ui';
 import { publicInline, publicPlainText, publicTextBlocks } from '../src/utils/publicRichText';
@@ -16,6 +17,19 @@ const text = (node: any): string => typeof node === 'string' || typeof node === 
   : Array.isArray(node) ? node.map(text).join('') : text(node?.children || []);
 beforeEach(() => jest.clearAllMocks());
 afterEach(async () => { await Renderer.act(async () => screen?.unmount()); screen = undefined; });
+
+test('public online cards show Online while retaining the event detail action', async () => {
+  const openPage = jest.fn();
+  await Renderer.act(async () => { screen = Renderer.create(<PublicContentCard kind="events" openPage={openPage}
+    item={{ id: 'webinar', title: 'Online workshop', mode: 'online', onlinePlatform: 'Zoom', venue: 'Old hall' }} />); });
+  const labels = screen!.root.findAllByType(Text).map(node => text(node.props.children));
+  expect(labels).toContain('Online');
+  expect(text(screen!.toJSON())).not.toContain('Zoom');
+  expect(text(screen!.toJSON())).not.toContain('Old hall');
+  const button = screen!.root.findAll(node => node.props.accessibilityLabel === 'Online workshop' && typeof node.props.onPress === 'function')[0];
+  await Renderer.act(async () => button.props.onPress());
+  expect(openPage).toHaveBeenCalledWith('/events/webinar', 'Online workshop');
+});
 
 test('CMS news Markdown becomes readable native emphasis without changing its words', () => {
   const body = '*Social Vision TV* has published a report on **ACTIV** and ***SC/ST entrepreneurs***.';

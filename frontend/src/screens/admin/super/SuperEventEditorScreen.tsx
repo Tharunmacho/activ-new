@@ -590,14 +590,14 @@ const SuperEventEditorScreen: React.FC = () => {
           onChange={(mode) => setDetail({ mode })}
           options={[
             { value: 'offline', icon: 'place', title: 'In person', detail: 'People come to a venue. The page shows the address and a Directions button.' },
-            { value: 'online', icon: 'videocam', title: 'Online', detail: 'People join on a link. The page names the platform; the link goes only to those who book.' },
+            { value: 'online', icon: 'videocam', title: 'Online', detail: 'Public pages show Online. The joining link goes only to those who book.' },
           ]}
         />
         <View style={{ marginTop: SPACE.lg }}>
           {d.mode === 'online' ? (
             <>
               <PremiumInput tone="admin" label="Platform" value={d.onlinePlatform} onChangeText={(onlinePlatform) => setDetail({ onlinePlatform })} placeholder="Zoom"
-                hint="Zoom, Google Meet, Microsoft Teams — whatever people will need open." />
+                hint="Optional, used in booking messages. Leave blank to show only Online." />
               <PremiumInput tone="admin" label="Registration or meeting link" value={d.onlineUrl} onChangeText={(onlineUrl) => setDetail({ onlineUrl })} autoCapitalize="none"
                 keyboardType="url" placeholder="https://zoom.us/meeting/register/…" style={{ marginBottom: 0 }}
                 hint="Not shown publicly — it is sent to the people who book." />
