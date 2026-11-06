@@ -1806,6 +1806,7 @@ export interface ManagedAdmin {
     id: string;
     fullName: string;
     email: string;
+    notificationEmail?: string;
     phoneNumber: string;
     role: AdminRole;
     state: string;

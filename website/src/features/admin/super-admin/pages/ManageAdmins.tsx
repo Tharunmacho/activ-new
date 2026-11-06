@@ -40,7 +40,7 @@ const ROLES: { value: AdminRole; label: string; needs: ('state' | 'district' | '
 ];
 
 const BLANK = {
-    fullName: '', email: '', phoneNumber: '', password: '', confirmPassword: '',
+    fullName: '', email: '', notificationEmail: '', phoneNumber: '', password: '', confirmPassword: '',
     role: 'block_admin' as AdminRole, state: '', district: '', block: '',
 };
 
@@ -72,6 +72,7 @@ export default function ManageAdmins() {
     useEffect(() => { getRegionTree(false, 'all').then(setRegionTree).catch(e => toast.error(errorMessage(e))); }, []);
 
     const [form, setForm] = useState({ ...BLANK });
+    const [originalNotificationEmail, setOriginalNotificationEmail] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formOpen, setFormOpen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -204,6 +205,7 @@ export default function ManageAdmins() {
 
     const openNew = () => {
         setEditingId(null);
+        setOriginalNotificationEmail('');
         setForm({ ...BLANK });
         // Masked again on every open: a field left readable from the last
         // account created is a credential sitting on screen.
@@ -213,10 +215,12 @@ export default function ManageAdmins() {
 
     const openEdit = (a: ManagedAdmin) => {
         setEditingId(a.id);
+        setOriginalNotificationEmail(String(a.notificationEmail || '').trim().toLowerCase());
         setReveal({});
         setForm({
             fullName: a.fullName || '',
             email: a.email || '',
+            notificationEmail: a.notificationEmail || '',
             phoneNumber: a.phoneNumber || '',
             // Never prefilled: the stored value is a bcrypt hash and cannot be
             // read back. Blank means "leave the password alone".
@@ -232,6 +236,11 @@ export default function ManageAdmins() {
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const notificationEmail = form.notificationEmail.trim().toLowerCase();
+        if (notificationEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notificationEmail)) {
+            toast.error('Enter a valid notification email, or leave it blank to use the account email.');
+            return;
+        }
 
         /**
          * A mistyped password on create locks the new admin out of an account
@@ -257,6 +266,9 @@ export default function ManageAdmins() {
                 phoneNumber: form.phoneNumber.trim(),
                 role: form.role,
             };
+            if (!editingId || notificationEmail !== originalNotificationEmail) {
+                payload.notificationEmail = notificationEmail;
+            }
             needs.forEach((k) => { payload[k] = (form as any)[k].trim(); });
             if (form.password) payload.password = form.password;
 
@@ -569,6 +581,9 @@ export default function ManageAdmins() {
                                                 <td className="max-w-[24rem] px-5 py-3">
                                                     <p className="font-medium text-slate-900 break-words">{a.fullName || '—'}</p>
                                                     <p className="text-ui-small text-slate-500 [overflow-wrap:anywhere]">{a.email}</p>
+                                                    {a.notificationEmail && a.notificationEmail !== a.email && (
+                                                        <p className="text-ui-small text-slate-500 [overflow-wrap:anywhere]">Notifications: {a.notificationEmail}</p>
+                                                    )}
                                                 </td>
                                                 <td className="px-5 py-3 text-slate-700">
                                                     {ROLES.find(r => r.value === a.role)?.label || a.role}
@@ -694,6 +709,7 @@ export default function ManageAdmins() {
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {field('fullName', 'Full Name', 'text', undefined, undefined, 'Jane Doe')}
                                 {field('email', 'Email Address', 'email', undefined, undefined, 'name@activ.com')}
+                                {field('notificationEmail', 'Notification email (optional)', 'email', 'Application alerts and password resets go here. Leave blank to use the account email. Enter an existing mailbox.', undefined, 'Use the account email')}
                                 {field('phoneNumber', 'Phone (optional)', 'tel', undefined, undefined, '9876543210')}
                             </div>
 
