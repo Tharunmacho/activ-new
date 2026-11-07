@@ -1,0 +1,37 @@
+.activ-android-entry {
+  position: relative;
+  width: 100%;
+  border-bottom: 1px solid #dce5fa;
+  background: #f0f5ff;
+  color: #14265b;
+  font-family: Poppins, sans-serif;
+}
+.activ-android-entry__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 12px 16px;
+}
+.activ-android-entry__copy { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.activ-android-entry__icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #dfe9ff; flex: 0 0 auto; }
+.activ-android-entry__copy strong { display: block; font-size: 15px; line-height: 1.45; font-weight: 700; }
+.activ-android-entry__copy p { margin: 2px 0 0; font-size: 12px; line-height: 1.5; color: #415477; }
+.activ-android-entry__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 12px; }
+.activ-android-entry__primary,
+.activ-android-entry__secondary,
+.activ-android-entry__store { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; text-align: center; text-decoration: none; line-height: 1.4; }
+.activ-android-entry__primary { border-radius: 10px; padding: 10px 16px; background: #1e50e6; color: #fff; font-size: 14px; font-weight: 700; }
+.activ-android-entry__secondary { border: 0; border-radius: 8px; padding: 8px; background: transparent; color: #253d6b; font-size: 13px; font-weight: 600; cursor: pointer; }
+.activ-android-entry__store { padding: 8px 2px; color: #415477; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.activ-android-entry a:focus-visible,
+.activ-android-entry button:focus-visible { outline: 3px solid #557bec; outline-offset: 3px; }
+@media (max-width: 700px) {
+  .activ-android-entry__inner { flex-direction: column; align-items: stretch; gap: 10px; }
+  .activ-android-entry__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+  .activ-android-entry__primary { grid-column: 1 / -1; }
+  .activ-android-entry__secondary { padding-left: 0; padding-right: 0; }
+  .activ-android-entry__store { padding-left: 0; padding-right: 0; }
+}

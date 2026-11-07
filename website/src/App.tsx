@@ -1,3 +1,4 @@
+import AndroidAppEntry from '@/components/AndroidAppEntry';
 import UsageAnalytics from '@/components/UsageAnalytics';
 import BrowserPushLifecycle from '@/components/BrowserPushLifecycle';
 import { lazy, useEffect } from "react";
@@ -291,6 +292,7 @@ const App = () => (
             <ScrollToTop />
             <PublicSharePreview>
             <PreloadPublicPages />
+            <AndroidAppEntry>
             <FloatingLaunchers />
             <RouteRecovery>
               <Routes>
@@ -672,6 +674,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
               </Routes>
             </RouteRecovery>
+            </AndroidAppEntry>
             </PublicSharePreview>
             </NativePublicAppGate>
           </BrowserRouter>

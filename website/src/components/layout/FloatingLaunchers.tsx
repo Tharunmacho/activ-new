@@ -1,3 +1,4 @@
+import { useHideFloatingAppPromotion } from '@/components/AndroidAppEntry';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { MessageCircle, X, GripVertical, HeartHandshake, Smartphone } from 'lucide-react';
@@ -148,6 +149,7 @@ const DONATE_PILL = `relative inline-flex select-none items-center justify-cente
                      h-16 w-16 sm:h-14 sm:w-auto sm:px-7 transition-transform duration-200 hover:scale-105 active:scale-95`;
 
 export default function FloatingLaunchers() {
+    const hideAppPromotion = useHideFloatingAppPromotion();
     const { pathname } = useLocation();
     const [chatClosed, setChatClosed] = useState(() => readClosed('activ-chat-closed'));
     const [waClosed, setWaClosed] = useState(() => readClosed('activ-whatsapp-closed'));
@@ -179,7 +181,7 @@ export default function FloatingLaunchers() {
     if (HIDDEN_ON.test(pathname)) return null;
     const showSupport = !(chatClosed && waClosed);
     const showDonate = !donateClosed && !DONATE_HIDDEN_ON.test(pathname);
-    const showApp = !appClosed && !insideActivApp();
+    const showApp = !appClosed && !insideActivApp() && !hideAppPromotion;
 
     return (
         <>

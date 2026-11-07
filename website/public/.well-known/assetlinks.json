@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.activ.membership",
+      "sha256_cert_fingerprints": [
+        "8C:20:80:12:E7:3D:4F:BF:3E:56:6D:3E:7D:22:46:5A:2D:5F:82:FC:1C:40:5D:03:1B:EA:C4:50:B8:79:E2:B1",
+        "DC:26:04:33:75:F2:8F:21:B0:AD:8A:4F:80:24:3B:17:00:0A:18:FD:2B:CA:8E:87:B2:4E:FA:4E:91:73:B8:E7"
+      ]
+    }
+  }
+]
