@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Building2, FileCheck } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationFormShell, { FormCard, FormField } from "./RegistrationFormShell";
+import { applicationSubmissionMode, applicationSubmissionLabel, type ApplicationSubmissionMode } from '@/lib/applicationStatus';
 import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
 import { businessFormError, declarationFormError } from "@/lib/applicationFormValidation";
 import {
   getMyProfile,
+  getMyApplication,
+  clearApiCache,
   getBusinessInfo,
   getFinancialInfo,
   getDeclarationInfo,
@@ -33,6 +36,8 @@ const DeclarationForm = () => {
     agreeToDeclaration: false,
   });
 
+  const submittingRef = useRef(false);
+  const [submissionMode, setSubmissionMode] = useState<ApplicationSubmissionMode>('submit');
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -62,7 +67,10 @@ const DeclarationForm = () => {
         return;
       }
 
-      const saved = await getDeclarationInfo();
+      const [saved, profile, application] = await Promise.all([
+        getDeclarationInfo(), getMyProfile(), getMyApplication(),
+      ]);
+      setSubmissionMode(applicationSubmissionMode(profile, application));
 
       // Same three spellings the submit path already reconciles.
       const business = await getBusinessInfo();
@@ -128,7 +136,7 @@ const DeclarationForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (loading || loadError || submitting) return;
+    if (loading || loadError || submittingRef.current) return;
     const declarationError = declarationFormError({ ...formData }, isBusinessApplicant === true);
     if (declarationError) { toast.error(declarationError); return; }
 
@@ -137,6 +145,7 @@ const DeclarationForm = () => {
       return;
     }
 
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       // `sisterConcerns` is a Number in the schema. Sending the input's string
@@ -147,6 +156,17 @@ const DeclarationForm = () => {
         sisterConcerns: isBusinessApplicant === true ? Number(formData.sisterConcerns || 0) : 0,
         companyNames: isBusinessApplicant === true ? formData.companyNames : [],
       });
+
+      clearApiCache();
+      const [profile, currentApplication] = await Promise.all([getMyProfile(), getMyApplication()]);
+      const mode = applicationSubmissionMode(profile, currentApplication);
+      setSubmissionMode(mode);
+      if (mode === 'save') {
+        toast.success('Your details have been updated');
+        window.dispatchEvent(new Event('profileUpdated'));
+        navigate('/member/profile-view');
+        return;
+      }
 
       // Gather every section the applicant has filled in. Read back from the
       // server rather than from local state so the application carries what was
@@ -162,10 +182,9 @@ const DeclarationForm = () => {
         object is the honest answer when there is nothing yet; a missing key is
         a panel that stops rendering.
       */
-      const [profile, business, financial, declaration] = await Promise.all([
-        getMyProfile(),
+      const [business, financial, declaration] = await Promise.all([
         getBusinessInfo(),
-        getFinancialInfo().catch(() => ({} as any)),
+        getFinancialInfo(),
         getDeclarationInfo(),
       ]);
       const sectionError = businessFormError(business) || declarationFormError(declaration, business.doingBusiness === true || business.doingBusiness === 'yes');
@@ -224,13 +243,23 @@ const DeclarationForm = () => {
       const applicationId = application?._id || application?.id || "";
       if (applicationId) localStorage.setItem("applicationId", String(applicationId));
 
-      toast.success('Application submitted successfully!');
+      toast.success(mode === 'update' ? 'Application updated for review' : 'Application submitted successfully!');
       window.dispatchEvent(new Event('formSubmitted'));
 
       navigate("/member/application-submitted");
     } catch (error) {
+      if ((error as any)?.response?.status === 409) {
+        // A decision can arrive after the final check. Refresh the action, but
+        // keep the conflict visible: an unsuccessful POST is not a submission.
+        clearApiCache();
+        try {
+          const [profile, application] = await Promise.all([getMyProfile(), getMyApplication()]);
+          setSubmissionMode(applicationSubmissionMode(profile, application));
+        } catch { /* Keep the server's conflict message if the refresh fails. */ }
+      }
       toast.error(errorMessage(error, "Failed to submit your application"));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -241,11 +270,12 @@ const DeclarationForm = () => {
       title="Declaration"
       description="Final Declaration — Step 3 of 3"
       previousTo="/member/forms/business"
-      submitLabel="Submit Application"
+      submitLabel={applicationSubmissionLabel(submissionMode)}
       submitting={submitting}
       disabled={loading || !!loadError || !formData.agreeToDeclaration}
       onSubmit={handleSubmit}
     >
+      {submissionMode === 'update' && <p className="text-ui-small">Your updated answers will be sent for review.</p>}
       {loading && <p role="status">Loading your saved forms…</p>}
       {loadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-base">
         <p>{loadError}</p>

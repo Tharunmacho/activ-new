@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { PlatinumNotice } from '@/components/shared/Platinum';
 import { resizeCompanyNames, toCount } from "@/lib/sisterConcerns";
+import { applicationSubmissionMode, applicationSubmissionLabel, type ApplicationSubmissionMode } from '@/lib/applicationStatus';
 import { personalDetailsErrors } from "@/lib/personalDetailsValidation";
 import { accountPasswordStatus } from '@/lib/authCapabilities';
 import SocialAccountSecurity from '@/features/member/components/SocialAccountSecurity';
@@ -29,6 +30,7 @@ import {
   getDeclarationInfo,
   submitApplication,
   getMyApplication,
+  clearApiCache,
   errorMessage,
 } from "@/services/activApi";
 /**
@@ -270,7 +272,10 @@ export default function Profile() {
    * for somebody who is already a member. The screen is the same form either
    * way; what changes is the last button and what it does.
    */
-  const [alreadyApplied, setAlreadyApplied] = useState(false);
+  const [submissionMode, setSubmissionMode] = useState<ApplicationSubmissionMode>('submit');
+  const alreadyApplied = submissionMode === 'save' || submissionMode === 'update';
+  const finalSubmittingRef = useRef(false);
+  const [finalSubmitting, setFinalSubmitting] = useState(false);
   /*
    * The company-name rows. ONE source of truth, and that is the fix.
    *
@@ -489,47 +494,10 @@ export default function Profile() {
           return;
         }
 
-        /*
-         * HAS THIS MEMBER ALREADY APPLIED?
-         *
-         * ASK THE APPLICATIONS COLLECTION. Nothing on the profile record can
-         * answer this, and one field on it looked like it could:
-         *
-         *     || personal.data?.membershipNumber
-         *
-         * `GET /members/my-profile` does not return `membershipNumber` as a
-         * stored value. It returns
-         *
-         *     member.membershipNumber || String(member._id).slice(-8).toUpperCase()
-         *
-         * — a DERIVED id that every member has, applied or not. (It is the
-         * "ID 49C436C6" printed on the profile screen.) So the test was true
-         * for everybody, always. The consequences ran the whole length of the
-         * screen and every one of them looked deliberate:
-         *
-         *   - the last button read "Save changes", never "Submit Application"
-         *   - the step subtitle read "Your declaration", not "Step 3 of 3"
-         *   - `createApplicationFromStoredForms` returned at its
-         *     `if (alreadyApplied)` guard BEFORE calling `submitApplication`,
-         *     and reported "Your details have been updated" on the way out
-         *
-         * So the form saved perfectly and lodged nothing, with a success
-         * toast over it. A member reached 100%, appeared in no admin queue at
-         * any tier, and had no way to tell.
-         *
-         * `getMyApplication()` is the same call the dashboard derives
-         * `applicationSubmitted` from, so the two screens cannot disagree
-         * about whether this member has applied.
-         *
-         * The other two tests are kept because both are real: a stored
-         * `applicationId` is written when an application is lodged, and an
-         * ACTIVE membership cannot exist without one.
-         */
-        const existingApplication = await getMyApplication().catch(() => null);
-        const already = !!(existingApplication
-            || personal.data?.applicationId
-            || String(personal.data?.membershipStatus || '').toLowerCase() === 'active');
-        setAlreadyApplied(already);
+        // A rejected file may be resubmitted; a pending file may be updated.
+        // A failed status read must not be treated as permission to submit.
+        const existingApplication = await getMyApplication();
+        setSubmissionMode(applicationSubmissionMode(personal.data, existingApplication));
 
         /** "yes" / "no" — the shape the radio groups are registered with. */
         const yesNo = (value: unknown): string => {
@@ -1056,6 +1024,14 @@ export default function Profile() {
   };
 
   const handleFinalSubmit = async () => {
+    if (finalSubmittingRef.current) return;
+    finalSubmittingRef.current = true;
+    setFinalSubmitting(true);
+    try { await saveFinalDeclaration(); }
+    finally { finalSubmittingRef.current = false; setFinalSubmitting(false); }
+  };
+
+  const saveFinalDeclaration = async () => {
     const data = watch();
     saveCurrentStepData(data);
 
@@ -1162,11 +1138,20 @@ export default function Profile() {
    */
   const createApplicationFromStoredForms = async (): Promise<boolean> => {
     try {
-      const [profile, business, financial, declaration] = await Promise.all([
-        getMyProfile().catch(() => ({} as any)),
-        getBusinessInfo().catch(() => ({} as any)),
-        getFinancialInfo().catch(() => ({} as any)),
-        getDeclarationInfo().catch(() => ({} as any)),
+      clearApiCache();
+      const [profile, currentApplication] = await Promise.all([getMyProfile(), getMyApplication()]);
+      const mode = applicationSubmissionMode(profile, currentApplication);
+      setSubmissionMode(mode);
+      if (mode === 'save') {
+        toast.success('Your details have been updated');
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
+        navigate('/member/profile-view');
+        return false;
+      }
+      const [business, financial, declaration] = await Promise.all([
+        getBusinessInfo(),
+        getFinancialInfo(),
+        getDeclarationInfo(),
       ]);
 
       // The region gate refuses an application whose block has no active admin,
@@ -1185,24 +1170,6 @@ export default function Profile() {
         isStudent;
       // Business, aspirant or student — each is its own plan and price.
       const applicantKind = isStudent ? "student" : isAspirant ? "aspirant" : "business";
-
-      /*
-       * ALREADY A MEMBER: save and stop.
-       *
-       * Everything above this line has written the three step records, which
-       * IS the edit. Lodging another application would put a second row in
-       * the admin queues for somebody already approved, and the tier reviews
-       * on the first one would have nothing to do with it.
-       */
-      if (alreadyApplied) {
-        toast.success('Your details have been updated');
-        window.dispatchEvent(new CustomEvent('profileUpdated'));
-        navigate('/member/profile-view');
-        // `false`, not a bare `return`. The signature is `Promise<boolean>`
-        // and the caller reads it as one; `undefined` happened to be falsy,
-        // which is the right answer here by luck rather than by statement.
-        return false;
-      }
 
       const application = await submitApplication({
         applicationType: "membership",
@@ -1239,12 +1206,18 @@ export default function Profile() {
       // status screen and every admin queue key off.
       const applicationId = application?._id || application?.id || "";
       if (applicationId) localStorage.setItem("applicationId", String(applicationId));
+      toast.success(mode === 'update' ? 'Application updated for review' : 'Application submitted successfully!');
     } catch (error) {
+      if ((error as any)?.response?.status === 409) {
+        clearApiCache();
+        try {
+          const [profile, application] = await Promise.all([getMyProfile(), getMyApplication()]);
+          setSubmissionMode(applicationSubmissionMode(profile, application));
+        } catch { /* The failed POST remains an error even when refresh fails. */ }
+      }
       toast.error(errorMessage(error, "Failed to submit your application"));
       return false;
     }
-
-    toast.success("Application submitted successfully!");
 
     // Dispatch events to refresh profile completion immediately
     window.dispatchEvent(new CustomEvent('formSubmitted'));
@@ -2258,7 +2231,7 @@ export default function Profile() {
                 <div className="rounded-2xl bg-white border border-[#E8EEF6] shadow-[0_1px_3px_rgba(16,24,40,0.10),0_6px_16px_-6px_rgba(16,24,40,0.12)]
                                 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-3">
                   <p className="text-ui-caption text-[#64748B] hidden sm:block">
-                    {alreadyApplied ? 'Save your changes' : 'Last step'}
+                    {submissionMode === 'update' ? 'Your updated answers will be sent for review.' : alreadyApplied ? 'Save your changes' : 'Last step'}
                   </p>
                   <div className="ml-auto flex w-full sm:w-auto items-center gap-2 sm:gap-3">
                     <Button
@@ -2273,10 +2246,11 @@ export default function Profile() {
                     <Button
                       type="button"
                       onClick={handleFinalSubmit}
+                      disabled={finalSubmitting}
                       className="flex-[1.4] sm:flex-none bg-[#1E50E6] hover:bg-[#1a45c9] font-bold h-11 sm:min-w-[11rem]"
                     >
                       <FileText className="w-4 h-4 mr-2" />
-                      {alreadyApplied ? 'Save changes' : 'Submit Application'}
+                      {finalSubmitting ? 'Saving...' : applicationSubmissionLabel(submissionMode)}
                     </Button>
                   </div>
                 </div>

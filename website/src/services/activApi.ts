@@ -8,6 +8,7 @@
  *
  * Everything here maps 1:1 onto a route in `backend/src/routes.js`.
  */
+import { normaliseApplicationStatus, pickCurrentApplication } from '@/lib/applicationStatus';
 import { analyticsLogin } from '@/lib/analytics';
 import { clearBrowserPushSession } from './browserPush';
 import api, {
@@ -902,37 +903,10 @@ export const getMyApplications = async () =>
  * `approved`, and nothing rewrote them — every undecided spelling means the
  * same thing now.
  */
-const normaliseStatus = (value: any): 'Pending' | 'Approved' | 'Rejected' => {
-    const key = String(value || '').trim().toLowerCase().replace(/[\s_\-.]/g, '');
-    if (key === 'rejected' || key === 'declined') return 'Rejected';
-    if (key === 'approved' || key === 'stateapproved' || key === 'complete' || key === 'completed') {
-        return 'Approved';
-    }
-    return 'Pending';
-};
+const normaliseStatus = normaliseApplicationStatus;
 
-/**
- * Pick the application a member should be shown.
- *
- * The most *advanced* one, not simply the newest. A member can hold more than
- * one row — a resubmission, or a legacy duplicate — and sorting by date can put
- * an untouched record in front of one that has already been decided. The status
- * screen would then tell someone their application had not been looked at when
- * it had been approved.
- *
- * Three tiers of "advanced" collapsed to two: decided beats undecided. An
- * approval leads because it is the answer the member is waiting for, and a
- * rejection ranks above an untouched row for the same reason — a decision is
- * news and a blank is not.
- */
-export const pickMostAdvancedApplication = (list: any[]): any | null => {
-    if (!Array.isArray(list) || list.length === 0) return null;
-    return (
-        list.find((a) => normaliseStatus(a?.status) === 'Approved') ||
-        list.find((a) => normaliseStatus(a?.status) === 'Rejected') ||
-        list[0]
-    );
-};
+/** Keep the public service name while matching the API's current-file selection. */
+export const pickMostAdvancedApplication = pickCurrentApplication;
 
 /**
  * Where the application stands.

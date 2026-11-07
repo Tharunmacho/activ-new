@@ -24,6 +24,8 @@ try {
       b.onResolve({ filter: /^@\/services\/activApi$/ }, () => ({ path: 'api', namespace: 'fixtures' }));
       b.onLoad({ filter: /.*/, namespace: 'fixtures' }, () => ({ contents: `
         export async function getMyProfile(){return {fullName:'Applicant',email:'local@example.test',phoneNumber:'9123456780',state:'Tamil Nadu',district:'Chennai',city:'Chennai',religion:'Hindu',socialCategory:'SC',gender:'Female'};}
+        export async function getMyApplication(){return null;}
+        export function clearApiCache(){}
         export async function getBusinessInfo(){if(window.failLoad)throw Error('Could not load saved forms');return window.business;}
         export async function getDeclarationInfo(){return window.declaration;}
         export async function getFinancialInfo(){return {};}
