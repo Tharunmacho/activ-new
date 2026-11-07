@@ -1,5 +1,13 @@
-export type EventFilters = { q: string; category: string; language: string; area: string; mode: string; from: string; to: string };
-export const EMPTY_EVENT_FILTERS: EventFilters = { q: '', category: '', language: '', area: '', mode: '', from: '', to: '' };
+export type EventPriceFilter = '' | 'paid' | 'free';
+export type EventFilters = { q: string; category: string; language: string; area: string; mode: string; price: EventPriceFilter; from: string; to: string };
+export const EMPTY_EVENT_FILTERS: EventFilters = { q: '', category: '', language: '', area: '', mode: '', price: '', from: '', to: '' };
+export function matchesEventPrice(event: any, price: EventPriceFilter) {
+  if (!price) return true;
+  // The member API resolves eligibility; public events use the common fee.
+  // Keep an eligible member's zero price instead of falling back to the list fee.
+  const fee = Number(event?.yourPrice ?? event?.registrationFee ?? 0);
+  return Number.isFinite(fee) && (price === 'paid' ? fee > 0 : fee === 0);
+}
 const norm = (value: unknown) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
 export const eventLanguages = (event: any): string[] => String(event?.language || '').split(/[,/;&+]|\band\b/i).map(s => s.trim()).filter(Boolean);
 const regions = (event: any) => Array.isArray(event?.targets) && event.targets.length ? event.targets : [event || {}];
@@ -24,6 +32,7 @@ export function eventInPeriod(event: any, from = '', to = '') {
   return (!to || day(start) <= to) && (!from || day(Number.isFinite(end) ? Math.max(start, end) : start) >= from);
 }
 export function matchesEventFilters(event: any, f: EventFilters) {
+  if (!matchesEventPrice(event, f.price)) return false;
   if (f.category && norm(event?.category) !== norm(f.category)) return false;
   if (f.language && !eventLanguages(event).some(l => norm(l) === norm(f.language))) return false;
   if (f.mode && (event?.mode || 'offline') !== f.mode) return false;

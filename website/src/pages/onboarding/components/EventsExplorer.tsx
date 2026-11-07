@@ -1,4 +1,4 @@
-import { eventInPeriod, eventDateError, eventLanguages, eventFilterOptions } from '@/lib/eventFilters';
+import { eventInPeriod, eventDateError, eventLanguages, eventFilterOptions, matchesEventPrice, type EventPriceFilter } from '@/lib/eventFilters';
 import { isPastEvent } from '@/lib/eventLifecycle';
 import { useEventClock } from '@/lib/useEventClock';
 import { PosterFrame } from '@/components/shared/PosterFrame';
@@ -231,11 +231,12 @@ export function EventsExplorer({ events, settings }: Props) {
     const [query, setQuery] = useState(initial('q'));
     const [from, setFrom] = useState(initial('from'));
     const [to, setTo] = useState(initial('to'));
-    const [filtersOpen, setFiltersOpen] = useState(() => ['category', 'state', 'district', 'city', 'language', 'mode', 'from', 'to'].some(key => params.has(key)));
+    const [filtersOpen, setFiltersOpen] = useState(() => ['category', 'state', 'district', 'city', 'language', 'mode', 'price', 'from', 'to'].some(key => params.has(key)));
     const [category, setCategory] = useState<string>(initial('category') || ALL);
     const [location, setLocation] = useState<string>(ALL);
 
     const [how, setHow] = useState<How>((['online', 'offline'].includes(initial('mode')) ? initial('mode') : 'all') as How);
+    const [price, setPrice] = useState<EventPriceFilter>((['paid', 'free'].includes(initial('price')) ? initial('price') : '') as EventPriceFilter);
     const [language, setLanguage] = useState<string>(initial('language') || ALL);
 
     /*
@@ -287,10 +288,11 @@ export function EventsExplorer({ events, settings }: Props) {
         put('from', from);
         put('to', to);
         put('mode', how);
+        put('price', price);
         if (next.toString() !== params.toString()) setParams(next, { replace: true });
         // `params` is read to compare only; including it would loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, category, state, district, block, language, how, from, to]);
+    }, [query, category, state, district, block, language, how, price, from, to]);
 
     /* The Search-and-chips card can be removed — see `cmsSections`. It takes
        the chips with it; the search box is not authored and stays. */
@@ -433,6 +435,7 @@ export function EventsExplorer({ events, settings }: Props) {
              * behind a field those rows never had.
              */
             if (how !== 'all' && (event?.mode === 'online' ? 'online' : 'offline') !== how) return false;
+            if (!matchesEventPrice(event, price)) return false;
 
             /*
              * Region.
@@ -494,16 +497,17 @@ export function EventsExplorer({ events, settings }: Props) {
          * when something in this list changes, so a value used inside and
          * missing from it is a control wired to nothing.
          */
-    }, [events, query, category, location, how, state, district, block, language, tree, now, from, to]);
+    }, [events, query, category, location, how, price, state, district, block, language, tree, now, from, to]);
 
     const isFiltered = !!(query.trim()) || category !== ALL || location !== ALL
-        || how !== 'all' || state !== ALL || district !== ALL || block !== ALL || language !== ALL || !!from || !!to;
+        || how !== 'all' || !!price || state !== ALL || district !== ALL || block !== ALL || language !== ALL || !!from || !!to;
 
     const reset = () => {
         setQuery('');
         setCategory(ALL);
         setLocation(ALL);
         setHow('all');
+        setPrice('');
         setState(ALL);
         setDistrict(ALL);
         setBlock(ALL);
@@ -527,6 +531,7 @@ export function EventsExplorer({ events, settings }: Props) {
         if (category !== ALL) return category;
         if (language !== ALL) return `${language} events`;
         if (location !== ALL) return location;
+        if (price) return `${price} events`;
         return 'that filter';
     };
 
@@ -715,6 +720,16 @@ export function EventsExplorer({ events, settings }: Props) {
                                 {HOW.map((h) => (
                                     <option key={h.value} value={h.value}>{h.label}</option>
                                 ))}
+                            </select>
+                            </label>
+
+                            <label>
+                            <span className={PUBLIC_FILTER_LABEL}>Ticket price</span>
+                            <select aria-label="Ticket price" value={price}
+                                onChange={e => setPrice(e.target.value as EventPriceFilter)} className={selectClass}>
+                                <option value="">All prices</option>
+                                <option value="paid">Paid</option>
+                                <option value="free">Free</option>
                             </select>
                             </label>
 
