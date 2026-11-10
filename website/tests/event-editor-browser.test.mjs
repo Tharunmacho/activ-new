@@ -144,6 +144,30 @@ try {
   console.log('PASS: shared text, trimmed links, omitted HTTPS, query strings, channel compatibility, invalid-link feedback and clearing.');
 
   await openEditor();
+  const registrationToggle = `[...document.querySelectorAll('label')].find(label=>label.textContent.includes('Accept registrations')).querySelector('input')`;
+  await evaluate(`${registrationToggle}.click()`);
+  await until(`document.querySelector('input[type="datetime-local"]')`);
+  assert(await evaluate(`document.body.innerText.includes('Leave blank for 3 hours after the start')`));
+  const closingInput = `document.querySelector('input[type="datetime-local"]')`;
+  await fill(closingInput, '2099-10-10T15:45');
+  const closingIso = await evaluate(`new Date(${closingInput}.value).toISOString()`);
+  await click('Save event');
+  await until(`!document.querySelector('#event-form')`);
+  assert.equal(saved.registrationDeadline, closingIso, 'closing date and exact time survive save');
+  await openEditor();
+  assert.equal(await evaluate(`${closingInput}.value`), '2099-10-10T15:45');
+  await fill(closingInput, '');
+  await click('Save event');
+  await until(`!document.querySelector('#event-form')`);
+  assert.equal(saved.registrationDeadline, '', 'clearing restores automatic three-hour default');
+  await openEditor();
+  await evaluate(`${registrationToggle}.click()`);
+  await click('Save event');
+  await until(`!document.querySelector('#event-form')`);
+  assert.equal(saved.registrationEnabled, false, 'manual close persists');
+  console.log('PASS: precise registration closing time survives save/reopen, blank restores default, and manual close persists.');
+
+  await openEditor();
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await evaluate(`${row('Guest B updated')}.scrollIntoView({block:'start'})`);
   await pause(200);

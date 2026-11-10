@@ -23,7 +23,7 @@ try {
     import Entry from './src/components/AndroidAppEntry';import Floating from './src/components/layout/FloatingLaunchers';
     const query=new URLSearchParams(location.search);if(query.has('native'))window.ReactNativeWebView={};
     if(query.has('storage-fails')){Storage.prototype.getItem=function(){throw Error('Unavailable')};Storage.prototype.setItem=function(){throw Error('Unavailable')}}
-    document.addEventListener('click',event=>{const link=event.target.closest('a');if(link?.getAttribute('href')?.startsWith('intent:')){event.preventDefault();window.intentClick=link.getAttribute('href')}});
+    document.addEventListener('click',event=>{const link=event.target.closest('a');if(link?.getAttribute('href')?.startsWith('https://play.google.com/')){event.preventDefault();window.storeClick=link.getAttribute('href')}});
     createRoot(document.getElementById('root')).render(<MemoryRouter initialEntries={[query.get('path')||'/events/demo/book?ref=ACTIV-TEST-001']}><Entry><Floating/><main data-page style={{minHeight:1200,padding:16}}><h1>ACTIV website</h1><p>Your page remains available.</p><Link data-route to="/news">News</Link><Link data-sensitive to="/payment-success">Payment return</Link></main></Entry></MemoryRouter>);
   `}})).outputFiles[0].text;
   chrome=spawn(process.env.CHROME||'C:/Program Files/Google/Chrome/Application/chrome.exe',['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run','--disable-extensions','about:blank'],{windowsHide:true,stdio:'ignore'});
@@ -41,17 +41,20 @@ try {
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:true});await open();
     await until(`!!document.querySelector('.activ-android-entry__primary')`);
     assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'),`Fits ${width}px`);
+    assert(await evaluate(`document.querySelector('.activ-android-entry').getBoundingClientRect().height<=72`),`Compact notice at ${width}px`);
     assert(await evaluate(`(()=>{const banner=document.querySelector('.activ-android-entry').getBoundingClientRect(),page=document.querySelector('[data-page]').getBoundingClientRect();return page.top>=banner.bottom})()`),'Banner is in document flow');
     assert(await evaluate(`[...document.querySelectorAll('.activ-android-entry a,.activ-android-entry button')].every(el=>el.getBoundingClientRect().height>=44)`),'All controls have44px targets');
     assert.equal(await evaluate(`!!document.querySelector('.activ-app-launcher')`),false,'No duplicate Android floating Get app');
     const href=await evaluate(`document.querySelector('.activ-android-entry__primary').getAttribute('href')`);
-    assert.match(href,/^intent:\/\/activ\.org\.in\/events\/demo\/book\?ref=ACTIV-TEST-001#Intent;/);
-    assert.equal(await evaluate(`document.querySelector('.activ-android-entry__store').href`),'https://play.google.com/store/apps/details?id=in.activ.membership');
-    await evaluate(`document.querySelector('.activ-android-entry__primary').click()`);assert.equal(await evaluate('window.intentClick'),href,'Only the explicit tap activates the intent');
+    assert.equal(href,'https://play.google.com/store/apps/details?id=in.activ.membership');
+    assert.equal(await evaluate(`document.querySelector('.activ-android-entry__primary').textContent`),'Install ACTIV');
+    assert.equal(await evaluate(`document.querySelectorAll('.activ-android-entry a').length`),1,'Only one install action');
+    assert.equal(await evaluate(`!!document.querySelector('.activ-android-entry a[href^="intent:"]')`),false,'Install notice does not open the app');
+    await evaluate(`document.querySelector('.activ-android-entry__primary').click()`);assert.equal(await evaluate('window.storeClick'),href,'Explicit install tap opens the Play listing');
     if(process.env.TEST_ARTIFACTS&&[320,390].includes(width)){await mkdir(process.env.TEST_ARTIFACTS,{recursive:true});const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(path.join(process.env.TEST_ARTIFACTS,`android-app-entry-${width}.png`),Buffer.from(shot.result.data,'base64'));}
   }
   const initial=await evaluate('location.href');await pause(1800);assert.equal(await evaluate('location.href'),initial,'No automatic redirect/timer');
-  await evaluate(`document.querySelector('.activ-android-entry__secondary').click()`);await until(`!document.querySelector('.activ-android-entry')`);
+  await evaluate(`document.querySelector('[aria-label="Dismiss app install notice"]').click()`);await until(`!document.querySelector('.activ-android-entry')`);
   assert.equal(await evaluate(`sessionStorage.getItem('activ-android-entry-dismissed')`),'true');
   await evaluate(`document.querySelector('[data-route]').click()`);assert.equal(await evaluate(`!!document.querySelector('.activ-android-entry')`),false);
   await open();assert.equal(await evaluate(`!!document.querySelector('.activ-android-entry')`),false,'Session dismissal survives reload');
@@ -62,10 +65,10 @@ try {
   }
   await open('?native');assert.equal(await evaluate(`!!document.querySelector('.activ-android-entry')`),false,'No promotion inside app');
   await open('?path='+encodeURIComponent('/events/demo/book?ref=secret%3Bpackage%3Devil'));assert.equal(await evaluate(`!!document.querySelector('.activ-android-entry')`),false,'Unsafe intent query rejected');
-  await open('?storage-fails');await until(`!!document.querySelector('.activ-android-entry')`);await evaluate(`document.querySelector('.activ-android-entry__secondary').click()`);await until(`!document.querySelector('.activ-android-entry')`);
+  await open('?storage-fails');await until(`!!document.querySelector('.activ-android-entry')`);await evaluate(`document.querySelector('.activ-android-entry__dismiss').click()`);await until(`!document.querySelector('.activ-android-entry')`);
   for(const userAgent of ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit Safari','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit Chrome/131.0.0.0 Safari']) {
     await send('Network.setUserAgentOverride',{userAgent});await open();assert.equal(await evaluate(`!!document.querySelector('.activ-android-entry')`),false);assert(await evaluate(`!!document.querySelector('.activ-app-launcher')`),'Existing non-Android Get app remains');
   }
-  assert.deepEqual(errors,[]);console.log('PASS Android app-entry browser:320/390/768px flow/touch targets,intent/ref/direct Play link,session dismissal/reload,storage failure,WebView+callback exclusions,desktop/iOS unchanged,no automatic launch. HTTPS blocked.');
+  assert.deepEqual(errors,[]);console.log('PASS Android install notice:320/390/768px compact flow/touch targets,Install ACTIV direct Play link,session dismissal/reload,storage failure,WebView+callback exclusions,desktop/iOS unchanged,no automatic launch. HTTPS blocked.');
   await send('Browser.close');
 }finally{ws?.close();chrome?.kill();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));if(path.resolve(profile).startsWith(path.resolve(tmpdir())+path.sep+'activ-app-entry-'))await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100}).catch(()=>{});}

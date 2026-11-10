@@ -15,7 +15,7 @@ import { CmsMediaFrame } from '@/components/shared/CmsMediaFrame';
 import EventPriceTiers from '@/components/shared/EventPriceTiers';
 import EventActions from '@/components/shared/EventActions';
 import { countdownLabel, eventPhase } from '@/lib/eventCalendar';
-import { isUpcomingEvent } from '@/lib/eventLifecycle';
+import { isUpcomingEvent, eventRegistrationClosesAt, isRegistrationClosed } from '@/lib/eventLifecycle';
 import { getBookableEvent, type BookableEvent } from '@/services/eventBookingApi';
 import { SCREEN_CONTAINER } from '@/components/layout/pageContainer';
 import { SECTION_HEADING, SECTION_LEDE, MICRO_LABEL } from '@/components/layout/typography';
@@ -71,7 +71,7 @@ const formatDay = (iso?: string | null): string => {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '';
     return date.toLocaleDateString('en-GB', {
-        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata',
     });
 };
 
@@ -91,7 +91,7 @@ const formatTime = (iso?: string | null): string => {
     if (!iso) return '';
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
         .toUpperCase();
 };
 
@@ -368,9 +368,7 @@ export default function EventDetailPage() {
     const capped = capacity > 0;
     const seatsLeft = capped ? Math.max(0, Number(availability?.seatsLeft || 0)) : null;
     const soldOut = capped && seatsLeft === 0;
-    // `closed` is the server's answer about the deadline; it is not derived
-    // here, because the deadline is applied in the timezone the server keeps.
-    const bookingClosed = !!availability?.closed;
+    const bookingClosed = !!availability?.closed || isRegistrationClosed(event, now);
     const takenPercent = capped
         ? Math.min(100, Math.round(((capacity - Number(seatsLeft)) / capacity) * 100))
         : 0;
@@ -379,7 +377,9 @@ export default function EventDetailPage() {
     // being believed the second time somebody reads it.
     const fillingFast = capped && !soldOut && Number(seatsLeft) <= Math.max(1, capacity * 0.25);
 
-    const deadline = formatDay(event.registrationDeadline);
+    const cutoff = eventRegistrationClosesAt(event);
+    const cutoffIso = cutoff === null ? null : new Date(cutoff).toISOString();
+    const deadline = cutoffIso ? `${formatDay(cutoffIso)}, ${formatTime(cutoffIso)} IST` : '';
 
     const facts = [
         day ? {

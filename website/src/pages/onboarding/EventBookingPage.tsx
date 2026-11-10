@@ -15,7 +15,7 @@ import { validateRegistrationAnswers, type RegistrationAnswers } from '@/lib/eve
 import BookingQuestions from './components/BookingQuestions';
 import { passQrImageUrl } from '@/services/eventCheckinApi';
 import { resolveMediaUrl } from '@/config/api.config';
-import { isPastEvent } from '@/lib/eventLifecycle';
+import { isPastEvent, isRegistrationClosed } from '@/lib/eventLifecycle';
 import { useEventClock } from '@/lib/useEventClock';
 import { resumeEventBookingPayment } from '@/services/eventBookingApi';
 
@@ -751,7 +751,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
             setEvent(fresh);
             const fieldErrors = { ...validate(), ...validateRegistrationAnswers(fresh.registrationFields, answers) };
             if (Object.keys(fieldErrors).length) { setErrors(fieldErrors); setStep('form'); setPaying(false); return; }
-            if (fresh.closed || isPastEvent(fresh) || (fresh.registrationClosesAt && Date.parse(fresh.registrationClosesAt) <= Date.now())) throw new Error('Bookings for this event have closed.');
+            if (fresh.closed || isRegistrationClosed(fresh)) throw new Error('Bookings for this event have closed.');
             if (Number(fresh.capacity) > 0 && Number(fresh.seatsLeft) < count) throw new Error('The available seats have changed. Please review your booking.');
             if (Number(fresh.amount ?? fresh.price ?? 0) !== price) { setPayError('The event price has changed. Review the updated total before continuing.'); setPaying(false); return; }
             const result = await bookAndPay(id, {
@@ -1089,7 +1089,7 @@ export default function EventBookingPage({ chrome = 'public' }: {
         );
     }
 
-    if ((event.closed || isPastEvent(event, eventNow) || (event.registrationClosesAt && Date.parse(event.registrationClosesAt) <= eventNow)) && step !== 'done') {
+    if ((event.closed || isRegistrationClosed(event, eventNow)) && step !== 'done') {
         return shell(
             <>
                 {crumb}
@@ -2187,11 +2187,11 @@ export default function EventBookingPage({ chrome = 'public' }: {
                 finally { setPaying(false); }
             }}>Refresh booking status</button> : null}
             <div className="flex flex-col sm:flex-row gap-3 mt-7 sm:mt-9">
-                {settled && !event.closed && !isPastEvent(event, eventNow) ? <button type="button" disabled={paying} className={PRIMARY_BUTTON} onClick={async () => {
+                {settled && !event.closed && !isRegistrationClosed(event, eventNow) ? <button type="button" disabled={paying} className={PRIMARY_BUTTON} onClick={async () => {
                     setPaying(true); setPayError('');
                     try {
                         const fresh = await getBookableEvent(id);
-                        if (fresh.closed || isPastEvent(fresh) || (fresh.registrationClosesAt && Date.parse(fresh.registrationClosesAt) <= Date.now())) throw new Error('Bookings for this event have closed.');
+                        if (fresh.closed || isRegistrationClosed(fresh)) throw new Error('Bookings for this event have closed.');
                         if (Number(fresh.capacity) > 0 && Number(fresh.seatsLeft) <= 0) throw new Error('This event is fully booked. Please contact the organiser.');
                         setEvent(fresh); setBooking(null); setCount(1); setCountText('1'); setParticipants([emptyPerson()]); setFirstUsesBooker(false); setAnswers({}); setErrors({});
                         setBooker(current => current.email ? current : confirmed?.bookedBy || emptyPerson());

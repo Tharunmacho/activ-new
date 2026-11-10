@@ -2,6 +2,9 @@ export interface EventLifecycle {
   startAt?: string | Date | null;
   endAt?: string | Date | null;
   archivedAt?: string | Date | null;
+  registrationDeadline?: string | Date | null;
+  registrationClosesAt?: string | Date | null;
+  registrationEnabled?: boolean;
   days?: { date?: string | Date | null }[];
 }
 const DAY_MS = 86400000;
@@ -31,4 +34,16 @@ export const eventPhase = (event: EventLifecycle, now: number | Date = Date.now(
   if (isPastEvent(event, now)) return 'past';
   const start = instant(event.startAt);
   return start !== null && start <= Number(now) ? 'live' : 'upcoming';
+};
+export const eventRegistrationClosesAt = (event: EventLifecycle): number | null => {
+  const start = instant(event.startAt);
+  const cutoff = instant(event.registrationDeadline) ?? instant(event.registrationClosesAt)
+    ?? (start === null ? null : start + 3 * 60 * 60 * 1000);
+  const end = eventEndsAt(event);
+  return cutoff === null ? end : end === null ? cutoff : Math.min(cutoff, end);
+};
+export const isRegistrationClosed = (event: EventLifecycle, now: number | Date = Date.now()): boolean => {
+  const cutoff = eventRegistrationClosesAt(event);
+  return !!event.archivedAt || event.registrationEnabled === false
+    || (cutoff !== null && cutoff <= Number(now));
 };

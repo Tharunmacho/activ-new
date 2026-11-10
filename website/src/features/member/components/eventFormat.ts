@@ -1,4 +1,4 @@
-import { isPastEvent } from '@/lib/eventLifecycle';
+import { isPastEvent, eventRegistrationClosesAt } from '@/lib/eventLifecycle';
 import type { MemberEvent } from '@/services/memberHubApi';
 
 /**
@@ -10,15 +10,12 @@ import type { MemberEvent } from '@/services/memberHubApi';
  * three chances to disagree about whether an event that ends at midnight is
  * today or tomorrow.
  *
- * All formatting is in the VIEWER's timezone, which is correct: the instant was
- * built in the editor's timezone at the point where it was the intended one
- * (see the note on `toInstant` in `EventsManager`), and from there it is a fixed
- * moment that everyone should see in their own clock.
+ * Event dates and times use Indian time consistently with the native app.
  */
 
-const DATE: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
-const DATE_SHORT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-const TIME: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
+const DATE: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' };
+const DATE_SHORT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' };
+const TIME: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
 
 const parse = (value?: string | null): Date | null => {
     if (!value) return null;
@@ -101,16 +98,16 @@ export interface RegistrationGate {
     reason: string;
 }
 
-export const registrationGate = (event: MemberEvent): RegistrationGate => {
+export const registrationGate = (event: MemberEvent, now = Date.now()): RegistrationGate => {
     if (!event.registrationEnabled) {
         return { open: false, reason: 'Registration is not open for this event' };
     }
 
-    if (isPast(event)) return { open: false, reason: 'This event has finished' };
+    if (isPast(event, now)) return { open: false, reason: 'This event has finished' };
 
-    const closes = parse(event.registrationClosesAt);
-    if (closes && closes.getTime() < Date.now()) {
-        return { open: false, reason: 'Registration closed on ' + formatDate(event.registrationClosesAt) };
+    const closes = eventRegistrationClosesAt(event);
+    if (event.archivedAt || (closes !== null && closes <= now)) {
+        return { open: false, reason: 'Registration has closed' };
     }
 
     return { open: true, reason: '' };

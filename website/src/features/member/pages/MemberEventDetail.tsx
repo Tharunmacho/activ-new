@@ -12,7 +12,7 @@ import {
 import MemberPageShell from '@/pages/member/MemberPageShell';
 import { EmptyState, RowsSkeleton } from '@/features/member/components/MemberUI';
 import {
-    formatWhen, formatDate, formatReminders, registrationGate, seatsLeft, isPast,
+    formatWhen, formatDate, formatTime, formatReminders, registrationGate, seatsLeft, isPast,
     type RegistrationGate,
 } from '@/features/member/components/eventFormat';
 import {
@@ -111,8 +111,8 @@ export default function MemberEventDetail() {
     const customFields = useMemo(() => event?.registrationFields || [], [event]);
 
     const gate: RegistrationGate = useMemo(
-        () => (event ? registrationGate(event) : { open: false, reason: '' }),
-        [event],
+        () => (event ? registrationGate(event, eventNow) : { open: false, reason: '' }),
+        [event, eventNow],
     );
     const left = event ? seatsLeft(event) : null;
     const banner = resolveMediaUrl(event?.bannerUrl);
@@ -691,9 +691,9 @@ export default function MemberEventDetail() {
                                         </p>
                                     ) : null}
 
-                                    {event.registrationDeadline ? (
+                                    {event.registrationClosesAt ? (
                                         <p className="text-ui-caption text-slate-500">
-                                            Registration closes {formatDate(event.registrationClosesAt)}.
+                                            Registration closes {formatDate(event.registrationClosesAt)} at {formatTime(event.registrationClosesAt)} IST.
                                         </p>
                                     ) : null}
 

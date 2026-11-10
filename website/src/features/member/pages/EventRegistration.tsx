@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEventClock } from '@/lib/useEventClock';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -58,6 +59,7 @@ const INPUT =
     + 'focus:border-blue-400 transition-shadow';
 
 export default function EventRegistration() {
+    const eventNow = useEventClock();
     const { id = '' } = useParams();
     const navigate = useNavigate();
 
@@ -148,7 +150,7 @@ export default function EventRegistration() {
         ? event.myRegistration
         : null;
 
-    const gate = event ? registrationGate(event) : { open: false, reason: '' };
+    const gate = event ? registrationGate(event, eventNow) : { open: false, reason: '' };
     const left = event ? seatsLeft(event) : null;
     const full = left === 0;
 

@@ -257,7 +257,8 @@ export interface MemberEvent {
     contactEmail: string;
     registrationEnabled: boolean;
     registrationDeadline: string | null;
-    /** The deadline, or the start — derived, so moving the event moves it. */
+    archivedAt?: string | null;
+    /** Explicit deadline or start + 3 hours, capped at the event end. */
     registrationClosesAt: string | null;
     capacity: number;
     /** Rupees. 0 is free; anything above it adds a payment step. */

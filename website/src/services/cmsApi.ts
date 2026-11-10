@@ -715,6 +715,7 @@ export interface CmsEvent {
     share?: { title: string; description: string; text: string; image?: string };
     registrationEnabled?: boolean;
     registrationDeadline?: string | null;
+    registrationClosesAt?: string | null;
     capacity?: number;
     registrationNote?: string;
     reminderOffsetsHours?: number[];

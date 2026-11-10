@@ -664,9 +664,13 @@ export default function EventDetailFields({
                                 className="w-4 h-4 rounded border-slate-300 text-blue-600"
                             />
                             <span className="text-ui-body text-slate-800 dark:text-neutral-200">
-                                Members can register for this event
+                                Accept registrations
                             </span>
                         </label>
+                        <p className="text-ui-body text-slate-500 dark:text-[#A1A1AA] mb-4">
+                            Turn this off and save to close registration immediately, including during an online or in-person event.
+                            Turn it back on and set a future closing time to reopen before the event ends.
+                        </p>
 
                         {value.registrationEnabled ? (
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -737,27 +741,13 @@ export default function EventDetailFields({
 
                                 <CmsField
                                     label="Registration closes"
+                                    hint="Leave blank for 3 hours after the start. Choose a date and time to close earlier or extend registration during the event. Registration always closes by the event end."
                                 >
-                                    {/*
-                                      * A DATE, not a date AND a time.
-                                      *
-                                      * `datetime-local` puts six fields in one
-                                      * box — day, month, year, hour, minute,
-                                      * meridiem — to answer a question nobody
-                                      * has ever answered to the minute. The
-                                      * stored value keeps its time component:
-                                      * a date alone is normalised to the end of
-                                      * that day on save, so "closes on the 17th"
-                                      * means the whole of the 17th rather than
-                                      * midnight at the start of it.
-                                      */}
                                     <CmsInput
-                                        type="date"
-                                        value={(value.registrationDeadline || '').slice(0, 10)}
+                                        type="datetime-local"
+                                        value={value.registrationDeadline || ''}
                                         onChange={(e) => set({
-                                            registrationDeadline: e.target.value
-                                                ? `${e.target.value}T23:59`
-                                                : '',
+                                            registrationDeadline: e.target.value,
                                         })}
                                     />
                                 </CmsField>
