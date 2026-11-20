@@ -32,6 +32,13 @@ import { fetchPagePreview, mergePagePreview, isPublicPreviewPath } from './share
 import { resolveApiBase } from './api-base.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
+const historyDirectory = process.env.WEBSITE_ASSET_HISTORY;
+let previousAsset;
+if (historyDirectory) {
+    const history = await import('./asset-history.mjs');
+    history.archiveAssets(path.join(ROOT, 'assets'), historyDirectory);
+    previousAsset = pathname => history.previousAsset(historyDirectory, pathname);
+}
 const PORT = Number(process.env.PORT || 8080);
 const builtConfig = (() => {
     try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'site-config.json'), 'utf8')); }
@@ -265,8 +272,10 @@ const server = http.createServer(async(req, res) => {
         const pathname = decodeURIComponent(url.pathname);
 
         // A real file in dist: assets, images, robots.txt …
-        const file = path.normalize(path.join(ROOT, pathname));
-        if (file.startsWith(ROOT) && pathname !== '/' && fs.existsSync(file) && fs.statSync(file).isFile()) {
+        const current = path.resolve(ROOT, '.' + pathname);
+        const local = current.startsWith(ROOT + path.sep) && fs.existsSync(current) && fs.statSync(current).isFile();
+        const file = local ? current : previousAsset?.(pathname);
+        if (file) {
             if (file === path.join(ROOT, 'index.html')) {
                 await send(req, res, 200, index(), TYPES['.html']);
                 return;

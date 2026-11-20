@@ -4,7 +4,7 @@ providers = ["node"]
 NIXPACKS_NODE_VERSION = "22"
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm ci --include=dev"]
 
 [phases.build]
 cmds = ["npm run build"]
